@@ -13,9 +13,10 @@ Verbindlicher Entwurf: [JFX_EDITOR_ARCHITECTURE.md](../JFX_EDITOR_ARCHITECTURE.m
 
 ## Stand
 
-P01 und P02 abgeschlossen. Vorhanden: Fehlerkonvention, Abhängigkeitsgrenze, unveränderliches
-Dokumentmodell mit vollständiger Strukturvalidierung, offene Node- und Mark-Verträge, Schema
-und ID-Generator. `Selection`, `Transaction` und `Command` folgen ab P03/P04. Leere
+P01–P03 abgeschlossen. Vorhanden: Fehlerkonvention, Abhängigkeitsgrenze, unveränderliches
+Dokumentmodell mit vollständiger Strukturvalidierung, offene Node-, Mark- und
+Selection-Verträge, Schema, ID-Generator, primitive Operationen und die komponierbare
+Positionsabbildung. `EditorState`, `Transaction` und `Command` folgen ab P04. Leere
 Platzhaltertypen werden bewusst nicht vorweggenommen.
 
 ## Dokumentmodell
@@ -30,6 +31,13 @@ Platzhaltertypen werden bewusst nicht vorweggenommen.
 | `Document` / `DocumentRead` | Gültiger unveränderlicher Baum, privat konstruiert |
 | `DocumentValidator` / `Violation` | Fünfstufige Prüfung, geschlossenes Ergebnis-ADT |
 | `NodeIdGenerator` | Injizierte ID-Quelle, deterministisch testbar |
+| `Point` / `Affinity` | Logische Position mit Text- oder Kindoffset, plus Klebeseite |
+| `Selection` / `SelectionSupport` | Offener Auswahlvertrag, Range und Node eingebaut |
+| `Operation` / `OperationError` | Sieben Primitive: Insert, Remove, Move, Replace, SpliceText, SplitText, MergeText |
+| `PositionMapping` / `MappedPoint` | Komponierbare Nachführung von Positionen |
+| `ChangeSet` / `TextSplice` | Was sich geändert hat, getrennt von bloß berührten Vorfahren |
+| `Bookmark` / `RevisionMapping` | Gemerkte Position samt Ablaufvertrag |
+| `TextBoundaryService` | Nur der Vertrag; Implementierung in P06 |
 
 Ein `Document` ist nur über `Document.build` zu bekommen und erfüllt danach die Invarianten aus
 §8.2 immer schon: genau eine Wurzel, eindeutige IDs, erreichbare Knoten, keine Zyklen, je Knoten
@@ -57,6 +65,40 @@ Jede `Violation` nennt Pfad, ID und Grund:
 ```
 <root>#root.children[0]: `root` verweist an Position 0 auf den unbekannten Knoten `ghost`.
 ```
+
+## Operationen und Positionsabbildung
+
+Jede Operation liefert drei Dinge auf einmal (§10): das neue Dokument, ein `ChangeSet` und
+eine `PositionMapping`. Sie entstehen gemeinsam, weil sie sonst auseinanderlaufen könnten.
+
+```scala
+document.applyOperation(Operation.SpliceText(t1, 5, 0, "!")) // Either[OperationError, OperationResult]
+document.applyAll(Seq(…))                                    // dasselbe, komponiert
+```
+
+Atomar: bei einem Fehler bleibt das Ausgangsdokument unverändert. Es gibt nichts
+zurückzurollen — jeder Zwischenstand ist ein eigener unveränderlicher Wert.
+
+Die Operationen validieren **nicht** voll durch. Sie prüfen ihre Vorbedingungen und
+konstruieren das Ergebnis so, dass die Invarianten erhalten bleiben; eine Vollvalidierung pro
+Tastendruck wäre linear in der Dokumentgröße und genau das, was §8.2 ausschließt. Weil das
+eine Behauptung ist, prüft `DocumentOperationModelSpec` sie: 30 Runden zu je 40 zufälligen
+Operationen, nach **jedem** Schritt gegen drei unabhängige Instanzen — den `DocumentValidator`
+(Neuaufbau von Grund auf), ein Referenzmodell aus schlichten Maps, und mitgeführte Punkte, die
+im neuen Dokument darstellbar sein müssen.
+
+### Affinität
+
+`MappedPoint` unterscheidet `Preserved` von `Displaced`. Das ist kein Luxus: ein Caret darf auf
+eine Grenze zurückfallen, ein Upload-Bookmark darf das nicht — sonst landet das fertige Bild an
+beliebiger Stelle (§20). Verschiebung ist ansteckend: was in einem Schritt verschwunden ist,
+taucht im nächsten nicht wieder auf.
+
+`Affinity` entscheidet, woran ein Punkt klebt, wenn genau an seiner Position eingefügt wird.
+Der lehrreichste Fall steht in `PositionMappingSpec`: beim Umsortieren von `[t1, t2]` zu
+`[t2, t1]` wandert `Children(c1, 2, Before)` auf Offset 1, weil der Punkt an `t2` klebt und
+`t2` nach vorn gerückt ist. Eine Kindposition ist eine Grenze zwischen Geschwistern, keine
+Nummer, die stehen bleibt.
 
 ### Fremde Node-Arten
 

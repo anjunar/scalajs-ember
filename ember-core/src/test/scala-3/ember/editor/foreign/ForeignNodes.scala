@@ -82,3 +82,31 @@ final case class UnregisteredNode(id: NodeId) extends EditorNode
 /** Markierungen des Fremdmoduls. Der Kern bringt keine mit (§8.2). */
 final case class NamedMark(name: String) extends TextMark:
   def markId: MarkId = MarkId(name)
+
+/** Eine eigene Auswahlart des Fremdmoduls.
+  *
+  * Stellvertreter fuer die Tabellenauswahl aus X01: weder ein Textbereich noch eine Knotenmenge.
+  * Belegt, dass §11s offener Auswahlvertrag traegt -- ohne ihn muesste X01 den Kern aufmachen.
+  */
+final case class CellRangeSelection(from: NodeId, to: NodeId) extends Selection
+
+object CellRangeSelectionMapper extends SelectionMapper[CellRangeSelection]:
+
+  def project(selection: Selection): Option[CellRangeSelection] = selection match
+    case cells: CellRangeSelection => Some(cells)
+    case _                         => None
+
+  /** Ueberlebt nur, solange beide Ecken existieren. */
+  def map(
+      selection: CellRangeSelection,
+      mapping: PositionMapping,
+      after: DocumentRead
+  ): Option[Selection] =
+    Option.when(after.contains(selection.from) && after.contains(selection.to))(selection)
+
+  def validate(selection: CellRangeSelection, document: DocumentRead): Vector[Violation] =
+    Vector(selection.from, selection.to)
+      .filterNot(document.contains)
+      .map(node =>
+        Violation.NodeRejected(node, "Zellecke fehlt im Dokument.", DiagnosticPath.node(node.value))
+      )

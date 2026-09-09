@@ -14,14 +14,15 @@ Laufzeitabhängigkeit.
 
 ## Stand
 
-**P01 und P02 abgeschlossen**, P03–P30 offen (66 Tests). Der frühere
+**P01–P03 abgeschlossen**, P04–P30 offen (152 Tests). Der frühere
 `contenteditable`-Prototyp (`ember.core.Editor` mit `execCommand` und HTML-String als
 Zustand) und seine vite-Demo wurden entfernt — Architektur §2 und §25 schließen diesen
 Ansatz aus.
 
 `ember-core` trägt den headless Kern unter `ember.editor.core`: Fehlerkonvention,
-erzwungene Abhängigkeitsgrenze und das unveränderliche Dokumentmodell mit vollständiger
-Strukturvalidierung. Selection und Transaktionen folgen ab P03.
+erzwungene Abhängigkeitsgrenze, das unveränderliche Dokumentmodell mit vollständiger
+Strukturvalidierung sowie die primitiven Operationen mit komponierbarer Positionsabbildung.
+Transaktionen und Commands folgen ab P04.
 
 ## Module
 

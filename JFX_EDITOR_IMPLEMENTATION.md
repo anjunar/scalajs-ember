@@ -1,7 +1,7 @@
 # JFX Editor: ausführbarer Implementierungsplan
 
-Status: **P01 und P02 abgeschlossen** (66 Tests grün, `sbt --server "Test/testOnly *"`),
-P03–P30 offen. Dieses Repository (`scalajs-ember`) ist das in
+Status: **P01–P03 abgeschlossen** (152 Tests grün, `sbt --server "Test/testOnly *"`),
+P04–P30 offen. Dieses Repository (`scalajs-ember`) ist das in
 Architektur und Plan gemeinte „eigene Repository“. Die generischen JFX-Core-Anteile aus
 P08/P09, P19a, P20 und P23 sind **nicht hier, sondern im Nachbar-Repo `../scalajs-jfx`**
 implementiert und über eine Quell-Abhängigkeit auf dessen Submodul `jfx-core` eingebunden
@@ -208,6 +208,53 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 - **Dependencies:** P01; Architektur §8.
 
 ## P03 — Primitive Operationen und Selection-Mapping
+
+> **Abgeschlossen.** Alle geplanten Dateien liegen unter
+> `ember-core/src/main/scala-3/ember/editor/core/`; `Document.scala` und `DocumentRead.scala`
+> sind entsprechend erweitert. Abnahme: `sbt --server "Test/testOnly *"` → 152 Tests grün
+> (86 neue). Die Regeltabelle aus §11 ist Zeile für Zeile in `PositionMappingSpec` abgebildet.
+>
+> **Ergänzungen gegenüber dem Plan:**
+>
+> 1. *`MappedPoint` mit `Preserved`/`Displaced`.* Ohne diese Unterscheidung wäre
+>    `ExpiredBookmark` nicht umsetzbar. Ein Caret **darf** auf eine Grenze zurückfallen — er
+>    muss irgendwo stehen. Ein Upload-Bookmark darf das nicht: wäre das Zielbild gelöscht,
+>    setzte eine Einfügung an der Grenze das Ergebnis an beliebiger anderer Stelle ein (§20).
+>    Beide brauchen dieselbe Abbildung, aber verschiedene Antworten darauf.
+> 2. *`Revision` hier statt in P04.* `Bookmark` kann ohne sie nicht sagen, worauf es sich
+>    bezieht. Derselbe Typ wird in P04s `EditorState` verwendet.
+> 3. *`SelectionSupport`-Registry.* §11 verlangt den Erweiterungspunkt für X01s Zellbereich.
+>    Nachträglich eingeführt würde er jede Aufrufstelle ändern, deshalb jetzt. Belegt durch
+>    `CellRangeSelection` im Fremdmodul-Fixture.
+> 4. *`DocumentRead.comparePoints` / `pathIndices` / `indexOfChild`.* „Vorwärts/rückwärts ergibt
+>    sich aus der aktuellen Dokumentordnung, nicht aus lexikographischer ID-Sortierung" (§11)
+>    braucht einen tatsächlichen Ordnungsvergleich über den Baum.
+>
+> **Präzisierungen, die der Plan offenließ:**
+>
+> 5. *`Replace` lässt die Kindliste unangetastet.* §10 nennt „replace" als Primitiv, ohne den
+>    Umfang festzulegen. Dürfte es Kinder umhängen, würden die bisherigen zu Waisen — und die
+>    Abbildungsregel wäre nicht mehr bestimmbar. So ist `Replace` genau das „updated" aus dem
+>    ChangeSet, Struktur läuft über Insert/Remove/Move.
+> 6. *`Insert` nimmt einen ganzen Teilbaum.* Ein einzelner Knoten mit Kindreferenzen auf noch
+>    nicht eingefügte Knoten wäre ein ungültiger Zwischenstand, und §10 verlangt, dass keiner
+>    sichtbar wird.
+> 7. *`MergeText` weist verschiedene Marks ab.* Ein Merge darüber hinweg verlöre Formatierung
+>    stillschweigend. Die Normalisierung aus §8.2 führt ohnehin nur gleich markierte Läufe
+>    zusammen; das Primitiv verlässt sich nicht darauf, sondern lehnt ab.
+> 8. *Surrogatpaar-Prüfung an Schnittstellen.* Ein Schnitt mitten in ein Paar erzeugte zwei
+>    Strings mit je einem halben Codepoint. Das ist eine UTF-16-Gültigkeitsfrage, keine
+>    Unicode-Segmentierung — Graphemcluster bleiben Sache des `TextBoundaryService` (P06).
+>
+> **Befund aus der Umsetzung:**
+>
+> 9. *Kindgrenzen folgen beim Umsortieren ihrem Inhalt, nicht ihrer Nummer.* Beim Reorder
+>    `[t1, t2]` → `[t2, t1]` bildet die komponierte Abbildung `Children(c1, 2, Before)` auf
+>    `Children(c1, 1, Before)` ab, nicht auf 2. Das ist richtig: mit `Before` klebt der Punkt an
+>    `t2`, und die Position unmittelbar hinter `t2` ist nach dem Umsortieren Offset 1. Meine
+>    erste Testerwartung war naiv; der Fall steht jetzt mit beiden Affinitäten in
+>    `PositionMappingSpec` und ist dort begründet. Das ist genau das Off-by-one, vor dem die
+>    Risikozeile dieser Phase warnt — nur an anderer Stelle als vermutet.
 
 - **Ziel:** Strukturänderung und Positionsabbildung als eine atomar berechenbare Operation.
 - **Module:** core.

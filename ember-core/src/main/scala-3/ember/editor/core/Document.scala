@@ -29,8 +29,8 @@ package ember.editor.core
 final class Document private (
     val schema: Schema,
     val rootId: NodeId,
-    private val byId: Map[NodeId, EditorNode],
-    private val parents: Map[NodeId, NodeId]
+    private[core] val byId: Map[NodeId, EditorNode],
+    private[core] val parents: Map[NodeId, NodeId]
 ) extends DocumentRead:
 
   def size: Int = byId.size
@@ -43,6 +43,30 @@ final class Document private (
 
   /** Alle Knoten in Dokumentordnung. */
   def inDocumentOrder: Iterator[EditorNode] = subtreeOf(rootId).flatMap(node)
+
+  /** Wendet eine primitive Operation an.
+    *
+    * Atomar: bei einem Fehler bleibt dieses Dokument unveraendert und gueltig, und der Aufrufer
+    * haelt weiterhin einen brauchbaren Stand in der Hand (P03, Akzeptanz).
+    */
+  def applyOperation(operation: Operation): Either[OperationError, OperationResult] =
+    OperationEngine(this, operation)
+
+  /** Wendet eine Folge an und liefert das zusammengefasste Ergebnis.
+    *
+    * Ebenfalls atomar: die erste fehlschlagende Operation bricht die Folge ab, und weil jeder
+    * Zwischenstand ein eigener unveraenderlicher Wert ist, bleibt das Ausgangsdokument dabei
+    * unberuehrt. Es gibt nichts zurueckzurollen -- das ist der praktische Gewinn der
+    * Unveraenderlichkeit gegenueber einem Draft, den man wieder aufraeumen muss.
+    *
+    * Eine leere Folge ergibt ein leeres Ergebnis auf demselben Dokument, keinen Commit (§10).
+    */
+  def applyAll(operations: Seq[Operation]): Either[OperationError, OperationResult] =
+    operations.foldLeft[Either[OperationError, OperationResult]](
+      Right(OperationResult(this, ChangeSet.empty, PositionMapping.identity))
+    ) { (accumulated, operation) =>
+      accumulated.flatMap(result => result.document.applyOperation(operation).map(result andThen _))
+    }
 
   override def equals(other: Any): Boolean = other match
     case that: Document => rootId == that.rootId && byId == that.byId
