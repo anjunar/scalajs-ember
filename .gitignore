@@ -1,0 +1,11 @@
+.bsp/
+.idea/
+.metals/
+.scala-build/
+node_modules/
+target/
+dist/
+*.iml
+*.iws
+*.ipr
+.DS_Store
