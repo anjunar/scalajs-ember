@@ -1,7 +1,7 @@
 # JFX Editor: ausführbarer Implementierungsplan
 
-Status: **P01–P03 abgeschlossen** (152 Tests grün, `sbt --server "Test/testOnly *"`),
-P04–P30 offen. Dieses Repository (`scalajs-ember`) ist das in
+Status: **P01–P04 abgeschlossen** (207 Tests grün, `sbt --server "Test/testOnly *"`),
+P05–P30 offen. Dieses Repository (`scalajs-ember`) ist das in
 Architektur und Plan gemeinte „eigene Repository“. Die generischen JFX-Core-Anteile aus
 P08/P09, P19a, P20 und P23 sind **nicht hier, sondern im Nachbar-Repo `../scalajs-jfx`**
 implementiert und über eine Quell-Abhängigkeit auf dessen Submodul `jfx-core` eingebunden
@@ -267,6 +267,54 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 - **Dependencies:** P02; Architektur §§8, 11.
 
 ## P04 — EditorState und atomare Transaktionen
+
+> **Abgeschlossen.** Alle geplanten Dateien liegen unter
+> `ember-core/src/main/scala-3/ember/editor/core/`. Abnahme:
+> `sbt --server "Test/testOnly *"` → 207 Tests grün (55 neue). Schritt 4 der Commit-Reihenfolge
+> (Transforms) bleibt planmäßig P05 vorbehalten.
+>
+> **Befund aus der Umsetzung:**
+>
+> 1. *Eine ausdrückliche Feldzuweisung schlägt `DocumentChangePolicy.Reset`.* Meine erste
+>    Fassung wandte die Policy auf den fertigen Kandidaten an und kassierte damit einen Wert
+>    wieder ein, den dieselbe Transaktion gerade gesetzt hatte. Ein Test hat es gefangen. Damit
+>    wären Reset-Felder praktisch unbenutzbar gewesen: der häufigste Fall ist gerade, dass eine
+>    dokumentändernde Transaktion den zugehörigen Folgewert mitsetzt. Die Transaktion merkt sich
+>    jetzt, welche Felder sie selbst zugewiesen hat; nur die übrigen werden zurückgesetzt.
+>
+> **Ergänzungen gegenüber dem Plan:**
+>
+> 2. *Zwei Revisionen, immer getrennt.* §9 erlaubt die Trennung „bei Bedarf"; hier ist sie fest.
+>    `revision` steigt bei jeder Veröffentlichung, `documentRevision` nur bei echter
+>    Dokumentänderung. Wer speichert, vergleicht die zweite — ein bewegter Cursor löst dann
+>    keinen Schreibvorgang aus. Eine bedingte Trennung wäre komplizierter und hätte denselben
+>    Zweck.
+> 3. *`session.mappingSince(revision)` mit begrenzter Retention.* §11 verlangt einen
+>    `ExpiredBookmark`, „wenn benötigte Maps nicht mehr verfügbar sind" — dafür muss sie jemand
+>    halten. Die Sitzung tut das, begrenzt über `SessionConfig.mappingRetention`. Ein Bookmark
+>    jenseits des Fensters läuft ab, statt eine Position zu raten.
+> 4. *Error-Sink.* Ein geworfener Listener und ein fehlgeschlagenes Update aus der
+>    Warteschlange haben keinen Aufrufer, der ein `Either` entgegennehmen könnte. Ohne Sink
+>    verschwänden beide spurlos. Voreinstellung ist ein Nichtstuer; eine Anwendung sollte hier
+>    protokollieren.
+> 5. *`SessionConfig`.* Bündelt Felder, Regeln, Auswahlarten, Retention und Sink. P05 baut sie
+>    aus Extensions zusammen.
+>
+> **Präzisierungen, die der Plan offenließ:**
+>
+> 6. *Ein No-op liefert `Right(commit)` mit `isNoOp`, benachrichtigt aber niemanden.* So bleibt
+>    `update` total und der Aufrufer erfährt, dass nichts passiert ist, ohne dass Listener für
+>    nichts geweckt werden.
+> 7. *Eine geworfene Exception im Body propagiert.* Sie ist ein Programmierfehler und wird nach
+>    P01s Konvention nicht in ein `Left` verwandelt. Die Sitzung bleibt trotzdem konsistent:
+>    veröffentlicht wird erst ganz am Ende, und das Handle läuft im `finally` ab.
+> 8. *Die Transaktion rastet den ersten Fehlschlag ein.* Die Closure liefert `Unit`, ein
+>    ignoriertes `Either` darf also nicht dazu führen, dass auf einem kaputten Entwurf
+>    weitergearbeitet wird.
+> 9. *`dispose` aus einem Listener heraus bricht die Benachrichtigungsrunde ab.* Weitere
+>    Konsumenten einer entsorgten Sitzung zu bedienen wäre schlechter, als sie zu übergehen.
+> 10. *`enqueueUpdate` außerhalb einer Transaktion läuft sofort.* Alles andere wäre eine
+>     Überraschung; innerhalb einer Transaktion landet es wie vorgesehen in der FIFO-Schlange.
 
 - **Ziel:** Eine synchrone, serialisierte Commit-Grenze mit definierten Fehlern und Listenern.
 - **Module:** core.

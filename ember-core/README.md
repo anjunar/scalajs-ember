@@ -13,11 +13,12 @@ Verbindlicher Entwurf: [JFX_EDITOR_ARCHITECTURE.md](../JFX_EDITOR_ARCHITECTURE.m
 
 ## Stand
 
-P01–P03 abgeschlossen. Vorhanden: Fehlerkonvention, Abhängigkeitsgrenze, unveränderliches
+P01–P04 abgeschlossen. Vorhanden: Fehlerkonvention, Abhängigkeitsgrenze, unveränderliches
 Dokumentmodell mit vollständiger Strukturvalidierung, offene Node-, Mark- und
-Selection-Verträge, Schema, ID-Generator, primitive Operationen und die komponierbare
-Positionsabbildung. `EditorState`, `Transaction` und `Command` folgen ab P04. Leere
-Platzhaltertypen werden bewusst nicht vorweggenommen.
+Selection-Verträge, Schema, ID-Generator, primitive Operationen mit komponierbarer
+Positionsabbildung sowie Sitzung, atomare Transaktionen und typisierte Zustandsfelder.
+Commands, Extensions und Transforms folgen mit P05. Leere Platzhaltertypen werden bewusst
+nicht vorweggenommen.
 
 ## Dokumentmodell
 
@@ -38,6 +39,12 @@ Platzhaltertypen werden bewusst nicht vorweggenommen.
 | `ChangeSet` / `TextSplice` | Was sich geändert hat, getrennt von bloß berührten Vorfahren |
 | `Bookmark` / `RevisionMapping` | Gemerkte Position samt Ablaufvertrag |
 | `TextBoundaryService` | Nur der Vertrag; Implementierung in P06 |
+| `EditorState` / `Commit` | Veröffentlichter Sitzungszustand, mit zwei Revisionen |
+| `EditorSession` / `SessionConfig` | Besitzt den Zustand, hält die einzige Commit-Grenze |
+| `Transaction` | Privater Entwurf mit eingerastetem Fehler und begrenzter Lebensdauer |
+| `StateField` / `StateFields` | Typisierte Sitzungsfelder mit reinem, ablehnendem Reducer |
+| `PreCommitRule` | Synchrones Urteil über den fertigen Kandidaten |
+| `UpdateError` / `Subscription` | Warum ein Commit ausblieb; aufkündbare Registrierung |
 
 Ein `Document` ist nur über `Document.build` zu bekommen und erfüllt danach die Invarianten aus
 §8.2 immer schon: genau eine Wurzel, eindeutige IDs, erreichbare Knoten, keine Zyklen, je Knoten
@@ -99,6 +106,48 @@ Der lehrreichste Fall steht in `PositionMappingSpec`: beim Umsortieren von `[t1,
 `[t2, t1]` wandert `Children(c1, 2, Before)` auf Offset 1, weil der Punkt an `t2` klebt und
 `t2` nach vorn gerückt ist. Eine Kindposition ist eine Grenze zwischen Geschwistern, keine
 Nummer, die stehen bleibt.
+
+## Sitzung und Commit-Grenze
+
+```scala
+val editor = EditorSession.create(document, SessionConfig(fields = Vector(TypingMarks)))
+
+editor.update { tx =>
+  tx.spliceText(t1, 5, 0, "!")
+  tx.select(RangeSelection.caret(Point.textAfter(t1, 6)))
+}  // Either[UpdateError, Commit]
+```
+
+Eine Transaktion ist ein privater Entwurf. Sie rastet den ersten Fehlschlag ein und weist
+alles Weitere ab — die Closure liefert `Unit`, ein ignoriertes `Either` darf also nicht dazu
+führen, dass auf einem kaputten Entwurf weitergearbeitet wird. Ihr Handle gilt nur innerhalb
+der Closure; danach wirft jeder Zugriff, denn es in einem `Future` aufzuheben ist ein
+Programmierfehler, kein Datenfehler.
+
+**Zwei Revisionen.** `revision` steigt bei jeder Veröffentlichung, `documentRevision` nur bei
+echter Dokumentänderung. Wer speichert, vergleicht die zweite — ein bewegter Cursor löst dann
+keinen Schreibvorgang aus (§9).
+
+**Ein Commit ist nicht gerendert.** Der Kern veröffentlicht einen Zustand; ob eine View ihn
+zeigt, ist ein anderer Zeitpunkt (§5). P09 hängt die Projektion in dieselbe Phase, in der
+heute die Warteschlange abgearbeitet wird.
+
+**Keine Reentranz.** `update` innerhalb eines `update` ergibt `UpdateError.NestedUpdate`. Wer
+aus einem Listener heraus ändern will, nimmt `enqueueUpdate` — FIFO, und erst wenn die
+Benachrichtigungsphase durch ist. Ein geworfener Listener wird an den Error-Sink gemeldet und
+reißt die übrigen nicht mit; ein bereits veröffentlichter Commit wird deswegen nicht halb
+zurückgedreht.
+
+### Zustandsfelder
+
+`StateField[A]` ist keine frei beschreibbare Zelle. Der Reducer läuft im Commit gegen den
+fertigen Kandidaten und darf **ablehnen** — daran hängt P19b: ein `ToggleUnderline` in einem
+Strict-CommonMark-Feld muss vor dem Commit scheitern, nicht danach einen veralteten
+Formularwert hinterlassen.
+
+`DocumentChangePolicy` erklärt ausdrücklich, was bei einer Dokumentänderung geschieht.
+`Reset` überspringt dabei Felder, die dieselbe Transaktion selbst zugewiesen hat — sonst
+könnte eine ändernde Transaktion ihren eigenen Folgewert nie setzen.
 
 ### Fremde Node-Arten
 
