@@ -1,14 +1,14 @@
 # JFX Editor: ausführbarer Implementierungsplan
 
-Status: **Meilenstein A steht, B begonnen** — P01–P07 abgeschlossen (316 Scala-Tests und
-24 Browserfälle in Chromium, Firefox und WebKit grün),
-P08–P30 offen. Dieses Repository (`scalajs-ember`) ist das in
+Status: **Meilenstein A und B stehen** — P01–P09 abgeschlossen (335 Scala-Tests und
+126 Browserfälle in Chromium, Firefox und WebKit grün),
+P10–P30 offen. Dieses Repository (`scalajs-ember`) ist das in
 Architektur und Plan gemeinte „eigene Repository“. Die generischen JFX-Core-Anteile aus
 P08/P09, P19a, P20 und P23 sind **nicht hier, sondern im Nachbar-Repo `../scalajs-jfx`**
 implementiert und über eine Quell-Abhängigkeit auf dessen Submodul `jfx-core` eingebunden
 (`ProjectRef` in [build.sbt](build.sbt)); der Vertrag steht in
 [JFX_CORE_INTEGRATION.md](JFX_CORE_INTEGRATION.md). Das erledigt nicht die jeweiligen
-Editor-Integrationsphasen. Stand: 9. September 2026.
+Editor-Integrationsphasen. Stand: 10. September 2026.
 
 Verbindliche Grundlage ist [JFX_EDITOR_ARCHITECTURE.md](JFX_EDITOR_ARCHITECTURE.md). Der Editor wird neu gebaut. Der Prototyp wird weder analysiert noch intern weiterentwickelt; öffentliche API-Namen können als Inspiration dienen. Bestehende Nutzerdaten und öffentliche Konsumenten werden erst bei der bewussten Ablösung betrachtet.
 
@@ -551,10 +551,50 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 
 ## P08 — JFX Text-Splice und Move physischer Komponenten
 
-> **Im Nachbar-Repo erledigt.** `spliceText` liegt in `../scalajs-jfx/jfx-core/src/main/scala-3/jfx/core/render/TextNode.scala:8`,
-> `render/DomTextNode.scala:12` und `layout/TextComponent.scala:20`; `Runtime.move` und
-> `Runtime.contentCursor` in `component/Runtime.scala:180` bzw. `:168`. Hier bleibt nur die
-> Nutzung in P09 und die IT-Absicherung, sobald P07 den Harness stellt — nicht die Implementierung.
+> **Abgeschlossen als Prüfphase.** Die Implementierung lag bereits im Nachbar-Repo; hier
+> entstanden die Integrationsnachweise. Abnahme:
+> `EMBER_FIREFOX_CHANNEL=moz-firefox npx playwright test` → **87 Fälle grün** (29 je Engine,
+> Chromium/Firefox/WebKit), davon 21 neu für diese Phase.
+>
+> **Bewusste Abweichung — keine neuen Scala-Specs im Nachbar-Repo:**
+>
+> 1. Der Plan listet `TextSpliceSpec.scala` und `RuntimeMoveSpec.scala` unter
+>    `../scalajs-jfx/jfx-core/src/test/`. Beide wären Duplikate: `HostEditingSpec` deckt dort
+>    mit 68 Fällen genau diese Verträge ab — „use UTF-16 offsets and retain the same host",
+>    „reject invalid ranges without changing mounted or pending text", „move existing
+>    references instead of duplicating them", „validate cycles and anchors before removing the
+>    source", „preserve physical children and later updates across parents". Dazu kommt: in
+>    jenem Repo wird gerade gearbeitet (unfertige Änderungen im Baum). Tests in einen fremden,
+>    offenen Arbeitsbaum zu schreiben, die dort schon existieren, wäre in beide Richtungen
+>    falsch.
+>
+> **Was dieses Repo stattdessen beisteuert:**
+>
+> 2. *DOM-Knotenidentität.* Die JVM-Suite kann sie nicht prüfen — es gibt dort keinen echten
+>    DOM. Ob ein Splice denselben Textknoten behält und ein Move dasselbe Element bewegt, ist
+>    ein `===`-Vergleich auf DOM-Objekten, und für den Editor hängt daran alles: ein neu
+>    erzeugter Textknoten nähme Caret, Selection und eine laufende IME-Eingabe mit ins Grab.
+>    Zusätzlich belegt über einen Listener, der den Move überlebt.
+> 3. *Der No-op-Vertrag, mit einem MutationObserver bewiesen.* „Identischer Text erzeugt keine
+>    Mutation" lässt sich nur so ehrlich prüfen: der Observer sieht **jeden** Schreibzugriff,
+>    auch einen, der denselben Wert setzt. Mit Gegenprobe — eine echte Änderung erzeugt genau
+>    einen Record, sonst wäre der Test auch bei totem Observer grün.
+> 4. *Logische Kindliste synchron zum DOM, black-box belegt.* `_children` ist `private[jfx]`
+>    und von außen nicht lesbar. Stattdessen wird nach einem Move ein weiteres Label über
+>    `contentCursor` montiert: läge die Kindliste der Runtime daneben, landete es an der
+>    falschen Stelle — ohne Fehlermeldung, nur mit falscher Reihenfolge.
+> 5. *Gegen **diese** Linkerausgabe.* Der Nachbar testet seinen eigenen Build. Wir binden
+>    `jfx-core` als Quell-Abhängigkeit ein und linken es mit unseren Einstellungen — ESModule,
+>    ES2021, `fullLinkJS` mit optimierter Semantik. Ein Vertrag kann dort halten und hier
+>    brechen; jetzt ist geprüft, dass er es nicht tut.
+>
+> **Nachgereicht in P09:**
+>
+> 6. *„Derselbe Testfall stimmt in SSR und Browser überein."* Zum Zeitpunkt von P08 hatte
+>    dieses Repo keinen SSR-Pfad. Mit P09 gibt es ihn, und der Vergleich steht in **einem**
+>    Testfall: `projection.spec.mjs` → „rendert initial dasselbe wie der SSR-Weg" stellt
+>    `innerHTML` der Editierfläche gegen `DocumentView.renderToHtml` desselben Dokuments.
+
 
 - **Ziel:** Editor braucht eine verlässliche bestehende Runtime, keine eigenen DOM-Writer.
 - **Module:** jfx-core (`../scalajs-jfx`); IT.
@@ -567,6 +607,73 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 - **Dependencies:** P07; Architektur §15.1.
 
 ## P09 — Semantischer Rendervertrag und keyed DocumentView
+
+> **Abgeschlossen.** Drei neue Module: `ember-html` (Semantik-SPI und `HtmlFragment`),
+> `ember-jfx` (keyed Projektion, `DocumentView`, `EditorProperties`) und `ember-standard`
+> (die Adapter für Wurzel, Absatz und Textlauf). Abnahme:
+>
+> ```
+> sbt --server "Test/testOnly *"
+> sbt --server "scalajs-ember-integration/fullLinkJS"
+> cd ember-integration/browser && EMBER_FIREFOX_CHANNEL=moz-firefox npm run verify
+> ```
+>
+> | Lauf | Ergebnis |
+> | --- | --- |
+> | `scalajs-ember-core` | 261 Tests grün |
+> | `scalajs-ember-rich-text` | 55 Tests grün |
+> | `scalajs-ember-standard` (`ProjectionSpec`) | 19 Tests grün |
+> | Chromium / Firefox / WebKit | je 42 Fälle grün, davon 13 neu (`projection.spec.mjs`) |
+> | Serverimport ohne Browserglobals | grün |
+>
+> Der POM von `ember-jfx` zeigt auf `com.anjunar:scalajs-jfx-core_sjs1_3:3.0.4` — ein
+> veröffentlichtes Artefakt, kein Verzeichnis. Die Publish-Regel aus §6 ist damit belegt und
+> nicht nur beabsichtigt (`sbt --server "scalajs-ember-jfx/makePom"`).
+>
+> **Widerlegt — der Textlauf braucht den Wrapper sofort, nicht erst in P21:**
+>
+> Der erste Entwurf hat `TextNode` auf einen rohen DOM-Textknoten abgebildet und §15.1s
+> „stabilen Wrapper mit einem Textkind" als Entscheidung für P21 behandelt, wo der
+> SelectionPort ihn braucht. Zwei unabhängige Verträge widersprechen:
+>
+> 1. §15.1 nennt den Grund selbst, und er gilt für **beide** Profile: der Wrapper „vermeidet
+>    zusammengefasste benachbarte SSR-Textnodes". Zwei Läufe nebeneinander wären in der
+>    Ausgabe ein einziger Textknoten — die Grenze ließe sich beim Hydrieren nicht mehr finden.
+>    Der Risikoabschnitt dieser Phase sagt dasselbe: „rohe benachbarte SSR-Textnodes vermeiden".
+> 2. `KeyedChildren` weist einen Textknoten als Kind ab: *„Keyed children require physical
+>    element components."* Ein Textknoten hat keinen eigenen Host, an dem sich eine Reihenfolge
+>    festmachen ließe.
+>
+> `HtmlShape` hat deshalb kein `Text` mehr, sondern `TextRun(tag, value, attributes)` — ein
+> Element mit genau einem Textkind. `ParagraphSupport.text` liefert `span`, in beiden Profilen.
+>
+> **Bewusste Abweichung — kein `KeyedChildrenSpec.scala`:**
+>
+> Wie in P08 wäre die Suite ein Duplikat. `KeyedChildren` ist im Nachbar-Repo implementiert
+> **und** geprüft: `HostEditingSpec` deckt `transferTo` über Gruppengrenzen samt anschließender
+> Updates im Ziel und den Preflight einer ganzen keyed Aktualisierung ab, `TableViewSpec` fährt
+> dieselbe Klasse über `TableColumnProjection`. Was hier fehlte, war nicht ihre Prüfung, sondern
+> ihre Verwendung durch den Editor — und die prüfen `ProjectionSpec` und `projection.spec.mjs`.
+>
+> **Zwei Korrekturen am eigenen Entwurf, die die Tests erzwungen haben:**
+>
+> 1. *`HtmlAttribute.apply` verdeckte das synthetische der Case-Klasse.* `parse` baute mit
+>    `HtmlAttribute(...)` und landete damit wieder in `apply` — eine Endlosrekursion, die erst
+>    als `RangeError: Maximum call stack size exceeded` auffiel. Gebaut wird jetzt mit `new`,
+>    und der Konstruktor ist privat, damit auch `copy` niemandem an der Prüfung vorbeihilft.
+> 2. *Die Kindergruppen entstanden zu spät.* Ein erster Versuch trug sie nach dem Mount nach
+>    und bekam leere Absätze. Richtig ist die Reihenfolge, die `KeyedChildren` ohnehin vorgibt:
+>    `DocumentProjection.build` hängt die Gruppe **vor** dem Mount ein, der Container montiert
+>    sie in seinem `compose`, und die Gruppe ruft dabei wieder `build`. Ein Durchgang, in
+>    Dokumentreihenfolge.
+>
+> **Und eine dritte, die der Browser gefunden hat:** `DocumentView` meldete beim Mount die
+> Anfangsrevision an `onProjected` — an Zuhörer, die es zu diesem Zeitpunkt nicht geben kann,
+> weil die Ansicht erst danach zurückgegeben wird. Statt der toten Meldung gibt es jetzt
+> `projectedRevision`: wer sich später registriert, hat nichts verpasst.
+>
+> Modulverträge: [ember-html/README.md](ember-html/README.md),
+> [ember-jfx/README.md](ember-jfx/README.md), [ember-standard/README.md](ember-standard/README.md).
 
 - **Ziel:** Kleine Dokumente SSR-rendern und durch gezielte Commits ohne Remount unveränderter Nodes aktualisieren.
 - **Module:** Neue html (zunächst Semantik-SPI), jfx und standard; jfx-core; IT.

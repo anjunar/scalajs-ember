@@ -23,7 +23,13 @@ object Subscription:
     def dispose(): Unit   = ()
     def isActive: Boolean = false
 
-  private[core] def apply(cancel: () => Unit): Subscription =
+  /** Baut eine Registrierung aus ihrer Aufraeumaktion.
+    *
+    * Oeffentlich, weil auch Module ausserhalb des Kerns Registrierungen anbieten -- die
+    * Dokumentansicht meldet ueber `onProjected`, spaeter der SelectionPort und die Toolbar.
+    * Sie alle sollen dafuer denselben Vertrag verwenden und keinen eigenen nachbauen.
+    */
+  def apply(cancel: () => Unit): Subscription =
     new Subscription:
       private var active = true
 

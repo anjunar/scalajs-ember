@@ -14,7 +14,7 @@ Laufzeitabhängigkeit.
 
 ## Stand
 
-**Meilenstein A steht, B begonnen** — P01–P07 abgeschlossen, P08–P30 offen. Der frühere
+**Meilenstein A und B stehen** — P01–P09 abgeschlossen, P10–P30 offen. Der frühere
 `contenteditable`-Prototyp (`ember.core.Editor` mit `execCommand` und HTML-String als
 Zustand) und seine vite-Demo wurden entfernt — Architektur §2 und §25 schließen diesen
 Ansatz aus.
@@ -27,6 +27,13 @@ Prioritäten, Extensions mit Auflösung und Rollback sowie die Transform-Schleif
 `ember-rich-text` setzt darauf das Profil: Absätze, Editing-Semantik und
 UAX-29-Graphemgrenzen. Damit lässt sich Text ohne DOM bearbeiten — die Abnahmezeile
 von Meilenstein A.
+
+Seit P09 gibt es die Ansicht dazu. `ember-html` beschreibt, wie eine Knotenart als HTML
+aussieht; `ember-jfx` projiziert das Dokument keyed auf den JFX-Komponentenbaum, ohne
+zweiten Renderer und ohne VDOM; `ember-standard` verbindet beide Seiten. Aus **einer**
+Beschreibung entstehen die serverseitige Ausgabe und die Editierfläche im Browser, und ein
+Textedit schreibt genau einen `characterData`-Eintrag — im Browser mit einem
+MutationObserver belegt. Das ist die Abnahmezeile von Meilenstein B.
 
 ## Module
 
@@ -42,9 +49,18 @@ Vorhanden:
 - [`ember-rich-text`](ember-rich-text/README.md) — sbt-ID `scalajs-ember-rich-text`,
   Paket `ember.editor.richtext`. Absätze, Editing-Commands, Normalisierung und die
   UAX-29-Graphemgrenzen. Hängt ausschließlich am Kern.
+- [`ember-html`](ember-html/README.md) — sbt-ID `scalajs-ember-html`, Paket
+  `ember.editor.html`. Der semantische HTML-Vertrag und eine unveränderliche
+  Fragmentdarstellung. Headless; der Importparser folgt mit P24.
+- [`ember-jfx`](ember-jfx/README.md) — sbt-ID `scalajs-ember-jfx`, Paket
+  `ember.editor.jfx`. Die keyed Dokumentansicht auf der JFX-Runtime. Einziges
+  **veröffentlichtes** Modul, das JFX kennt.
+- [`ember-standard`](ember-standard/README.md) — sbt-ID `scalajs-ember-standard`, Paket
+  `ember.editor.standard`. Die einzeln wählbaren Standardadapter — der Ort, an dem
+  Knotenarten und Renderer einander kennen.
 - [`ember-integration`](ember-integration/browser/README.md) — sbt-ID
   `scalajs-ember-integration`. **Nicht publiziert.** Browser-Harness, die die tatsächlich
-  gelinkte Anwendung in echten Engines ausführt. Einziges Modul, das an `jfx-core` hängt.
+  gelinkte Anwendung in echten Engines ausführt.
 
 ## Abhängigkeit auf scalajs-jfx
 
@@ -61,10 +77,11 @@ lazy val jfxCore = ProjectRef(file("../scalajs-jfx"), "scalajs-jfx-core")
 Das Nachbar-Repo muss also ausgecheckt danebenliegen. Beide Builds laufen auf
 sbt 2.0.8, sbt-scalajs 1.22.0 und Scala 3.3.8.
 
-Einziger Konsument ist seit P07 `ember-integration` — und das darf es, weil es nie
-veröffentlicht wird: die Publish-Regel aus §6 verlangt nur von *veröffentlichten* Modulen,
-dass sie ausschließlich auf veröffentlichte Artefakte zeigen. `ember-jfx` in P09 wird das
-nicht dürfen und braucht dort einen eigenen, publizierbaren Vertrag.
+Konsumenten sind `ember-jfx` und `ember-integration`. Für `ember-jfx` gilt die Publish-Regel
+aus §6 — ein veröffentlichtes Modul zeigt ausschließlich auf veröffentlichte Artefakte —, und
+sie ist gewahrt: der generierte POM nennt `com.anjunar:scalajs-jfx-core_sjs1_3:3.0.4`, nicht
+ein Verzeichnis. Nachprüfbar mit `sbt --server "scalajs-ember-jfx/makePom"`. Die
+Quell-Abhängigkeit ist eine Sache des Builds, nicht der Veröffentlichung.
 
 `ember-core` und `ember-rich-text` bleiben davon unberührt: sie sind headless
 (Architektur §7), hängen an nichts aus dem Nachbar-Repo, und ihr Gate läuft ohne es.
@@ -88,7 +105,7 @@ cd ember-integration/browser && npm ci && npm run verify
 Serverstart. `sbt --server test` delegiert in sbt 2 auf `testQuick` und taugt nicht
 als Abnahme-Gate.
 
-Chromium, Firefox und WebKit sind grün (24 Fälle). Auf diesem Rechner startet der von
+Chromium, Firefox und WebKit sind grün (126 Fälle, 42 je Engine). Auf diesem Rechner startet der von
 Playwright mitgelieferte Firefox allerdings nicht — er verlangt eine private
 Side-by-Side-Assembly, die Windows ihm verweigert. Ein regulär installierter Firefox
 derselben Version startet einwandfrei, das Problem liegt also im mitgelieferten Build.

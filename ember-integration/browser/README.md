@@ -32,6 +32,26 @@ npm run verify
 Ohne vorherigen Link brechen beide mit einer Meldung ab, statt gegen eine alte Ausgabe zu
 laufen.
 
+## Die Suiten
+
+| Datei | Was sie prüft |
+| --- | --- |
+| `identity.spec.mjs` | Die Ember-Engine über die volle Kette: DOM-Ereignis, Command, Transaktion, Commit, Projektion. Dazu Dispose und der Error-Sink. |
+| `text-splice.spec.mjs` | `spliceText` aus jfx-core: UTF-16-Offsets, Identität des DOM-Textknotens, und dass ein unveränderter Wert **keinen** Schreibzugriff auslöst. |
+| `move.spec.mjs` | `Runtime.move`: Element- und Listeneridentität, Synchronität von logischer Kindliste und DOM, abgewiesene Operationen ohne Nebenwirkung. |
+| `projection.spec.mjs` | Die keyed `DocumentView` aus P09: DOM-Identität über Textedit und Move, der Umfang der Schreibzugriffe, und dass SSR und Browser initial dasselbe liefern. |
+
+`text-splice` und `move` verdoppeln nicht die Suite des Nachbar-Repos. `HostEditingSpec` deckt
+dieselben Verträge dort JVM-seitig ab; was es nicht kann, ist **DOM-Knotenidentität** — das
+ist ein `===`-Vergleich auf echten DOM-Objekten und braucht einen Browser. Für den Editor
+hängt daran alles: ein neu erzeugter Textknoten nähme Caret, Selection und eine laufende
+IME-Eingabe mit ins Grab.
+
+Der No-op-Vertrag („identischer Text erzeugt keine Mutation") wird mit einem
+`MutationObserver` belegt — der einzige ehrliche Zeuge, denn er sieht auch einen
+Schreibzugriff, der denselben Wert setzt. Mit Gegenprobe, sonst wäre der Test auch bei totem
+Observer grün.
+
 ## Firefox auf diesem Arbeitsplatz
 
 Der von Playwright mitgelieferte Firefox startet auf manchen Windows-Staenden nicht.
@@ -84,12 +104,20 @@ sxstrace Stoptrace
 sxstrace Parse -logfile:sxs.etl -outfile:sxs.txt
 ```
 
+## Zwei Fixtures, zwei Verfahren
+
+`emberFixtures` (aus `identity.spec.mjs` gefahren) rendert nach jedem Commit vollstaendig neu.
+Das ist absichtlich die naive Variante: dort geht es darum, dass die volle Kette ueberhaupt
+traegt, und dafuer ist die einfachste denkbare Projektion die ehrlichste.
+
+`projectionFixtures` faehrt daneben die echte `DocumentView`. Der Vergleich beider Wege in
+derselben Seite ist kein Zufall -- was `projection.spec.mjs` zeigt, ist genau der Unterschied:
+ein Textedit schreibt einen einzigen `characterData`-Eintrag statt den Baum neu aufzubauen.
+
 ## Was hier nicht geprueft wird
 
-Die Fixture-App rendert nach jedem Commit vollstaendig neu und hat kein `contenteditable`.
-Beides ist Absicht:
+Keine der Fixtures hat `contenteditable`:
 
-- Die gezielte, keyed Projektion entsteht in P09. Hier waere sie verfrueht.
 - Native Eingabe mit Composition, Mutation-Observer und Recovery ist P21 bis P23.
 
 Reale IME- und Screen-Reader-Abnahmen brauchen dokumentierte manuelle Tests (§24) und lassen

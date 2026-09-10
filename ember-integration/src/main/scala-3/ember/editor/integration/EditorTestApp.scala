@@ -22,9 +22,11 @@ import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
   * ==Was sie ausdruecklich nicht ist==
   *
   * '''Keine Projektion.''' Diese App rendert nach jedem Commit stumpf neu: alle Bloecke weg, alle
-  * Bloecke wieder hin. Das ist genau das Verfahren, das P09 ersetzt -- dort entsteht die keyed
-  * `DocumentView`, die nur die betroffenen Knoten anfasst. Hier waere sie verfrueht und wuerde den
-  * Nachweis vermengen, um den es geht.
+  * Bloecke wieder hin. Das ist genau das Verfahren, das die keyed `DocumentView` aus P09
+  * ersetzt. Sie steht seit P09 daneben -- [[ProjectionFixtures]] faehrt sie, und der
+  * Unterschied ist der Nachweis: dort schreibt ein Textedit einen einzigen
+  * `characterData`-Eintrag. Hier bleibt es beim naiven Verfahren, weil der Nachweis dieser
+  * App ein anderer ist -- dass die volle Kette ueberhaupt traegt.
   *
   * '''Keine Bridge-API.''' Die `@JSExport`-Methoden nehmen Strings, weil ein Testtreiber in
   * JavaScript nichts anderes hat. Die produktive Fassade aus §23 arbeitet mit opaken Handles und
@@ -222,8 +224,8 @@ object EditorTestApp:
     *
     * Absichtlich die naive Variante. §15.1 verlangt fuer den echten Editor das Gegenteil --
     * unveraenderte Knoten werden nicht erneut komponiert, und ein `setAll` auf jedem Snapshot ist
-    * ausgeschlossen. Genau das baut P09. Hier geht es nur darum, dass ueberhaupt etwas ankommt, und
-    * dafuer ist die einfachste denkbare Projektion die ehrlichste.
+    * ausgeschlossen. Das leistet seit P09 [[ProjectionFixtures]]. Hier geht es nur darum, dass
+    * ueberhaupt etwas ankommt, und dafuer ist die einfachste denkbare Projektion die ehrlichste.
     */
   private def render(): Unit =
     blocks.foreach(Runtime.unmount)

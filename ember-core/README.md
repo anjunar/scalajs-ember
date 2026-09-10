@@ -132,8 +132,9 @@ echter Dokumentänderung. Wer speichert, vergleicht die zweite — ein bewegter 
 keinen Schreibvorgang aus (§9).
 
 **Ein Commit ist nicht gerendert.** Der Kern veröffentlicht einen Zustand; ob eine View ihn
-zeigt, ist ein anderer Zeitpunkt (§5). P09 hängt die Projektion in dieselbe Phase, in der
-heute die Warteschlange abgearbeitet wird.
+zeigt, ist ein anderer Zeitpunkt (§5). Seit P09 hängt die Projektion in derselben Phase, in
+der die Warteschlange abgearbeitet wird; wer wissen will, ob etwas zu sehen ist, fragt
+`DocumentView.onProjected` oder `projectedRevision` — nicht den Commit-Listener.
 
 **Keine Reentranz.** `update` innerhalb eines `update` ergibt `UpdateError.NestedUpdate`. Wer
 aus einem Listener heraus ändern will, nimmt `enqueueUpdate` — FIFO, und erst wenn die
