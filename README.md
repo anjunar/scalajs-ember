@@ -65,6 +65,8 @@ Vorhanden:
 - [`ember-standard`](ember-standard/README.md) — sbt-ID `scalajs-ember-standard`, Paket
   `ember.editor.standard`. Die einzeln wählbaren Standardadapter — der Ort, an dem
   Knotenarten und Renderer einander kennen.
+- [`ember-demo`](ember-demo/README.md) — sbt-ID `scalajs-ember-demo`. **Nicht publiziert.**
+  Die laufende Demo: Editierfläche links, derselbe Stand als Baum, JSON und HTML rechts.
 - [`ember-integration`](ember-integration/browser/README.md) — sbt-ID
   `scalajs-ember-integration`. **Nicht publiziert.** Browser-Harness, die die tatsächlich
   gelinkte Anwendung in echten Engines ausführt.
@@ -100,6 +102,19 @@ Voraussetzungen: JDK und sbt. Für die Browser-Harness zusätzlich Node/npm.
 ```bash
 sbt --server "Test/testOnly *"
 ```
+
+Die Demo ansehen:
+
+```bash
+sbt --server "scalajs-ember-demo/fastLinkJS"
+```
+
+```bash
+node ember-demo/dev/server.mjs
+```
+
+Dann [http://127.0.0.1:4200](http://127.0.0.1:4200). Was dort zu sehen ist -- und was
+ausdrücklich noch fehlt -- steht in [ember-demo/README.md](ember-demo/README.md).
 
 Die Harness läuft getrennt, weil sie den Linkeroutput braucht:
 

@@ -10,6 +10,11 @@ implementiert und über eine Quell-Abhängigkeit auf dessen Submodul `jfx-core` 
 [JFX_CORE_INTEGRATION.md](JFX_CORE_INTEGRATION.md). Das erledigt nicht die jeweiligen
 Editor-Integrationsphasen. Stand: 10. September 2026.
 
+Eine laufende Demo des jeweils erreichten Standes liegt in
+[ember-demo/](ember-demo/README.md) -- nicht publiziert, ohne Bundler, `node
+ember-demo/dev/server.mjs`. Sie ist keine Phase des Plans, sondern die Probe darauf, dass sich
+die Module tatsaechlich zu einer Anwendung zusammensetzen lassen.
+
 Verbindliche Grundlage ist [JFX_EDITOR_ARCHITECTURE.md](JFX_EDITOR_ARCHITECTURE.md). Der Editor wird neu gebaut. Der Prototyp wird weder analysiert noch intern weiterentwickelt; öffentliche API-Namen können als Inspiration dienen. Bestehende Nutzerdaten und öffentliche Konsumenten werden erst bei der bewussten Ablösung betrachtet.
 
 ### Abweichungen gegenüber dem ursprünglichen Plan
@@ -736,6 +741,10 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 >   Verdrahtungsfehler der Anwendung, kein unbekanntes Datum.
 > - *Alle Knotenfehler auf einmal.* Wer einen fremden Payload debuggt, will nicht zwanzig Läufe
 >   für zwanzig Tippfehler. Ein teilweise gültiges Dokument entsteht dabei ohnehin nicht.
+>
+> **Nachgetragen fuer die Demo:** `JsonText.renderPretty` -- eingerueckt, gleiche
+> Zeichenmaskierung, gleiche Feldreihenfolge. Die Wire-Form bleibt kompakt; diese ist fuer
+> Diagnoseausgaben und die Demo, und ein Test haelt beide auseinander.
 >
 > Modulvertrag: [ember-json/README.md](ember-json/README.md).
 

@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ember — Demo</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <!--
+      Bewusst eine leere Huelle. Die Seite entsteht vollstaendig als JFX-Komponentenbaum;
+      hier steht nichts, was der Editor spaeter hydrieren muesste. Hydration ist P20.
+    -->
+    <div id="root"></div>
+    <script type="module">
+      import { boot } from '/main.js'
+      boot()
+    </script>
+  </body>
+</html>

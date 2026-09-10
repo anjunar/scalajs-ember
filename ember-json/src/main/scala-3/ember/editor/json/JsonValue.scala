@@ -229,6 +229,54 @@ object JsonText:
     write(value, out)
     out.result()
 
+  /** Serialisiert eingerueckt, fuer Menschen.
+    *
+    * '''Nicht die Wire-Form.''' [[render]] bleibt die: kompakt, weil jedes eingefuegte
+    * Leerzeichen den byteweisen Vergleich zweier Staende erschwert. Diese Fassung ist fuer
+    * Diagnoseausgaben und Demos -- gleiche Zeichenmaskierung, gleiche Feldreihenfolge, nur
+    * lesbar umbrochen.
+    */
+  def renderPretty(value: JsonValue, indent: String = "  "): String =
+    val out = new StringBuilder
+    writePretty(value, out, indent, 0)
+    out.result()
+
+  private def writePretty(
+      value: JsonValue,
+      out: StringBuilder,
+      indent: String,
+      level: Int
+  ): Unit =
+    def newline(at: Int): Unit =
+      out += '\n'
+      var step = 0
+      while step < at do
+        out ++= indent
+        step += 1
+
+    value match
+      case JsonValue.Arr(items) if items.nonEmpty =>
+        out += '['
+        items.zipWithIndex.foreach { (item, index) =>
+          if index > 0 then out += ','
+          newline(level + 1)
+          writePretty(item, out, indent, level + 1)
+        }
+        newline(level)
+        out += ']'
+      case JsonValue.Obj(fields) if fields.nonEmpty =>
+        out += '{'
+        fields.zipWithIndex.foreach { case ((key, item), index) =>
+          if index > 0 then out += ','
+          newline(level + 1)
+          quote(key, out)
+          out ++= ": "
+          writePretty(item, out, indent, level + 1)
+        }
+        newline(level)
+        out += '}'
+      case other => write(other, out)
+
   private def write(value: JsonValue, out: StringBuilder): Unit = value match
     case JsonValue.Null       => out ++= "null"
     case JsonValue.Bool(flag) => out ++= (if flag then "true" else "false")

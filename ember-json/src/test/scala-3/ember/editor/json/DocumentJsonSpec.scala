@@ -442,6 +442,23 @@ final class DocumentJsonSpec extends AnyFlatSpec with Matchers {
     decoded(text).document shouldBe document
   }
 
+  it should "stay compact, while the pretty form is only for humans" in {
+    // Die Wire-Form bleibt kompakt: jedes eingefuegte Leerzeichen erschwert den byteweisen
+    // Vergleich zweier Staende. `renderPretty` ist fuer Diagnosen und die Demo.
+    val value =
+      JsonValue.obj("a" -> JsonValue.num(1), "b" -> JsonValue.Arr(Vector(JsonValue.num(2))))
+
+    JsonText.render(value) shouldBe """{"a":1,"b":[2]}"""
+    JsonText.renderPretty(value).split("\n").toVector shouldBe
+      Vector("{", """  "a": 1,""", """  "b": [""", "    2", "  ]", "}")
+  }
+
+  it should "escape the same characters in both forms" in {
+    val value = JsonValue.obj("t" -> JsonValue.Str("</script>"))
+
+    JsonText.renderPretty(value) should include("""\u003c/script""")
+  }
+
   it should "render whole numbers without a fraction" in {
     JsonText.render(JsonValue.num(1)) shouldBe "1"
     JsonText.render(JsonValue.Num(1.5)) shouldBe "1.5"

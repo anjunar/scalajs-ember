@@ -69,13 +69,19 @@ final class DocumentProjection private[jfx] (
   def size: Int = components.size
 
   /** Baut die erste Ansicht auf. */
-  private[jfx] def mount(document: Document, cursor: Cursor): AbstractComponent =
+  private[jfx] def mount(
+      document: Document,
+      cursor: Cursor,
+      parent: Option[AbstractComponent]
+  ): AbstractComponent =
     current = document
-    rootComponent = Runtime.mount(build(document.root), cursor, None)
+    rootComponent = Runtime.mount(build(document.root), cursor, parent)
     rootComponent
 
   private[jfx] def unmount(): Unit =
-    if rootComponent != null then Runtime.unmount(rootComponent)
+    // Der Elternknoten darf denselben Baum abgeraeumt haben -- eine Ansicht, die in einer
+    // Komponente haengt, wird mit ihr entsorgt. Ein zweiter Aufruf ist deshalb kein Fehler.
+    if rootComponent != null && !rootComponent.isDisposed then Runtime.unmount(rootComponent)
     components.clear()
     groups.clear()
     rootComponent = null

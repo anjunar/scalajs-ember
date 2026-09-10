@@ -70,8 +70,8 @@ final class DocumentView private (
       listeners = Vector.empty
       rootComponent = null
 
-  private def mountInto(cursor: Cursor): Unit =
-    rootComponent = projection.mount(session.document, cursor)
+  private def mountInto(cursor: Cursor, parent: Option[AbstractComponent]): Unit =
+    rootComponent = projection.mount(session.document, cursor, parent)
     shown = session.state.revision
     commits = session.onCommit { commit =>
       if !disposedFlag then
@@ -95,14 +95,23 @@ final class DocumentView private (
 object DocumentView:
 
   /** Haengt eine Sitzung an einen Cursor. */
+  /** Haengt eine Sitzung an einen Cursor.
+    *
+    * `parent` ist die Komponente, der die Ansicht gehoert. Ohne Angabe ist die Wurzel der
+    * Ansicht selbst eine Wurzel -- richtig fuer eine Editierflaeche, die den Baum allein
+    * ausmacht, und fuer SSR. Steht sie dagegen in einer groesseren Anwendung, gehoert sie
+    * deren Komponente: dann raeumt ein `Runtime.unmount` dort auch die Ansicht ab, und
+    * [[DocumentView.dispose]] bleibt trotzdem gefahrlos.
+    */
   def mount(
       session: EditorSession,
       cursor: Cursor,
       views: ViewSupport,
-      profile: RenderProfile = RenderProfile.Editor
+      profile: RenderProfile = RenderProfile.Editor,
+      parent: Option[AbstractComponent] = None
   ): DocumentView =
     val view = new DocumentView(session, new DocumentProjection(views, profile))
-    view.mountInto(cursor)
+    view.mountInto(cursor, parent)
     view
 
   /** Rendert ein Dokument einmalig als HTML -- ohne Browser, ohne Sitzung.
@@ -121,6 +130,6 @@ object DocumentView:
   ): String =
     val cursor     = new SsrCursor()
     val projection = new DocumentProjection(views, profile)
-    val mounted    = projection.mount(document, cursor)
+    val mounted    = projection.mount(document, cursor, None)
     try cursor.collectHtml()
     finally Runtime.unmount(mounted)

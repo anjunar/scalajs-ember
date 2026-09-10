@@ -327,9 +327,47 @@ lazy val emberIntegration =
       )
     )
 
+// Die Demo. Nicht publiziert, wie der Harness -- eine Anwendung, keine Bibliothek, und damit
+// von der Publish-Regel aus §6 gar nicht erst beruehrt.
+//
+// Sie ist der erste Konsument, der die Module so zusammensetzt, wie eine Anwendung es taete:
+// Kern, Profil, Persistenz, Semantik, Projektion und Adapter zugleich. Was dabei umstaendlich
+// ist, ist ein Befund ueber die API, nicht ueber die Demo.
+lazy val emberDemo =
+  Project(id = "scalajs-ember-demo", base = file("ember-demo"))
+    .enablePlugins(ScalaJSPlugin)
+    .dependsOn(emberCore, emberRichText, emberJson, emberHtml, emberJfx, emberStandard, jfxCore)
+    .settings(
+      name                            := "scalajs-ember-demo",
+      moduleName                      := "scalajs-ember-demo",
+      description                     := "Runnable demo of the Ember editor. Never published.",
+      scalaJSUseMainModuleInitializer := false,
+      publish / skip                  := true,
+      // Der Dev-Server liest genau hier. `fastLinkJS` fuer die Schleife, `fullLinkJS` fuer
+      // einen Blick auf die tatsaechlich ausgelieferte Groesse.
+      Compile / fastLinkJS / scalaJSLinkerOutputDirectory :=
+        (LocalRootProject / baseDirectory).value / "target" / "ember-demo",
+      Compile / fullLinkJS / scalaJSLinkerOutputDirectory :=
+        (LocalRootProject / baseDirectory).value / "target" / "ember-demo-full"
+    )
+    .settings(testSettings)
+    .settings(domSettings)
+    .settings(commonJsSettings)
+    // Der Browser ist hier der Sinn der Sache, und die Demo liegt ueber allen Modulen.
+    .settings(
+      boundarySettings(
+        allowedProjects =
+          Seq("scalajs-ember-core", "scalajs-ember-rich-text", "scalajs-ember-json",
+              "scalajs-ember-html", "scalajs-ember-jfx", "scalajs-ember-standard",
+              "scalajs-jfx-core"),
+        forbiddenImports = forbiddenUpwardImports.filterNot(_ == "ember.editor.jfx"),
+        forbiddenModules = Seq("scalajs-lexical")
+      )
+    )
+
 lazy val root = Project(id = "scalajs-ember-root", base = file("."))
   .aggregate(emberCore, emberRichText, emberJson, emberHtml, emberJfx, emberStandard,
-    emberIntegration)
+    emberIntegration, emberDemo)
   .settings(
     name           := "scalajs-ember",
     publish / skip := true

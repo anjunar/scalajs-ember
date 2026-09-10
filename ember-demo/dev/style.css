@@ -1,0 +1,219 @@
+/* Handgeschrieben und ohne Abhaengigkeiten -- die Demo soll `node dev/server.mjs` sein und
+   sonst nichts. Ein Build-Schritt fuer CSS waere mehr Werkzeug als Editor. */
+
+:root {
+  color-scheme: light dark;
+
+  --ink: #16181d;
+  --ink-soft: #5c6270;
+  --ink-faint: #8b909c;
+  --paper: #fbfbfc;
+  --panel: #ffffff;
+  --line: #e3e5ea;
+  --accent: #b4451f;
+  --accent-soft: #fdf1ec;
+  --code: #f6f7f9;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink: #e9eaee;
+    --ink-soft: #a3a8b4;
+    --ink-faint: #71767f;
+    --paper: #14161a;
+    --panel: #1b1e23;
+    --line: #2b2f36;
+    --accent: #e8794b;
+    --accent-soft: #2a1d17;
+    --code: #101216;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 15px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.ember-demo {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 24px 64px;
+}
+
+/* -- Kopf ---------------------------------------------------------------- */
+
+.ember-demo__header {
+  margin-bottom: 28px;
+}
+
+.ember-demo__wordmark {
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--accent);
+}
+
+.ember-demo__tagline {
+  color: var(--ink-soft);
+}
+
+/* -- Spalten ------------------------------------------------------------- */
+
+.ember-demo__columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .ember-demo__columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.ember-demo__panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 18px;
+}
+
+.ember-demo__panel-title {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.ember-demo__panel-name {
+  font-weight: 600;
+}
+
+.ember-demo__panel-hint {
+  color: var(--ink-faint);
+  font-size: 13px;
+}
+
+/* -- Die Flaeche --------------------------------------------------------- */
+
+.ember-demo__surface {
+  min-height: 220px;
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--code);
+  outline-offset: 2px;
+}
+
+.ember-demo__surface:focus-visible {
+  outline: 2px solid var(--accent);
+}
+
+.ember-demo__surface article > p {
+  margin: 0 0 0.85em;
+}
+
+.ember-demo__surface article > p:last-child {
+  margin-bottom: 0;
+}
+
+/* Der Textlauf, in dem der Modellcaret steht. Keine DOM-Auswahl -- die gibt es erst mit P21;
+   die Markierung laeuft ueber DocumentView.componentFor. */
+.ember-caret-run {
+  background: var(--accent-soft);
+  box-shadow: inset 0 -1px 0 var(--accent);
+}
+
+/* -- Aktionen ------------------------------------------------------------ */
+
+.ember-demo__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.ember-demo__action {
+  font: inherit;
+  font-size: 13px;
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.ember-demo__action:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.ember-demo__status {
+  margin-top: 12px;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+  font-size: 12px;
+  color: var(--ink-faint);
+}
+
+/* -- Inspektor ----------------------------------------------------------- */
+
+.ember-demo__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.ember-demo__tab {
+  font: inherit;
+  font-size: 13px;
+  padding: 5px 11px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.ember-demo__tab:hover {
+  color: var(--ink);
+}
+
+.ember-demo__tab[aria-selected="true"] {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.ember-demo__code {
+  margin-top: 10px;
+  padding: 14px;
+  max-height: 420px;
+  overflow: auto;
+  border-radius: 8px;
+  background: var(--code);
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+  font-size: 12px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--ink);
+}
+
+/* -- Fuss ---------------------------------------------------------------- */
+
+.ember-demo__footer {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+  color: var(--ink-faint);
+  font-size: 13px;
+}
