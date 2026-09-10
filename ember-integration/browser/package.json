@@ -1,0 +1,14 @@
+{
+  "name": "ember-browser-tests",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test:browser": "playwright test",
+    "test:server": "node server-import.mjs",
+    "verify": "npm run test:server && npm run test:browser"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0"
+  }
+}

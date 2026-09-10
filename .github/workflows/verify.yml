@@ -1,0 +1,59 @@
+name: verify
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  scala:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Der Kern und rich-text sind headless. Sie brauchen weder Browser noch das Nachbar-Repo
+      # -- dieser Job muss deshalb auch dann gruen sein, wenn scalajs-jfx gerade nicht
+      # auscheckbar waere.
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: sbt
+      - uses: sbt/setup-sbt@v1
+      - name: Formatierung
+        run: sbt --server scalafmtCheckAll
+      - name: Tests
+        run: sbt --server "scalajs-ember-core/Test/testOnly *" "scalajs-ember-rich-text/Test/testOnly *"
+
+  browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Die Integrationsanwendung haengt als Quell-Abhaengigkeit an scalajs-jfx. Ohne das
+      # Nachbar-Repo laesst sie sich nicht linken -- deshalb ein eigener Job, damit ein
+      # Problem dort nicht die headless Gates mitreisst.
+      - name: Nachbar-Repo auschecken
+        uses: actions/checkout@v4
+        with:
+          repository: anjunar/scalajs-jfx
+          path: ../scalajs-jfx
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: sbt
+      - uses: sbt/setup-sbt@v1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Anwendung linken
+        run: sbt --server "scalajs-ember-integration/fullLinkJS"
+      - name: Harness einrichten
+        working-directory: ember-integration/browser
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium firefox webkit
+      # Alle drei Engines. Firefox scheitert lokal unter Windows am Start des von Playwright
+      # gelieferten Browsers; unter Linux laeuft er. Genau deshalb bleibt er hier drin.
+      - name: Serverimport und Browser
+        working-directory: ember-integration/browser
+        run: npm run verify

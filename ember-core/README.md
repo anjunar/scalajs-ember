@@ -38,7 +38,7 @@ Modul `ember-rich-text`. Leere Platzhaltertypen werden bewusst nicht vorweggenom
 | `PositionMapping` / `MappedPoint` | Komponierbare Nachführung von Positionen |
 | `ChangeSet` / `TextSplice` | Was sich geändert hat, getrennt von bloß berührten Vorfahren |
 | `Bookmark` / `RevisionMapping` | Gemerkte Position samt Ablaufvertrag |
-| `TextBoundaryService` | Nur der Vertrag; Implementierung in P06 |
+| `TextBoundaryService` | Nur der Vertrag; implementiert in [`ember-rich-text`](../ember-rich-text/README.md) |
 | `EditorState` / `Commit` | Veröffentlichter Sitzungszustand, mit zwei Revisionen |
 | `EditorSession` / `SessionConfig` | Besitzt den Zustand, hält die einzige Commit-Grenze |
 | `Transaction` | Privater Entwurf mit eingerastetem Fehler und begrenzter Lebensdauer |

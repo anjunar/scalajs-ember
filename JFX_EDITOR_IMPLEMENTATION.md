@@ -1,7 +1,9 @@
 # JFX Editor: ausführbarer Implementierungsplan
 
-Status: **P01–P05 abgeschlossen** (261 Tests grün, `sbt --server "Test/testOnly *"`),
-P06–P30 offen. Dieses Repository (`scalajs-ember`) ist das in
+Status: **Meilenstein A steht, B begonnen** — P01–P07 abgeschlossen (316 Scala-Tests grün,
+Browser-Harness in Chromium und WebKit grün, Firefox startet lokal nicht,
+siehe P07),
+P08–P30 offen. Dieses Repository (`scalajs-ember`) ist das in
 Architektur und Plan gemeinte „eigene Repository“. Die generischen JFX-Core-Anteile aus
 P08/P09, P19a, P20 und P23 sind **nicht hier, sondern im Nachbar-Repo `../scalajs-jfx`**
 implementiert und über eine Quell-Abhängigkeit auf dessen Submodul `jfx-core` eingebunden
@@ -393,6 +395,63 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 
 ## P06 — Kleiner headless Texteditor
 
+> **Abgeschlossen — damit steht Meilenstein A.** Neues Modul `ember-rich-text`
+> (sbt-ID `scalajs-ember-rich-text`, Paket `ember.editor.richtext`) mit allen geplanten
+> Dateien. Abnahme: `sbt --server "Test/testOnly *"` → 316 Tests grün (55 neue).
+>
+> **Befund aus der Umsetzung:**
+>
+> 1. *Ein Literal kann einen Unicode-Test still entwerten.* Mein Test für kombinierende
+>    Zeichen stand als `open("café")` da — mit **vorkomponiertem** é. Das sind vier Zeichen,
+>    nicht fünf, und geprüft worden wäre gar keine Graphemgrenze. Aufgefallen ist es nur, weil
+>    der Caret bei Offset 5 aus dem Bereich fiel. Beide Vorkommen stehen jetzt als ausdrückliches
+>    `\u0301`-Escape im Quelltext: die zerlegte und die vorkomponierte Schreibweise sehen im
+>    Editor identisch aus, und genau darauf darf sich ein Test nicht verlassen.
+>
+> **Ergänzungen gegenüber dem Plan:**
+>
+> 2. *`RichText` trägt `RootNode` und `TextNode` mit bei*, obwohl beide im Kern definiert sind.
+>    Der Kern ist ein Modell, kein Profil — er registriert nichts von selbst. Module, die auf
+>    rich-text aufbauen (P13 Listen, P14 Links), tragen sie nicht erneut bei, sondern
+>    deklarieren `dependsOn`.
+> 3. *Drei Normalisierungs-Transforms* statt der im Plan nur erwähnten „leeren
+>    Dokumentnormalisierung": Wurzel braucht Block, Block braucht Textlauf, überflüssige leere
+>    Läufe weg. Die dritte hat zwei Wächter, beide notwendig — ohne den ersten liefe sie mit der
+>    zweiten in eine Endlosschleife, die erst das Arbeitsbudget nach 32 Runden abbricht; ohne
+>    den zweiten verlöre sie den Caret.
+> 4. *`RichText.emptyDocument` und `caretAtStart`.* §8.2 verlangt, dass das Profil für eine leere
+>    Fläche Absatz und Caretposition herstellt. Die Transforms halten das während des Editierens
+>    aufrecht, aber beim Anlegen ist noch nichts schmutzig — es liefe kein Transform.
+> 5. *`boundarySettings` in `build.sbt` verallgemeinert.* Der Grenz-Lint aus P01 nimmt jetzt
+>    Allowlist und verbotene Pakete als Parameter. `ember-rich-text` darf genau `ember-core`,
+>    sonst nichts; negativ geprüft.
+>
+> **Präzisierungen, die der Plan offenließ:**
+>
+> 6. *Die Unicode-Datenversion ist festgelegt* — die Risikozeile verlangt das ausdrücklich.
+>    `unicodeVersion` lautet `"16.0.0 (Teilmenge, ohne GB9c)"` und benennt damit auch, was
+>    **nicht** zugesichert wird. Implementiert sind GB1–GB13 vollständig, einschließlich der
+>    beiden kontextabhängigen Regeln GB11 (Emoji-ZWJ) und GB12/GB13 (Flaggen-Parität) — an
+>    genau denen scheitert der Codepoint-Fallback, vor dem die Risikozeile warnt. Die
+>    Zeicheneigenschaften stammen zweigeteilt aus ausdrücklichen Bereichen (strukturell) und
+>    `Character.getType` (kategoriegetrieben); beides ist im Quelltext benannt. Nicht
+>    implementiert: GB9c (Indic Conjunct Break). `Extended_Pictographic` ist über gepflegte
+>    Bereiche angenähert, die Wortgrenzen sind eine dokumentierte Vereinfachung statt UAX #29 §4.
+> 7. *`TextEditing` arbeitet mit „Block" = Elternknoten eines Textlaufs*, nicht mit
+>    `ParagraphNode`. So bleiben die Funktionen für P12–P15 erweiterbar, ohne jetzt schon Fälle
+>    zu behandeln, die es noch nicht gibt.
+> 8. *Enter teilt am Anfang und am Ende ausdrücklich nicht.* Ein Split bei Offset 0 oder
+>    Textlänge erzeugte einen leeren Lauf, den P12 wieder einsammeln müsste. Stattdessen werden
+>    nur Geschwister verschoben.
+> 9. *Blockzusammenführung verschmilzt die beiden Textläufe an der Naht nicht.* Das ist §8.2s
+>    Normalisierung: sie darf nur gleich markierte Läufe zusammenführen, und über Marks weiß
+>    dieses Modul noch nichts. Deshalb gehört sie zu P12.
+> 10. *Keine Marks in P06.* §8.2 nennt Strong, Emphasis, Underline, Strike und InlineCode als
+>     eingebaute Marks des Profils, aber sie gehören mit Bereichsformatierung, `TypingMarks` und
+>     der Lauf-Normalisierung zusammen — ein halber Mark-Vertrag jetzt wäre eine API, die P12
+>     gleich wieder umbaute.
+
+
 - **Ziel:** Erste vollständig nutzbare vertikale Core-Funktion: Paragraph, Caret, Einfügen, Löschen und Paragraph-Split.
 - **Module:** Neues rich-text.
 - **Neue Dateien:** `rich-text/ParagraphNode.scala`, `RichText.scala`, `TextEditing.scala`, `UnicodeTextBoundaries.scala` (Implementierung des Core-Interfaces); Tests `TextEditingSpec.scala`, `UnicodeBoundarySpec.scala`.
@@ -404,6 +463,74 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 - **Dependencies:** P05; Architektur §§8, 11.
 
 ## P07 — Echte Browser-Test-App
+
+> **Abgeschlossen, mit einer offenen Umgebungsfrage.** Neues, nicht publiziertes Modul
+> `ember-integration` (sbt-ID `scalajs-ember-integration`) samt Browser-Harness unter
+> `ember-integration/browser/`. Damit ist die `jfx-core`-Kante zum ersten Mal scharf.
+>
+> Abnahme:
+>
+> ```
+> sbt --server "scalajs-ember-integration/fullLinkJS"
+> cd ember-integration/browser && npm ci && npm run verify
+> ```
+>
+> | Lauf | Ergebnis |
+> | --- | --- |
+> | Serverimport ohne Browserglobals | grün |
+> | Chromium, 8 Fälle | grün |
+> | WebKit, 8 Fälle | grün |
+> | Firefox, 8 Fälle | **startet auf diesem Rechner nicht** |
+> | Scala-Gate (316 Tests) | unverändert grün |
+>
+> **Offener Befund — Firefox:**
+>
+> 1. Playwright kann den mitgelieferten Firefox unter Windows nicht starten:
+>    `browserType.launch: spawn UNKNOWN`, noch **vor** dem ersten Test. Kein Fall läuft, es
+>    gibt also auch kein Ergebnis. Dieselbe Maschine zeigt das Problem im Nachbar-Repo
+>    ebenfalls (dort als fehlende `mozglue`-Assembly protokolliert) — es ist eine
+>    Umgebungsfrage, keine des Codes.
+>
+>    Firefox bleibt deshalb im Standardlauf **und** in der CI. Ihn aus der Konfiguration zu
+>    nehmen würde das Symptom beseitigen und den Nachweis gleich mit. Die Dreimotoren-Abnahme
+>    aus §24 ist damit **noch nicht erbracht**; der Linux-Job der CI ist der nächste
+>    Prüfpunkt.
+>
+> **Ergänzungen gegenüber dem Plan:**
+>
+> 2. *`server-import.mjs` als eigener Lauf.* Der Plan listet den Server-Import unter Tests,
+>    ohne ihm eine Datei zu geben. §15.2 verlangt, dass das Modul beim Laden weder `window`
+>    noch `document` liest — das ist die Voraussetzung für SSR und lässt sich in Node direkt
+>    prüfen: dort gibt es die Globals nicht, ein Zugriff würde also werfen statt still
+>    gutzugehen.
+> 3. *`.github/workflows/verify.yml`.* Zwei getrennte Jobs: die headless Gates brauchen weder
+>    Browser noch das Nachbar-Repo, die Integration beides. Ein Problem in scalajs-jfx reißt
+>    so nicht Kern und rich-text mit. **Hier nicht verifiziert** — der Workflow läuft erst beim
+>    nächsten Push.
+> 4. *Modell und Darstellung getrennt abfragbar.* `read()` liefert das Modell, `rendered()`
+>    den DOM-Text. Dass beide dasselbe sagen, ist der eigentliche Nachweis: die zwei Runtimes
+>    arbeiten zusammen und nicht bloß nebeneinander.
+>
+> **Präzisierungen, die der Plan offenließ:**
+>
+> 5. *Harness in `.mjs` statt `.ts`.* Der Plan nennt `playwright.config.ts`, `fixtures.ts`,
+>    `identity.spec.ts`. Die funktionierende Harness im Nachbar-Repo verwendet `.mjs`, und eine
+>    zweite Dateikonvention in derselben Projektfamilie hat für einen Testtreiber keinen
+>    Nutzen. `fixtures.ts` entfällt ganz — die Fixtures leben in der Scala-App, die Datei wäre
+>    leer geblieben.
+> 6. *Die Fixture-App rendert nach jedem Commit vollständig neu.* Ausdrücklich die naive
+>    Variante. §15.1 verlangt für den echten Editor das Gegenteil, und genau das baut P09 —
+>    hier wäre eine keyed Projektion verfrüht und würde den Nachweis vermengen.
+> 7. *Kein `contenteditable`.* Der Container fängt Tastendrücke ab und verhindert die native
+>    Aktion. Native Eingabe mit Composition, Mutation-Observer und Recovery ist P21 bis P23.
+> 8. *Warum dieses Modul an `jfx-core` hängen darf.* Die Publish-Regel aus §6 verlangt, dass
+>    ein **veröffentlichtes** Modul nur auf veröffentlichte Artefakte zeigt. `ember-integration`
+>    wird nie veröffentlicht. `ember-jfx` in P09 wird das nicht dürfen und braucht dort einen
+>    eigenen, publizierbaren Vertrag.
+> 9. *String-basierte `@JSExport`-API.* Ein Testtreiber in JavaScript hat nichts anderes. Die
+>    produktive Fassade aus §23 arbeitet mit opaken Handles und validierten DTOs; hier wird
+>    davon nichts eingefroren.
+
 
 - **Ziel:** Kleine unabhängige Harness, welche die neue Scala-Engine ausführt und frühe Runtime-Nachweise ermöglicht.
 - **Module:** Neues nicht publiziertes IT; bestehendes jfx-core.
