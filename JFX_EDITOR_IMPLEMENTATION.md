@@ -1,8 +1,8 @@
 # JFX Editor: ausführbarer Implementierungsplan
 
-Status: **Meilenstein A und B stehen, C und D angefangen** — P01–P13 abgeschlossen (569
+Status: **Meilenstein A und B stehen, C und D angefangen** — P01–P14 abgeschlossen (619
 Scala-Tests und 126 Browserfälle in Chromium, Firefox und WebKit grün),
-P14–P30 offen. Dieses Repository (`scalajs-ember`) ist das in
+P15–P30 offen. Dieses Repository (`scalajs-ember`) ist das in
 Architektur und Plan gemeinte „eigene Repository“. Die generischen JFX-Core-Anteile aus
 P08/P09, P19a, P20 und P23 sind **nicht hier, sondern im Nachbar-Repo `../scalajs-jfx`**
 implementiert und über eine Quell-Abhängigkeit auf dessen Submodul `jfx-core` eingebunden
@@ -1043,6 +1043,83 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 - **Dependencies:** P12; Architektur §§8, 11, 18.
 
 ## P14 — Links
+
+> **Abgeschlossen.** Neues Modul `ember-link` (sbt-ID `scalajs-ember-link`, Paket
+> `ember.editor.link`), abhängig von Kern und Rich-Text-Profil. Abnahme:
+>
+> ```
+> sbt --server "Test/testOnly *"
+> ```
+>
+> | Suite | Ergebnis |
+> | --- | --- |
+> | `LinkUrlPolicySpec` | 21 Tests grün |
+> | `LinkSpec` | 19 Tests grün |
+> | `LinkProjectionSpec` (ember-standard) | 10 Tests grün |
+> | Gesamtes Scala-Gate | 619 Tests grün |
+>
+> **`LinkUrl` ist ein Typ, kein String — und das ist die ganze Abnahme.**
+>
+> P14 verlangt „URL-Validierung identisch bei Command/Import". Eine Konvention macht daraus ein
+> Versprechen, ein Typ eine Tatsache: es gibt keinen Weg, einen `LinkNode` ohne `LinkUrl` zu
+> bauen, und keinen, ein `LinkUrl` ohne Policy zu bekommen. Command-Pfad und Importpfad
+> **können** nicht auseinanderlaufen, weil es nur eine Tür gibt. Der Importparser aus P24 bekommt
+> dieselbe Tür, ohne dass jemand daran denken müsste.
+>
+> **Die Risikozeile ernst genommen.** „Stringpräfix-Tests allein reichen für normalisierte URLs
+> nicht" — `LinkUrlPolicySpec` besteht aus Fällen, die ein Browser ausführt und ein naives
+> `startsWith("javascript:")` durchlässt: führender Whitespace, Tab und Zeilenumbruch *im*
+> Schema, gemischte Schreibweise, entity-kodierte Schemabuchstaben (`&#106;avascript:`),
+> entity-kodierte Trenner (`java&#9;script:`) und protokollrelative Ziele. Die
+> Normalisierungsreihenfolge ist deshalb fest und dokumentiert: Entities, dann Whitespace vor dem
+> Doppelpunkt, dann Schema-Kleinschreibung — genau die Reihenfolge, die §19.1 für den Importpfad
+> vorschreibt.
+>
+> **Zwei Entscheidungen, die ein Test korrigiert hat:**
+>
+> 1. *Der Host wird nicht kanonisiert.* Ich hatte erwartet, dass `Example.COM` zu `example.com`
+>    wird. Hosts sind zwar case-insensitiv, aber sie zu normalisieren heißt, über Ports, IDN und
+>    Userinfo zu entscheiden — halb richtig ist schlechter als gar nicht. Angefasst wird nur das
+>    Schema; das ist der sicherheitsrelevante Teil.
+> 2. *Ein relatives Ziel, das wie ein Schema beginnt, wird abgewiesen.* `seite:mit:doppelpunkt`
+>    *ist* nach RFC 3986 ein Schema. Es als Pfad durchzulassen hieße, dem Autor eine Bedeutung zu
+>    unterstellen, die sein Leser nicht sieht. Der Ausweg steht in derselben Norm: `./seite:…`.
+>
+> **Projektionsfehler, den die Phase gefunden hat — `forget` lief zu früh.**
+>
+> Entlinken bewegt die Läufe aus dem Link heraus und entfernt ihn im selben Commit.
+> `DocumentProjection.apply` nahm entfernte Knoten aber **zuerst** aus dem Index — und damit die
+> Gruppe, aus der die Läufe gerade abwandern sollten. `transfer` fand keine Quelle, und die
+> Zielgruppe baute die Läufe neu. `forget` steht jetzt am Ende: ein entfernter Container ist
+> genau der Ort, aus dem die abwandernden Kinder kommen. Zusammen mit dem `mountNewContainers`
+> aus P13 hält §15.1s „Move erhält Node-Identität" jetzt auch dann, wenn Struktur im selben
+> Commit entsteht und vergeht.
+>
+> **`target` und `rel`: die bewusste Voreinstellung ist, nichts zu setzen.**
+>
+> P14s Abnahme verlangt „External-Link-Attribute bewusst gesetzt" — nicht eine bestimmte Antwort.
+> `target="_blank"` ist eine redaktionelle Entscheidung, keine technische: es überschreibt die
+> Wahl des Lesers und bricht den Zurück-Knopf, und §16 will, dass die ausgelieferte Fassung das
+> ist, was ein Leser erwartet. Eine Anwendung, die es will, wählt `LinkSupport.openingExternally`
+> — und bekommt `rel="noopener noreferrer"` automatisch dazu, weil die beiden zusammengehören.
+> `mailto:` und `tel:` bekommen nie eines von beiden: sie übergeben an ein anderes Programm, nicht
+> an eine andere Seite.
+>
+> **Bewusste Abgrenzungen:**
+>
+> - *Die Link-Policy ist nicht die Media-Policy.* §20 gibt Bildern eigene Regeln, und P14s
+>   Risikozeile hält beide auseinander. Ein Dokument darf auf eine Seite verlinken, von der es
+>   kein Bild lüde.
+> - *Caret ohne Auswahl ergibt `Pass`.* Manche Editoren fügen dort die URL als Text ein; das ist
+>   eine Entscheidung für eine Oberfläche, nicht für das Modell.
+> - *Ein Bereich über mehrere Blöcke wird ein Link je Block.* Ein Link ist inline (§8.2), ein
+>   Knoten hat einen Elternteil — über eine Blockgrenze hinweg gibt es keinen gemeinsamen.
+> - *Kein Image-Link-Test.* Der Plan verweist ihn ausdrücklich hinter P16, nach P18/P25.
+> - *Die Demo wählt im Modell aus.* `SetLink` braucht eine Auswahl, eine DOM-Auswahl gibt es aber
+>   erst mit P21. Der Link-Knopf legt deshalb den ganzen Lauf am Caret in einen Link — in *einer*
+>   Transaktion, damit ein Undo nicht bloß die Auswahl zurücknimmt.
+>
+> Modulvertrag: [ember-link/README.md](ember-link/README.md).
 
 - **Ziel:** Typisierte Inline-Links einschließlich Bereichsoperationen und URL-Regeln.
 - **Module:** Neues link; standard.

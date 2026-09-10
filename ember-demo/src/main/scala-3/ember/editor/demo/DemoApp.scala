@@ -176,6 +176,8 @@ final class DemoApp extends AbstractComponent:
       action("Nummern", DemoCommand.Numbers)
       action("Einruecken", DemoCommand.Indent)
       action("Ausruecken", DemoCommand.Outdent)
+      action("Link", DemoCommand.Link("https://github.com/anjunar/scalajs-ember"))
+      action("Link weg", DemoCommand.Unlink)
       action("Undo", DemoCommand.Undo)
       action("Redo", DemoCommand.Redo)
     }

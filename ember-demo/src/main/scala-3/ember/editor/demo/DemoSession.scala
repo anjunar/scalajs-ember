@@ -2,12 +2,13 @@ package ember.editor.demo
 
 import ember.editor.core.*
 import ember.editor.history.{History, HistoryConfig}
+import ember.editor.link.{LinkCommands, LinkExtension, LinkTarget, LinkUrlPolicy}
 import ember.editor.list.{ListCommands, ListExtension, ListKind}
 import ember.editor.html.RenderProfile
 import ember.editor.jfx.{DocumentView, ViewSupport}
 import ember.editor.json.*
 import ember.editor.richtext.*
-import ember.editor.standard.ListSupport
+import ember.editor.standard.LinkSupport
 
 /** The Sitzung the Demo samt all, was daran haengt.
   *
@@ -29,7 +30,9 @@ final class DemoSession:
   val history: History = new History(HistoryConfig.default)
 
   private val resolved: ResolvedExtensions =
-    ExtensionResolver.resolve(Vector(RichText(generator), ListExtension(generator), history)) match
+    ExtensionResolver.resolve(
+      Vector(RichText(generator), ListExtension(generator), LinkExtension(generator), history)
+    ) match
       case Right(value) => value
       case Left(errors) =>
         throw new IllegalStateException(errors.map(_.render).mkString("; "))
@@ -58,7 +61,7 @@ final class DemoSession:
   private val codecs: JsonSupport = CoreJsonSupport.all ++ JsonSupport.of(paragraphCodec)
 
   /** The adapter set: root, paragraph and text plus the block types P12 added. */
-  val views: ViewSupport = ListSupport.views
+  val views: ViewSupport = LinkSupport.views
 
   private var lastError: Option[String] = None
 
@@ -124,12 +127,51 @@ final class DemoSession:
       case DemoCommand.Numbers      => session.dispatch(ListCommands.ToggleList, ListKind.Ordered)
       case DemoCommand.Indent       => session.dispatch(ListCommands.Indent)
       case DemoCommand.Outdent      => session.dispatch(ListCommands.Outdent)
+      case DemoCommand.Unlink       => session.dispatch(LinkCommands.RemoveLink)
+      case DemoCommand.Link(url) => return linkRunAtCaret(url)
 
     outcome match
       case Right(result) => result.wasHandled
       case Left(failure) =>
         lastError = Some(failure.render)
         false
+
+  /** Legt den ganzen Textlauf am Caret in einen Link.
+    *
+    * ==Warum die Demo den Bereich selbst setzt==
+    *
+    * `SetLink` braucht eine Auswahl -- es gibt nichts zu umschliessen, wenn nichts ausgewaehlt
+    * ist. Eine DOM-Auswahl gibt es aber noch nicht: der `SelectionPort` ist P21. Die Demo waehlt
+    * deshalb im Modell aus, und zwar den ganzen Lauf am Caret: vorhersagbar, erklaerbar
+    * und ohne so zu tun, als koennte man hier schon mit der Maus markieren.
+    *
+    * Auswahl und Command laufen in einer Transaktion. Zwei waeren zwei History-Stufen,
+    * und ein Undo nach dem Verlinken naehme dann nur die Auswahl zurueck.
+    */
+  private def linkRunAtCaret(url: String): Boolean =
+    // Die Policy ist die einzige Tuer zu einer `LinkUrl` -- eine unsichere Adresse kommt gar
+    // nicht erst bis zum Command (§19.1, P14).
+    LinkUrlPolicy.default.parse(url) match
+      case Left(error) =>
+        lastError = Some(error.render)
+        false
+      case Right(value) =>
+        caret.map(_._1).flatMap(id => session.document.node(id).collect { case run: TextNode => run }) match
+          case None => false
+          case Some(run) =>
+            handled(
+              session
+                .update { transaction =>
+                  transaction.select(
+                    RangeSelection(
+                      Point.textBefore(run.id, 0),
+                      Point.textBefore(run.id, run.text.length)
+                    )
+                  ): Unit
+                  transaction.dispatch(LinkCommands.SetLink, LinkTarget(value)): Unit
+                }
+                .map(_ => true)
+            )
 
   private def handled(outcome: Either[UpdateError, Boolean]): Boolean = outcome match
     case Right(changed) => changed
@@ -207,3 +249,5 @@ enum DemoCommand:
   case Numbers
   case Indent
   case Outdent
+  case Link(url: String)
+  case Unlink

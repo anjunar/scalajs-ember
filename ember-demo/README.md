@@ -45,6 +45,7 @@ Damit ist der Stand nach P12 an einem Stück sichtbar:
 | P11 | Undo und Redo mit den Gruppierungsregeln aus §14 |
 | P12 | Marks, Überschriften, Zitate, Umbrüche und die Textlauf-Normalisierung |
 | P13 | Listen mit Ein- und Ausrücken |
+| P14 | Links samt URL-Policy |
 
 Undo und Redo gibt es als Knöpfe und über Strg+Z beziehungsweise Strg+Shift+Z; die Statuszeile
 zeigt die Tiefe beider Stapel. Zusammenhängendes Tippen wird dabei zu einer Stufe zusammengefasst
@@ -52,7 +53,11 @@ zeigt die Tiefe beider Stapel. Zusammenhängendes Tippen wird dabei zu einer Stu
 
 Seit P12 stehen daneben Fett, Kursiv, Code, H2, Zitat, Umbruch und Trenner; die Statuszeile zeigt
 die aktiven Marks. P13 bringt Liste, Nummern, Einrücken und Ausrücken dazu -- Letztere auch auf
-Tab und Shift+Tab, was P13 ausdrücklich als Sache der Anwendung führt und nicht des Moduls. Wer bei leerem Caret „Fett" drückt, erzeugt keinen Text -- die nächste Eingabe
+Tab und Shift+Tab, was P13 ausdrücklich als Sache der Anwendung führt und nicht des Moduls.
+
+„Link" und „Link weg" arbeiten auf dem Lauf am Caret: `SetLink` braucht eine Auswahl, und eine
+DOM-Auswahl gibt es erst mit P21. Die Demo wählt deshalb im Modell aus -- vorhersagbar, und ohne
+so zu tun, als ließe sich hier schon mit der Maus markieren. Wer bei leerem Caret „Fett" drückt, erzeugt keinen Text -- die nächste Eingabe
 kommt fett heraus (§11). Und wer die Formatierung wieder wegnimmt, sieht im Panel „Dokument", wie
 die drei Läufe zu einem zusammenwachsen.
 

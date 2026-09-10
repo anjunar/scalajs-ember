@@ -38,7 +38,7 @@ import scala.collection.mutable
   *
   * ==Die Reihenfolge einer Anwendung==
   *
-  *   1. Entfernte Knoten aus dem Index nehmen -- die Gruppen raeumen sie selbst ab.
+  *   1. Neu erzeugte Container montieren, damit ein Transfer ein Ziel hat.
   *   1. Verschobene Knoten zwischen Gruppen uebertragen. '''Vor''' der Neuordnung, sonst
   *      wuerde die Zielgruppe den Knoten als neu ansehen und ein zweites Mal erzeugen.
   *   1. Textsplices anwenden. Vor der Neuordnung, damit der anschliessende Wertvergleich der
@@ -46,6 +46,8 @@ import scala.collection.mutable
   *      diesmal vollstaendig statt gezielt.
   *   1. Geaenderte Kindlisten neu ordnen.
   *   1. Geaenderte Knoten nachfuehren.
+  *   1. Entfernte Knoten aus dem Index nehmen -- '''zuletzt''', weil ein entfernter Container die
+  *      Quelle der Knoten ist, die ihn gerade verlassen haben.
   *
   * Schritt 3 sieht nach Umweg aus und ist der Kern der Sache: ein `spliceText` schreibt
   * `CharacterData.replaceData` fuer den geaenderten Bereich, ein `setText` den ganzen Lauf.
@@ -95,8 +97,6 @@ final class DocumentProjection private[jfx] (
     current = commit.current.document
     val changes = commit.changes
 
-    forget(changes.removed)
-
     // Nodes that keep their component and change parent. Every group built during this commit
     // has to leave them alone -- see `mountNewContainers`.
     incoming = changes.moved.filter(components.contains)
@@ -107,6 +107,12 @@ final class DocumentProjection private[jfx] (
       changes.textSplices.foreach(applySplices)
       (changes.childListChanged ++ changes.moved.flatMap(current.parentOf)).foreach(reorder)
       changes.updated.foreach(refresh)
+      // Last, not first. A removed container is exactly where departing children come from --
+      // unlinking moves the runs out of the link and removes it in the same commit. Dropping
+      // its group from the index beforehand would leave `transfer` without a source, and the
+      // destination group would build the runs afresh. The groups themselves are cleared by
+      // their parent's reorder either way; this only tidies the index.
+      forget(changes.removed)
     finally incoming = Set.empty
 
   /** Mounts containers that were created in this commit, before anything is transferred.

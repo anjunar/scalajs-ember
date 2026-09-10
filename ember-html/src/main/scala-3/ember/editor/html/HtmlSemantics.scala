@@ -28,8 +28,13 @@ final case class HtmlAttribute private (name: String, value: String)
 object HtmlAttribute:
 
   /** Bewusst eng. Erweitert wird die Liste, wenn ein Knotentyp ein Attribut belegt braucht. */
-  private val allowed =
-    Set("id", "lang", "dir", "href", "title", "alt", "src", "width", "height", "start")
+  private val allowed = Set(
+    "id", "lang", "dir", "href", "title", "alt", "src", "width", "height", "start",
+    // `rel` und `target` gehoeren zusammen und kommen nur an externen Links vor -- siehe
+    // `LinkSupport`. Sie stehen hier, weil §19.1 eine geschlossene Liste verlangt und nicht,
+    // weil ein Adapter sie beliebig setzen duerfte.
+    "rel", "target"
+  )
 
   private val editorPrefix = "data-ember-"
 

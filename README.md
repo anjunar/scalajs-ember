@@ -14,7 +14,7 @@ Laufzeitabhängigkeit.
 
 ## Stand
 
-**Meilenstein A und B stehen, C und D angefangen** — P01–P13 abgeschlossen, P14–P30 offen. Der frühere
+**Meilenstein A und B stehen, C und D angefangen** — P01–P14 abgeschlossen, P15–P30 offen. Der frühere
 `contenteditable`-Prototyp (`ember.core.Editor` mit `execCommand` und HTML-String als
 Zustand) und seine vite-Demo wurden entfernt — Architektur §2 und §25 schließen diesen
 Ansatz aus.
@@ -55,6 +55,11 @@ dritten Wort steht danach im dritten Wort --, Enter und Backspace bedeuten an Li
 etwas anderes und treten über §12s Prioritätskette vor die Rich-Text-Handler, und vier
 Normalisierungsregeln halten die Struktur legal, egal wer sie verändert hat.
 
+P14 bringt Links. Eine Adresse wird zu einem `LinkUrl`, und den gibt es nur durch die Policy --
+Command und Import können deshalb nicht auseinanderlaufen. Was die Policy abweist, sind nicht
+nur `javascript:`-Präfixe, sondern auch ihre verschleierten Formen: Steuerzeichen im Schema,
+entity-kodierte Buchstaben, protokollrelative Ziele.
+
 ## Module
 
 Konvention: Verzeichnis `ember-<modul>`, sbt-ID und Artefakt `scalajs-ember-<modul>`,
@@ -71,6 +76,8 @@ Vorhanden:
   UAX-29-Graphemgrenzen. Hängt ausschließlich am Kern.
 - [`ember-list`](ember-list/README.md) — sbt-ID `scalajs-ember-list`, Paket
   `ember.editor.list`. Listen, Ein- und Ausrücken, Listennormalisierung. Headless und optional.
+- [`ember-link`](ember-link/README.md) — sbt-ID `scalajs-ember-link`, Paket
+  `ember.editor.link`. Inline-Links mit geprüfter URL-Policy. Headless und optional.
 - [`ember-json`](ember-json/README.md) — sbt-ID `scalajs-ember-json`, Paket
   `ember.editor.json`. Wire-ADT, Node- und Mark-Codecs, Grenzen, Schema-Migration. Headless.
 - [`ember-history`](ember-history/README.md) — sbt-ID `scalajs-ember-history`, Paket
