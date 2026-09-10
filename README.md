@@ -14,7 +14,7 @@ Laufzeitabhängigkeit.
 
 ## Stand
 
-**Meilenstein A und B stehen, C und D angefangen** — P01–P14 abgeschlossen, P15–P30 offen. Der frühere
+**Meilenstein A und B stehen, C und D angefangen** — P01–P15 abgeschlossen, P16–P30 offen. Der frühere
 `contenteditable`-Prototyp (`ember.core.Editor` mit `execCommand` und HTML-String als
 Zustand) und seine vite-Demo wurden entfernt — Architektur §2 und §25 schließen diesen
 Ansatz aus.
@@ -60,6 +60,10 @@ Command und Import können deshalb nicht auseinanderlaufen. Was die Policy abwei
 nur `javascript:`-Präfixe, sondern auch ihre verschleierten Formen: Steuerzeichen im Schema,
 entity-kodierte Buchstaben, protokollrelative Ziele.
 
+P15 bringt Codeblöcke. Die Sprache ist ein Metadatum, kein Highlighter -- was das Modul
+garantiert, ist der Inhalt wörtlich in einem unmarkierten Lauf, einschließlich seiner
+Leerzeilen. Genau das brauchen sowohl ein späterer Highlighter als auch ein Markdown-Fence.
+
 ## Module
 
 Konvention: Verzeichnis `ember-<modul>`, sbt-ID und Artefakt `scalajs-ember-<modul>`,
@@ -78,6 +82,8 @@ Vorhanden:
   `ember.editor.list`. Listen, Ein- und Ausrücken, Listennormalisierung. Headless und optional.
 - [`ember-link`](ember-link/README.md) — sbt-ID `scalajs-ember-link`, Paket
   `ember.editor.link`. Inline-Links mit geprüfter URL-Policy. Headless und optional.
+- [`ember-code`](ember-code/README.md) — sbt-ID `scalajs-ember-code`, Paket
+  `ember.editor.code`. Codeblöcke mit typisierten Sprachmetadaten, ohne Highlighter.
 - [`ember-json`](ember-json/README.md) — sbt-ID `scalajs-ember-json`, Paket
   `ember.editor.json`. Wire-ADT, Node- und Mark-Codecs, Grenzen, Schema-Migration. Headless.
 - [`ember-history`](ember-history/README.md) — sbt-ID `scalajs-ember-history`, Paket

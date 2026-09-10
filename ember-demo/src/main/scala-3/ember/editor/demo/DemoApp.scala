@@ -149,7 +149,14 @@ final class DemoApp extends AbstractComponent:
           editor.perform(if native.shiftKey then DemoCommand.Redo else DemoCommand.Undo)
         case "y" if native.ctrlKey => editor.perform(DemoCommand.Redo)
         case "Tab" =>
-          editor.perform(if native.shiftKey then DemoCommand.Outdent else DemoCommand.Indent)
+          // Im Codeblock ruecken Tab und Shift+Tab die Zeile ein, sonst das Listenelement.
+          // Beide Commands geben `Pass`, wenn sie nicht zustaendig sind (§12) -- die Demo
+          // probiert deshalb erst den einen, dann den anderen.
+          val code = editor.perform(
+            if native.shiftKey then DemoCommand.OutdentCode else DemoCommand.IndentCode
+          )
+          if code then true
+          else editor.perform(if native.shiftKey then DemoCommand.Outdent else DemoCommand.Indent)
         case "Enter"     => editor.perform(DemoCommand.Paragraph)
         case "Backspace" => editor.perform(DemoCommand.Backspace)
         case "Delete"    => editor.perform(DemoCommand.Delete)
@@ -178,6 +185,7 @@ final class DemoApp extends AbstractComponent:
       action("Ausruecken", DemoCommand.Outdent)
       action("Link", DemoCommand.Link("https://github.com/anjunar/scalajs-ember"))
       action("Link weg", DemoCommand.Unlink)
+      action("Codeblock", DemoCommand.Code)
       action("Undo", DemoCommand.Undo)
       action("Redo", DemoCommand.Redo)
     }

@@ -42,14 +42,31 @@ sealed abstract class SemanticElement(val tagName: String) extends AbstractCompo
 final class ContainerElement(tagName: String) extends SemanticElement(tagName):
 
   private var group: Option[AbstractComponent] = None
+  private var tags = Vector.empty[String]
 
   private[jfx] def attach(children: AbstractComponent): Unit =
     require(group.isEmpty && !isBound, "Die Kindergruppe steht vor dem Mount fest.")
     group = Some(children)
 
+  /** The tags between this element and its children -- `<pre>` around `<code>`, say.
+    *
+    * Fixed before the mount, like the group. A change would mean rebuilding the chain and with
+    * it the children, which is a view replacement (§15.1) and goes through `NodeView.accepts`.
+    */
+  private[jfx] def setInner(next: Vector[String]): Unit =
+    require(!isBound, "Die inneren Tags stehen vor dem Mount fest.")
+    tags = next
+
+  def innerTags: Vector[String] = tags
+
   override def compose(cursor: Cursor): Unit =
     super.compose(cursor)
-    group.foreach(children => Runtime.mount(children, cursor, Some(this)))
+    group.foreach { children =>
+      val nested = tags.foldRight[AbstractComponent](children)((tag, inside) =>
+        new MarkElement(tag, inside)
+      )
+      Runtime.mount(nested, cursor, Some(this)): Unit
+    }
 
 /** Ein Textlauf mit stabilem Wrapper (§15.1).
   *
@@ -105,10 +122,10 @@ final class TextRunElement(tagName: String) extends SemanticElement(tagName):
     content = new TextComponent(carried)
     chain = Runtime.mount(build(), Runtime.contentCursor(this), Some(this))
 
-/** One semantic tag around a text run: `strong`, `em`, `code`.
+/** One tag that only describes: a mark around a text run, or `<code>` inside a `<pre>`.
   *
-  * Carries no attributes and no identity. A mark is not a node (§8.2) -- it has no ID, and
-  * nothing outside this chain ever needs to find it again.
+  * Carries no attributes and no identity. Neither a mark (§8.2) nor a presentational wrapper is
+  * a node -- they have no ID, and nothing outside their chain ever needs to find them again.
   */
 private final class MarkElement(val tagName: String, inner: AbstractComponent)
     extends AbstractComponent:
@@ -173,9 +190,10 @@ object NodeView:
 
       def create(node: N, profile: RenderProfile): AbstractComponent =
         semantics.shapeOf(node, profile) match
-          case HtmlShape.Element(tag, attributes) =>
+          case HtmlShape.Element(tag, attributes, inner) =>
             val element = new ContainerElement(tag)
             element.setAttributes(attributes)
+            element.setInner(inner)
             element
           case HtmlShape.TextRun(tag, value, attributes, marks) =>
             val element = new TextRunElement(tag)
@@ -186,13 +204,14 @@ object NodeView:
 
       def accepts(component: AbstractComponent, node: N, profile: RenderProfile): Boolean =
         (semantics.shapeOf(node, profile), component) match
-          case (HtmlShape.Element(tag, _), element: ContainerElement)    => tag == element.tagName
+          case (HtmlShape.Element(tag, _, inner), element: ContainerElement) =>
+            tag == element.tagName && inner == element.innerTags
           case (HtmlShape.TextRun(tag, _, _, _), element: TextRunElement) => tag == element.tagName
           case _                                                          => false
 
       def update(component: AbstractComponent, node: N, profile: RenderProfile): Unit =
         (semantics.shapeOf(node, profile), component) match
-          case (HtmlShape.Element(_, attributes), element: ContainerElement) =>
+          case (HtmlShape.Element(_, attributes, _), element: ContainerElement) =>
             element.setAttributes(attributes)
           case (HtmlShape.TextRun(_, value, attributes, marks), element: TextRunElement) =>
             element.setAttributes(attributes)

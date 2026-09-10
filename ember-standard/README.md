@@ -1,4 +1,4 @@
-| Produktionsabhängigkeiten | `scalajs-ember-core`, `scalajs-ember-rich-text`, `scalajs-ember-list`, `scalajs-ember-link`, `scalajs-ember-html`, `scalajs-ember-jfx` |# scalajs-ember-standard
+| Produktionsabhängigkeiten | `scalajs-ember-core`, `scalajs-ember-rich-text`, `scalajs-ember-list`, `scalajs-ember-link`, `scalajs-ember-code`, `scalajs-ember-html`, `scalajs-ember-jfx` |# scalajs-ember-standard
 
 Die Standardadapter des Ember-Editors: der Ort, an dem Knotenarten und Renderer einander
 kennen. Einzeln wählbar, nicht als Sammelregistrierung.
@@ -13,10 +13,11 @@ Verbindlicher Entwurf: [JFX_EDITOR_ARCHITECTURE.md](../JFX_EDITOR_ARCHITECTURE.m
 
 ## Stand
 
-P09, P12, P13 und P14 abgeschlossen. Vorhanden: `ParagraphSupport` (Wurzel, Absatz, Textlauf),
+P09 und P12 bis P15 abgeschlossen. Vorhanden: `ParagraphSupport` (Wurzel, Absatz, Textlauf),
 `RichTextSupport` (Überschrift, Zitat, Umbrüche) samt `StandardMarkTags` — der Tabelle, die aus
-den fünf eingebauten Marks HTML-Tags macht — `ListSupport` (`ul`/`ol`/`li` samt Startnummer) und `LinkSupport` (`a` samt der Entscheidung
-über `target` und `rel`). Code und Bilder folgen mit P15 und P16, jeweils als eigenes `*Support`.
+den fünf eingebauten Marks HTML-Tags macht — `ListSupport` (`ul`/`ol`/`li` samt Startnummer), `LinkSupport` (`a` samt der Entscheidung über
+`target` und `rel`) und `CodeSupport` (`pre`/`code` samt Sprachklasse). Bilder folgen mit P16 als
+eigenes `*Support`.
 
 `strong` und `em`, nicht `b` und `i`: §16 verlangt semantisches HTML, und das sagt, was gemeint
 ist, statt wie es aussieht. Underline bekommt `u` — nicht weil HTML dafür eine gute Antwort

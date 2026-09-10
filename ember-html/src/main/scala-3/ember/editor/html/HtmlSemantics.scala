@@ -33,7 +33,12 @@ object HtmlAttribute:
     // `rel` und `target` gehoeren zusammen und kommen nur an externen Links vor -- siehe
     // `LinkSupport`. Sie stehen hier, weil §19.1 eine geschlossene Liste verlangt und nicht,
     // weil ein Adapter sie beliebig setzen duerfte.
-    "rel", "target"
+    "rel", "target",
+    // `class` traegt genau eine Sache: die Sprache eines Codeblocks als `language-<name>`
+    // (`CodeSupport`). §19.1 schliesst "beliebige CSS-Strings als Dokumentformat" aus -- der
+    // Name steht hier, der Wert kommt aus einem Adapter, und die Sprache selbst ist geprueft.
+    // Ein Importparser (P24) entscheidet gesondert, was er davon uebernimmt.
+    "class"
   )
 
   private val editorPrefix = "data-ember-"
@@ -71,8 +76,27 @@ object HtmlAttribute:
   */
 enum HtmlShape:
 
-  /** Ein Element mit Tag und Attributen. Kinder kommen von der Dokumentstruktur. */
-  case Element(tag: String, attributes: Vector[HtmlAttribute] = Vector.empty)
+  /** Ein Element mit Tag und Attributen. Kinder kommen von der Dokumentstruktur.
+    *
+    * `inner` sind zusaetzliche Tags 'innerhalb'' des aeusseren, von aussen nach innen; die Kinder
+    * landen im innersten. `Element("pre", …, Vector("code"))` wird zu
+    * `<pre><code>…Kinder…</code></pre>`.
+    *
+    * ==Warum ein Knoten mehrere Tags braucht==
+    *
+    * Weil HTML fuer manche Bedeutungen zwei verlangt. Ein Codeblock ist `<pre><code>` -- `pre`
+    * erhaelt den Whitespace, `code` sagt, was der Inhalt ist --, und beide gehoeren demselben
+    * Dokumentknoten. Ihn in zwei Knoten aufzuteilen hiesse, dem Dokument eine Struktur
+    * anzudichten, die nur die Darstellung braucht.
+    *
+    * Dieselbe Form wie [[TextRun.marks]] und aus demselben Grund: der aeussere Tag traegt die
+    * Identitaet des Knotens und ueberlebt, die inneren beschreiben nur.
+    */
+  case Element(
+      tag: String,
+      attributes: Vector[HtmlAttribute] = Vector.empty,
+      inner: Vector[String] = Vector.empty
+  )
 
   /** Ein Textlauf in seinem eigenen Wrapper.
     *

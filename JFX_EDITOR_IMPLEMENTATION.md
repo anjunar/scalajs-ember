@@ -1,8 +1,8 @@
 # JFX Editor: ausführbarer Implementierungsplan
 
-Status: **Meilenstein A und B stehen, C und D angefangen** — P01–P14 abgeschlossen (619
+Status: **Meilenstein A und B stehen, C und D angefangen** — P01–P15 abgeschlossen (662
 Scala-Tests und 126 Browserfälle in Chromium, Firefox und WebKit grün),
-P15–P30 offen. Dieses Repository (`scalajs-ember`) ist das in
+P16–P30 offen. Dieses Repository (`scalajs-ember`) ist das in
 Architektur und Plan gemeinte „eigene Repository“. Die generischen JFX-Core-Anteile aus
 P08/P09, P19a, P20 und P23 sind **nicht hier, sondern im Nachbar-Repo `../scalajs-jfx`**
 implementiert und über eine Quell-Abhängigkeit auf dessen Submodul `jfx-core` eingebunden
@@ -1132,6 +1132,74 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 - **Dependencies:** P12; Architektur §§8, 19–20.
 
 ## P15 — Code
+
+> **Abgeschlossen.** Neues Modul `ember-code` (sbt-ID `scalajs-ember-code`, Paket
+> `ember.editor.code`), abhängig von Kern und Rich-Text-Profil. Abnahme:
+>
+> ```
+> sbt --server "Test/testOnly *"
+> ```
+>
+> | Suite | Ergebnis |
+> | --- | --- |
+> | `CodeSpec` | 33 Tests grün |
+> | `CodeProjectionSpec` (ember-standard) | 10 Tests grün |
+> | Gesamtes Scala-Gate | 662 Tests grün |
+>
+> **Kein Highlighter, und der Vertrag, der ihn später erlaubt.** Die Abnahme verbietet ihn als
+> Produktionsabhängigkeit; die Risikozeile sagt, warum es dabei bleiben muss: „Sichtbares
+> Highlighting darf später keine persistente Mark-Zerlegung jeder Codezeile erzwingen." Was
+> dieses Modul stattdessen garantiert, ist genau das, was ein Highlighter und ein
+> Markdown-Fence brauchen — der Inhalt wörtlich, einschließlich innerer Leerzeilen, in **einem**
+> unmarkierten Lauf. Ein späteres `ember-code-highlighting` färbt in einer Ansicht ein, ohne das
+> Dokument anzufassen.
+>
+> **Derselbe Transform-Fehler zum dritten Mal — diesmal im eigenen Modul, eine Datei nachdem ich
+> ihn kommentiert hatte.** Die Kollabierungsregel hing am `CodeBlockNode` und sollte unter
+> anderem Marks vom Lauf entfernen. Eine Markänderung berührt aber den **Lauf**, nicht den Block,
+> und §3.4 hält fest, dass ein Vorfahr auf dem Pfad kein Transform-Kandidat ist. Die Regel wurde
+> nie gefragt. Jetzt sind es zwei: `contentIsOneRun` am Block (Struktur) und `runInCodeIsPlain`
+> am Lauf (Marks). Die Merkregel steht im Scaladoc: **die Regel gehört an den Knoten, der sich
+> ändert, nicht an den, dem er gehört.** Nach P12 (Textlauf-Merge), P13 (benachbarte Listen) und
+> jetzt P15 ist das dieselbe Form in drei Verkleidungen.
+>
+> **`HtmlShape.Element` bekam innere Tags.** `<pre><code>` ist, was HTML für einen Codeblock hat,
+> und beide Hälften verdienen ihren Platz: `pre` erhält den Whitespace, `code` sagt, was der
+> Inhalt ist (§16). Sie gehören **einem** Dokumentknoten — sie in zwei aufzuteilen hieße, dem
+> Dokument eine Struktur anzudichten, die nur die Darstellung braucht. Dieselbe Form wie
+> `TextRun.marks` aus P12 und aus demselben Grund: der äußere Tag trägt die Identität, die
+> inneren beschreiben nur. `ContainerElement` baut die Kette, `NodeView.accepts` vergleicht sie
+> mit — ein Wechsel der inneren Tags ist eine View-Ersetzung, ein Attributwechsel nicht.
+>
+> **`class` ist jetzt erlaubt, mit einer Bedingung.** `class="language-scala"` ist die
+> Konvention, die jeder Highlighter liest. §19.1 schließt „beliebige CSS-Strings als
+> Dokumentformat" aus, und das ist keiner: der Wert entsteht in `CodeSupport` aus einer
+> `CodeLanguage`, die bereits auf Whitespace und Backticks geprüft ist. Ein Importparser (P24)
+> entscheidet gesondert, was er davon übernimmt.
+>
+> **Ein Test hat eine Entwurfsentscheidung korrigiert.** Ich hatte alle Kinder eines Codeblocks
+> mit `\n` verbunden. Falsch: zwei **Läufe** nebeneinander waren eine Zeile — ein
+> Formatierungssplit, ein Inline-Paste —, und ein Umbruch dazwischen wäre einer, den niemand
+> getippt hat. Zwei **Blöcke**, die hineinwandern, waren zwei Zeilen. Läufe werden jetzt ohne
+> Trenner verbunden, Blöcke mit Umbruch.
+>
+> **Bewusste Entscheidungen:**
+>
+> - *Zurück wird eine Zeile ein Absatz.* Ein `\n` in einem Absatzlauf wäre ein Dokument, das kein
+>   Renderer richtig zeigt — HTML macht daraus ein Leerzeichen, und der Inhalt änderte still
+>   seine Bedeutung. Hard Breaks wären vertretbar; Codezeilen sind aber Zeilen.
+> - *Enter auf leerer letzter Zeile verlässt den Block.* Ein Codeblock hat keine Kante, über die
+>   ein Caret treten könnte — ohne die Konvention gäbe es keinen Weg hinaus durch Tippen.
+> - *Eine Einrückungseinheit sind zwei Leerzeichen, kein Tab.* Ein Tab rendert in der Breite, die
+>   der Betrachter des Lesers wählt, und das ist das eine, was Code-Einrückung nicht tun darf.
+> - *Ausrücken entfernt nur so viel, wie da ist.* Sonst könnte es einen einzelnen Druck seines
+>   Gegenstücks nicht zurücknehmen.
+> - *Das `meta` des Info-Strings steht nicht im HTML.* Es ist Werkzeugkonfiguration und gehört in
+>   den Fence (§18.2). Im Dokument bleibt es, damit P18 es zurückschreiben kann.
+> - *Ein Info-String ohne gültige Sprache ist kein Fehler.* Er ist ein Info-String ohne Sprache,
+>   und sein Text bleibt als Meta erhalten.
+>
+> Modulvertrag: [ember-code/README.md](ember-code/README.md).
 
 - **Ziel:** Code als semantisches Dokumentfeature, unabhängig von Highlighting.
 - **Module:** Neues code; standard.

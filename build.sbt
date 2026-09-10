@@ -205,6 +205,30 @@ lazy val emberList =
     )
 
 
+// §6: CodeBlock, Sprache als Metadatum, Code-Editing. Auf dem Rich-Text-Profil, weil ein
+// Codeblock aus einem Absatz entsteht und wieder zu einem wird.
+lazy val emberCode =
+  Project(id = "scalajs-ember-code", base = file("ember-code"))
+    .enablePlugins(ScalaJSPlugin)
+    .dependsOn(emberCore, emberRichText)
+    .settings(
+      name        := "scalajs-ember-code",
+      moduleName  := "scalajs-ember-code",
+      description := "Code blocks with typed language metadata, independent of highlighting."
+    )
+    .settings(testSettings)
+    .settings(commonJsSettings)
+    .settings(publishSettings)
+    .settings(
+      boundarySettings(
+        allowedProjects = Seq("scalajs-ember-core", "scalajs-ember-rich-text"),
+        forbiddenImports = forbiddenJfxImports ++ forbiddenUpwardImports ++
+          Seq("ember.editor.html", "ember.editor.markdown", "ember.editor.json"),
+        forbiddenModules = forbiddenArtifacts :+ "scalajs-dom"
+      )
+    )
+
+
 // §6: LinkNode, Link-Commands und Link-URL-Policy. Wie `list` auf dem Rich-Text-Profil, weil
 // ein Link Inline-Inhalte enthaelt (§8.2) -- Textlaeufe, spaeter auch Inline-Atome.
 lazy val emberLink =
@@ -331,7 +355,7 @@ lazy val emberJfx =
 lazy val emberStandard =
   Project(id = "scalajs-ember-standard", base = file("ember-standard"))
     .enablePlugins(ScalaJSPlugin)
-    .dependsOn(emberCore, emberRichText, emberList, emberLink, emberHtml, emberJfx)
+    .dependsOn(emberCore, emberRichText, emberList, emberLink, emberCode, emberHtml, emberJfx)
     .settings(
       name        := "scalajs-ember-standard",
       moduleName  := "scalajs-ember-standard",
@@ -350,6 +374,7 @@ lazy val emberStandard =
           "scalajs-ember-rich-text",
           "scalajs-ember-list",
           "scalajs-ember-link",
+          "scalajs-ember-code",
           "scalajs-ember-html",
           "scalajs-ember-jfx"
         ),
@@ -410,8 +435,8 @@ lazy val emberIntegration =
 lazy val emberDemo =
   Project(id = "scalajs-ember-demo", base = file("ember-demo"))
     .enablePlugins(ScalaJSPlugin)
-    .dependsOn(emberCore, emberRichText, emberList, emberLink, emberJson, emberHistory,
-      emberHtml, emberJfx, emberStandard, jfxCore)
+    .dependsOn(emberCore, emberRichText, emberList, emberLink, emberCode, emberJson,
+      emberHistory, emberHtml, emberJfx, emberStandard, jfxCore)
     .settings(
       name                            := "scalajs-ember-demo",
       moduleName                      := "scalajs-ember-demo",
@@ -433,17 +458,17 @@ lazy val emberDemo =
       boundarySettings(
         allowedProjects =
           Seq("scalajs-ember-core", "scalajs-ember-rich-text", "scalajs-ember-list",
-              "scalajs-ember-link", "scalajs-ember-json", "scalajs-ember-history",
-              "scalajs-ember-html", "scalajs-ember-jfx", "scalajs-ember-standard",
-              "scalajs-jfx-core"),
+              "scalajs-ember-link", "scalajs-ember-code", "scalajs-ember-json",
+              "scalajs-ember-history", "scalajs-ember-html", "scalajs-ember-jfx",
+              "scalajs-ember-standard", "scalajs-jfx-core"),
         forbiddenImports = forbiddenUpwardImports.filterNot(_ == "ember.editor.jfx"),
         forbiddenModules = Seq("scalajs-lexical")
       )
     )
 
 lazy val root = Project(id = "scalajs-ember-root", base = file("."))
-  .aggregate(emberCore, emberRichText, emberList, emberLink, emberJson, emberHistory, emberHtml,
-    emberJfx, emberStandard, emberIntegration, emberDemo)
+  .aggregate(emberCore, emberRichText, emberList, emberLink, emberCode, emberJson, emberHistory,
+    emberHtml, emberJfx, emberStandard, emberIntegration, emberDemo)
   .settings(
     name           := "scalajs-ember",
     publish / skip := true

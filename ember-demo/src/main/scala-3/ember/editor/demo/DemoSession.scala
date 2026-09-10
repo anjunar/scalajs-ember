@@ -1,6 +1,7 @@
 package ember.editor.demo
 
 import ember.editor.core.*
+import ember.editor.code.{CodeCommands, CodeExtension, CodeInfo}
 import ember.editor.history.{History, HistoryConfig}
 import ember.editor.link.{LinkCommands, LinkExtension, LinkTarget, LinkUrlPolicy}
 import ember.editor.list.{ListCommands, ListExtension, ListKind}
@@ -8,7 +9,7 @@ import ember.editor.html.RenderProfile
 import ember.editor.jfx.{DocumentView, ViewSupport}
 import ember.editor.json.*
 import ember.editor.richtext.*
-import ember.editor.standard.LinkSupport
+import ember.editor.standard.CodeSupport
 
 /** The Sitzung the Demo samt all, was daran haengt.
   *
@@ -31,7 +32,13 @@ final class DemoSession:
 
   private val resolved: ResolvedExtensions =
     ExtensionResolver.resolve(
-      Vector(RichText(generator), ListExtension(generator), LinkExtension(generator), history)
+      Vector(
+        RichText(generator),
+        ListExtension(generator),
+        LinkExtension(generator),
+        CodeExtension(generator),
+        history
+      )
     ) match
       case Right(value) => value
       case Left(errors) =>
@@ -61,7 +68,7 @@ final class DemoSession:
   private val codecs: JsonSupport = CoreJsonSupport.all ++ JsonSupport.of(paragraphCodec)
 
   /** The adapter set: root, paragraph and text plus the block types P12 added. */
-  val views: ViewSupport = LinkSupport.views
+  val views: ViewSupport = CodeSupport.views
 
   private var lastError: Option[String] = None
 
@@ -129,6 +136,9 @@ final class DemoSession:
       case DemoCommand.Outdent      => session.dispatch(ListCommands.Outdent)
       case DemoCommand.Unlink       => session.dispatch(LinkCommands.RemoveLink)
       case DemoCommand.Link(url) => return linkRunAtCaret(url)
+      case DemoCommand.Code        => session.dispatch(CodeCommands.ToggleCodeBlock, CodeInfo.of("scala"))
+      case DemoCommand.IndentCode  => session.dispatch(CodeCommands.IndentLine)
+      case DemoCommand.OutdentCode => session.dispatch(CodeCommands.OutdentLine)
 
     outcome match
       case Right(result) => result.wasHandled
@@ -251,3 +261,6 @@ enum DemoCommand:
   case Outdent
   case Link(url: String)
   case Unlink
+  case Code
+  case IndentCode
+  case OutdentCode
