@@ -1,7 +1,7 @@
 # JFX Editor: ausführbarer Implementierungsplan
 
-Status: **P01–P04 abgeschlossen** (207 Tests grün, `sbt --server "Test/testOnly *"`),
-P05–P30 offen. Dieses Repository (`scalajs-ember`) ist das in
+Status: **P01–P05 abgeschlossen** (261 Tests grün, `sbt --server "Test/testOnly *"`),
+P06–P30 offen. Dieses Repository (`scalajs-ember`) ist das in
 Architektur und Plan gemeinte „eigene Repository“. Die generischen JFX-Core-Anteile aus
 P08/P09, P19a, P20 und P23 sind **nicht hier, sondern im Nachbar-Repo `../scalajs-jfx`**
 implementiert und über eine Quell-Abhängigkeit auf dessen Submodul `jfx-core` eingebunden
@@ -327,6 +327,59 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 - **Dependencies:** P03; Architektur §§9–10.
 
 ## P05 — Commands, Extensions und Transforms
+
+> **Abgeschlossen.** Alle geplanten Dateien liegen unter
+> `ember-core/src/main/scala-3/ember/editor/core/`; `EditorSession.scala`, `Transaction.scala`
+> und `Schema.scala` sind entsprechend erweitert. Abnahme:
+> `sbt --server "Test/testOnly *"` → 261 Tests grün (54 neue).
+>
+> **Befund aus der Umsetzung:**
+>
+> 1. *Bloß berührte Vorfahren sind keine Transform-Kandidaten.* Mein erster Test erwartete, dass
+>    beim Einfügen unter `c1` auch `root` besucht wird — „Root zuletzt", wie §3.4 es für Lexical
+>    beschreibt. Der Lauf war rot, und zwar zu Recht: `root` steht in diesem Fall nur in
+>    `touchedAncestors`, nicht in `changedNodes`. §3.4 sagt genau das („Nur zur Traversierung
+>    markierte Vorfahren sind keine gleichwertigen Transform-Kandidaten"), und es ist der
+>    Unterschied zwischen einer lokalen Normalisierung und einer, die bei jedem Tastendruck den
+>    Pfad bis zur Wurzel durchläuft. Root wird besucht, wenn sich seine eigene Kindliste ändert
+>    — beide Fälle stehen jetzt getrennt in `TransformSpec`.
+>
+> **Ergänzungen gegenüber dem Plan:**
+>
+> 2. *`TransformScope` statt der ganzen Transaktion.* §10 verlangt, dass Transforms
+>    ausschließlich den Entwurf lesen und keine DOM- oder Netzwerknebenwirkungen haben. Reichte
+>    man ihnen die `Transaction`, wäre das eine Behauptung in der Dokumentation. Der eigene Typ
+>    macht es zur Konstruktion: kein `dispatch`, kein Feldzugriff, keine Metadaten. Command-Handler
+>    bekommen denselben Zugriff — eine Command-Kette, die sich selbst verlängert, ist genau die
+>    verdeckte Reentranz, die §10 ausschließt.
+> 3. *Der Wire-Name einer ersetzten Knotenart bleibt auflösbar.* §8.3 sagt, ein Rendererwechsel
+>    migriere kein Dokument. Also muss `schema.byId(alterName)` weiter den Ersatz liefern,
+>    sonst wäre jede bereits gespeicherte Datei nach einer Spezialisierung undekodierbar.
+> 4. *`ResolvedExtensions` trägt das Schema.* Das Dokument braucht es, bevor die Sitzung
+>    existiert. Der Ablauf ist deshalb: auflösen → Dokument gegen `resolved.schema` bauen →
+>    Sitzung erzeugen. Ein Dokument aus einem anderen Schema wird mit
+>    `ExtensionError.SchemaMismatch` abgewiesen, statt erst beim ersten Transform aufzufallen.
+> 5. *`DispatchOutcome` trennt „übernommen" von „geändert".* Ein Handler kann prüfen und
+>    feststellen, dass nichts zu tun ist; er hat die Absicht trotzdem bearbeitet. `commit.isNoOp`
+>    beantwortet die andere Frage.
+>
+> **Präzisierungen, die der Plan offenließ:**
+>
+> 6. *Ein Pass mit Mutation wirft.* §12 verlangt die Diagnose „im Entwicklungsmodus". Es ist eine
+>    Vertragsverletzung des Handlers, nach P01s Konvention also eine Exception und kein `Left`.
+>    `SessionConfig.strictCommands` schaltet die Überwachung für Produktion ab — der Vertrag
+>    gilt dann unverändert, nur unbeobachtet.
+> 7. *Budgetüberschreitung ist ein Fehler, kein Abschneiden.* §10 ist da eindeutig. Die Meldung
+>    nennt alle beteiligten Transforms: bei zwei Regeln, die einander zurückdrehen, ist keine
+>    von beiden für sich auffällig — erst das Paar ist der Befund.
+> 8. *Die Dirty-Menge einer Runde ist der gesamte aufgelaufene ChangeSet.* Weil Transforms
+>    idempotent sein müssen, ist es unschädlich, dass eine spätere Runde bereits normalisierte
+>    Knoten noch einmal ansieht. Eine inkrementelle Menge wäre schneller und kommt, wenn eine
+>    Messung sie rechtfertigt (§8.3) — nicht auf Verdacht.
+> 9. *Kein globaler `activeEditor`.* Die heterogenen Registries (`CommandRegistry`, `Schema`,
+>    `StateFields`) kapseln je genau einen `asInstanceOf`, dessen Typzeuge das nachgeschlagene
+>    Objekt selbst ist. Nach außen gibt es kein `Any`.
+
 
 - **Ziel:** Funktionen unabhängig installieren, priorisieren und zuverlässig aufräumen.
 - **Module:** core.

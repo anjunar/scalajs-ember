@@ -13,12 +13,12 @@ Verbindlicher Entwurf: [JFX_EDITOR_ARCHITECTURE.md](../JFX_EDITOR_ARCHITECTURE.m
 
 ## Stand
 
-P01–P04 abgeschlossen. Vorhanden: Fehlerkonvention, Abhängigkeitsgrenze, unveränderliches
+P01–P05 abgeschlossen. Vorhanden: Fehlerkonvention, Abhängigkeitsgrenze, unveränderliches
 Dokumentmodell mit vollständiger Strukturvalidierung, offene Node-, Mark- und
 Selection-Verträge, Schema, ID-Generator, primitive Operationen mit komponierbarer
-Positionsabbildung sowie Sitzung, atomare Transaktionen und typisierte Zustandsfelder.
-Commands, Extensions und Transforms folgen mit P05. Leere Platzhaltertypen werden bewusst
-nicht vorweggenommen.
+Positionsabbildung, Sitzung, atomare Transaktionen, typisierte Zustandsfelder sowie
+Commands, Extensions und Transforms. Der kleine headless Texteditor folgt mit P06 im
+Modul `ember-rich-text`. Leere Platzhaltertypen werden bewusst nicht vorweggenommen.
 
 ## Dokumentmodell
 
@@ -45,6 +45,9 @@ nicht vorweggenommen.
 | `StateField` / `StateFields` | Typisierte Sitzungsfelder mit reinem, ablehnendem Reducer |
 | `PreCommitRule` | Synchrones Urteil über den fertigen Kandidaten |
 | `UpdateError` / `Subscription` | Warum ein Commit ausblieb; aufkündbare Registrierung |
+| `EditorCommand` / `CommandRegistry` | Absichten mit Instanzidentität, Prioritäten und Pass/Handled |
+| `Transform` / `TransformScope` | Normalisierung bis zum Fixpunkt, mit eingeschränktem Zugriff |
+| `Extension` / `ExtensionResolver` | Deklarative Beiträge, Abhängigkeitsordnung, Install-Rollback |
 
 Ein `Document` ist nur über `Document.build` zu bekommen und erfüllt danach die Invarianten aus
 §8.2 immer schon: genau eine Wurzel, eindeutige IDs, erreichbare Knoten, keine Zyklen, je Knoten
@@ -148,6 +151,62 @@ Formularwert hinterlassen.
 `DocumentChangePolicy` erklärt ausdrücklich, was bei einer Dokumentänderung geschieht.
 `Reset` überspringt dabei Felder, die dieselbe Transaktion selbst zugewiesen hat — sonst
 könnte eine ändernde Transaktion ihren eigenen Folgewert nie setzen.
+
+## Commands, Extensions und Transforms
+
+```scala
+val Bold = EditorCommand.unit("bold")
+
+val resolved = ExtensionResolver.resolve(Vector(CoreNodes, RichText(), Lists())).getOrElse(...)
+val document = Document.build(resolved.schema, rootId, nodes).getOrElse(...)
+val editor   = EditorSession.create(document, resolved, resolved.sessionConfig()).getOrElse(...)
+
+editor.dispatch(Bold)  // Either[UpdateError, DispatchOutcome]
+```
+
+Ein Command wird über **Referenzgleichheit** nachgeschlagen, nie über einen String. Damit gibt
+es keine Namenskollisionen zwischen Modulen, keine Tippfehler, die erst zur Laufzeit auffallen,
+und der Compiler prüft den Payload-Typ. Handler laufen von `Critical` bis `Fallback`, bei
+gleicher Priorität in Registrierungsreihenfolge; das erste `Handled` beendet die Kette.
+
+`Pass` muss nebenwirkungsfrei sein. Wer ändert und trotzdem weiterreicht, hinterlässt einen
+Zustand, mit dem der nächste Handler nicht rechnet — und der Fehler zeigt sich weit entfernt
+von seiner Ursache. `SessionConfig.strictCommands` (Voreinstellung: an) fängt das ab.
+
+### Transforms
+
+Stellen Invarianten her, **bevor** etwas sichtbar wird — statt einer Kaskade aus
+Listener-Updates, bei der jeder Zwischenstand kurz gilt (§3.2). Sie laufen nach dem
+Transaktions-Body und vor Regeln und Reducern; eine Regel, die vorher urteilte, urteilte über
+einen Zwischenstand.
+
+Reihenfolge: Phase (`Early`/`Normalize`/`Late`), dann Knotentiefe (tiefste zuerst), dann
+Registrierung. Bloß berührte Vorfahren sind **keine** Kandidaten — sonst liefe bei jedem
+Tastendruck der Pfad bis zur Wurzel durch die Normalisierung.
+
+Ein Transform bekommt `TransformScope`, nicht die ganze Transaktion. Kein `dispatch`, kein
+Feldzugriff: §10s „nur den Entwurf lesen, keine Nebenwirkungen" ist damit Konstruktion statt
+Behauptung.
+
+Kommt die Schleife nicht zur Ruhe, **scheitert** die Transaktion mit den Namen aller
+beteiligten Transforms. Das Budget ist ausdrücklich kein stilles Abschneiden (§10) — bei zwei
+Regeln, die einander zurückdrehen, ist keine für sich auffällig, erst das Paar ist der Befund.
+
+### Extensions
+
+`resolve → validate → install → dispose in umgekehrter Reihenfolge`. Die Auflösung prüft
+vollständig, bevor irgendetwas gebaut wird: doppelte Extensions, fehlende Abhängigkeiten,
+Zyklen, doppelte Wire-Namen, mehrfache oder ins Leere zeigende Ersetzungen. Scheitert eine
+Installation, wird alles bis dahin Installierte wieder abgebaut und **keine** Sitzung
+herausgegeben.
+
+Beiträge sind rein deklarativ: eine Extension-Fabrik ist ein Wert, sie beschreibt, was sie
+beiträgt, und tut es nicht selbst. Deshalb lässt sich eine Konfiguration serverseitig auflösen
+und ohne Browser prüfen.
+
+Eine Knotenart-Ersetzung (§8.3) tritt an die Stelle des Originals, und der alte Wire-Name
+bleibt auflösbar — sonst wäre jede bereits gespeicherte Datei nach einer Spezialisierung
+undekodierbar.
 
 ### Fremde Node-Arten
 

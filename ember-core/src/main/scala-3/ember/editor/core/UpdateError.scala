@@ -42,3 +42,15 @@ object UpdateError:
   /** Die Sitzung wurde bereits entsorgt. */
   case object SessionDisposed extends UpdateError:
     def message: String = "Die Sitzung ist entsorgt."
+
+  /** Die Normalisierung kam nicht zur Ruhe.
+    *
+    * §10: Das Arbeitsbudget ist ausdruecklich '''kein stilles Abschneiden''' der Normalisierung.
+    * Ein halb normalisiertes Dokument zu veroeffentlichen waere schlimmer als gar keines -- die
+    * Transaktion scheitert, und die Meldung nennt die beteiligten Transforms.
+    */
+  final case class TransformBudgetExhausted(rounds: Int, transforms: Vector[String])
+      extends UpdateError:
+    def message: String =
+      s"Die Transforms kamen nach $rounds Runden nicht zur Ruhe. Beteiligt: " +
+        transforms.mkString(", ") + "."

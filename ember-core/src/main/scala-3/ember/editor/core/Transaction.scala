@@ -30,7 +30,9 @@ final class Transaction private[core] (
     initialSelection: Option[Selection],
     initialFields: StateFields,
     val meta: TransactionMeta,
-    private val selectionSupport: SelectionSupport
+    private val selectionSupport: SelectionSupport,
+    private val commands: CommandRegistry = CommandRegistry.empty,
+    private val strictCommands: Boolean = true
 ):
 
   private var currentDocument  = initialDocument
@@ -142,6 +144,56 @@ final class Transaction private[core] (
   def select(selection: Selection): Either[UpdateError, Unit] = setSelection(Some(selection))
 
   // -----------------------------------------------------------------------------------------
+  // Commands
+  // -----------------------------------------------------------------------------------------
+
+  /** Fuehrt eine Absicht im '''laufenden''' Entwurf aus (§12).
+    *
+    * Handler laufen von Critical bis Fallback, bei gleicher Prioritaet in
+    * Registrierungsreihenfolge. Das erste `Handled` beendet die Kette.
+    *
+    * Ist bereits ein Fehler eingerastet, laeuft kein Handler mehr -- ein Handler auf einem kaputten
+    * Entwurf koennte nur weiteren Schaden anrichten.
+    */
+  def dispatch[A](command: EditorCommand[A], payload: A): CommandResult =
+    requireAlive()
+    if latched.isDefined then CommandResult.Pass
+    else
+      val scope    = new TransformScope(this)
+      val handlers = commands.handlersFor(command)
+      var result   = CommandResult.Pass
+      var index    = 0
+
+      while result == CommandResult.Pass && index < handlers.length && latched.isEmpty do
+        val before = fingerprint
+        result = handlers(index)(scope, payload)
+        if result == CommandResult.Pass then checkPassIsClean(command, before)
+        index += 1
+
+      result
+
+  def dispatch(command: EditorCommand[Unit]): CommandResult = dispatch(command, ())
+
+  /** §12: `Pass` muss nebenwirkungsfrei sein.
+    *
+    * Ein Handler, der den Entwurf aendert und dann `Pass` meldet, hinterlaesst einen Zustand, mit
+    * dem der naechste Handler nicht rechnet -- und der Fehler zeigt sich erst weit entfernt. Das
+    * ist eine Vertragsverletzung des Handlers, also nach der Fehlerkonvention eine Exception und
+    * kein `Left`. Wer die Pruefung in Produktion nicht will, schaltet
+    * `SessionConfig.strictCommands` ab; dann gilt der Vertrag unveraendert, wird aber nicht mehr
+    * ueberwacht.
+    */
+  private def checkPassIsClean(command: EditorCommand[?], before: Fingerprint): Unit =
+    if strictCommands && before != fingerprint then
+      throw EditorContractViolation(
+        s"Der Handler fuer `${command.name}` hat den Entwurf veraendert und trotzdem Pass gemeldet."
+      )
+
+  private type Fingerprint = (Document, Option[Selection], StateFields)
+
+  private def fingerprint: Fingerprint = (currentDocument, currentSelection, currentFields)
+
+  // -----------------------------------------------------------------------------------------
   // Intern
   // -----------------------------------------------------------------------------------------
 
@@ -162,6 +214,9 @@ final class Transaction private[core] (
 
   /** Felder, die diese Transaktion ausdruecklich gesetzt hat. */
   private[core] def assignedFields: Set[StateField[?]] = assigned
+
+  /** Der bisher aufgelaufene ChangeSet. Die Transform-Schleife liest daraus ihre Dirty-Menge. */
+  private[core] def currentChanges: ChangeSet = changes
 
   private[core] def candidate(previous: EditorState): CommitCandidate =
     CommitCandidate(

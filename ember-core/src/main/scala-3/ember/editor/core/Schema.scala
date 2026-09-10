@@ -21,15 +21,29 @@ object SchemaError:
   * bzw. kontrolliert rekonfigurierte Session (§13) -- deshalb ist ein Schema ein Wert und hat keine
   * Registrierungsmethode.
   */
-final class Schema private (val types: Vector[NodeType[?]]):
+final class Schema private (
+    val types: Vector[NodeType[?]],
+    private val aliases: Map[NodeTypeId, NodeTypeId]
+):
 
   private val byTypeId: Map[NodeTypeId, NodeType[?]] =
     types.map(descriptor => descriptor.typeId -> descriptor).toMap
 
-  /** Der Deskriptor zu einem Wire-Namen. */
-  def byId(typeId: NodeTypeId): Option[NodeType[?]] = byTypeId.get(typeId)
+  /** Der Deskriptor zu einem Wire-Namen.
+    *
+    * Beruecksichtigt Ersetzungen (§8.3): der Name einer ersetzten Art zeigt auf ihren Ersatz, damit
+    * bereits gespeicherte Dokumente weiter dekodierbar bleiben.
+    */
+  def byId(typeId: NodeTypeId): Option[NodeType[?]] =
+    byTypeId.get(typeId).orElse(aliases.get(typeId).flatMap(byTypeId.get))
 
-  def knows(typeId: NodeTypeId): Boolean = byTypeId.contains(typeId)
+  /** Wire-Namen, die auf einen anderen Deskriptor umgeleitet werden. */
+  def aliasedTypeIds: Set[NodeTypeId] = aliases.keySet
+
+  private[core] def withAliases(additional: Map[NodeTypeId, NodeTypeId]): Schema =
+    if additional.isEmpty then this else new Schema(types, aliases ++ additional)
+
+  def knows(typeId: NodeTypeId): Boolean = byId(typeId).isDefined
 
   /** Der zustaendige Deskriptor eines Knotens, ueber dessen Typzeugen ermittelt.
     *
@@ -66,7 +80,7 @@ object Schema:
       .sortBy(_.typeId.value)
 
     if duplicates.nonEmpty then Left(duplicates)
-    else Right(new Schema(descriptors.toVector))
+    else Right(new Schema(descriptors.toVector, Map.empty))
 
   /** Wie [[of]], wirft aber bei Fehlern. Fuer im Code feststehende Schemata und Tests. */
   def unsafe(descriptors: NodeType[?]*): Schema =

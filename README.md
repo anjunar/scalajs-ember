@@ -14,7 +14,7 @@ Laufzeitabhängigkeit.
 
 ## Stand
 
-**P01–P04 abgeschlossen**, P05–P30 offen (207 Tests). Der frühere
+**P01–P05 abgeschlossen**, P06–P30 offen (261 Tests). Der frühere
 `contenteditable`-Prototyp (`ember.core.Editor` mit `execCommand` und HTML-String als
 Zustand) und seine vite-Demo wurden entfernt — Architektur §2 und §25 schließen diesen
 Ansatz aus.
@@ -22,8 +22,9 @@ Ansatz aus.
 `ember-core` trägt den headless Kern unter `ember.editor.core`: Fehlerkonvention,
 erzwungene Abhängigkeitsgrenze, das unveränderliche Dokumentmodell mit vollständiger
 Strukturvalidierung sowie die primitiven Operationen mit komponierbarer Positionsabbildung.
-Dazu Sitzung, atomare Transaktionen und typisierte Zustandsfelder. Commands,
-Extensions und Transforms folgen mit P05.
+Dazu Sitzung, atomare Transaktionen, typisierte Zustandsfelder, Commands mit
+Prioritäten, Extensions mit Auflösung und Rollback sowie die Transform-Schleife.
+Der kleine headless Texteditor folgt mit P06.
 
 ## Module
 
