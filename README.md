@@ -88,7 +88,15 @@ cd ember-integration/browser && npm ci && npm run verify
 Serverstart. `sbt --server test` delegiert in sbt 2 auf `testQuick` und taugt nicht
 als Abnahme-Gate.
 
-Chromium und WebKit sind grün. **Firefox startet auf diesem Rechner nicht** — Playwright
-scheitert mit `spawn UNKNOWN`, bevor ein Test läuft. Dasselbe Bild zeigt das Nachbar-Repo;
-es ist eine Umgebungsfrage, keine des Codes. Firefox bleibt trotzdem im Standardlauf und in
-der CI: ihn herauszunehmen beseitigte das Symptom und den Nachweis gleich mit.
+Chromium, Firefox und WebKit sind grün (24 Fälle). Auf diesem Rechner startet der von
+Playwright mitgelieferte Firefox allerdings nicht — er verlangt eine private
+Side-by-Side-Assembly, die Windows ihm verweigert. Ein regulär installierter Firefox
+derselben Version startet einwandfrei, das Problem liegt also im mitgelieferten Build.
+Deshalb lokal:
+
+```bash
+EMBER_FIREFOX_CHANNEL=moz-firefox npm run test:browser
+```
+
+Die vollständige Diagnose steht in
+[ember-integration/browser/README.md](ember-integration/browser/README.md).

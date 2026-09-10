@@ -1,8 +1,7 @@
 # JFX Editor: ausführbarer Implementierungsplan
 
-Status: **Meilenstein A steht, B begonnen** — P01–P07 abgeschlossen (316 Scala-Tests grün,
-Browser-Harness in Chromium und WebKit grün, Firefox startet lokal nicht,
-siehe P07),
+Status: **Meilenstein A steht, B begonnen** — P01–P07 abgeschlossen (316 Scala-Tests und
+24 Browserfälle in Chromium, Firefox und WebKit grün),
 P08–P30 offen. Dieses Repository (`scalajs-ember`) ist das in
 Architektur und Plan gemeinte „eigene Repository“. Die generischen JFX-Core-Anteile aus
 P08/P09, P19a, P20 und P23 sind **nicht hier, sondern im Nachbar-Repo `../scalajs-jfx`**
@@ -464,7 +463,7 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 
 ## P07 — Echte Browser-Test-App
 
-> **Abgeschlossen, mit einer offenen Umgebungsfrage.** Neues, nicht publiziertes Modul
+> **Abgeschlossen.** Neues, nicht publiziertes Modul
 > `ember-integration` (sbt-ID `scalajs-ember-integration`) samt Browser-Harness unter
 > `ember-integration/browser/`. Damit ist die `jfx-core`-Kante zum ersten Mal scharf.
 >
@@ -480,21 +479,29 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 > | Serverimport ohne Browserglobals | grün |
 > | Chromium, 8 Fälle | grün |
 > | WebKit, 8 Fälle | grün |
-> | Firefox, 8 Fälle | **startet auf diesem Rechner nicht** |
+> | Firefox, 8 Fälle | grün (über `EMBER_FIREFOX_CHANNEL=moz-firefox`, siehe unten) |
 > | Scala-Gate (316 Tests) | unverändert grün |
 >
-> **Offener Befund — Firefox:**
+> **Befund — der mitgelieferte Firefox startet unter Windows nicht:**
 >
-> 1. Playwright kann den mitgelieferten Firefox unter Windows nicht starten:
->    `browserType.launch: spawn UNKNOWN`, noch **vor** dem ersten Test. Kein Fall läuft, es
->    gibt also auch kein Ergebnis. Dieselbe Maschine zeigt das Problem im Nachbar-Repo
->    ebenfalls (dort als fehlende `mozglue`-Assembly protokolliert) — es ist eine
->    Umgebungsfrage, keine des Codes.
+> 1. Playwright meldet nur `browserType.launch: spawn UNKNOWN`, noch **vor** dem ersten Test.
+>    Das Anwendungsereignisprotokoll nennt die Ursache: `firefox.exe` verlangt im Manifest die
+>    private Side-by-Side-Assembly `mozglue`, und Windows kann sie nicht auflösen.
 >
->    Firefox bleibt deshalb im Standardlauf **und** in der CI. Ihn aus der Konfiguration zu
->    nehmen würde das Symptom beseitigen und den Nachweis gleich mit. Die Dreimotoren-Abnahme
->    aus §24 ist damit **noch nicht erbracht**; der Linux-Job der CI ist der nächste
->    Prüfpunkt.
+>    Vier Hypothesen geprüft und ausgeschlossen: kein beschädigter Download
+>    (`install --force` liefert dieselbe Datei), keine Identitätsabweichung (angefordertes und
+>    deklariertes `assemblyIdentity` stimmen überein), nicht die Ablageform (eine zusätzliche
+>    `mozglue.manifest` ändert nichts), und **nicht die Maschine**: ein regulär installierter
+>    Firefox derselben Version hat dieselbe Manifest-Abhängigkeit und startet einwandfrei. Das
+>    Problem liegt im mitgelieferten Build.
+>
+>    Gelöst über den offiziell unterstützten Kanal `moz-firefox`, der den installierten Firefox
+>    ansteuert. Er spricht WebDriver BiDi statt Juggler — dieselbe Engine, anderer Steuerkanal.
+>    Deshalb ist er **nicht** die Voreinstellung: die Konfiguration liest
+>    `EMBER_FIREFOX_CHANNEL`, und ohne die Variable läuft der kanonische mitgelieferte Build,
+>    so wie in der CI unter Linux. Die Dreimotoren-Abnahme aus §24 ist damit erbracht, die
+>    genaue Ursache im Build aber nicht abschließend geklärt — dafür bräuchte es ein
+>    `sxstrace` mit Administratorrechten. Die Befehle stehen im Harness-README.
 >
 > **Ergänzungen gegenüber dem Plan:**
 >
