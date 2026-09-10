@@ -63,13 +63,13 @@ sie nicht; das ist der `SelectionPort` aus P21.
 **Keine Hydration.** Die Seite rendert clientseitig in `#root`; der Server liefert eine leere Hülle.
 Hydration ist P20.
 
-## Ein Befund aus dem Bauen
+## Die Gruppenanker in der HTML-Ausgabe
 
-Die Content-Fassung des HTML trägt noch die Gruppenanker der JFX-Runtime
-(`<!--jfx:KeyedChildren:start-->`). Für die Editieransicht ist das richtig — P20 braucht sie zum
-Hydrieren. Für die *ausgelieferte* Fassung sind sie Buchhaltung, die §19.1 beim Austausch entfernt
-sehen will. Das gehört zum Exportpfad und damit zu P24; hier steht es, weil die Demo es sichtbar
-gemacht hat.
+Beide HTML-Fassungen tragen die Gruppenanker der JFX-Runtime
+(`<!--jfx:KeyedChildren:start-->`). Das ist Absicht und bleibt so: P20 braucht sie zum
+Hydrieren, und ein Kommentarknoten ist im ausgelieferten Dokument weder sichtbar noch
+semantisch. Sie sind der einzige Ort, an dem die Ausgabe verrät, welche Runtime sie erzeugt
+hat.
 
 ## Aufbau
 

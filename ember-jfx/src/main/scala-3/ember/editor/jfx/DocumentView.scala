@@ -122,6 +122,10 @@ object DocumentView:
     *
     * Voreingestellt ist [[RenderProfile.Content]] -- die ausgelieferte Fassung traegt keine
     * Editor-Metadaten (§19.1).
+    *
+    * Die Gruppenanker der JFX-Runtime (`<!--jfx:KeyedChildren:start-->`) stehen in beiden
+    * Profilen. Das ist Absicht: P20 braucht sie zum Hydrieren, und ein Kommentarknoten ist im
+    * ausgelieferten Dokument weder sichtbar noch semantisch.
     */
   def renderToHtml(
       document: Document,

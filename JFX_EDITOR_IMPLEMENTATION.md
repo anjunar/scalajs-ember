@@ -15,6 +15,10 @@ Eine laufende Demo des jeweils erreichten Standes liegt in
 ember-demo/dev/server.mjs`. Sie ist keine Phase des Plans, sondern die Probe darauf, dass sich
 die Module tatsaechlich zu einer Anwendung zusammensetzen lassen.
 
+Kommentare und Scaladoc im Quelltext werden ab dem 10. September 2026 auf **Englisch**
+geschrieben; die Module bis P11 tragen noch deutsche Kommentare, und die werden nicht
+nachträglich umgestellt. Diese Dokumente bleiben deutsch.
+
 Verbindliche Grundlage ist [JFX_EDITOR_ARCHITECTURE.md](JFX_EDITOR_ARCHITECTURE.md). Der Editor wird neu gebaut. Der Prototyp wird weder analysiert noch intern weiterentwickelt; öffentliche API-Namen können als Inspiration dienen. Bestehende Nutzerdaten und öffentliche Konsumenten werden erst bei der bewussten Ablösung betrachtet.
 
 ### Abweichungen gegenüber dem ursprünglichen Plan
@@ -906,6 +910,25 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 - **Dependencies:** P05, P09, P10; Architektur §20.
 
 ## P17 — Markdown: Blockparser und SourceMap-Grundlage
+
+> **Vorlage vorhanden.** Im Nachbarverzeichnis `../commonmark.js` liegt die
+> Referenzimplementierung, CommonMark **0.31.2**, vom Nutzer ausdrücklich für diesen Zweck
+> bereitgestellt. Verwertbar sind:
+>
+> | Datei | Wofür |
+> | --- | --- |
+> | `lib/blocks.js` (1016 Z.) | Blockparser samt Container- und Lazy-Continuation-Regeln — die „echte Parserarbeit" aus der Risikozeile |
+> | `lib/inlines.js` (1074 Z.) | Delimiter- und Bracket-Stacks — P18 |
+> | `lib/node.js`, `lib/common.js` | Baum, Entities, Normalisierung |
+> | `test/spec.txt` | die offizielle Konformitätssuite, **652 Beispiele** — direkt als versionierte Fixtures verwendbar, und damit ist die „Korpus-/Spezifikationsversion" der Abnahme eine Zahl und keine Behauptung |
+>
+> **Keine 1:1-Übersetzung.** Der Zielbaum ist das Ember-Dokumentmodell, nicht der
+> commonmark-Knotenbaum, und §18 verlangt Größen-, Tiefen-, Token- und Arbeitsschrittlimits, die
+> die Vorlage nicht kennt — die Risikozeile „keine katastrophale Regex-Laufzeit" trifft
+> commonmark.js selbst. Übernommen wird die Struktur der Regeln, nicht der Code.
+>
+> **Lizenz:** BSD-2-Clause, Copyright (c) 2014 John MacFarlane. Eine Portierung ist eine
+> abgeleitete Arbeit; Copyright-Notiz und Lizenztext gehören in das Modul, das sie enthält.
 
 - **Ziel:** Eigenständiger Scala-Parser mit explizitem Profil, keine HTML-Konvertierung als Umweg.
 - **Module:** Neues markdown.

@@ -106,6 +106,10 @@ Quell-Abhängigkeit ist eine Sache des Builds, nicht der Veröffentlichung.
 
 Voraussetzungen: JDK und sbt. Für die Browser-Harness zusätzlich Node/npm.
 
+Kommentare und Scaladoc im Quelltext: **Englisch** (seit dem 10. September 2026). Die Module
+bis P11 tragen noch deutsche Kommentare und werden nicht nachträglich umgestellt. Die
+Markdown-Dokumente bleiben deutsch.
+
 ```bash
 sbt --server "Test/testOnly *"
 ```
