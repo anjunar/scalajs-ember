@@ -1,6 +1,7 @@
 package ember.editor.demo
 
 import ember.editor.core.*
+import ember.editor.history.{History, HistoryConfig}
 import ember.editor.html.RenderProfile
 import ember.editor.jfx.DocumentView
 import ember.editor.json.*
@@ -21,8 +22,13 @@ final class DemoSession:
 
   private val generator = NodeIdGenerator.sequential("n")
 
+  /** Undo und Redo (P11). Eine History gehoert genau einer Sitzung -- deshalb hier und nicht
+    * als globaler Wert.
+    */
+  val history: History = new History(HistoryConfig.default)
+
   private val resolved: ResolvedExtensions =
-    ExtensionResolver.resolve(Vector(RichText(generator))) match
+    ExtensionResolver.resolve(Vector(RichText(generator), history)) match
       case Right(value) => value
       case Left(errors) =>
         throw new IllegalStateException(errors.map(_.render).mkString("; "))
@@ -91,19 +97,31 @@ final class DemoSession:
   // Was die Oberflaeche braucht
   // -----------------------------------------------------------------------------------------
 
-  /** Fuehrt einen Editing-Command aus. Der Rueckgabewert sagt, ob er zustaendig war. */
+  /** Fuehrt einen Editing-Command aus. Der Rueckgabewert sagt, ob er zustaendig war.
+    *
+    * Undo und Redo laufen ueber die History selbst und nicht ueber einen Dispatch: sie setzen
+    * dabei `Origin.History`, und der Rekorder ueberspringt genau diese Herkunft (§14).
+    */
   def perform(command: DemoCommand): Boolean =
     val outcome = command match
       case DemoCommand.Insert(text) => session.dispatch(RichText.InsertText, text)
       case DemoCommand.Paragraph    => session.dispatch(RichText.InsertParagraph)
       case DemoCommand.Backspace    => session.dispatch(RichText.DeleteBackward)
       case DemoCommand.Delete       => session.dispatch(RichText.DeleteForward)
+      case DemoCommand.Undo         => return handled(history.undo())
+      case DemoCommand.Redo         => return handled(history.redo())
 
     outcome match
       case Right(result) => result.wasHandled
       case Left(failure) =>
         lastError = Some(failure.render)
         false
+
+  private def handled(outcome: Either[UpdateError, Boolean]): Boolean = outcome match
+    case Right(changed) => changed
+    case Left(failure) =>
+      lastError = Some(failure.render)
+      false
 
   def error: Option[String] = lastError
 
@@ -160,3 +178,5 @@ enum DemoCommand:
   case Paragraph
   case Backspace
   case Delete
+  case Undo
+  case Redo

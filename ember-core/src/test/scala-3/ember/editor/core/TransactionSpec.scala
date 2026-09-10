@@ -376,4 +376,102 @@ final class TransactionSpec extends AnyFlatSpec with Matchers {
     editor.dispose()
     editor.isDisposed shouldBe true
   }
+
+  // ---------------------------------------------------------------------------------------
+  // Einen Stand wiederherstellen (P11, Architektur §14)
+  // ---------------------------------------------------------------------------------------
+
+  "restore" should "put back document and selection in one commit" in {
+    val editor = session()
+    val before = editor.document
+    editor.update(_.select(RangeSelection.caret(Point.textBefore(id("t1"), 5)))): Unit
+
+    committed(editor.update(_.spliceText(id("t1"), 5, 0, " du")))
+    val commit = committed(editor.update { tx =>
+      tx.restore(before, Some(RangeSelection.caret(Point.textBefore(id("t1"), 2))))
+    })
+
+    editor.document shouldBe before
+    commit.current.selection shouldBe
+      Some(RangeSelection.caret(Point.textBefore(id("t1"), 2)))
+    commit.documentChanged shouldBe true
+  }
+
+  it should "describe the difference as a change set" in {
+    // §14 legt die History auf Snapshots fest, nicht auf ein Operationsprotokoll. Der
+    // Unterschied muss also ausgerechnet werden -- und das Ergebnis ist genau das, was die
+    // Projektion sonst von den Operationen bekommt (§10).
+    val editor = session()
+    val before = editor.document
+
+    committed(editor.update { tx =>
+      tx.spliceText(id("t1"), 5, 0, "!")
+      tx.insert(root, 2, TextNode(id("t4"), "Neu"))
+      tx.remove(id("t3"))
+    })
+
+    val commit = committed(editor.update(_.restore(before, None)))
+
+    commit.changes.created shouldBe Set(id("t3"))
+    commit.changes.removed shouldBe Set(id("t4"))
+    commit.changes.childListChanged shouldBe Set(root)
+    commit.changes.textSplices.keySet shouldBe Set(id("t1"))
+  }
+
+  it should "reduce a reverted keystroke to a single splice" in {
+    // Der Punkt der Naeherung: ein rueckgaengig gemachter Tastendruck schreibt ein Zeichen,
+    // nicht einen Absatz -- derselbe Unterschied, um den es §15.1 geht.
+    val editor = session()
+    val before = editor.document
+    committed(editor.update(_.spliceText(id("t1"), 3, 0, "X")))
+
+    val commit = committed(editor.update(_.restore(before, None)))
+
+    commit.changes.textSplices(id("t1")) shouldBe Vector(TextSplice(3, 1, ""))
+  }
+
+  it should "mark points in vanished nodes as displaced" in {
+    // Fuer die Auswahl spielt es keine Rolle -- ein Undo setzt sie ausdruecklich. Es zaehlt
+    // fuer Bookmarks, die ueber die Wiederherstellung hinweg aufgeloest werden.
+    val editor = session()
+    val before = editor.document
+    committed(editor.update(_.insert(root, 2, TextNode(id("t9"), "Neu"))))
+
+    val commit = committed(editor.update(_.restore(before, None)))
+
+    commit.mapping.removedNodes shouldBe Set(id("t9"))
+    commit.mapping.map(Point.textBefore(id("t1"), 99)).isPreserved shouldBe false
+    commit.mapping.map(Point.textBefore(id("t1"), 2)).isPreserved shouldBe true
+  }
+
+  it should "reject a document from a different schema" in {
+    // §13: "Das Schema einer Session ist fest."
+    val editor  = session()
+    val foreign = Schema.unsafe(RootNode, TextNode)
+    val other   = Document.unsafe(foreign, root, Vector(RootNode(root, Vector.empty)))
+
+    editor.update(_.restore(other, None)) shouldBe Left(UpdateError.ForeignSchema)
+    editor.document shouldBe document
+  }
+
+  it should "reject a selection that the restored state cannot hold" in {
+    val editor = session()
+    val before = editor.document
+    committed(editor.update(_.insert(root, 2, TextNode(id("t9"), "Neu"))))
+
+    val outcome = editor.update(
+      _.restore(before, Some(RangeSelection.caret(Point.textBefore(id("t9"), 0))))
+    )
+
+    outcome should matchPattern { case Left(_: UpdateError.InvalidSelection) => }
+    editor.document.node(id("t9")) shouldBe Some(TextNode(id("t9"), "Neu"))
+  }
+
+  it should "be a no-op when nothing differs" in {
+    val editor = session()
+
+    val outcome = editor.update(_.restore(editor.document, editor.selection))
+
+    committed(outcome).isNoOp shouldBe true
+  }
 }

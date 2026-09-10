@@ -14,7 +14,7 @@ Laufzeitabhängigkeit.
 
 ## Stand
 
-**Meilenstein A und B stehen, C angefangen** — P01–P10 abgeschlossen, P11–P30 offen. Der frühere
+**Meilenstein A und B stehen, C und D angefangen** — P01–P11 abgeschlossen, P12–P30 offen. Der frühere
 `contenteditable`-Prototyp (`ember.core.Editor` mit `execCommand` und HTML-String als
 Zustand) und seine vite-Demo wurden entfernt — Architektur §2 und §25 schließen diesen
 Ansatz aus.
@@ -40,6 +40,11 @@ Dokumentformat -- mit IDs, mit getrennten Format-, Schema- und Codec-Versionen, 
 gegen fremde Payloads und mit reinen Migrationsfunktionen. Es haengt allein am Kern: ein
 Server, der Dokumente speichert, linkt weder JFX noch HTML mit.
 
+P11 bringt Undo und Redo. `ember-history` hält strukturell geteilte Snapshots, gruppiert nach
+den ausdrücklichen Regeln aus §14 -- zusammenhängendes Tippen verschmilzt, Backspace und Delete
+nicht, ein Caretsprung beendet die Gruppe -- und begrenzt sich über Stufenzahl und ein
+geschätztes Byte-Budget. Auch dieses Modul hängt allein am Kern und ist optional.
+
 ## Module
 
 Konvention: Verzeichnis `ember-<modul>`, sbt-ID und Artefakt `scalajs-ember-<modul>`,
@@ -56,6 +61,8 @@ Vorhanden:
   UAX-29-Graphemgrenzen. Hängt ausschließlich am Kern.
 - [`ember-json`](ember-json/README.md) — sbt-ID `scalajs-ember-json`, Paket
   `ember.editor.json`. Wire-ADT, Node- und Mark-Codecs, Grenzen, Schema-Migration. Headless.
+- [`ember-history`](ember-history/README.md) — sbt-ID `scalajs-ember-history`, Paket
+  `ember.editor.history`. Undo/Redo, Gruppierungsregeln, Limits. Headless und optional.
 - [`ember-html`](ember-html/README.md) — sbt-ID `scalajs-ember-html`, Paket
   `ember.editor.html`. Der semantische HTML-Vertrag und eine unveränderliche
   Fragmentdarstellung. Headless; der Importparser folgt mit P24.

@@ -13,12 +13,18 @@ Verbindlicher Entwurf: [JFX_EDITOR_ARCHITECTURE.md](../JFX_EDITOR_ARCHITECTURE.m
 
 ## Stand
 
-P01–P05 abgeschlossen. Vorhanden: Fehlerkonvention, Abhängigkeitsgrenze, unveränderliches
+P01–P05 abgeschlossen, dazu die Snapshot-Wiederherstellung aus P11. Vorhanden: Fehlerkonvention, Abhängigkeitsgrenze, unveränderliches
 Dokumentmodell mit vollständiger Strukturvalidierung, offene Node-, Mark- und
 Selection-Verträge, Schema, ID-Generator, primitive Operationen mit komponierbarer
 Positionsabbildung, Sitzung, atomare Transaktionen, typisierte Zustandsfelder sowie
-Commands, Extensions und Transforms. Der kleine headless Texteditor folgt mit P06 im
-Modul `ember-rich-text`. Leere Platzhaltertypen werden bewusst nicht vorweggenommen.
+Commands, Extensions und Transforms. Leere Platzhaltertypen werden bewusst nicht
+vorweggenommen.
+
+Mit P11 kam `Transaction.restore` dazu: Dokument und Selection auf einen früheren Stand setzen,
+in einem Commit. Kein Primitiv unter den anderen — eine `Operation` beschreibt, was jemand
+**tut**, und liefert ihre Wirkung selbst mit; `restore` beschreibt, wohin ein Stand
+zurückgesetzt wird, und der Unterschied wird ausgerechnet (`DocumentDiff`). Es ist der Weg, den
+§14 für Undo vorschreibt, und ausdrücklich kein bequemer Ersatz für eine Bearbeitung.
 
 ## Dokumentmodell
 

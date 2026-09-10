@@ -49,6 +49,17 @@ final class TransformScope private[core] (private val transaction: Transaction):
     transaction.mergeText(left, right)
 
   /** Die aktuelle Auswahl im Entwurf. */
+  /** Was der Ausloeser ueber diese Transaktion gesagt hat (§14).
+    *
+    * Ein Handler, dessen Verhalten von der Herkunft abhaengt -- History ist der Fall, fuer den
+    * es gebaut wurde --, braucht sie; raten kann er sie nicht.
+    */
+  def meta: TransactionMeta = transaction.meta
+
+  /** Setzt Dokument und Auswahl auf einen frueheren Stand (§14). */
+  def restore(document: Document, selection: Option[Selection]): Either[UpdateError, Unit] =
+    transaction.restore(document, selection)
+
   def selection: Option[Selection] = transaction.selection
 
   /** Setzt die Auswahl. Fuer Command-Handler gedacht, nicht fuer Transforms. */

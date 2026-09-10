@@ -206,6 +206,30 @@ lazy val emberJson =
     )
 
 
+// §6: Undo/Redo, Gruppierung, Limits, History-Commands. Haengt nur am Kern -- §14 fuehrt das
+// Modul als "headless und optional", und eine Anwendung ohne Undo linkt es nicht mit.
+lazy val emberHistory =
+  Project(id = "scalajs-ember-history", base = file("ember-history"))
+    .enablePlugins(ScalaJSPlugin)
+    .dependsOn(emberCore)
+    .settings(
+      name        := "scalajs-ember-history",
+      moduleName  := "scalajs-ember-history",
+      description := "Deterministic undo and redo with explicit grouping rules for Ember."
+    )
+    .settings(testSettings)
+    .settings(commonJsSettings)
+    .settings(publishSettings)
+    .settings(
+      boundarySettings(
+        allowedProjects = Seq("scalajs-ember-core"),
+        forbiddenImports = forbiddenJfxImports ++ forbiddenUpwardImports ++
+          Seq("ember.editor.html", "ember.editor.markdown", "ember.editor.json"),
+        forbiddenModules = forbiddenArtifacts :+ "scalajs-dom"
+      )
+    )
+
+
 // Zunaechst nur die Semantik-SPI. Parser und Importregeln folgen mit P24; §19.1 haelt fest,
 // dass `HtmlFragment` dabei keine eigene Update-/Diff-Laufzeit bekommt -- es ist eine
 // Beschreibung, kein View-Baum.
@@ -336,7 +360,8 @@ lazy val emberIntegration =
 lazy val emberDemo =
   Project(id = "scalajs-ember-demo", base = file("ember-demo"))
     .enablePlugins(ScalaJSPlugin)
-    .dependsOn(emberCore, emberRichText, emberJson, emberHtml, emberJfx, emberStandard, jfxCore)
+    .dependsOn(emberCore, emberRichText, emberJson, emberHistory, emberHtml, emberJfx,
+      emberStandard, jfxCore)
     .settings(
       name                            := "scalajs-ember-demo",
       moduleName                      := "scalajs-ember-demo",
@@ -358,16 +383,16 @@ lazy val emberDemo =
       boundarySettings(
         allowedProjects =
           Seq("scalajs-ember-core", "scalajs-ember-rich-text", "scalajs-ember-json",
-              "scalajs-ember-html", "scalajs-ember-jfx", "scalajs-ember-standard",
-              "scalajs-jfx-core"),
+              "scalajs-ember-history", "scalajs-ember-html", "scalajs-ember-jfx",
+              "scalajs-ember-standard", "scalajs-jfx-core"),
         forbiddenImports = forbiddenUpwardImports.filterNot(_ == "ember.editor.jfx"),
         forbiddenModules = Seq("scalajs-lexical")
       )
     )
 
 lazy val root = Project(id = "scalajs-ember-root", base = file("."))
-  .aggregate(emberCore, emberRichText, emberJson, emberHtml, emberJfx, emberStandard,
-    emberIntegration, emberDemo)
+  .aggregate(emberCore, emberRichText, emberJson, emberHistory, emberHtml, emberJfx,
+    emberStandard, emberIntegration, emberDemo)
   .settings(
     name           := "scalajs-ember",
     publish / skip := true

@@ -23,14 +23,38 @@ enum Origin:
   /** Eine Aenderung des Programms selbst: Normalisierung, Migration, abgeschlossener Upload. */
   case System
 
+/** Was eine Aenderung fuer die History bedeuten soll.
+  *
+  * §14 fuehrt sie zusammen mit [[Origin]] als "typisierte Metadaten" auf. Der Kern wertet sie
+  * nicht aus -- er traegt sie, wie er [[TransactionMeta.label]] traegt. Ausgewertet wird sie in
+  * `ember-history`, und ohne dieses Modul ist sie folgenlos.
+  *
+  * Sie ist eine Ausnahme, kein Regelfall: fehlt sie, entscheiden die Gruppierungsregeln
+  * aus §14 anhand dessen, was tatsaechlich passiert ist. Wer sie setzt, weiss etwas, das sich
+  * am ChangeSet nicht ablesen laesst.
+  */
+enum HistoryPolicy:
+
+  /** Eine eigene Undo-Stufe, auch wenn die Regeln verschmelzen wuerden. */
+  case Push
+
+  /** Mit der laufenden Gruppe verschmelzen, wenn es eine gibt. */
+  case Merge
+
+  /** Nicht aufzeichnen. Fuer Aenderungen, die niemand rueckgaengig machen koennen soll. */
+  case Ignore
+
 /** Was der Ausloeser einer Transaktion ueber sie sagt.
   *
-  * Bewusst schmal. `HistoryPolicy` gehoert zu P11 und wird dort ueber [[tags]] angebunden, statt
-  * diesen Typ jetzt um eine Entscheidung zu erweitern, die der Kern nicht trifft.
+  * Bewusst schmal, und jedes Feld hier steht in §14 als typisierte Metadatenangabe. Was der Kern
+  * damit tut, ist: es weiterreichen. Er entscheidet weder ueber History noch ueber Herkunft --
+  * er sorgt nur dafuer, dass die Angabe den Commit erreicht, statt aus Textdifferenzen erraten
+  * werden zu muessen.
   */
 final case class TransactionMeta(
     origin: Origin = Origin.User,
     label: Option[String] = None,
+    history: Option[HistoryPolicy] = None,
     tags: Set[String] = Set.empty
 ):
 
@@ -38,10 +62,15 @@ final case class TransactionMeta(
 
   def hasTag(tag: String): Boolean = tags.contains(tag)
 
+  def withHistory(policy: HistoryPolicy): TransactionMeta = copy(history = Some(policy))
+
 object TransactionMeta:
 
   val user: TransactionMeta   = TransactionMeta(Origin.User)
   val system: TransactionMeta = TransactionMeta(Origin.System)
+
+  /** Undo und Redo. §14: "History-origin wird nicht neu aufgezeichnet." */
+  val history: TransactionMeta = TransactionMeta(Origin.History)
 
   def labelled(label: String, origin: Origin = Origin.User): TransactionMeta =
     TransactionMeta(origin, Some(label))

@@ -124,6 +124,46 @@ final class Transaction private[core] (
   def mergeText(left: NodeId, right: NodeId): Either[UpdateError, Unit] =
     apply(Operation.MergeText(left, right))
 
+  /** Setzt Dokument und Auswahl auf einen frueheren Stand.
+    *
+    * ==Warum das kein Primitiv unter den anderen ist==
+    *
+    * Es ist keine Operation. [[Operation]] beschreibt, was jemand '''tut'''; dies beschreibt,
+    * wohin ein Stand zurueckgesetzt wird. Der Unterschied ist nicht akademisch: eine Operation
+    * kennt ihre eigene Wirkung und liefert ChangeSet und Abbildung selbst, hier dagegen gibt es
+    * nur zwei Staende, und der Unterschied muss ausgerechnet werden ([[DocumentDiff]]).
+    *
+    * ==Wofuer es da ist, und wofuer nicht==
+    *
+    * Fuer Undo und Redo (§14: "strukturell geteilte Document-Snapshots") und fuer alles, was
+    * einen ganzen Stand ersetzt statt ihn zu bearbeiten -- ein verworfener Entwurf, ein
+    * neu geladenes Dokument. '''Nicht''' als bequemer Ersatz fuer eine Bearbeitung: wer den
+    * naechsten Stand aus dem aktuellen ausrechnet und ihn hier hineinreicht, verliert genau die
+    * Information, um die es §10 geht, und laesst die Projektion einen Diff nachholen, den die
+    * Operation frei mitgeliefert haette.
+    *
+    * ==Was geprueft wird==
+    *
+    * Dass das Dokument zum Schema der Sitzung gehoert. Mehr braucht es nicht: ein [[Document]]
+    * hat die Invarianten aus §8.2 bereits erfuellt -- wer einen Wert dieses Typs in der Hand
+    * hat, haelt ein gueltiges Dokument (§8.2). Die Auswahl wird wie bei [[setSelection]] gegen
+    * den '''wiederhergestellten''' Stand geprueft, nicht gegen den, aus dem sie stammt.
+    */
+  def restore(document: Document, selection: Option[Selection]): Either[UpdateError, Unit] =
+    requireAlive()
+    latched match
+      case Some(previous) => Left(previous)
+      case None if !(document.schema eq currentDocument.schema) =>
+        fail(UpdateError.ForeignSchema)
+      case None =>
+        val (restored, positions) = DocumentDiff.between(currentDocument, document)
+        currentDocument = document
+        changes = changes andThen restored
+        mapping = mapping andThen positions
+        // Erst danach: die Auswahl gehoert zum wiederhergestellten Stand und wird gegen ihn
+        // geprueft.
+        setSelection(selection)
+
   /** Setzt die Auswahl, geprueft gegen den aktuellen Entwurf. */
   def setSelection(selection: Option[Selection]): Either[UpdateError, Unit] =
     requireAlive()

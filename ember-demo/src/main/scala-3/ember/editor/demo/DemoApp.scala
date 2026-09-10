@@ -145,6 +145,9 @@ final class DemoApp extends AbstractComponent:
     host.onHandler("keydown") { event =>
       val native = event.raw.asInstanceOf[dom.KeyboardEvent]
       val handled = native.key match
+        case "z" if native.ctrlKey || native.metaKey =>
+          editor.perform(if native.shiftKey then DemoCommand.Redo else DemoCommand.Undo)
+        case "y" if native.ctrlKey => editor.perform(DemoCommand.Redo)
         case "Enter"     => editor.perform(DemoCommand.Paragraph)
         case "Backspace" => editor.perform(DemoCommand.Backspace)
         case "Delete"    => editor.perform(DemoCommand.Delete)
@@ -162,6 +165,8 @@ final class DemoApp extends AbstractComponent:
       action("Neuer Absatz", DemoCommand.Paragraph)
       action("Backspace", DemoCommand.Backspace)
       action("Delete", DemoCommand.Delete)
+      action("Undo", DemoCommand.Undo)
+      action("Redo", DemoCommand.Redo)
     }
 
   private def action(label: String, command: DemoCommand)(using AbstractComponent, Cursor): Unit =
@@ -201,11 +206,13 @@ final class DemoApp extends AbstractComponent:
 
     val projected = view.projectedRevision.value
     val revision  = editor.session.state.revision.value
+    val undo      = editor.history.state.undo.length
+    val redo      = editor.history.state.redo.length
     val problem   = editor.error.map(text => s"  ·  Fehler: $text").getOrElse("")
 
     status.set(
       s"$position  ·  Revision $revision, projiziert $projected  ·  " +
-        s"${editor.session.document.size} Knoten$problem"
+        s"${editor.session.document.size} Knoten  ·  History $undo/$redo$problem"
     )
 
 /** Die drei Ansichten desselben Dokuments. */

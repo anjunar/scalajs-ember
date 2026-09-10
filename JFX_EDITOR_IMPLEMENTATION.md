@@ -1,8 +1,8 @@
 # JFX Editor: ausführbarer Implementierungsplan
 
-Status: **Meilenstein A und B stehen, C angefangen** — P01–P10 abgeschlossen (387 Scala-Tests
-und 126 Browserfälle in Chromium, Firefox und WebKit grün),
-P11–P30 offen. Dieses Repository (`scalajs-ember`) ist das in
+Status: **Meilenstein A und B stehen, C und D angefangen** — P01–P11 abgeschlossen (440
+Scala-Tests und 126 Browserfälle in Chromium, Firefox und WebKit grün),
+P12–P30 offen. Dieses Repository (`scalajs-ember`) ist das in
 Architektur und Plan gemeinte „eigene Repository“. Die generischen JFX-Core-Anteile aus
 P08/P09, P19a, P20 und P23 sind **nicht hier, sondern im Nachbar-Repo `../scalajs-jfx`**
 implementiert und über eine Quell-Abhängigkeit auf dessen Submodul `jfx-core` eingebunden
@@ -759,6 +759,80 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 - **Dependencies:** P05; Architektur §19.2. Paragraph-/Feature-Codecs im Integrationsmodul folgen in P16/P18; P10 benötigt dessen Rendererstrang nicht.
 
 ## P11 — History
+
+> **Abgeschlossen.** Neues Modul `ember-history` (sbt-ID `scalajs-ember-history`, Paket
+> `ember.editor.history`), abhängig allein vom Kern. Abnahme:
+>
+> ```
+> sbt --server "scalajs-ember-history/Test/testOnly *"
+> ```
+>
+> | Suite | Ergebnis |
+> | --- | --- |
+> | `HistorySpec` | 33 Tests grün |
+> | `HistoryRetentionSpec` | 11 Tests grün |
+> | Gesamtes Scala-Gate | 440 Tests grün |
+>
+> **Kernänderung, die die Phase erzwungen hat — `Transaction.restore`:**
+>
+> §14 legt die History auf „strukturell geteilte Document-Snapshots" fest und verweist eine
+> operationsbasierte History ausdrücklich in eine spätere Erweiterung. Ein Undo hat damit keine
+> Operationen, sondern zwei Stände — und der Kern hatte keinen Weg, einen Stand einzusetzen. Neu
+> sind deshalb:
+>
+> - `Transaction.restore(document, selection)` (und dasselbe auf `TransformScope`, für den Weg aus
+>   §12: `editor.register(Undo) { (tx, _) => history.undo(tx) }`),
+> - `DocumentDiff` — rechnet den Unterschied zweier Stände in ChangeSet und Positionsabbildung um,
+>   an genau einer Stelle und nicht in der Projektion,
+> - `UpdateError.ForeignSchema` — §13: „Das Schema einer Session ist fest."
+>
+> Das ist mehr als die Änderungsliste vorsah („Tx-Metadaten falls ein erforderlicher
+> Origin/Policy-Vertrag fehlt"), aber weniger, als es aussieht: `restore` ist kein neues Primitiv
+> unter den anderen. Eine `Operation` beschreibt, was jemand **tut**, und liefert ihre Wirkung
+> selbst mit; `restore` beschreibt, wohin ein Stand zurückgesetzt wird, und die Wirkung muss
+> ausgerechnet werden. Die Scaladoc sagt ausdrücklich, dass es kein bequemer Ersatz für eine
+> Bearbeitung ist.
+>
+> **`HistoryPolicy` ist typisiert, nicht ein String-Tag.** `TransactionMeta` trug den Hinweis,
+> P11 werde die Policy „über `tags` anbinden". §14 führt sie aber neben `Origin` als *typisierte*
+> Metadaten auf, und ein `Set[String]` ist das nicht. Sie steht jetzt als `enum HistoryPolicy` im
+> Kern, wie `Origin` — der Kern wertet beide nicht aus, er trägt sie.
+>
+> **Backspace und Delete sind am Ergebnis nicht unterscheidbar.** Bei Caret 5 löscht Backspace
+> `[4,5)` und lässt den Caret auf 4; bei Caret 4 löscht Delete `[4,5)` und lässt ihn auf 4 —
+> gleicher Splice, gleiche Endposition. §14 verlangt trotzdem getrennte Gruppen. Der Unterschied
+> steht ausschließlich im Caret **davor**, und genau den liest `HistoryGrouping`
+> (`commit.previous.selection`). Ohne diesen Blick zurück wäre die Regel nicht erfüllbar.
+>
+> **Gruppierung wird abgeleitet, nicht gemeldet.** Ein Editor könnte jeden Command beschriften;
+> die Beschriftung wäre eine zweite Wahrheit neben dem, was tatsächlich passiert ist. Was
+> geschehen ist, steht im ChangeSet. `HistoryPolicy` bleibt die ausdrückliche Ausnahme für
+> Wissen, das dort nicht steht.
+>
+> **Zwei Wege, auf denen ein Undo sich selbst nicht aufzeichnet:** `history.undo()` setzt
+> `Origin.History`, und der Rekorder überspringt diese Herkunft (§14). Wer dagegen
+> `HistoryCommands.Undo` dispatcht, bestimmt die Herkunft nicht — deshalb merkt sich die History
+> zusätzlich das Dokumentobjekt, das sie gerade eingesetzt hat, und überspringt den Commit, der
+> genau dieses Objekt veröffentlicht. Dass das trägt, hängt an einer Eigenschaft, die ein Test
+> festhält: jeder gespeicherte Snapshot ist ein veröffentlichter und damit normalisierter Stand,
+> Transforms finden daran nichts mehr zu tun.
+>
+> **Bewusste Abgrenzungen:**
+>
+> - *Keine Heapmessung.* §14 verlangt Benchmarks zur Freigabe alter Snapshots; unter Scala.js gibt
+>   es keine Heapmessung, und eine erfundene wäre schlechter als keine. `HistoryRetentionSpec`
+>   prüft das Beobachtbare — getrimmte Stufen sind weg, die Schätzung fällt mit, nach einem Reset
+>   ist nichts mehr referenziert.
+> - *Die neueste Stufe überlebt das Byte-Budget.* Sonst könnte man ausgerechnet die letzte Aktion
+>   nicht zurücknehmen. §14 verweist den Fall („ein riesiger einzelner Import") woandershin, und
+>   ein Import setzt die History ohnehin zurück.
+> - *Kein Zurückstellen fremder Transaktionen während einer Gruppe.* §14 verlangt es, aber es ist
+>   eine Eigenschaft der Sitzung und betrifft nur Composition — P23.
+>
+> **IT:** Die Demo hat Undo/Redo bekommen, als Knöpfe und über Strg+Z / Strg+Shift+Z. Die
+> Statuszeile zeigt die Tiefe beider Stapel.
+>
+> Modulvertrag: [ember-history/README.md](ember-history/README.md).
 
 - **Ziel:** Deterministisches Undo/Redo ohne DOM und ohne Native-History-Abhängigkeit.
 - **Module:** Neues history; rich-text; IT optional.

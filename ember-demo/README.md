@@ -34,7 +34,7 @@ ausgeliefertes HTML und Editor-HTML. Alle vier hängen an **einem** Dokument; di
 `EditorProperties.document(session)` gebunden und werden bei jedem Commit nachgeführt (§10), nicht
 von einem Timer.
 
-Damit ist der Stand nach P10 an einem Stück sichtbar:
+Damit ist der Stand nach P11 an einem Stück sichtbar:
 
 | | |
 | --- | --- |
@@ -42,6 +42,11 @@ Damit ist der Stand nach P10 an einem Stück sichtbar:
 | P06 | Absätze, Editing-Commands, Normalisierung |
 | P09 | die keyed Projektion und dieselbe Semantik für SSR und Browser |
 | P10 | das versionierte JSON |
+| P11 | Undo und Redo mit den Gruppierungsregeln aus §14 |
+
+Undo und Redo gibt es als Knöpfe und über Strg+Z beziehungsweise Strg+Shift+Z; die Statuszeile
+zeigt die Tiefe beider Stapel. Zusammenhängendes Tippen wird dabei zu einer Stufe zusammengefasst
+— ein Undo nimmt das Wort zurück, nicht den Buchstaben.
 
 ## Was ausdrücklich noch fehlt
 
@@ -54,8 +59,6 @@ Mutation-Recovery fehlen entsprechend ganz.
 in dem er sitzt, wird eingefärbt. Die Einfärbung läuft über `DocumentView.componentFor` — den Index,
 den §15.1 als „eine Zuordnung, keine zweite Ownership-Liste" führt. Eine echte Browserauswahl setzt
 sie nicht; das ist der `SelectionPort` aus P21.
-
-**Kein Undo.** History ist P11.
 
 **Keine Hydration.** Die Seite rendert clientseitig in `#root`; der Server liefert eine leere Hülle.
 Hydration ist P20.

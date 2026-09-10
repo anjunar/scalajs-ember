@@ -35,6 +35,16 @@ object UpdateError:
     * §10 schliesst das aus. Wer aus einem Listener heraus aendern will, benutzt `enqueueUpdate` --
     * damit geht der Aenderungsbedarf nicht verloren, ohne dass verdeckte Reentranz entsteht.
     */
+  /** Ein wiederhergestelltes Dokument gehoert zu einem anderen Schema.
+    *
+    * §13: "Das Schema einer Session ist fest." Ein Dokument aus einer anders konfigurierten
+    * Sitzung einzusetzen waere kein Undo, sondern ein Schemawechsel unter der Hand -- der
+    * braucht Migration und eine neue Sitzung.
+    */
+  case object ForeignSchema extends UpdateError:
+    def message: String =
+      "Das wiederherzustellende Dokument gehoert zu einem anderen Schema als die Sitzung."
+
   case object NestedUpdate extends UpdateError:
     def message: String =
       "Verschachteltes update. Aus einem Listener heraus enqueueUpdate verwenden."
