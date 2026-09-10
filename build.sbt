@@ -181,6 +181,30 @@ lazy val emberRichText =
     )
 
 
+// §6: Wire-ADT, Node-Codecs, Schema-/Dokumentversionen, Validierung. Haengt nur am Kern --
+// Persistenz ist keine Frage des Renderers, und ein Server, der Dokumente speichert, soll
+// weder JFX noch HTML mitlinken muessen.
+lazy val emberJson =
+  Project(id = "scalajs-ember-json", base = file("ember-json"))
+    .enablePlugins(ScalaJSPlugin)
+    .dependsOn(emberCore)
+    .settings(
+      name        := "scalajs-ember-json",
+      moduleName  := "scalajs-ember-json",
+      description := "Versioned JSON wire format, node codecs and schema migration for Ember."
+    )
+    .settings(testSettings)
+    .settings(commonJsSettings)
+    .settings(publishSettings)
+    .settings(
+      boundarySettings(
+        allowedProjects = Seq("scalajs-ember-core"),
+        forbiddenImports = forbiddenJfxImports ++ forbiddenUpwardImports ++
+          Seq("ember.editor.richtext", "ember.editor.html", "ember.editor.markdown"),
+        forbiddenModules = forbiddenArtifacts :+ "scalajs-dom"
+      )
+    )
+
 
 // Zunaechst nur die Semantik-SPI. Parser und Importregeln folgen mit P24; §19.1 haelt fest,
 // dass `HtmlFragment` dabei keine eigene Update-/Diff-Laufzeit bekommt -- es ist eine
@@ -304,7 +328,8 @@ lazy val emberIntegration =
     )
 
 lazy val root = Project(id = "scalajs-ember-root", base = file("."))
-  .aggregate(emberCore, emberRichText, emberHtml, emberJfx, emberStandard, emberIntegration)
+  .aggregate(emberCore, emberRichText, emberJson, emberHtml, emberJfx, emberStandard,
+    emberIntegration)
   .settings(
     name           := "scalajs-ember",
     publish / skip := true

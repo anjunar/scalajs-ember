@@ -1,8 +1,8 @@
 # JFX Editor: ausführbarer Implementierungsplan
 
-Status: **Meilenstein A und B stehen** — P01–P09 abgeschlossen (335 Scala-Tests und
-126 Browserfälle in Chromium, Firefox und WebKit grün),
-P10–P30 offen. Dieses Repository (`scalajs-ember`) ist das in
+Status: **Meilenstein A und B stehen, C angefangen** — P01–P10 abgeschlossen (387 Scala-Tests
+und 126 Browserfälle in Chromium, Firefox und WebKit grün),
+P11–P30 offen. Dieses Repository (`scalajs-ember`) ist das in
 Architektur und Plan gemeinte „eigene Repository“. Die generischen JFX-Core-Anteile aus
 P08/P09, P19a, P20 und P23 sind **nicht hier, sondern im Nachbar-Repo `../scalajs-jfx`**
 implementiert und über eine Quell-Abhängigkeit auf dessen Submodul `jfx-core` eingebunden
@@ -686,6 +686,58 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 - **Dependencies:** P08; Architektur §§5–7, 15 und 19.
 
 ## P10 — JSON-Codecs und Schema-Migration
+
+> **Abgeschlossen.** Neues Modul `ember-json` (sbt-ID `scalajs-ember-json`, Paket
+> `ember.editor.json`), abhängig allein vom Kern. Abnahme:
+>
+> ```
+> sbt --server "scalajs-ember-json/Test/testOnly *"
+> ```
+>
+> | Suite | Ergebnis |
+> | --- | --- |
+> | `DocumentJsonSpec` | 39 Tests grün |
+> | `SchemaMigrationSpec` | 13 Tests grün |
+> | Gesamtes Scala-Gate | 387 Tests grün |
+>
+> **Zwei Entwurfsentscheidungen, die die Risikozeile erzwungen hat:**
+>
+> 1. *Die Knotenliste ist ein Array, kein nach ID geschlüsseltes Objekt.* Der Plan warnt: „JSON-Parser
+>    kann doppelte Objektkeys bereits zusammenfassen […] während doppelte Node-IDs immer Fehler
+>    bleiben." Beides zugleich geht nur so. `js.JSON.parse` fasst `{"a":1,"a":2}` zu `{"a":2}`
+>    zusammen, bevor dieses Modul den Wert sieht — als Objekt wäre eine doppelte Knoten-ID spurlos
+>    verschwunden und das Dokument sähe gültig aus. Als Array bleibt sie sichtbar
+>    (`DecodeError.DuplicateNodeId`). Für die Objektschlüssel selbst hält ein Test die
+>    dokumentierte Regel fest — letzter Wert gewinnt —, statt eine Prüfung zu behaupten, die es
+>    nicht gibt.
+> 2. *Serialisiert wird selbst, nicht mit `js.JSON.stringify`.* Zwei Gründe: die Feldreihenfolge
+>    muss deterministisch sein (sonst sind Roundtrip-Fixtures wertlos), und der Payload landet
+>    später in einem `<script>` (§16) — `<`, `>`, `&`, U+2028 und U+2029 entkommen deshalb
+>    grundsätzlich. Der Testfall dazu steckt ein `</script><script>alert(1)</script>` in einen
+>    Textlauf und prüft, dass die Ausgabe kein einziges `<` enthält und der Roundtrip trotzdem
+>    stimmt.
+>
+> **Über den Plan hinaus — `MarkJsonCodec`:** `TextNode.marks` existiert seit P02, Marks sind
+> offen (§8.2), und der Kern kennt keine einzige. Ohne Mark-SPI wäre ein markierter Textlauf
+> heute nicht verlustfrei persistierbar, und „verlustfrei" ist die Zielzeile dieser Phase. Die
+> konkreten Marks kommen weiterhin erst mit P12.
+>
+> **Bewusste Abgrenzungen:**
+>
+> - *Kein zweiter Validator.* Referenzielle Integrität, Zyklen, mehrfache Eltern, Erreichbarkeit
+>   und Schemakonformität prüft `Document.build`. Der „P02-Builder für validierte
+>   Decode-Ergebnisse" aus der Änderungsliste war deshalb nicht nötig — der Kern konnte es schon.
+>   Geprüft wird hier nur, was der Kern gar nicht sehen kann: Typen, Zahlenbereiche, Limits,
+>   doppelte IDs im Payload, Versionen.
+> - *`UnsupportedNode` ist ein Container.* Ein unbekannter Knoten kann bekannte enthalten. Ohne
+>   Kindliste wären die Absätze unter einer unbekannten Tabelle nach dem Dekodieren unerreichbar,
+>   und der Validator lehnte das Dokument ab — die Erhaltung hätte zerstört, wozu es sie gibt.
+> - *Eine bekannte Art ohne Codec bleibt auch unter `Preserve` ein Fehler.* Das ist ein
+>   Verdrahtungsfehler der Anwendung, kein unbekanntes Datum.
+> - *Alle Knotenfehler auf einmal.* Wer einen fremden Payload debuggt, will nicht zwanzig Läufe
+>   für zwanzig Tippfehler. Ein teilweise gültiges Dokument entsteht dabei ohnehin nicht.
+>
+> Modulvertrag: [ember-json/README.md](ember-json/README.md).
 
 - **Ziel:** Dokumente unabhängig von View und Browser verlustfrei persistieren.
 - **Module:** Neues json; core.

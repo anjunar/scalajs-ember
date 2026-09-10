@@ -14,7 +14,7 @@ Laufzeitabhängigkeit.
 
 ## Stand
 
-**Meilenstein A und B stehen** — P01–P09 abgeschlossen, P10–P30 offen. Der frühere
+**Meilenstein A und B stehen, C angefangen** — P01–P10 abgeschlossen, P11–P30 offen. Der frühere
 `contenteditable`-Prototyp (`ember.core.Editor` mit `execCommand` und HTML-String als
 Zustand) und seine vite-Demo wurden entfernt — Architektur §2 und §25 schließen diesen
 Ansatz aus.
@@ -35,6 +35,11 @@ Beschreibung entstehen die serverseitige Ausgabe und die Editierfläche im Brows
 Textedit schreibt genau einen `characterData`-Eintrag — im Browser mit einem
 MutationObserver belegt. Das ist die Abnahmezeile von Meilenstein B.
 
+Mit P10 kommt die Persistenz dazu. `ember-json` schreibt und liest ein versioniertes
+Dokumentformat -- mit IDs, mit getrennten Format-, Schema- und Codec-Versionen, mit Grenzen
+gegen fremde Payloads und mit reinen Migrationsfunktionen. Es haengt allein am Kern: ein
+Server, der Dokumente speichert, linkt weder JFX noch HTML mit.
+
 ## Module
 
 Konvention: Verzeichnis `ember-<modul>`, sbt-ID und Artefakt `scalajs-ember-<modul>`,
@@ -49,6 +54,8 @@ Vorhanden:
 - [`ember-rich-text`](ember-rich-text/README.md) — sbt-ID `scalajs-ember-rich-text`,
   Paket `ember.editor.richtext`. Absätze, Editing-Commands, Normalisierung und die
   UAX-29-Graphemgrenzen. Hängt ausschließlich am Kern.
+- [`ember-json`](ember-json/README.md) — sbt-ID `scalajs-ember-json`, Paket
+  `ember.editor.json`. Wire-ADT, Node- und Mark-Codecs, Grenzen, Schema-Migration. Headless.
 - [`ember-html`](ember-html/README.md) — sbt-ID `scalajs-ember-html`, Paket
   `ember.editor.html`. Der semantische HTML-Vertrag und eine unveränderliche
   Fragmentdarstellung. Headless; der Importparser folgt mit P24.
