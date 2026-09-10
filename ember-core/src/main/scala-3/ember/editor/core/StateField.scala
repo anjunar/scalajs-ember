@@ -17,6 +17,40 @@ enum DocumentChangePolicy:
     */
   case Reset
 
+/** What a history restore does with a field's value.
+  *
+  * Deliberately a decision of the field, not of the history: only the field knows whether its
+  * value follows from the document -- and a history that guessed would guess wrong for exactly
+  * the fields where it matters.
+  */
+enum HistoryRestorePolicy:
+
+  /** The value follows from the restored state and is not carried in the snapshot. */
+  case Recompute
+
+  /** The value belongs to the snapshot and comes back with it. */
+  case Restore
+
+/** A field together with a value of its own type.
+  *
+  * The typed way to carry "this field had this value" across a module boundary. The history
+  * holds a `Vector[FieldValue[?]]` in each snapshot; without this pair it would hold `Any` and
+  * cast on the way out -- which is the public `Map[String, Any]` that §8.1 rules out, only with
+  * extra steps.
+  */
+final class FieldValue[A] private (val field: StateField[A], val value: A):
+
+  /** Writes the value back into a draft. */
+  def applyTo(transaction: Transaction): Unit = transaction.setField(field, value)
+
+  /** The same, from inside a command handler. */
+  def applyTo(scope: TransformScope): Unit = scope.setField(field, value)
+
+  override def toString: String = s"${field.name}=$value"
+
+object FieldValue:
+  def of[A](field: StateField[A], value: A): FieldValue[A] = new FieldValue(field, value)
+
 /** Ein typisierter Platz im Sitzungszustand.
   *
   * ==Was hier hineingehoert==
@@ -53,6 +87,19 @@ trait StateField[A]:
 
   def onDocumentChange: DocumentChangePolicy = DocumentChangePolicy.Keep
 
+  /** What undo and redo do with this field.
+    *
+    * §14: "StateFields deklarieren einen eigenen Restore-/Mapping-Vertrag." Most fields have
+    * nothing to restore -- a derived form value is recomputed from the document that comes back
+    * anyway. `TypingMarks` (P12) is the case the sentence was written for: §11 requires that
+    * "Undo/Redo darf die fuer die naechste Eingabe wirksamen Marks nicht zufaellig aus der
+    * DOM-Darstellung ableiten", and a field that is not restored would leave exactly that guess
+    * as the only option.
+    *
+    * Declaring it costs the history one captured value per snapshot, so the default is not to.
+    */
+  def onHistoryRestore: HistoryRestorePolicy = HistoryRestorePolicy.Recompute
+
   /** Reiner Reducer, ausgefuehrt vor der Veroeffentlichung des Commits.
     *
     * Bekommt den Wert, wie er nach [[onDocumentChange]] und etwaigen ausdruecklichen Zuweisungen
@@ -79,6 +126,20 @@ final class StateFields private (private val values: Map[StateField[?], Any]):
   def contains(field: StateField[?]): Boolean = values.contains(field)
 
   def fields: Set[StateField[?]] = values.keySet
+
+  /** Captures the fields that declare [[HistoryRestorePolicy.Restore]].
+    *
+    * The cast is the same unavoidable one as in [[StateFields.initial]] and just as harmless:
+    * the value stored under a field has, by construction, that field's type.
+    */
+  def captureForHistory: Vector[FieldValue[?]] =
+    values.iterator
+      .filter((field, _) => field.onHistoryRestore == HistoryRestorePolicy.Restore)
+      .map((field, value) => capture(field.asInstanceOf[StateField[Any]], value))
+      .toVector
+
+  private def capture[A](field: StateField[A], value: Any): FieldValue[A] =
+    FieldValue.of(field, value.asInstanceOf[A])
 
   private[core] def updated[A](field: StateField[A], value: A): StateFields =
     new StateFields(values.updated(field, value))
