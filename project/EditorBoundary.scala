@@ -78,6 +78,13 @@ object EditorBoundary {
     * Blocklist. Das ist Absicht: welche *Module dieses Builds* ein Projekt haben darf, steht
     * vollstaendig in Architektur §6 und ist abschliessend aufzaehlbar; welche *externen
     * Artefakte* es nicht haben darf, ist es nicht.
+    *
+    * `allowedModules` ist die Ausnahme von der Blocklist, und sie hat genau einen Anlass:
+    * seit jfx-core als Binaerartefakt eingebunden ist, faengt `scalajs-jfx` als Blockeintrag
+    * auch das eine JFX-Modul ein, das erlaubt ist. Die Alternative waere gewesen, den Eintrag
+    * fuer `ember-jfx` ganz wegzulassen -- dann waere aber auch `scalajs-jfx-forms` erlaubt, und
+    * §7 gibt der JFX-Schicht ausdruecklich nur den Kern. Blocken und einzeln freigeben ist
+    * strenger als das, was die frueheren Quell-Abhaengigkeit strukturell hergab.
     */
   def report(
       moduleName: String,
@@ -85,10 +92,13 @@ object EditorBoundary {
       allowedProjects: Seq[String],
       resolvedModules: Seq[String],
       forbiddenModules: Seq[String],
-      importViolations: Seq[ImportViolation]
+      importViolations: Seq[ImportViolation],
+      allowedModules: Seq[String] = Seq.empty
   ): Option[String] = {
     val badProjects = projectDependencies.filterNot(allowedProjects.contains)
-    val badModules  = resolvedModules.filter(module => forbiddenModules.exists(module.contains))
+    val badModules = resolvedModules.filter { module =>
+      forbiddenModules.exists(module.contains) && !allowedModules.exists(module.contains)
+    }
 
     // Zweimal flach: `section` liefert Option[Seq[String]], also Seq[Option[Seq[String]]].
     // Ein einzelnes `.flatten` liesse Seq[Seq[String]] stehen, und `mkString` haette die

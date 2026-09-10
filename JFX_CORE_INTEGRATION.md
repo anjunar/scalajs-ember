@@ -6,16 +6,27 @@ abhängen; Dokumentmodell, Transaktionen, Textnormalisierung, Commands, Selectio
 Eingabecontroller und Plugins werden im eigenen Repository entwickelt. Der vorhandene
 Editor-Prototyp wurde hierfür nicht verwendet.
 
-Dieses Repository (`scalajs-ember`) ist der Konsument. Die Einbindung erfolgt als
-Quell-Abhängigkeit über das Verzeichnis, nicht über ein veröffentlichtes Artefakt:
+Dieses Repository (`scalajs-ember`) ist der Konsument. Die Einbindung erfolgt seit P17 über
+das veröffentlichte Artefakt:
 
 ```scala
-lazy val jfxCore = ProjectRef(file("../scalajs-jfx"), "scalajs-jfx-core")
+libraryDependencies += "com.anjunar" %% "scalajs-jfx-core" % "3.0.5"
 ```
 
+Bis dahin war es eine Quell-Abhängigkeit auf das Verzeichnis
+(`ProjectRef(file("../scalajs-jfx"), "scalajs-jfx-core")`). Das war richtig, solange jfx-core
+sich unter dem Editor bewegte — er war dessen erster ernsthafter Konsument, und jeder Befund
+musste dort sofort behoben werden können. Mit 3.0.5 ist der Vertrag abgenommen, also endet die
+Kopplung: beide Repos lassen sich jetzt parallel bearbeiten, und dieser Build hängt an einer
+Version statt an einem Arbeitsverzeichnis.
+
+**Was das für die Verträge unten nicht ändert:** Sie gelten unverändert und sind weiterhin
+Befund, kein Entwurf. Was sich ändert, ist die Reihenfolge — eine Ergänzung in jfx-core wird
+erst hier sichtbar, wenn sie veröffentlicht ist. Ein Befund, der eine Änderung dort verlangt,
+gehört ins Nachbar-Repo und in eine neue Version, nicht in einen lokalen Workaround.
+
 Alle Quellpfade unten sind relativ zu `../scalajs-jfx/jfx-core/src/main/scala-3/jfx/core/`
-zu lesen. Die Verträge sind Befund, kein Entwurf — sie wurden gegen den tatsächlichen
-Quellstand geprüft.
+zu lesen — sie zeigen auf die Quellen des Artefakts, nicht mehr auf den Build.
 
 ## Öffentliche Verträge
 

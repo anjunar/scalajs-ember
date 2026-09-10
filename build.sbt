@@ -54,18 +54,38 @@ lazy val publishSettings = Seq(
   homepage                := Some(uri("https://github.com/anjunar/scalajs-ember"))
 )
 
-// Direkte Quell-Abhaengigkeit auf das Nachbar-Repo scalajs-jfx, nur das Submodul
-// jfx-core. `ProjectRef(file(...), id)` bindet exakt das in dessen build.sbt als
-// `Project(id = "scalajs-jfx-core", ...)` definierte Modul ein -- kein
-// veroeffentlichtes Artefakt, keine Version, kein Publish-Schritt noetig. Beide
-// Builds laufen auf identischem sbt 2.0.8, sbt-scalajs 1.22.0 und Scala 3.3.8,
-// die Metabuilds sind also kompatibel.
+// Binaerabhaengigkeit auf jfx-core von Maven Central, seit P17 statt der Quell-Abhaengigkeit
+// auf das Nachbarverzeichnis.
 //
-// Konsumenten sind seit P09 `ember-jfx` und `ember-integration`. Fuer `ember-jfx` ist das
-// unbedenklich, obwohl es publiziert wird: die Quell-Abhaengigkeit ist eine Sache des Builds,
-// der POM nennt das veroeffentlichte `com.anjunar:scalajs-jfx-core_sjs1_3` (geprueft mit
-// `scalajs-ember-jfx/makePom`). `ember-core` und `ember-rich-text` bleiben headless (§7).
-lazy val jfxCore = ProjectRef(file("../scalajs-jfx"), "scalajs-jfx-core")
+// Vorher band `ProjectRef(file("../scalajs-jfx"), "scalajs-jfx-core")` das Submodul direkt aus
+// den Quellen ein. Das war richtig, solange jfx-core sich unter uns bewegte: der Editor war
+// dessen erster ernsthafter Konsument, und jeder Befund dort musste sofort dort behoben werden
+// koennen. Der Preis war, dass beide Builds aneinander haengen -- ein halb gespeicherter Stand
+// im Nachbarverzeichnis hat diesen Build mehrfach zum Stehen gebracht, ohne dass hier etwas
+// falsch war.
+//
+// 3.0.5 ist abgenommen und veroeffentlicht, also endet die Kopplung. Beide Repos lassen sich
+// jetzt parallel bearbeiten, und was hier gebaut wird, haengt an einer Version statt an einem
+// Arbeitsverzeichnis. Der Weg zurueck ist eine Zeile, falls jfx-core noch einmal im Gleichschritt
+// wachsen muss.
+//
+// `%%` und nicht `%%%`, obwohl das aufgeloeste Artefakt `scalajs-jfx-core_sjs1_3` heisst und
+// nicht `_3`: in einem Projekt mit aktiviertem `ScalaJSPlugin` setzt das Plugin das
+// `sjs1_`-Praefix fuer `CrossVersion.binary` bereits selbst. `%%%` waere hier ausserdem gar
+// nicht verfuegbar -- der Operator gehoert sbt-platform-deps und ist auf oberster Ebene einer
+// build.sbt nicht im Scope; ihn zu importieren verschattet obendrein `Project`. Und wer das
+// Praefix von Hand nachhilft (`.cross(ScalaJSCrossVersion.binary)`), bekommt es zweimal:
+// `scalajs-jfx-core_sjs1_sjs1_3` gibt es auf Central nicht.
+//
+// Transitiv kommen `scalajs-dom` 2.8.1 und `com.anjunar:scala-reflect` mit -- derselbe Satz
+// wie vorher, nur nicht mehr ueber den Projektgraphen.
+//
+// Konsumenten sind `ember-jfx`, `ember-integration` und `ember-demo`. Fuer `ember-jfx` war die
+// Publish-Regel aus §6 schon vorher gewahrt (der POM nannte das veroeffentlichte Artefakt);
+// jetzt ist sie es ohne Fussnote. `ember-core` und `ember-rich-text` bleiben headless (§7).
+lazy val jfxCoreSettings = Seq(
+  libraryDependencies += "com.anjunar" %% "scalajs-jfx-core" % "3.0.5"
+)
 
 // Grenze aus Architektur §7 als Compile-Gate.
 //
@@ -103,11 +123,15 @@ lazy val forbiddenJfxImports =
   * @param forbiddenImports
   *   Paketpraefixe, die nicht importiert werden duerfen. Enthaelt bewusst auch Pakete, die es
   *   noch gar nicht gibt: die Regel soll stehen, bevor jemand dagegen verstossen kann.
+  * @param allowedModules
+  *   Artefakte, die trotz Blocklist erlaubt sind. Bislang genau eines: `scalajs-jfx-core` in
+  *   den drei Modulen, die JFX kennen duerfen.
   */
 def boundarySettings(
     allowedProjects: Seq[String],
     forbiddenImports: Seq[String],
-    forbiddenModules: Seq[String] = forbiddenArtifacts
+    forbiddenModules: Seq[String] = forbiddenArtifacts,
+    allowedModules: Seq[String] = Seq.empty
 ): Seq[Setting[?]] = Seq(
   boundaryCheck := Def.uncached {
     val log      = streams.value.log
@@ -123,7 +147,8 @@ def boundarySettings(
       importViolations = EditorBoundary.scanImports(
         (Compile / unmanagedSourceDirectories).value ++ (Test / unmanagedSourceDirectories).value,
         forbiddenImports
-      )
+      ),
+      allowedModules = allowedModules
     )
 
     failure.foreach(sys.error)
@@ -356,21 +381,24 @@ lazy val emberHtml =
 lazy val emberJfx =
   Project(id = "scalajs-ember-jfx", base = file("ember-jfx"))
     .enablePlugins(ScalaJSPlugin)
-    .dependsOn(emberCore, emberHtml, jfxCore)
+    .dependsOn(emberCore, emberHtml)
     .settings(
       name        := "scalajs-ember-jfx",
       moduleName  := "scalajs-ember-jfx",
       description := "Keyed document projection onto the JFX runtime for the Ember editor."
     )
     .settings(testSettings)
+    .settings(jfxCoreSettings)
     .settings(commonJsSettings)
     .settings(publishSettings)
-    // JFX ist hier der Sinn der Sache. Verboten bleiben die Schichten darueber.
+    // JFX ist hier der Sinn der Sache -- aber nur der Kern. §7 gibt dieser Schicht `jfx-core`
+    // und sonst nichts; `jfx-forms`, `jfx-viewport` und der Rest bleiben verboten. Solange
+    // jfx-core eine Quell-Abhaengigkeit war, sagte das der Projektgraph; jetzt sagt es der Lint.
     .settings(
       boundarySettings(
-        allowedProjects = Seq("scalajs-ember-core", "scalajs-ember-html", "scalajs-jfx-core"),
+        allowedProjects = Seq("scalajs-ember-core", "scalajs-ember-html"),
         forbiddenImports = forbiddenUpwardImports,
-        forbiddenModules = Seq("scalajs-lexical")
+        allowedModules = Seq("scalajs-jfx-core")
       )
     )
 
@@ -409,7 +437,7 @@ lazy val emberStandard =
         // `ember.editor.jfx` fehlt hier mit Absicht: `standard` liegt in §6 *ueber* dem
         // JFX-Modul und ist gerade der Ort, an dem NodeViews entstehen.
         forbiddenImports = forbiddenUpwardImports.filterNot(_ == "ember.editor.jfx"),
-        forbiddenModules = Seq("scalajs-lexical")
+        allowedModules = Seq("scalajs-jfx-core")
       )
     )
 
@@ -422,7 +450,7 @@ lazy val emberStandard =
 lazy val emberIntegration =
   Project(id = "scalajs-ember-integration", base = file("ember-integration"))
     .enablePlugins(ScalaJSPlugin)
-    .dependsOn(emberCore, emberRichText, emberHtml, emberJfx, emberStandard, jfxCore)
+    .dependsOn(emberCore, emberRichText, emberHtml, emberJfx, emberStandard)
     .settings(
       name                            := "scalajs-ember-integration",
       moduleName                      := "scalajs-ember-integration",
@@ -438,19 +466,20 @@ lazy val emberIntegration =
     )
     .settings(testSettings)
     .settings(domSettings)
+    .settings(jfxCoreSettings)
     .settings(commonJsSettings)
     // Hier ist der Browser ausdruecklich erlaubt -- das ist der Sinn des Moduls. Verboten
-    // bleiben die Editor-Schichten oberhalb, die es noch gar nicht gibt, und der Prototyp im
-    // Nachbar-Repo.
+    // bleiben die Editor-Schichten oberhalb, die es noch gar nicht gibt, der Prototyp im
+    // Nachbar-Repo und jedes JFX-Modul ausser dem Kern.
     .settings(
       boundarySettings(
         allowedProjects =
           Seq("scalajs-ember-core", "scalajs-ember-rich-text", "scalajs-ember-html",
-              "scalajs-ember-jfx", "scalajs-ember-standard", "scalajs-jfx-core"),
+              "scalajs-ember-jfx", "scalajs-ember-standard"),
         // Wie bei `standard` fehlt `ember.editor.jfx` mit Absicht: der Harness haengt an der
         // Projektion, das ist seit P09 sein Zweck.
         forbiddenImports = forbiddenUpwardImports.filterNot(_ == "ember.editor.jfx"),
-        forbiddenModules = Seq("scalajs-lexical")
+        allowedModules = Seq("scalajs-jfx-core")
       )
     )
 
@@ -463,8 +492,8 @@ lazy val emberIntegration =
 lazy val emberDemo =
   Project(id = "scalajs-ember-demo", base = file("ember-demo"))
     .enablePlugins(ScalaJSPlugin)
-    .dependsOn(emberCore, emberRichText, emberList, emberLink, emberCode, emberJson,
-      emberHistory, emberHtml, emberJfx, emberStandard, jfxCore)
+    .dependsOn(emberCore, emberRichText, emberList, emberLink, emberCode, emberImage, emberJson,
+      emberHistory, emberHtml, emberJfx, emberStandard)
     .settings(
       name                            := "scalajs-ember-demo",
       moduleName                      := "scalajs-ember-demo",
@@ -480,17 +509,18 @@ lazy val emberDemo =
     )
     .settings(testSettings)
     .settings(domSettings)
+    .settings(jfxCoreSettings)
     .settings(commonJsSettings)
     // Der Browser ist hier der Sinn der Sache, und die Demo liegt ueber allen Modulen.
     .settings(
       boundarySettings(
         allowedProjects =
           Seq("scalajs-ember-core", "scalajs-ember-rich-text", "scalajs-ember-list",
-              "scalajs-ember-link", "scalajs-ember-code", "scalajs-ember-json",
-              "scalajs-ember-history", "scalajs-ember-html", "scalajs-ember-jfx",
-              "scalajs-ember-standard", "scalajs-jfx-core"),
+              "scalajs-ember-link", "scalajs-ember-code", "scalajs-ember-image",
+              "scalajs-ember-json", "scalajs-ember-history", "scalajs-ember-html",
+              "scalajs-ember-jfx", "scalajs-ember-standard"),
         forbiddenImports = forbiddenUpwardImports.filterNot(_ == "ember.editor.jfx"),
-        forbiddenModules = Seq("scalajs-lexical")
+        allowedModules = Seq("scalajs-jfx-core")
       )
     )
 

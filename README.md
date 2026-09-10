@@ -117,22 +117,34 @@ Vorhanden:
 
 Die generischen Editing-Primitive (Text-Splices, `Runtime.move`, `KeyedChildren`,
 `TextArea`, `HydrationBoundary`, `HostMutationGuard`) liegen im Nachbar-Repo
-`../scalajs-jfx` und sind dort implementiert und getestet. Sie werden als
-Quell-Abhängigkeit über das Verzeichnis eingebunden, nicht als veröffentlichtes
-Artefakt:
+`../scalajs-jfx` und sind dort implementiert und getestet. Sie kommen seit P17 als
+veröffentlichtes Artefakt von Maven Central:
 
 ```scala
-lazy val jfxCore = ProjectRef(file("../scalajs-jfx"), "scalajs-jfx-core")
+libraryDependencies += "com.anjunar" %% "scalajs-jfx-core" % "3.0.5"
 ```
 
-Das Nachbar-Repo muss also ausgecheckt danebenliegen. Beide Builds laufen auf
-sbt 2.0.8, sbt-scalajs 1.22.0 und Scala 3.3.8.
+**Das Nachbar-Repo muss also nicht mehr danebenliegen.** Bis P16 war es eine Quell-Abhängigkeit
+(`ProjectRef(file("../scalajs-jfx"), "scalajs-jfx-core")`), und das war richtig, solange
+jfx-core sich unter dem Editor bewegte — er war dessen erster ernsthafter Konsument, und jeder
+Befund musste dort sofort behoben werden können. Der Preis war, dass beide Builds aneinander
+hingen: ein halb gespeicherter Stand nebenan hat diesen Build mehrfach zum Stehen gebracht,
+ohne dass hier etwas falsch war. Mit 3.0.5 ist der Vertrag abgenommen, also endet die Kopplung
+— und der Settings-Graph schrumpft dabei von 34403 auf 18552.
 
-Konsumenten sind `ember-jfx` und `ember-integration`. Für `ember-jfx` gilt die Publish-Regel
-aus §6 — ein veröffentlichtes Modul zeigt ausschließlich auf veröffentlichte Artefakte —, und
-sie ist gewahrt: der generierte POM nennt `com.anjunar:scalajs-jfx-core_sjs1_3:3.0.4`, nicht
-ein Verzeichnis. Nachprüfbar mit `sbt --server "scalajs-ember-jfx/makePom"`. Die
-Quell-Abhängigkeit ist eine Sache des Builds, nicht der Veröffentlichung.
+`%%` und nicht `%%%`, obwohl das Artefakt `scalajs-jfx-core_sjs1_3` heißt: in einem Projekt mit
+aktiviertem `ScalaJSPlugin` setzt das Plugin das `sjs1_`-Präfix bereits selbst.
+
+Konsumenten sind `ember-jfx`, `ember-standard`, `ember-integration` und `ember-demo`. Für
+`ember-jfx` gilt die Publish-Regel aus §6 — ein veröffentlichtes Modul zeigt ausschließlich auf
+veröffentlichte Artefakte —, und sie ist gewahrt; nachprüfbar mit
+`sbt --server "scalajs-ember-jfx/makePom"`.
+
+**Nur der Kern, und das steht jetzt im Lint.** Die Quell-Abhängigkeit garantierte strukturell,
+dass kein weiteres JFX-Modul auf dem Classpath liegt; ein Binärartefakt tut das nicht. Der
+Grenz-Lint verbietet deshalb `scalajs-jfx` als Ganzes und gibt über `allowedModules` genau
+`scalajs-jfx-core` wieder frei. Ein versehentliches `jfx-forms` bricht den Build mit einer
+klaren Meldung, statt still durchzurutschen.
 
 `ember-core` und `ember-rich-text` bleiben davon unberührt: sie sind headless
 (Architektur §7), hängen an nichts aus dem Nachbar-Repo, und ihr Gate läuft ohne es.

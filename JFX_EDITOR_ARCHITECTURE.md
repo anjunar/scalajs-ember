@@ -4,8 +4,9 @@ Status: Architekturentwurf, noch keine implementierte Editor-API. Stand: 9. Sept
 
 Repository-Aufteilung: Der Editor entsteht in einem eigenen Repository — das ist dieses,
 `scalajs-ember`. Die generischen JFX-Core-Voraussetzungen sind implementiert, aber im
-Nachbar-Repo `../scalajs-jfx`; sie werden über eine Quell-Abhängigkeit auf dessen Submodul
-`jfx-core` eingebunden ([build.sbt](build.sbt)). Der tatsächliche API-Vertrag steht in
+Nachbar-Repo `../scalajs-jfx`; sie werden seit P17 als veröffentlichtes Artefakt
+`com.anjunar:scalajs-jfx-core:3.0.5` eingebunden ([build.sbt](build.sbt)), vorher als
+Quell-Abhängigkeit auf dessen Submodul. Der tatsächliche API-Vertrag steht in
 [JFX_CORE_INTEGRATION.md](JFX_CORE_INTEGRATION.md). Editorbezogene Module und APIs dieses
 Entwurfs bleiben Planung.
 

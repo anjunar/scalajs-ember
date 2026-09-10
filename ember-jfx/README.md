@@ -10,12 +10,19 @@ Der Vertrag zur Runtime: [JFX_CORE_INTEGRATION.md](../JFX_CORE_INTEGRATION.md).
 | --- | --- |
 | sbt-ID / Artefakt | `scalajs-ember-jfx` |
 | Scala-Paket | `ember.editor.jfx` |
-| Produktionsabhängigkeiten | `scalajs-ember-core`, `scalajs-ember-html`, `com.anjunar:scalajs-jfx-core` |
+| Produktionsabhängigkeiten | `scalajs-ember-core`, `scalajs-ember-html`, `com.anjunar:scalajs-jfx-core:3.0.5` |
 
-`jfx-core` wird im Build als Quell-Abhängigkeit auf `../scalajs-jfx` eingebunden, im POM steht
-aber das veröffentlichte Artefakt `com.anjunar:scalajs-jfx-core_sjs1_3`. Damit ist §6s
-Publish-Regel gewahrt — ein veröffentlichtes Modul zeigt nur auf veröffentlichte Artefakte.
-Nachprüfbar mit `sbt --server "scalajs-ember-jfx/makePom"`.
+`jfx-core` kommt seit P17 als Binärartefakt von Maven Central. Vorher war es eine
+Quell-Abhängigkeit auf `../scalajs-jfx`; §6s Publish-Regel war auch damals gewahrt, weil der
+POM das veröffentlichte Artefakt nannte — jetzt ist sie es ohne Fußnote. Nachprüfbar mit
+`sbt --server "scalajs-ember-jfx/makePom"`.
+
+**Nur der Kern, und das steht jetzt im Lint.** Solange jfx-core eine Quell-Abhängigkeit war,
+sagte der Projektgraph, dass kein weiteres JFX-Modul auf dem Classpath liegen kann. Mit einem
+Binärartefakt wäre `jfx-forms` ein `libraryDependencies +=` entfernt, also sagt es der
+Grenz-Lint: die Blocklist verbietet `scalajs-jfx` als Ganzes, und `allowedModules` gibt genau
+`scalajs-jfx-core` wieder frei (§7). Das ist strenger als das, was die Quell-Abhängigkeit
+strukturell hergab.
 
 ## Stand
 

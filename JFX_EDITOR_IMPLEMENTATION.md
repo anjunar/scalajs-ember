@@ -5,8 +5,8 @@ Scala-Tests und 126 Browserfälle in Chromium, Firefox und WebKit grün),
 P17–P30 offen. Dieses Repository (`scalajs-ember`) ist das in
 Architektur und Plan gemeinte „eigene Repository“. Die generischen JFX-Core-Anteile aus
 P08/P09, P19a, P20 und P23 sind **nicht hier, sondern im Nachbar-Repo `../scalajs-jfx`**
-implementiert und über eine Quell-Abhängigkeit auf dessen Submodul `jfx-core` eingebunden
-(`ProjectRef` in [build.sbt](build.sbt)); der Vertrag steht in
+implementiert und seit P17 als veröffentlichtes Artefakt `com.anjunar:scalajs-jfx-core:3.0.5`
+eingebunden ([build.sbt](build.sbt)), vorher als Quell-Abhängigkeit; der Vertrag steht in
 [JFX_CORE_INTEGRATION.md](JFX_CORE_INTEGRATION.md). Das erledigt nicht die jeweiligen
 Editor-Integrationsphasen. Stand: 10. September 2026.
 
@@ -70,9 +70,10 @@ Vor jedem Commit der vollständige Lauf:
 sbt --server "Test/testOnly *"
 ```
 
-Achtung: Die Quell-Abhängigkeit lädt `../scalajs-jfx` als zweiten Build mit. `Test/testOnly *`
-von hier aus deckt die aggregierten Projekte **dieses** Builds ab, nicht die von scalajs-jfx.
-Wer dort etwas ändert, führt das Gate zusätzlich im Nachbar-Repo aus:
+Seit P17 lädt dieser Befehl nur noch **diesen** Build — `jfx-core` kommt als Binärartefakt, das
+Nachbarverzeichnis wird nicht mehr mitgeladen. Wer dort etwas ändert, führt das Gate im
+Nachbar-Repo aus und veröffentlicht eine neue Version; hier ankommen kann die Änderung erst
+danach:
 
 ```powershell
 cd ../scalajs-jfx
@@ -592,10 +593,12 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 >    und von außen nicht lesbar. Stattdessen wird nach einem Move ein weiteres Label über
 >    `contentCursor` montiert: läge die Kindliste der Runtime daneben, landete es an der
 >    falschen Stelle — ohne Fehlermeldung, nur mit falscher Reihenfolge.
-> 5. *Gegen **diese** Linkerausgabe.* Der Nachbar testet seinen eigenen Build. Wir binden
->    `jfx-core` als Quell-Abhängigkeit ein und linken es mit unseren Einstellungen — ESModule,
->    ES2021, `fullLinkJS` mit optimierter Semantik. Ein Vertrag kann dort halten und hier
->    brechen; jetzt ist geprüft, dass er es nicht tut.
+> 5. *Gegen **diese** Linkerausgabe.* Der Nachbar testet seinen eigenen Build. Wir linken
+>    `jfx-core` mit unseren Einstellungen — ESModule, ES2021, `fullLinkJS` mit optimierter
+>    Semantik. Ein Vertrag kann dort halten und hier brechen; jetzt ist geprüft, dass er es
+>    nicht tut. (P17 hat die damalige Quell-Abhängigkeit durch das Artefakt 3.0.5 ersetzt.
+>    Das Argument wird dadurch stärker, nicht schwächer: geprüft wird jetzt genau der Stand,
+>    den ein fremder Konsument bekäme.)
 >
 > **Nachgereicht in P09:**
 >
