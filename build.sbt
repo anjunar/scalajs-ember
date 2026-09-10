@@ -205,6 +205,31 @@ lazy val emberList =
     )
 
 
+// §6: Image/Media-Referenzen, Atom-Semantik, validierte Quellen und Masse. Haengt allein am
+// Kern -- ein Bild ist ein Inline-Atom ohne Kinder und braucht kein Textprofil.
+lazy val emberImage =
+  Project(id = "scalajs-ember-image", base = file("ember-image"))
+    .enablePlugins(ScalaJSPlugin)
+    .dependsOn(emberCore)
+    .settings(
+      name        := "scalajs-ember-image",
+      moduleName  := "scalajs-ember-image",
+      description := "Reference-based media with a validated source policy for Ember."
+    )
+    .settings(testSettings)
+    .settings(commonJsSettings)
+    .settings(publishSettings)
+    .settings(
+      boundarySettings(
+        allowedProjects = Seq("scalajs-ember-core"),
+        forbiddenImports = forbiddenJfxImports ++ forbiddenUpwardImports ++
+          Seq("ember.editor.richtext", "ember.editor.html", "ember.editor.markdown",
+              "ember.editor.json"),
+        forbiddenModules = forbiddenArtifacts :+ "scalajs-dom"
+      )
+    )
+
+
 // §6: CodeBlock, Sprache als Metadatum, Code-Editing. Auf dem Rich-Text-Profil, weil ein
 // Codeblock aus einem Absatz entsteht und wieder zu einem wird.
 lazy val emberCode =
@@ -355,7 +380,8 @@ lazy val emberJfx =
 lazy val emberStandard =
   Project(id = "scalajs-ember-standard", base = file("ember-standard"))
     .enablePlugins(ScalaJSPlugin)
-    .dependsOn(emberCore, emberRichText, emberList, emberLink, emberCode, emberHtml, emberJfx)
+    .dependsOn(emberCore, emberRichText, emberList, emberLink, emberCode, emberImage, emberJson,
+      emberHtml, emberJfx)
     .settings(
       name        := "scalajs-ember-standard",
       moduleName  := "scalajs-ember-standard",
@@ -375,6 +401,8 @@ lazy val emberStandard =
           "scalajs-ember-list",
           "scalajs-ember-link",
           "scalajs-ember-code",
+          "scalajs-ember-image",
+          "scalajs-ember-json",
           "scalajs-ember-html",
           "scalajs-ember-jfx"
         ),
@@ -467,8 +495,8 @@ lazy val emberDemo =
     )
 
 lazy val root = Project(id = "scalajs-ember-root", base = file("."))
-  .aggregate(emberCore, emberRichText, emberList, emberLink, emberCode, emberJson, emberHistory,
-    emberHtml, emberJfx, emberStandard, emberIntegration, emberDemo)
+  .aggregate(emberCore, emberRichText, emberList, emberLink, emberCode, emberImage, emberJson,
+    emberHistory, emberHtml, emberJfx, emberStandard, emberIntegration, emberDemo)
   .settings(
     name           := "scalajs-ember",
     publish / skip := true

@@ -34,7 +34,7 @@ ausgeliefertes HTML und Editor-HTML. Alle vier hängen an **einem** Dokument; di
 `EditorProperties.document(session)` gebunden und werden bei jedem Commit nachgeführt (§10), nicht
 von einem Timer.
 
-Damit ist der Stand nach P12 an einem Stück sichtbar:
+Damit ist der Stand nach P16 an einem Stück sichtbar:
 
 | | |
 | --- | --- |
@@ -47,6 +47,7 @@ Damit ist der Stand nach P12 an einem Stück sichtbar:
 | P13 | Listen mit Ein- und Ausrücken |
 | P14 | Links samt URL-Policy |
 | P15 | Codeblöcke mit Sprachangabe |
+| P16 | Bilder als Inline-Atome samt Media-Policy |
 
 Undo und Redo gibt es als Knöpfe und über Strg+Z beziehungsweise Strg+Shift+Z; die Statuszeile
 zeigt die Tiefe beider Stapel. Zusammenhängendes Tippen wird dabei zu einer Stufe zusammengefasst
@@ -59,6 +60,23 @@ Tab und Shift+Tab, was P13 ausdrücklich als Sache der Anwendung führt und nich
 „Link" und „Link weg" arbeiten auf dem Lauf am Caret: `SetLink` braucht eine Auswahl, und eine
 DOM-Auswahl gibt es erst mit P21. Die Demo wählt deshalb im Modell aus -- vorhersagbar, und ohne
 so zu tun, als ließe sich hier schon mit der Maus markieren.
+
+„Bild", „Alt-Text" und „Bild 96px" gehören zu P16. Das eingefügte Bild ist eine **echte Datei
+unter einem relativen Pfad** (`/ember.svg`, vom Dev-Server ausgeliefert) — genau die Quelle, die
+`MediaUrlPolicy.default` zulässt. Eine `data:`-URL wäre bequemer und würde von derselben Policy
+abgewiesen; sie ist keine dauerhafte MediaReference (§20). Einen Dateidialog gibt es hier nicht
+und wird es hier nicht geben: Uploads sind laut §20 ein Anwendungsservice, und der Command nimmt
+eine fertige Adresse.
+
+Das Startdokument bringt schon eines mit, mitten in einem Absatz. Im Panel „Dokument" ist zu
+sehen, was das heißt: das Bild steht **zwischen** zwei Textläufen, nicht neben dem Absatz. Wer
+den Caret in einen Lauf setzt und „Bild" drückt, teilt den Lauf und setzt es zwischen die
+Hälften.
+
+„Alt-Text" und „Bild 96px" arbeiten auf dem Bild neben dem Caret, aus demselben Grund wie
+„Link" auf dem Lauf am Caret: ein Atom hat keine Textposition, ein Caret kann also nicht *darin*
+stehen, und es mit der Maus zu benennen ist der `SelectionPort` aus P21. Auswahl, Änderung und
+der Caret danach laufen in **einer** Transaktion -- drei wären drei History-Stufen.
 
 „Codeblock" macht aus dem Absatz am Caret einen Codeblock. Tab und Shift+Tab rücken darin die
 Zeile ein statt das Listenelement -- die Demo probiert erst den Code-Befehl, dann den
@@ -96,7 +114,7 @@ hat.
 | `Main.scala` | Einstieg. Kein Initialisierungscode auf oberster Ebene — §15.2. |
 | `DemoSession.scala` | Sitzung, Schema, Codecs und die vier Ansichten. Die einzige Stelle, an der alle Module vorkommen. |
 | `DemoApp.scala` | Die Seite als JFX-Komponentenbaum. |
-| `dev/` | HTML-Hülle, Stylesheet, Server. |
+| `dev/` | HTML-Hülle, Stylesheet, Bild, Server. |
 
 Die Editierfläche hängt als **Kind** der Flächenkomponente im Baum, nicht als zweite Wurzel
 (`DocumentView.mount(..., parent = Some(host))`). Damit räumt ein `Runtime.unmount` der Seite auch

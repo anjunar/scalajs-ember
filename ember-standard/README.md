@@ -1,4 +1,4 @@
-| Produktionsabhängigkeiten | `scalajs-ember-core`, `scalajs-ember-rich-text`, `scalajs-ember-list`, `scalajs-ember-link`, `scalajs-ember-code`, `scalajs-ember-html`, `scalajs-ember-jfx` |# scalajs-ember-standard
+# scalajs-ember-standard
 
 Die Standardadapter des Ember-Editors: der Ort, an dem Knotenarten und Renderer einander
 kennen. Einzeln wählbar, nicht als Sammelregistrierung.
@@ -9,15 +9,19 @@ Verbindlicher Entwurf: [JFX_EDITOR_ARCHITECTURE.md](../JFX_EDITOR_ARCHITECTURE.m
 | --- | --- |
 | sbt-ID / Artefakt | `scalajs-ember-standard` |
 | Scala-Paket | `ember.editor.standard` |
-| Produktionsabhängigkeiten | `scalajs-ember-core`, `scalajs-ember-rich-text`, `scalajs-ember-html`, `scalajs-ember-jfx` |
+| Produktionsabhängigkeiten | `scalajs-ember-core`, `scalajs-ember-rich-text`, `scalajs-ember-list`, `scalajs-ember-link`, `scalajs-ember-code`, `scalajs-ember-image`, `scalajs-ember-html`, `scalajs-ember-jfx` |
 
 ## Stand
 
-P09 und P12 bis P15 abgeschlossen. Vorhanden: `ParagraphSupport` (Wurzel, Absatz, Textlauf),
+P09 und P12 bis P16 abgeschlossen. Vorhanden: `ParagraphSupport` (Wurzel, Absatz, Textlauf),
 `RichTextSupport` (Überschrift, Zitat, Umbrüche) samt `StandardMarkTags` — der Tabelle, die aus
-den fünf eingebauten Marks HTML-Tags macht — `ListSupport` (`ul`/`ol`/`li` samt Startnummer), `LinkSupport` (`a` samt der Entscheidung über
-`target` und `rel`) und `CodeSupport` (`pre`/`code` samt Sprachklasse). Bilder folgen mit P16 als
-eigenes `*Support`.
+den fünf eingebauten Marks HTML-Tags macht — `ListSupport` (`ul`/`ol`/`li` samt Startnummer),
+`LinkSupport` (`a` samt der Entscheidung über `target` und `rel`), `CodeSupport` (`pre`/`code`
+samt Sprachklasse) und `ImageSupport` (`img` als Void-Element).
+
+Dazu `ImageJsonSupport` — der erste Adapter hier, der **nicht** HTML macht. Er steht aus
+demselben Grund in diesem Modul: §6 gibt `image` nur den Kern, `ember-json` weiß nichts von
+Bildern, und dies ist der eine Ort, an dem beide auf dem Klassenpfad liegen.
 
 `strong` und `em`, nicht `b` und `i`: §16 verlangt semantisches HTML, und das sagt, was gemeint
 ist, statt wie es aussieht. Underline bekommt `u` — nicht weil HTML dafür eine gute Antwort
@@ -61,6 +65,24 @@ der Ausgabe ein einziger Textknoten.
 **`data-ember-node` nur in der Editieransicht.** §19.1 lässt browserseitige Wrapper und
 Editor-Attribute beim Austausch entfernen. Statt sie hinterher herauszunehmen, entstehen sie in
 der Content-Fassung gar nicht erst.
+
+**`alt=""` wird geschrieben, nicht weggelassen.** §20: ein dekoratives Bild verwendet
+ausdrücklich leeren Alt-Text. Das Attribut wegzulassen ließe einen Screenreader stattdessen den
+Dateinamen vorlesen — der leere Alt-Text bedeutet etwas, das Fehlen bedeutet etwas anderes.
+
+**`width` und `height`, wann immer das Dokument sie hat.** §20: absolute Werte „können
+Layoutsprünge reduzieren". Ein Browser, der das Verhältnis kennt, reserviert den Platz, bevor
+das Bild ankommt. Prüfen muss der Adapter dabei nichts — `PositivePixels` kann keine Null
+tragen.
+
+**Kein Abruf, kein Nachmessen.** §20: „keine externe URL wird vom Parser oder SSR-Server
+automatisch abgerufen." Der Adapter macht aus einem Knoten Attribute; ob das Bild existiert,
+ist die Frage des Browsers, und SSR stellt sie nie.
+
+**Dekodieren ist so streng wie der Command.** `ImageJsonSupport.codec(policy)` nimmt dieselbe
+`MediaUrlPolicy` entgegen wie `ImageExtension`. Eine Quelle aus einem Payload ist genau so
+ungeprüft wie eine aus einem Dialog, und es gibt keinen zweiten Weg zu einem `MediaUrl` — die
+beiden Pfade **können** nicht auseinanderlaufen.
 
 ## Verwendung
 

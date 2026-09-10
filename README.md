@@ -14,7 +14,7 @@ Laufzeitabhängigkeit.
 
 ## Stand
 
-**Meilenstein A und B stehen, C und D angefangen** — P01–P15 abgeschlossen, P16–P30 offen. Der frühere
+**Meilenstein A und B stehen, C und D angefangen** — P01–P16 abgeschlossen, P17–P30 offen. Der frühere
 `contenteditable`-Prototyp (`ember.core.Editor` mit `execCommand` und HTML-String als
 Zustand) und seine vite-Demo wurden entfernt — Architektur §2 und §25 schließen diesen
 Ansatz aus.
@@ -64,6 +64,13 @@ P15 bringt Codeblöcke. Die Sprache ist ein Metadatum, kein Highlighter -- was d
 garantiert, ist der Inhalt wörtlich in einem unmarkierten Lauf, einschließlich seiner
 Leerzeilen. Genau das brauchen sowohl ein späterer Highlighter als auch ein Markdown-Fence.
 
+P16 bringt Bilder, und zwar als Referenz: eine Adresse und eine optionale Kennung, keine
+Dateidaten und keine Objekt-URL. Ein Upload ist laut §20 ein Anwendungsservice; was hier
+ankommt, ist etwas, das schon existiert. Damit ist ein Bild einzufügen eine gewöhnliche
+Dokumentänderung mit einer History-Stufe -- und ein Undo entfernt den Knoten, ohne irgendwo
+eine Datei anzufassen. Die Media-Policy ist strenger als die für Links, weil ein Link von einem
+Leser gefolgt wird, ein Bild aber von der Seite selbst geladen.
+
 ## Module
 
 Konvention: Verzeichnis `ember-<modul>`, sbt-ID und Artefakt `scalajs-ember-<modul>`,
@@ -84,6 +91,9 @@ Vorhanden:
   `ember.editor.link`. Inline-Links mit geprüfter URL-Policy. Headless und optional.
 - [`ember-code`](ember-code/README.md) — sbt-ID `scalajs-ember-code`, Paket
   `ember.editor.code`. Codeblöcke mit typisierten Sprachmetadaten, ohne Highlighter.
+- [`ember-image`](ember-image/README.md) — sbt-ID `scalajs-ember-image`, Paket
+  `ember.editor.image`. Externe Bilder als Inline-Atome mit geprüfter Media-Policy. Hängt
+  allein am Kern — ein Bild braucht vom Rich-Text-Profil nichts.
 - [`ember-json`](ember-json/README.md) — sbt-ID `scalajs-ember-json`, Paket
   `ember.editor.json`. Wire-ADT, Node- und Mark-Codecs, Grenzen, Schema-Migration. Headless.
 - [`ember-history`](ember-history/README.md) — sbt-ID `scalajs-ember-history`, Paket

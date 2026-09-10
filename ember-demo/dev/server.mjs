@@ -33,6 +33,7 @@ const types = {
   '.map': 'application/json; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
   '.html': 'text/html; charset=utf-8',
+  '.svg': 'image/svg+xml; charset=utf-8',
 }
 
 async function send(response, url, contentType) {
@@ -56,6 +57,14 @@ const server = createServer(async (request, response) => {
 
   if (path === '/style.css') {
     await send(response, new URL('style.css', here), types['.css'])
+    return
+  }
+
+  // Das Bild der Demo (P16). Es liegt hier und nicht im Linkerverzeichnis, weil es kein
+  // Linkeroutput ist -- und es ist eine echte Datei unter einem relativen Pfad, weil genau das
+  // die Quelle ist, die `MediaUrlPolicy.default` zulaesst.
+  if (path === '/ember.svg') {
+    await send(response, new URL('ember.svg', here), types['.svg'])
     return
   }
 

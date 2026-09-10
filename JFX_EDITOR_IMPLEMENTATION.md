@@ -1,8 +1,8 @@
 # JFX Editor: ausführbarer Implementierungsplan
 
-Status: **Meilenstein A und B stehen, C und D angefangen** — P01–P15 abgeschlossen (662
+Status: **Meilenstein A und B stehen, C und D angefangen** — P01–P16 abgeschlossen (719
 Scala-Tests und 126 Browserfälle in Chromium, Firefox und WebKit grün),
-P16–P30 offen. Dieses Repository (`scalajs-ember`) ist das in
+P17–P30 offen. Dieses Repository (`scalajs-ember`) ist das in
 Architektur und Plan gemeinte „eigene Repository“. Die generischen JFX-Core-Anteile aus
 P08/P09, P19a, P20 und P23 sind **nicht hier, sondern im Nachbar-Repo `../scalajs-jfx`**
 implementiert und über eine Quell-Abhängigkeit auf dessen Submodul `jfx-core` eingebunden
@@ -1212,6 +1212,71 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 - **Dependencies:** P12; Architektur §§8, 18.
 
 ## P16 — Externe Bilder und Media-Modell
+
+> **Abgeschlossen.** Neues Modul `ember-image` (sbt-ID `scalajs-ember-image`, Paket
+> `ember.editor.image`), abhängig **allein vom Kern**. Abnahme:
+>
+> ```
+> sbt --server "Test/testOnly *"
+> ```
+>
+> | Suite | Ergebnis |
+> | --- | --- |
+> | `MediaUrlPolicySpec` | 20 Tests grün |
+> | `ImageNodeSpec` | 17 Tests grün |
+> | `ImageAdapterSpec` (ember-standard) | 19 Tests grün |
+> | `LinkUrlPolicySpec` (ember-link) | 22 Tests grün, einer davon neu |
+> | Gesamtes Scala-Gate | 719 Tests grün |
+> | Browser-Gate | 126 Fälle in Chromium, Firefox und WebKit grün |
+>
+> **Nur der Kern, und das ist die Aussage.** §6 stellt `image` neben `rich-text`, nicht darauf.
+> Ein Bild braucht vom Rich-Text-Profil nichts: keine Marks, keine Kinder, keinen Absatz, in dem
+> es stecken müsste. `ImageNodeSpec` baut sich deshalb einen eigenen `BlockNode` — kein Behelf,
+> sondern die Probe, dass die Abhängigkeit wirklich fehlt.
+>
+> **`isWhitespace || isControl` verfehlt genau die Zeichen, die sich am besten verstecken.**
+> Beim Schreiben der Media-Policy fiel auf, dass die Obfuskationsprüfung aus P14 eine Lücke
+> hatte: Java schließt das geschützte Leerzeichen aus `isWhitespace` ausdrücklich aus, und
+> `isControl` deckt nur die Cc-Gruppe ab. Browser ignorieren innerhalb einer URL aber auch
+> U+200B, U+FEFF und U+2060 — `java​script:alert(1)` wäre durchgegangen. Das Prädikat deckt
+> jetzt Cc, Zs, U+2000–U+206F und U+FEFF ab, **in beiden Modulen**, mit Tests in beiden. Ein
+> neues Modul hat einen Fehler im alten gefunden; das ist der Grund, die Regel zweimal zu
+> schreiben statt sie zu teilen — aber nicht der Grund, sie auseinanderlaufen zu lassen.
+>
+> **Dekodieren ist so streng wie der Command.** `ImageJsonSupport.codec(policy)` nimmt dieselbe
+> `MediaUrlPolicy` entgegen und ruft dieselbe Prüfung auf. Eine Quelle aus einem JSON-Payload
+> ist genau so ungeprüft wie eine aus einem Dialog, und §20 unterscheidet nicht. Ein Dokument
+> mit `javascript:`-Quelle dekodiert **nicht** — es ist kein leicht falsches Dokument, sondern
+> eines, das nie einen Renderer erreichen darf.
+>
+> **`width: 0` ist ein Dekodierfehler, kein stillschweigend verworfenes Feld.** §19.2 verlangt
+> die Prüfung von Zahlenbereichen. Es wegzuwerfen erzeugte ein Dokument, das vom Payload
+> abweicht, ohne es zu sagen, und der nächste Round-Trip verlöre es endgültig.
+>
+> **Bewusste Entscheidungen:**
+>
+> - *Kein Transform.* Es gibt keine Invariante zu reparieren: ein Bild hat keine Kinder, die
+>   falsch stehen könnten, und seine Felder sind so typisiert, dass ein falsches nicht gebaut
+>   werden kann. Das erste Modul seit P12 ohne Normalisierungsregel.
+> - *`alt=""` wird geschrieben, nicht weggelassen.* §20 sagt, dass ein dekoratives Bild
+>   ausdrücklich leeren Alt-Text verwendet. Das Attribut wegzulassen ließe einen Screenreader
+>   stattdessen den Dateinamen vorlesen — der leere Alt-Text **bedeutet** etwas.
+> - *`<img>` bleibt ein Void-Element.* `HtmlShape.Element` ohne inneren Tag und ohne Kinder;
+>   `</img>` steht in keiner Ausgabe.
+> - *`mailto:` und `tel:` sind gute Links und keine Bilder.* Der Unterschied zwischen den beiden
+>   Policies in einer Zeile — und der Grund, warum §20 ihnen eigene Regeln gibt.
+> - *Kein Picker, kein Upload, kein `AbortSignal`.* §20 legt alle drei in einen
+>   Anwendungsservice. Was hier ankommt, ist eine fertige `MediaReference`; ein Bild einzufügen
+>   ist damit eine gewöhnliche Dokumentänderung mit genau einer History-Stufe.
+> - *Die Demo zeigt eine echte Datei unter einem relativen Pfad* (`/ember.svg`). Das ist der
+>   Fall, den `allowRelative` abdeckt, und er kommt ohne fremden Host aus. Eine `data:`-URL wäre
+>   bequemer und wird von derselben Policy abgewiesen.
+>
+> **Nebenbei repariert:** die letzten drei Dateien mit der Wort-für-Wort-Ersetzung aus dem
+> Codex-Zwischenfall (`DemoSession.scala`, `DemoApp.scala`, `core/Transform.scala`). Nur Prosa,
+> keine Codezeile.
+>
+> Modulvertrag: [ember-image/README.md](ember-image/README.md).
 
 - **Ziel:** Referenzbasierte Medien ohne Browser/File/Upload im Modell.
 - **Module:** Neues image; standard; json.

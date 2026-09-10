@@ -1,18 +1,17 @@
 package ember.editor.core
 
-/** The eingeschraenkte Zugriff, the Transforms and Command-Handler on the Entwurf bekommen.
+/** The restricted access transforms and command handlers get to the draft.
   *
-  * ==Warum not the ganze Transaktion==
+  * ==Why not the whole transaction==
   *
-  * §10 verlangt, dass Transforms only the Entwurf lesen and no DOM- or
-  * Netzwerknebenwirkungen have. A Dokumentation, the the nur behauptet, waere schwach -- this
-  * Typ macht it zur Konstruktion: it is here weder `setSelection` still `dispatch` still
-  * Feldzugriff, also can a Transform a Normalisierung not heimlich to a
-  * Auswahlaenderung or a Command-Kaskade ausbauen.
+  * §10 requires that transforms read only the draft and have no DOM or network side effects.
+  * Documentation that merely claims as much would be weak -- this type makes it a matter of
+  * construction: there is no `setSelection` here, no `dispatch` and no field access, so a
+  * transform cannot quietly grow a normalisation into a selection change or a command cascade.
   *
-  * Command-Handler bekommen denselben Zugriff. Sie duerfen the Selection over the entsprechende
-  * Primitiv setzen, but no weiteren Dispatch trigger -- a Command-Kette, the sich selbst
-  * verlaengert, is exactly the verdeckte Reentranz, the §10 ausschliesst.
+  * Command handlers get the same access. They may set the selection through the corresponding
+  * primitive, but trigger no further dispatch -- a command chain that extends itself is exactly
+  * the hidden reentrancy §10 rules out.
   */
 final class TransformScope private[core] (private val transaction: Transaction):
 
