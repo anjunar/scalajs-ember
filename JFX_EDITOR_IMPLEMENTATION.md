@@ -1,8 +1,8 @@
 # JFX Editor: ausführbarer Implementierungsplan
 
-Status: **Meilenstein A und B stehen, C und D angefangen** — P01–P16 abgeschlossen (719
+Status: **Meilenstein A und B stehen, C und D angefangen** — P01–P17 abgeschlossen (790
 Scala-Tests und 126 Browserfälle in Chromium, Firefox und WebKit grün),
-P17–P30 offen. Dieses Repository (`scalajs-ember`) ist das in
+P18–P30 offen. Dieses Repository (`scalajs-ember`) ist das in
 Architektur und Plan gemeinte „eigene Repository“. Die generischen JFX-Core-Anteile aus
 P08/P09, P19a, P20 und P23 sind **nicht hier, sondern im Nachbar-Repo `../scalajs-jfx`**
 implementiert und seit P17 als veröffentlichtes Artefakt `com.anjunar:scalajs-jfx-core:3.0.5`
@@ -1311,6 +1311,85 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 >
 > **Lizenz:** BSD-2-Clause, Copyright (c) 2014 John MacFarlane. Eine Portierung ist eine
 > abgeleitete Arbeit; Copyright-Notiz und Lizenztext gehören in das Modul, das sie enthält.
+
+> **Abgeschlossen.** Neues Modul `ember-markdown` (sbt-ID `scalajs-ember-markdown`, Paket
+> `ember.editor.markdown`), abhängig allein vom Kern. Abnahme:
+>
+> ```
+> sbt --server "Test/testOnly *"
+> ```
+>
+> | Suite | Ergebnis |
+> | --- | --- |
+> | `MarkdownBlockSpec` | 64 Tests grün |
+> | `CommonMarkBlockSpec` | 7 Tests grün, über alle 652 Spec-Beispiele |
+> | Gesamtes Scala-Gate | 790 Tests grün |
+> | Browser-Gate | 126 Fälle in Chromium, Firefox und WebKit grün |
+>
+> **Die Abdeckung ist eine Zahl: 337 von 652.** So viele Beispiele der Konformitätssuite
+> reproduziert ein reiner Blockrenderer zeichengenau. Sie wird **exakt** geprüft, nicht als
+> Untergrenze — eine Verschlechterung fällt damit ebenso auf wie eine Verbesserung, die jemand
+> nachzutragen vergisst. Nach Abschnitt sieht man, dass die Blockarbeit steht und der Rest P18
+> ist: List items 48/48, Block quotes 25/25, Tabs 11/11, Indented code 12/12, Lists 25/26,
+> Fenced code 26/29 — gegenüber Links 11/90, Code spans 2/22, Emphasis 40/132.
+>
+> Das ist genau die „tatsächlich getestete Teilmenge" aus §18.1, und sie steht auch im Typ:
+> `MarkdownProfile.commonMarkSafe.conformance` ist `Conformance.BlocksOnly`. Ein Kommentar wäre
+> ein Versprechen; ein Feld ist ein Wert, den eine Anwendung lesen kann.
+>
+> **Die Fixtures werden zu Scala-Quelltext erzeugt, nicht zur Laufzeit gelesen.** Ein
+> Scala.js-Test hat kein Dateisystem und keinen Classpath —
+> `project/MarkdownSpecFixtures.scala` übersetzt `spec.txt` zur Bauzeit. Der Nebeneffekt ist
+> erwünscht: die Spezifikationsversion steht im Dateinamen und landet als Konstante im
+> erzeugten Code, die Beispielzahl fällt beim Erzeugen an. Die „Korpus-/Spezifikationsversion"
+> der Abnahme ist damit etwas, das der Build ausrechnet.
+>
+> **Die Reihenfolge der Blockanfänge ist tragend.** Eine Setext-Unterstreichung muss vor dem
+> Trenner versucht werden, sonst beendet `---` den Absatz darüber, statt ihn zu einer
+> Überschrift zu machen. Ein Listenpunkt muss nach dem Trenner kommen, sonst startet `- - -`
+> drei verschachtelte Listen. Das steht als Kommentar über `tryBlockStarts`, weil es aussieht
+> wie eine beliebige Kette von `orElse` und keine ist — und weil `orElse` sein Argument
+> **by name** nimmt: jeder Versuch bewegt die Parserposition, ein strikter Aufruf führte alle
+> acht aus.
+>
+> **Das Budget fängt, was Größe und Tiefe nicht sehen.** `"> " * 50000` ist tief und wird von
+> `maxDepth` gefangen. Eine Zeile aus zehntausend Backticks ist weder groß noch tief und kostet
+> trotzdem. Der Test zeigt es an zwei gleich großen Quellen: `"text\n" * 30` kostet 30
+> Schritte, `"*x*\n" * 30` kostet 60 — weil `*` den Vorfilter passiert und alle Blockanfänge
+> probiert werden.
+>
+> **Ein Test hat vier andere Tests entlarvt.** Die Grenztests liefen zuerst alle gegen ein
+> gemeinsames enges Profil. Das schlug fehl, und der Grund ist die interessante Hälfte: die
+> Grenzen werden in fester Reihenfolge geprüft, also feuerte `maxSourceChars` bevor der Parser
+> je tief genug kam, um `maxDepth` zu erreichen. Ein solcher Test wäre grün geworden und hätte
+> das Falsche bewiesen. Jeder Grenztest zieht jetzt genau eine Grenze eng an.
+>
+> **Bewusste Entscheidungen:**
+>
+> - *UTF-16-Offsets statt Zeile/Spalte.* Die Vorlage meldet `sourcepos` als Zeile/Spalte mit
+>   tab-expandierten Spalten. §18.2 will UTF-16-Bereiche, und alles andere im Editor zählt so
+>   (§11). Die einzige Stelle, an der die Portierung bewusst etwas anderes tut.
+> - *Kein Konstruktor-Check auf `SourceSpan`.* `start <= end` ist eine Invariante des
+>   **Parsers**, nicht eines Aufrufers — niemand außerhalb baut einen. Ein Guard prüfte die
+>   falsche Partei. Geprüft wird stattdessen der Parser: jede Spanne jedes Parses aller 652
+>   Beispiele liegt in der ihres Elternteils.
+> - *HTML-Blöcke werden erkannt.* Nicht weil P17 sie fordert, sondern weil ihre Blockgrenzen
+>   andere sind als die eines Absatzes: sie zu ignorieren bekäme auch die Struktur **darum
+>   herum** falsch. Was mit dem Literal geschieht, entscheidet `RawHtmlPolicy` und nicht der
+>   Parser.
+> - *Link-Referenzdefinitionen bleiben stehen.* Sie aufzulösen braucht den Inline-Parser. Ein
+>   `[foo]: /url` ist bis P18 Absatzquelltext — ehrlicher, als es stillschweigend wegzuwerfen.
+> - *Der Blockrenderer liegt im Testumfang.* Er wäre ein zweiter HTML-Writer, und §6 legt HTML
+>   nach `ember-html`. Etwas, das nur existiert, um einen Test vergleichbar zu machen, ist eine
+>   Testvorrichtung.
+> - *Ein Syntaxfehler ist keiner der Fehlerfälle.* CommonMark hat keine ungültige Eingabe. Jede
+>   Zeichenkette ist ein gültiges Dokument, also ist alles, was schiefgehen kann, eine
+>   Ressourcengrenze.
+>
+> **Lizenz:** BSD-2-Clause, Copyright (c) 2014 John MacFarlane, plus CC-BY-SA 4.0 für die
+> Spec-Fixtures — beide vollständig in [ember-markdown/NOTICE](ember-markdown/NOTICE).
+>
+> Modulvertrag: [ember-markdown/README.md](ember-markdown/README.md).
 
 - **Ziel:** Eigenständiger Scala-Parser mit explizitem Profil, keine HTML-Konvertierung als Umweg.
 - **Module:** Neues markdown.

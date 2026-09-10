@@ -303,6 +303,48 @@ lazy val emberLink =
     )
 
 
+// §6: Scala-Syntaxparser, Writer, SourceMap und typisierte AST-Adapter-SPI. Haengt allein am
+// Kern, und das ist die Aussage: der Parser baut einen Syntaxbaum, kein Dokument. Welcher
+// NodeType aus einem Heading wird, entscheidet `standard` (§18.1) -- deshalb kennt dieses
+// Modul weder `rich-text` noch `list`, `link`, `code` oder `image`.
+//
+// Enthaelt eine Portierung von commonmark.js (BSD-2-Clause, Copyright (c) 2014 John
+// MacFarlane); der Lizenztext steht in `ember-markdown/NOTICE`.
+lazy val emberMarkdown =
+  Project(id = "scalajs-ember-markdown", base = file("ember-markdown"))
+    .enablePlugins(ScalaJSPlugin)
+    .dependsOn(emberCore)
+    .settings(
+      name        := "scalajs-ember-markdown",
+      moduleName  := "scalajs-ember-markdown",
+      description := "CommonMark block parser, syntax AST and source map for the Ember editor."
+    )
+    .settings(testSettings)
+    .settings(commonJsSettings)
+    .settings(publishSettings)
+    // Die Konformitaetsfixtures werden zu Scala-Quelltext erzeugt, statt zur Laufzeit gelesen:
+    // ein Scala.js-Test hat kein Dateisystem und keinen Classpath (siehe `SpecFixtures`).
+    .settings(
+      Test / sourceGenerators += Def.task {
+        MarkdownSpecFixtures.generate(
+          specFile = (Test / resourceDirectory).value / "markdown" / "spec-0.31.2.txt",
+          target = (Test / sourceManaged).value,
+          log = streams.value.log
+        )
+      }.taskValue
+    )
+    .settings(
+      boundarySettings(
+        allowedProjects = Seq("scalajs-ember-core"),
+        forbiddenImports = forbiddenJfxImports ++ forbiddenUpwardImports ++
+          Seq("ember.editor.richtext", "ember.editor.list", "ember.editor.link",
+              "ember.editor.code", "ember.editor.image", "ember.editor.html",
+              "ember.editor.json"),
+        forbiddenModules = forbiddenArtifacts :+ "scalajs-dom"
+      )
+    )
+
+
 // §6: Wire-ADT, Node-Codecs, Schema-/Dokumentversionen, Validierung. Haengt nur am Kern --
 // Persistenz ist keine Frage des Renderers, und ein Server, der Dokumente speichert, soll
 // weder JFX noch HTML mitlinken muessen.
@@ -525,8 +567,8 @@ lazy val emberDemo =
     )
 
 lazy val root = Project(id = "scalajs-ember-root", base = file("."))
-  .aggregate(emberCore, emberRichText, emberList, emberLink, emberCode, emberImage, emberJson,
-    emberHistory, emberHtml, emberJfx, emberStandard, emberIntegration, emberDemo)
+  .aggregate(emberCore, emberRichText, emberList, emberLink, emberCode, emberImage,
+    emberMarkdown, emberJson, emberHistory, emberHtml, emberJfx, emberStandard, emberIntegration, emberDemo)
   .settings(
     name           := "scalajs-ember",
     publish / skip := true

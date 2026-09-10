@@ -14,7 +14,7 @@ Laufzeitabhängigkeit.
 
 ## Stand
 
-**Meilenstein A und B stehen, C und D angefangen** — P01–P16 abgeschlossen, P17–P30 offen. Der frühere
+**Meilenstein A und B stehen, C und D angefangen** — P01–P17 abgeschlossen, P18–P30 offen. Der frühere
 `contenteditable`-Prototyp (`ember.core.Editor` mit `execCommand` und HTML-String als
 Zustand) und seine vite-Demo wurden entfernt — Architektur §2 und §25 schließen diesen
 Ansatz aus.
@@ -71,6 +71,13 @@ Dokumentänderung mit einer History-Stufe -- und ein Undo entfernt den Knoten, o
 eine Datei anzufassen. Die Media-Policy ist strenger als die für Links, weil ein Link von einem
 Leser gefolgt wird, ein Bild aber von der Seite selbst geladen.
 
+P17 beginnt Markdown, und zwar bei den Blöcken. `ember-markdown` parst CommonMark 0.31.2 in
+einen Syntaxbaum mit UTF-16-Quellbereichen — Absätze, Überschriften, Zitate, Listen samt
+Eng/Weit-Unterschied, Code und Trenner. Die Inline-Ebene fehlt noch und **sagt es selbst**:
+`MarkdownProfile.commonMarkSafe.conformance` ist `Conformance.BlocksOnly`. Wie weit es reicht,
+ist gemessen und nicht behauptet — ein reiner Blockrenderer reproduziert **337 der 652**
+Beispiele der offiziellen Konformitätssuite zeichengenau, und die Zahl wird exakt geprüft.
+
 ## Module
 
 Konvention: Verzeichnis `ember-<modul>`, sbt-ID und Artefakt `scalajs-ember-<modul>`,
@@ -94,6 +101,9 @@ Vorhanden:
 - [`ember-image`](ember-image/README.md) — sbt-ID `scalajs-ember-image`, Paket
   `ember.editor.image`. Externe Bilder als Inline-Atome mit geprüfter Media-Policy. Hängt
   allein am Kern — ein Bild braucht vom Rich-Text-Profil nichts.
+- [`ember-markdown`](ember-markdown/README.md) — sbt-ID `scalajs-ember-markdown`, Paket
+  `ember.editor.markdown`. CommonMark-Blockparser, Syntaxbaum und SourceMap. Headless, hängt
+  allein am Kern — der Parser baut einen Syntaxbaum, kein Dokument.
 - [`ember-json`](ember-json/README.md) — sbt-ID `scalajs-ember-json`, Paket
   `ember.editor.json`. Wire-ADT, Node- und Mark-Codecs, Grenzen, Schema-Migration. Headless.
 - [`ember-history`](ember-history/README.md) — sbt-ID `scalajs-ember-history`, Paket

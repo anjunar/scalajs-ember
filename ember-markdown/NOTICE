@@ -1,0 +1,58 @@
+scalajs-ember-markdown
+======================
+
+Dieses Modul enthält abgeleitete Arbeit aus zwei Quellen. Beide sind hier vollständig
+wiedergegeben, weil ihre Lizenzen es verlangen.
+
+
+1. commonmark.js — Blockparser
+------------------------------
+
+`BlockParser.scala` ist eine Portierung der Regelstruktur von `lib/blocks.js` aus
+commonmark.js (Version 0.31.2). Übernommen wurden die Container- und
+Lazy-Continuation-Regeln, die Blockstartreihenfolge und die Fortsetzungsbedingungen;
+nicht übernommen wurde der Code selbst — Zielbaum, Fehlerbehandlung, Quellbereiche und
+die Ressourcenlimits sind eigene Arbeit. Eine Portierung bleibt trotzdem eine abgeleitete
+Arbeit, und die Lizenz gilt.
+
+    Copyright (c) 2014, John MacFarlane
+
+    All rights reserved.
+
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions are met:
+
+        * Redistributions of source code must retain the above copyright
+          notice, this list of conditions and the following disclaimer.
+
+        * Redistributions in binary form must reproduce the above
+          copyright notice, this list of conditions and the following
+          disclaimer in the documentation and/or other materials provided
+          with the distribution.
+
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+    "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+    LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+    A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+    OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+    SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+    LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+    DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+    THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+    OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+2. Die CommonMark-Spezifikation — Testfixtures
+----------------------------------------------
+
+`src/test/resources/markdown/spec-0.31.2.txt` ist eine unveränderte Kopie von `spec.txt`
+aus commonmark.js. Sie wird ausschließlich im Testumfang verwendet und ist im
+veröffentlichten Artefakt nicht enthalten.
+
+    The CommonMark spec (spec.txt) is
+
+    Copyright (C) 2014-15 John MacFarlane
+
+    Released under the Creative Commons CC-BY-SA 4.0 license:
+    <http://creativecommons.org/licenses/by-sa/4.0/>.
