@@ -14,12 +14,12 @@ import ember.editor.core.*
   * auf rich-text aufbaut (P13 Listen, P14 Links), traegt sie nicht erneut bei -- es deklariert
   * `dependsOn` und bekommt sie ueber die Aufloesung.
   *
-  * ==Was es nicht beitraegt==
+  * ==Was es seit P12 dazu beitraegt==
   *
-  * Marks. §8.2 nennt Strong, Emphasis, Underline, Strike und InlineCode als eingebaute Marks des
-  * Profils, aber sie gehoeren mit Bereichsformatierung, `TypingMarks` und der
-  * Textlauf-Normalisierung zusammen -- und das ist P12. Ein halber Mark-Vertrag jetzt waere eine
-  * API, die gleich wieder umgebaut wuerde.
+  * Marks (§8.2), Heading, Quote und Breaks, die Bereichsformatierung, das Zustandsfeld
+  * [[TypingMarks]] und die Textlauf-Normalisierung. Sie gehoeren zusammen: ohne Normalisierung
+  * fragmentiert jedes Entformatieren, ohne `TypingMarks` gaebe es kein Format am leeren Caret,
+  * und ohne beides waere die Bereichsformatierung eine halbe API.
   *
   * @param generator
   *   Quelle neuer Knoten-IDs. Injiziert, damit Tests deterministische IDs bekommen (§8.3).
@@ -36,11 +36,21 @@ final class RichText private (
 
   override def contribute: ExtensionContributions =
     ExtensionContributions(
-      nodeTypes = Vector(RootNode, TextNode, ParagraphNode),
+      nodeTypes = Vector(
+        RootNode,
+        TextNode,
+        ParagraphNode,
+        HeadingNode,
+        QuoteNode,
+        BreakNode,
+        ThematicBreakNode
+      ),
+      fields = Vector(TypingMarks),
       transforms = Vector(
         RichText.RootNeedsBlock(generator),
         RichText.BlockNeedsText(generator),
-        RichText.DropRedundantEmptyText
+        RichText.DropRedundantEmptyText,
+        TextRunNormalization.rule
       ),
       commands = Vector(
         CommandRegistration(RichText.InsertText) { (scope, text) =>
@@ -57,6 +67,30 @@ final class RichText private (
         },
         CommandRegistration(RichText.DeleteForward) { (scope, _) =>
           TextEditing.deleteForward(scope, boundaries)
+          CommandResult.Handled
+        },
+        CommandRegistration(RichText.ToggleMark) { (scope, mark) =>
+          RangeFormatting.toggleMark(scope, generator, mark)
+          CommandResult.Handled
+        },
+        CommandRegistration(RichText.SetHeading) { (scope, level) =>
+          BlockFormatting.setHeading(scope, level)
+          CommandResult.Handled
+        },
+        CommandRegistration(RichText.Quote) { (scope, _) =>
+          BlockFormatting.quote(scope, generator)
+          CommandResult.Handled
+        },
+        CommandRegistration(RichText.Unquote) { (scope, _) =>
+          BlockFormatting.unquote(scope)
+          CommandResult.Handled
+        },
+        CommandRegistration(RichText.InsertBreak) { (scope, kind) =>
+          BlockFormatting.insertBreak(scope, generator, kind)
+          CommandResult.Handled
+        },
+        CommandRegistration(RichText.InsertThematicBreak) { (scope, _) =>
+          BlockFormatting.insertThematicBreak(scope, generator)
           CommandResult.Handled
         }
       )
@@ -75,6 +109,26 @@ object RichText:
 
   /** Entfernt ein Graphemcluster hinter der Auswahl. Entfernen. */
   val DeleteForward: EditorCommand[Unit] = EditorCommand.unit("rich-text.delete-forward")
+
+  /** Toggles a mark over the selection, or records it for the next keystroke at a caret (§11). */
+  val ToggleMark: EditorCommand[TextMark] = EditorCommand.of[TextMark]("rich-text.toggle-mark")
+
+  /** Makes the block at the caret a heading, or a paragraph again with `None`. */
+  val SetHeading: EditorCommand[Option[HeadingLevel]] =
+    EditorCommand.of[Option[HeadingLevel]]("rich-text.set-heading")
+
+  /** Wraps the block at the caret in a quote. */
+  val Quote: EditorCommand[Unit] = EditorCommand.unit("rich-text.quote")
+
+  /** Takes the block at the caret back out of its quote. */
+  val Unquote: EditorCommand[Unit] = EditorCommand.unit("rich-text.unquote")
+
+  /** Inserts a soft or a hard break. §8.2 keeps the two distinguishable. */
+  val InsertBreak: EditorCommand[BreakKind] = EditorCommand.of[BreakKind]("rich-text.insert-break")
+
+  /** Inserts a thematic break after the block at the caret. */
+  val InsertThematicBreak: EditorCommand[Unit] =
+    EditorCommand.unit("rich-text.insert-thematic-break")
 
   def apply(
       generator: NodeIdGenerator,

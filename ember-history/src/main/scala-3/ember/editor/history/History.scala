@@ -119,7 +119,7 @@ final class History(
     requireInstalled()
     if group.isEmpty then
       group = Some(
-        OpenGroup(HistorySnapshot(session.document, session.selection), label)
+        OpenGroup(snapshotOf(session.state), label)
       )
 
   /** Schliesst die Gruppe. Hat sich nichts geaendert, bleibt die History unveraendert. */
@@ -131,7 +131,7 @@ final class History(
         current = current.push(
           HistoryEntry(
             before = open.before,
-            after = HistorySnapshot(session.document, session.selection),
+            after = snapshotOf(session.state),
             kind = kind,
             marks = MarkSet.empty,
             at = clock.now(),
@@ -171,8 +171,8 @@ final class History(
     val at    = clock.now()
 
     val entry = HistoryEntry(
-      before = HistorySnapshot(commit.previous.document, commit.previous.selection),
-      after = HistorySnapshot(commit.current.document, commit.current.selection),
+      before = snapshotOf(commit.previous),
+      after = snapshotOf(commit.current),
       kind = kind,
       marks = marks,
       at = at,
@@ -184,6 +184,10 @@ final class History(
     current =
       if mergesIntoOpenEntry(commit, kind, marks, at) then current.merge(entry, config.limits)
       else current.push(entry, config.limits)
+
+  /** A published state as a snapshot, including the fields that asked to come along (§14). */
+  private def snapshotOf(state: EditorState): HistorySnapshot =
+    HistorySnapshot(state.document, state.selection, state.fields.captureForHistory)
 
   private def mergesIntoOpenEntry(
       commit: Commit,
@@ -223,6 +227,7 @@ final class History(
         restored = Some(target.document)
         session.update(TransactionMeta.history) { transaction =>
           transaction.restore(target.document, target.selection): Unit
+          target.fields.foreach(_.applyTo(transaction))
         } match
           case Right(_) => Right(true)
           case Left(error) =>
@@ -250,6 +255,7 @@ final class History(
       case Some((target, next)) =>
         scope.restore(target.document, target.selection) match
           case Right(_) =>
+            target.fields.foreach(_.applyTo(scope))
             current = next
             restored = Some(target.document)
             CommandResult.Handled

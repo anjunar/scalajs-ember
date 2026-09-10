@@ -53,14 +53,15 @@ object TextEditing:
       case None        => Right(())
       case Some(point) =>
         val document = scope.document
+        // §11: die naechste Eingabe verwendet die Marks, die `TypingMarks` nennt -- eine
+        // ausdrueckliche Wahl, sonst die des Laufs am Caret.
+        val wanted = TypingMarks.effective(scope)
+
         textPositionOf(document, point) match
           case Some((node, offset)) =>
-            for
-              _ <- scope.spliceText(node, offset, 0, text)
-              // Affinitaet `Before`: der Caret klebt an dem, was er gerade getippt hat, und
-              // wandert beim naechsten Zeichen mit.
-              _ <- scope.select(RangeSelection.caret(Point.textBefore(node, offset + text.length)))
-            yield ()
+            document.node(node).collect { case run: TextNode => run } match
+              case Some(run) if run.marks == wanted => spliceInto(scope, node, offset, text)
+              case _ => insertMarkedRun(scope, generator, node, offset, text, wanted)
 
           case None =>
             // An dieser Stelle gibt es noch keinen Textlauf -- etwa in einem frisch
@@ -69,10 +70,63 @@ object TextEditing:
               case Point.Children(parent, index, _) =>
                 val created = generator.nextFor(document)
                 for
-                  _ <- scope.insert(parent, index, TextNode(created, text))
+                  _ <- scope.insert(parent, index, TextNode(created, text, wanted))
                   _ <- scope.select(RangeSelection.caret(Point.textBefore(created, text.length)))
                 yield ()
               case _ => Right(())
+
+  private def spliceInto(
+      scope: TransformScope,
+      node: NodeId,
+      offset: Int,
+      text: String
+  ): Either[UpdateError, Unit] =
+    for
+      _ <- scope.spliceText(node, offset, 0, text)
+      // Affinitaet `Before`: der Caret klebt an dem, was er gerade getippt hat, und wandert beim
+      // naechsten Zeichen mit.
+      _ <- scope.select(RangeSelection.caret(Point.textBefore(node, offset + text.length)))
+    yield ()
+
+  /** Types text whose marks differ from the run at the caret.
+    *
+    * The text cannot go into that run -- a run has one [[MarkSet]] for all of its text (§8.2).
+    * So the run is cut at the caret and a new one goes between the halves. Typing bold in the
+    * middle of plain text is exactly this, and it is the reason `TypingMarks` can produce a
+    * format at a caret that carries no text yet.
+    *
+    * If the caret sits at either end, there is nothing to cut and the new run simply goes before
+    * or after. [[TextRunNormalization]] merges it back if it turns out to match its neighbour --
+    * which is what happens when the user toggles a format on and off again without typing.
+    */
+  private def insertMarkedRun(
+      scope: TransformScope,
+      generator: NodeIdGenerator,
+      node: NodeId,
+      offset: Int,
+      text: String,
+      marks: MarkSet
+  ): Either[UpdateError, Unit] =
+    val document = scope.document
+    val length   = textOf(document, node).length
+
+    (document.parentOf(node), document.indexOfChild(node)) match
+      case (Some(block), Some(index)) =>
+        val created = generator.nextFor(document)
+
+        val prepared =
+          if offset > 0 && offset < length then
+            scope.splitText(node, offset, generator.nextFor(document))
+          else Right(())
+
+        for
+          _ <- prepared
+          at = if offset == 0 then index else index + 1
+          _ <- scope.insert(block, at, TextNode(created, text, marks))
+          _ <- scope.select(RangeSelection.caret(Point.textBefore(created, text.length)))
+        yield ()
+
+      case _ => spliceInto(scope, node, offset, text)
 
   /** Teilt den Block an der Auswahl. Das ist Enter. */
   def insertParagraph(

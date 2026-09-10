@@ -53,17 +53,22 @@ final class ContainerElement(tagName: String) extends SemanticElement(tagName):
 
 /** Ein Textlauf mit stabilem Wrapper (§15.1).
   *
-  * Das Textkind gehoert dieser Komponente und wird nie ausgetauscht -- ein neuer Textknoten
-  * naehme Caret und Selection mit ins Grab. [[spliceText]] reicht bis zu `CharacterData
-  * .replaceData` durch; das ist der Unterschied, um den es §15.1 bei langen Absaetzen geht.
+  * Das Textkind ueberlebt jede Textaenderung: [[spliceText]] reicht bis zu
+  * `CharacterData.replaceData` durch, und ein neuer Textknoten naehme Caret und Selection mit
+  * ins Grab. Das ist der Unterschied, um den es §15.1 bei langen Absaetzen geht.
+  *
+  * Genau eine Aenderung tauscht es doch aus, und §15.1 erlaubt sie ausdruecklich: ein Wechsel
+  * der Markierungen ([[setMarkTags]]). Dort steht, warum es nicht anders geht.
   */
 final class TextRunElement(tagName: String) extends SemanticElement(tagName):
 
-  private val content = new TextComponent()
+  private var content = new TextComponent()
+  private var tags    = Vector.empty[String]
+  private var chain: AbstractComponent = null
 
   override def compose(cursor: Cursor): Unit =
     super.compose(cursor)
-    Runtime.mount(content, cursor, Some(this))
+    chain = Runtime.mount(build(), cursor, Some(this))
 
   def setText(value: String): Unit = content.setText(value)
 
@@ -71,6 +76,44 @@ final class TextRunElement(tagName: String) extends SemanticElement(tagName):
     content.spliceText(start, deleteCount, inserted)
 
   def text: String = content.getText
+
+  def markTags: Vector[String] = tags
+
+  /** Replaces the inner semantic tags.
+    *
+    * §15.1 allows this and names its price in the same sentence: "Mark-Aenderungen koennen
+    * semantische Innentags ersetzen und benoetigen Selection-Restoration." The text node inside
+    * really is a new one afterwards -- there is no way to turn `<em>` into `<strong>` in place --
+    * so a caret standing in it has to be put back. That restoration is the `SelectionPort`'s job
+    * (P21); until it exists, this is the one operation in the projection that does not preserve
+    * a caret, and it is the only one §15.1 permits not to.
+    *
+    * The wrapper itself survives. That is the point of having one: the node ID stays on an
+    * element that formatting does not touch.
+    */
+  def setMarkTags(next: Vector[String]): Unit =
+    if next != tags then
+      tags = next
+      if isBound then rebuild()
+
+  private def build(): AbstractComponent =
+    tags.foldRight[AbstractComponent](content)((tag, inner) => new MarkElement(tag, inner))
+
+  private def rebuild(): Unit =
+    val carried = content.getText
+    if chain != null then Runtime.unmount(chain)
+    content = new TextComponent(carried)
+    chain = Runtime.mount(build(), Runtime.contentCursor(this), Some(this))
+
+/** One semantic tag around a text run: `strong`, `em`, `code`.
+  *
+  * Carries no attributes and no identity. A mark is not a node (§8.2) -- it has no ID, and
+  * nothing outside this chain ever needs to find it again.
+  */
+private final class MarkElement(val tagName: String, inner: AbstractComponent)
+    extends AbstractComponent:
+
+  override def compose(cursor: Cursor): Unit = Runtime.mount(inner, cursor, Some(this)): Unit
 
 /** Uebersetzt eine Knotenart in eine JFX-Komponente.
   *
@@ -104,6 +147,18 @@ trait NodeView[N <: EditorNode]:
     */
   def update(component: AbstractComponent, node: N, profile: RenderProfile): Unit
 
+  /** Whether `component` can still be brought to `node`, or has to be replaced.
+    *
+    * §15.1: "Ein typwechselnder Node unter gleicher ID ist eine explizite View-Ersetzung." This
+    * is where that judgement is made -- the adapter knows what it built, and the projection
+    * does not. Answering `false` costs a remount of exactly this node; answering `true` when it
+    * is not true leaves a `<p>` standing where a heading belongs.
+    *
+    * No default: there are two kinds of adapter and both have a real answer. A default would
+    * be a guess in the only place where guessing is visible to the reader.
+    */
+  def accepts(component: AbstractComponent, node: N, profile: RenderProfile): Boolean
+
 object NodeView:
 
   /** Leitet einen Adapter aus der semantischen Beschreibung ab.
@@ -122,37 +177,37 @@ object NodeView:
             val element = new ContainerElement(tag)
             element.setAttributes(attributes)
             element
-          case HtmlShape.TextRun(tag, value, attributes) =>
+          case HtmlShape.TextRun(tag, value, attributes, marks) =>
             val element = new TextRunElement(tag)
             element.setAttributes(attributes)
+            element.setMarkTags(marks)
             element.setText(value)
             element
 
+      def accepts(component: AbstractComponent, node: N, profile: RenderProfile): Boolean =
+        (semantics.shapeOf(node, profile), component) match
+          case (HtmlShape.Element(tag, _), element: ContainerElement)    => tag == element.tagName
+          case (HtmlShape.TextRun(tag, _, _, _), element: TextRunElement) => tag == element.tagName
+          case _                                                          => false
+
       def update(component: AbstractComponent, node: N, profile: RenderProfile): Unit =
         (semantics.shapeOf(node, profile), component) match
-          case (HtmlShape.Element(tag, attributes), element: ContainerElement) =>
-            checkTag(node, tag, element)
+          case (HtmlShape.Element(_, attributes), element: ContainerElement) =>
             element.setAttributes(attributes)
-          case (HtmlShape.TextRun(tag, value, attributes), element: TextRunElement) =>
-            checkTag(node, tag, element)
+          case (HtmlShape.TextRun(_, value, attributes, marks), element: TextRunElement) =>
             element.setAttributes(attributes)
+            // Before the text: rebuilding the chain replaces the text component, so a value
+            // written first would be thrown away with it.
+            element.setMarkTags(marks)
             // Gleicher Wert schreibt nicht -- der No-op-Vertrag von `TextComponent`, in P08 im
             // Browser mit einem MutationObserver belegt.
             element.setText(value)
-          case _ => throw replacement(node)
-
-      /** §15.1: "Ein typwechselnder Node unter gleicher ID ist eine explizite
-        * View-Ersetzung." Sie gibt es noch nicht, und ein still stehengebliebenes `<p>` unter
-        * einer Ueberschrift waere die schlechtere Auskunft.
-        */
-      private def checkTag(node: N, tag: String, element: SemanticElement): Unit =
-        if tag != element.tagName then throw replacement(node)
-
-      private def replacement(node: N): EditorContractViolation =
-        EditorContractViolation(
-          s"Die Gestalt von `${node.id.value}` passt nicht zur bestehenden Komponente. " +
-            "Ein Typwechsel unter gleicher ID ist eine ausdrueckliche Ersetzung (§15.1)."
-        )
+          case _ =>
+            // `accepts` said yes and then this did not match -- the two are inconsistent, which
+            // is a bug in the adapter and not in the document.
+            throw EditorContractViolation(
+              s"Der Adapter fuer `${node.id.value}` widerspricht seinem eigenen `accepts`."
+            )
 
 /** Registry der Adapter. Heterogen, mit dem Deskriptor als Typzeugen. */
 final class ViewSupport private (val views: Vector[NodeView[?]]):
@@ -170,12 +225,13 @@ final class ViewSupport private (val views: Vector[NodeView[?]]):
           s"Keine NodeView fuer `${node.id.value}` (${node.getClass.getSimpleName}) registriert."
         )
 
+  /** Brings a component to a node. `false` means it no longer fits and must be replaced. */
   private[jfx] def update(
       component: AbstractComponent,
       node: EditorNode,
       profile: RenderProfile
-  ): Unit =
-    viewFor(node).foreach(refresh(_, component, node, profile))
+  ): Boolean =
+    viewFor(node).exists(refresh(_, component, node, profile))
 
   private def build[N <: EditorNode](
       view: NodeView[N],
@@ -191,8 +247,13 @@ final class ViewSupport private (val views: Vector[NodeView[?]]):
       component: AbstractComponent,
       node: EditorNode,
       profile: RenderProfile
-  ): Unit =
-    view.nodeType.project(node).foreach(view.update(component, _, profile))
+  ): Boolean =
+    view.nodeType.project(node).exists { typed =>
+      if view.accepts(component, typed, profile) then
+        view.update(component, typed, profile)
+        true
+      else false
+    }
 
 object ViewSupport:
 

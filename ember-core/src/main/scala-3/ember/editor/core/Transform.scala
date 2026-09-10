@@ -1,18 +1,18 @@
 package ember.editor.core
 
-/** Der eingeschraenkte Zugriff, den Transforms und Command-Handler auf den Entwurf bekommen.
+/** The eingeschraenkte Zugriff, the Transforms and Command-Handler on the Entwurf bekommen.
   *
-  * ==Warum nicht die ganze Transaktion==
+  * ==Warum not the ganze Transaktion==
   *
-  * §10 verlangt, dass Transforms ausschliesslich den Entwurf lesen und keine DOM- oder
-  * Netzwerknebenwirkungen haben. Eine Dokumentation, die das nur behauptet, waere schwach -- dieser
-  * Typ macht es zur Konstruktion: es gibt hier weder `setSelection` noch `dispatch` noch
-  * Feldzugriff, also kann ein Transform eine Normalisierung nicht heimlich zu einer
-  * Auswahlaenderung oder einer Command-Kaskade ausbauen.
+  * §10 verlangt, dass Transforms only the Entwurf lesen and no DOM- or
+  * Netzwerknebenwirkungen have. A Dokumentation, the the nur behauptet, waere schwach -- this
+  * Typ macht it zur Konstruktion: it is here weder `setSelection` still `dispatch` still
+  * Feldzugriff, also can a Transform a Normalisierung not heimlich to a
+  * Auswahlaenderung or a Command-Kaskade ausbauen.
   *
-  * Command-Handler bekommen denselben Zugriff. Sie duerfen die Auswahl ueber das entsprechende
-  * Primitiv setzen, aber keinen weiteren Dispatch ausloesen -- eine Command-Kette, die sich selbst
-  * verlaengert, ist genau die verdeckte Reentranz, die §10 ausschliesst.
+  * Command-Handler bekommen denselben Zugriff. Sie duerfen the Selection over the entsprechende
+  * Primitiv setzen, but no weiteren Dispatch trigger -- a Command-Kette, the sich selbst
+  * verlaengert, is exactly the verdeckte Reentranz, the §10 ausschliesst.
   */
 final class TransformScope private[core] (private val transaction: Transaction):
 
@@ -48,83 +48,95 @@ final class TransformScope private[core] (private val transaction: Transaction):
   def mergeText(left: NodeId, right: NodeId): Either[UpdateError, Unit] =
     transaction.mergeText(left, right)
 
-  /** Die aktuelle Auswahl im Entwurf. */
-  /** Was der Ausloeser ueber diese Transaktion gesagt hat (§14).
+  /** Was the Ausloeser over this Transaktion gesagt has (§14).
     *
-    * Ein Handler, dessen Verhalten von der Herkunft abhaengt -- History ist der Fall, fuer den
-    * es gebaut wurde --, braucht sie; raten kann er sie nicht.
+    * A Handler, dessen Verhalten von the Herkunft abhaengt -- History is the Case, for the
+    * it gebaut was --, braucht sie; raten can he sie not.
     */
   def meta: TransactionMeta = transaction.meta
 
-  /** Setzt Dokument und Auswahl auf einen frueheren Stand (§14). */
+  /** Setzt Document and Selection on a frueheren Stand (§14). */
   def restore(document: Document, selection: Option[Selection]): Either[UpdateError, Unit] =
     transaction.restore(document, selection)
 
+  /** The value of a state field in the running draft. */
+  def field[A](stateField: StateField[A]): A = transaction.field(stateField)
+
+  /** Sets a state field in the running draft.
+    *
+    * Command handlers need this -- `ToggleMark` at a collapsed caret changes nothing but
+    * `TypingMarks` (§11). Transforms may use it too, but rarely should: a field that a
+    * normalisation rule has to fix was probably computed in the wrong place.
+    */
+  def setField[A](stateField: StateField[A], value: A): Unit =
+    transaction.setField(stateField, value)
+
+  /** The aktuelle Selection im Entwurf. */
   def selection: Option[Selection] = transaction.selection
 
-  /** Setzt die Auswahl. Fuer Command-Handler gedacht, nicht fuer Transforms. */
+  /** Setzt the Selection. For Command-Handler gedacht, not for Transforms. */
   def select(selection: Selection): Either[UpdateError, Unit] = transaction.select(selection)
 
   def clearSelection(): Either[UpdateError, Unit] = transaction.setSelection(None)
 
-/** Wann ein Transform relativ zu den anderen laeuft.
+/** Wann a Transform relativ to the anderen runs.
   *
-  * Innerhalb einer Phase entscheiden Abhaengigkeitsordnung und dann Registrierungsreihenfolge
-  * (§10). Drei Stufen genuegen; wer mehr braucht, hat vermutlich eine Abhaengigkeit, die er besser
+  * Within a Phase entscheiden Abhaengigkeitsordnung and then Registrierungsreihenfolge
+  * (§10). Drei Stufen genuegen; who more braucht, has vermutlich a Abhaengigkeit, the he besser
   * deklariert.
   */
 enum TransformPhase:
 
-  /** Vor jeder Normalisierung. Fuer strukturelle Reparatur, auf der andere aufbauen. */
+  /** Vor each Normalisierung. For structural Reparatur, on the andere aufbauen. */
   case Early
 
-  /** Der Regelfall. */
+  /** The Regelfall. */
   case Normalize
 
-  /** Nach allen anderen. Fuer Ergaenzungen, die einen fertigen Baum voraussetzen. */
+  /** After allen anderen. For Ergaenzungen, the a fertigen Baum voraussetzen. */
   case Late
 
-/** Eine Regel, die vor dem Commit Dokumentinvarianten herstellt.
+/** A Regel, the vor the Commit Dokumentinvarianten herstellt.
   *
-  * ==Wozu, und warum nicht in einem Listener==
+  * ==Wozu, and warum not in a Listener==
   *
-  * §3.2: Transforms stellen Invarianten her, '''bevor''' etwas sichtbar wird -- statt eine Kaskade
-  * aus Listener-Updates auszuloesen, bei der jeder Zwischenstand kurz gilt. Das Zusammenwachsen
-  * getrennter Textlaeufe nach dem Entformatieren (§8.2, P12) ist der Musterfall: es gehoert in
-  * dieselbe Transaktion, nicht in einen spaeteren DOM-Cleanup und nicht in eine eigene Undo-Stufe.
+  * §3.2: Transforms stellen Invarianten her, '''before''' etwas sichtbar is -- statt a Kaskade
+  * from Listener-Updates auszuloesen, bei the each Zwischenstand short gilt. The Zusammenwachsen
+  * getrennter Textlaeufe after the Entformatieren (§8.2, P12) is the Musterfall: it gehoert in
+  * dieselbe Transaktion, not in a spaeteren DOM-Cleanup and not in a eigene Undo-Stufe.
   *
-  * ==Der Vertrag==
+  * ==The Vertrag==
   *
-  *   - '''Idempotent.''' Ein zweiter Lauf auf demselben Knoten aendert nichts mehr. Ohne das gibt
-  *     es keinen Fixpunkt, und das Arbeitsbudget schlaegt zu.
-  *   - '''Nur den Entwurf.''' Kein DOM, kein Netz, keine Seiteneffekte -- der Kandidat kann
-  *     unmittelbar danach verworfen werden.
-  *   - '''Typisiert.''' Registriert gegen einen [[NodeType]]; der Deskriptor liefert den Typzeugen,
-  *     bevor [[transform]] laeuft.
+  *   - '''Idempotent.''' A zweiter Lauf on demselben Node aendert nothing more. Ohne the is
+  *     it no Fixpunkt, and the Arbeitsbudget schlaegt to.
+  *   - '''Nur the Entwurf.''' No DOM, no Netz, no Seiteneffekte -- the Kandidat can
+  *     unmittelbar then verworfen become.
+  *   - '''Typisiert.''' Registriert against a [[NodeType]]; the Deskriptor liefert the Typzeugen,
+  *     before [[transform]] runs.
   *
   * @tparam N
-  *   die Knotenart, auf die dieser Transform reagiert
+  *   the Knotenart, on the this Transform reagiert
   */
 trait Transform[N <: EditorNode]:
 
-  /** Nur fuer Diagnose -- unter anderem in der Budgetmeldung. */
+  /** Nur for Diagnose -- under anderem in the Budgetmeldung. */
   def name: String
 
   def nodeType: NodeType[N]
 
   def phase: TransformPhase = TransformPhase.Normalize
 
-  /** Bringt diesen Knoten in Normalform. Aendert nichts, wenn nichts zu tun ist. */
+  /** Bringt diesen Node in Normalform. Aendert nothing, if nothing to tun is. */
   def transform(node: N, scope: TransformScope): Unit
 
-/** Wie viel Arbeit die Normalisierung hoechstens kosten darf.
+/** Wie viel Arbeit the Normalisierung hoechstens kosten darf.
   *
-  * §10: ein Arbeitsbudget verhindert Endlosschleifen, ist aber '''kein stilles Abschneiden'''. Wird
-  * es erschoepft, scheitert die Transaktion mit einer Diagnose der beteiligten Transforms -- ein
-  * halb normalisiertes Dokument zu veroeffentlichen waere schlimmer als gar keines.
+  * §10: a Arbeitsbudget verhindert Endlosschleifen, is but '''no stilles Abschneiden'''. Is
+  * it erschoepft, scheitert the Transaktion with a Diagnose the beteiligten Transforms -- a
+  * halb normalisiertes Document to veroeffentlichen waere schlimmer als gar none.
   *
   * @param maxRounds
-  *   wie oft die Fixpunktschleife hoechstens durchlaeuft
+  *   wie oft the Fixpunktschleife hoechstens durchlaeuft
   */
 final case class TransformBudget(maxRounds: Int = 32)
 

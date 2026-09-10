@@ -56,7 +56,12 @@ object ParagraphSupport:
     val nodeType: NodeType[TextNode] = TextNode
 
     def shapeOf(node: TextNode, profile: RenderProfile): HtmlShape =
-      HtmlShape.TextRun("span", node.text, identify(node.id, profile))
+      HtmlShape.TextRun(
+        "span",
+        node.text,
+        identify(node.id, profile),
+        StandardMarkTags.tagsFor(node.marks)
+      )
 
   /** Alle drei Beschreibungen. */
   val semantics: HtmlSupport = HtmlSupport.of(root, paragraph, text)
@@ -70,6 +75,4 @@ object ParagraphSupport:
     * sie hinterher wieder herauszunehmen, entstehen sie in der Content-Fassung gar nicht erst.
     */
   private def identify(id: NodeId, profile: RenderProfile): Vector[HtmlAttribute] =
-    profile match
-      case RenderProfile.Content => Vector.empty
-      case RenderProfile.Editor  => Vector(HtmlAttribute.editor("node", id.value))
+    Identity.of(id, profile)

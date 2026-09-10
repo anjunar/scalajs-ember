@@ -79,11 +79,23 @@ enum HtmlShape:
     * `KeyedChildren` verlangt dasselbe von der anderen Seite -- "Keyed children require
     * physical element components": ein Textknoten hat keinen eigenen Host, an dem sich eine
     * Reihenfolge festmachen liesse.
+    *
+    * ==Marks als Innentags==
+    *
+    * `marks` sind die Tagnamen der Markierungen, von aussen nach innen -- `Vector("strong",
+    * "em")` wird zu `<span><strong><em>Text</em></strong></span>`. §15.1 sieht genau das vor:
+    * "Mark-Aenderungen koennen semantische Innentags ersetzen und benoetigen
+    * Selection-Restoration."
+    *
+    * Sie stehen innen und nicht am Wrapper, weil der Wrapper die Identitaet des Laufs
+    * traegt: er ueberlebt eine Formatierungsaenderung, die Innentags nicht. Wer das umdreht,
+    * verliert bei jedem Fettschalten den Knoten, an dem die Knoten-ID haengt.
     */
   case TextRun(
       tag: String,
       value: String,
-      attributes: Vector[HtmlAttribute] = Vector.empty
+      attributes: Vector[HtmlAttribute] = Vector.empty,
+      marks: Vector[String] = Vector.empty
   )
 
 /** Wie eine Knotenart als HTML aussieht.

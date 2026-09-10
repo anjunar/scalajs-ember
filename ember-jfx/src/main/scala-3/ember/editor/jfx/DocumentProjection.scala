@@ -174,4 +174,44 @@ final class DocumentProjection private[jfx] (
     for
       component <- components.get(nodeId)
       node      <- current.node(nodeId)
-    do support.update(component, node, profile)
+    do if !support.update(component, node, profile) then replaceView(nodeId, node)
+
+  /** Rebuilds the one node whose view no longer fits.
+    *
+    * §15.1: "Ein typwechselnder Node unter gleicher ID ist eine explizite View-Ersetzung." A
+    * heading that was a paragraph is exactly that -- the ID and the children stay, the element
+    * does not, and no amount of attribute writing turns a `<p>` into an `<h2>`.
+    *
+    * ==Two passes over the group, and why==
+    *
+    * `KeyedChildren` reconciles by key, so a key it already knows is updated, never rebuilt --
+    * which is the whole point of it and the reason unchanged siblings survive. There is no
+    * "replace this key" on it, and inventing one in `jfx-core` for a case this rare would be
+    * the wrong place to spend the API. So the node is taken out of the item list (the group
+    * unmounts it and forgets the key) and put back (the group builds it afresh, at its
+    * position). The siblings are moved, not rebuilt: `Runtime.move` keeps them.
+    *
+    * The subtree below goes with it. That is what a replacement means, and §15.1 says it needs
+    * selection restoration -- the `SelectionPort` from P21.
+    */
+  private def replaceView(nodeId: NodeId, node: EditorNode): Unit =
+    current.parentOf(nodeId).flatMap(parentId => groups.get(parentId).map(parentId -> _)) match
+      case Some((parentId, group)) =>
+        val children = current.childrenOf(parentId).flatMap(current.node)
+        group.setItems(children.filterNot(_.id == nodeId))
+        forget(subtreeOf(nodeId))
+        group.setItems(children)
+      case None =>
+        // The root has no group above it. Replacing it is a remount of everything, which is a
+        // decision for whoever owns the view -- not something a commit should do silently.
+        throw EditorContractViolation(
+          s"Die Wurzel `${nodeId.value}` hat ihre Art gewechselt. Das ist eine Ersetzung der " +
+            "ganzen Ansicht und keine Aktualisierung (§15.1)."
+        )
+
+  /** A node and everything under it, as far as the index still knows it. */
+  private def subtreeOf(nodeId: NodeId): Set[NodeId] =
+    current.node(nodeId) match
+      case Some(element: ElementNode) =>
+        element.children.foldLeft(Set(nodeId))((all, child) => all ++ subtreeOf(child))
+      case _ => Set(nodeId)

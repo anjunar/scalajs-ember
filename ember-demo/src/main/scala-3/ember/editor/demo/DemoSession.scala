@@ -3,26 +3,26 @@ package ember.editor.demo
 import ember.editor.core.*
 import ember.editor.history.{History, HistoryConfig}
 import ember.editor.html.RenderProfile
-import ember.editor.jfx.DocumentView
+import ember.editor.jfx.{DocumentView, ViewSupport}
 import ember.editor.json.*
 import ember.editor.richtext.*
-import ember.editor.standard.ParagraphSupport
+import ember.editor.standard.{ParagraphSupport, RichTextSupport}
 
-/** Die Sitzung der Demo samt allem, was daran haengt.
+/** The Sitzung the Demo samt all, was daran haengt.
   *
-  * ==Warum das hier zusammensteht==
+  * ==Warum the here zusammensteht==
   *
-  * Eine Anwendung setzt die Module selbst zusammen: Kern, Profil, Persistenz, Semantik,
-  * Projektion und Adapter. §6 haelt genau das fest -- `standard` ist ein '''optionales'''
-  * Integrationsmodul, und wer nur JSON braucht, linkt weder JFX noch HTML mit. Diese Datei ist
-  * die einzige Stelle der Demo, an der alle sechs Module vorkommen; der Rest kennt nur, was er
-  * benutzt.
+  * A Anwendung setzt the Module selbst zusammen: Kern, Profil, Persistenz, Semantik,
+  * Projektion and Adapter. §6 haelt exactly the fest -- `standard` is a '''optionales'''
+  * Integrationsmodul, and who nur JSON braucht, linkt weder JFX still HTML with. This Datei is
+  * the einzige Stelle the Demo, an the all sechs Module vorkommen; the Rest kennt nur, was he
+  * uses.
   */
 final class DemoSession:
 
   private val generator = NodeIdGenerator.sequential("n")
 
-  /** Undo und Redo (P11). Eine History gehoert genau einer Sitzung -- deshalb hier und nicht
+  /** Undo and Redo (P11). A History gehoert exactly a Sitzung -- deshalb here and not
     * als globaler Wert.
     */
   val history: History = new History(HistoryConfig.default)
@@ -33,12 +33,12 @@ final class DemoSession:
       case Left(errors) =>
         throw new IllegalStateException(errors.map(_.render).mkString("; "))
 
-  /** Die Codecs fuer die Persistenzansicht.
+  /** The Codecs for the Persistenzansicht.
     *
-    * Nur die des Kerns plus einer fuer den Absatz. Letzterer steht hier und nicht in
-    * `ember-json`: §6 stellt `json` neben die Node-Module, nicht ueber sie, und ein
-    * Absatz-Codec gehoert nach P16/P18 ins Integrationsmodul. Bis dahin ist er das, was er
-    * ist -- eine Zeile Anwendungscode.
+    * Nur the the Kerns plus a for the Absatz. Letzterer is here and not in
+    * `ember-json`: §6 stellt `json` beside the Node-Module, not over sie, and a
+    * Absatz-Codec gehoert after P16/P18 ins Integrationsmodul. Until dahin is he the, was he
+    * is -- a Zeile Anwendungscode.
     */
   private val paragraphCodec: NodeJsonCodec[ParagraphNode] = new NodeJsonCodec[ParagraphNode]:
     val nodeType: NodeType[ParagraphNode] = ParagraphNode
@@ -56,6 +56,9 @@ final class DemoSession:
 
   private val codecs: JsonSupport = CoreJsonSupport.all ++ JsonSupport.of(paragraphCodec)
 
+  /** The adapter set: root, paragraph and text plus the block types P12 added. */
+  val views: ViewSupport = RichTextSupport.views
+
   private var lastError: Option[String] = None
 
   val session: EditorSession =
@@ -70,7 +73,7 @@ final class DemoSession:
 
   session.update(_.setSelection(RichText.caretAtStart(session.document))): Unit
 
-  /** Ein Dokument mit Inhalt statt eines leeren Absatzes -- es soll etwas zu sehen geben. */
+  /** A Document with Inhalt statt a leeren Absatzes -- it should etwas to sehen give. */
   private def startingDocument: Document =
     val paragraphs = Vector(
       "Ember ist ein modularer HTML-WYSIWYG-Editor fuer Scala.js.",
@@ -94,13 +97,13 @@ final class DemoSession:
     )
 
   // -----------------------------------------------------------------------------------------
-  // Was die Oberflaeche braucht
+  // Was the Oberflaeche braucht
   // -----------------------------------------------------------------------------------------
 
-  /** Fuehrt einen Editing-Command aus. Der Rueckgabewert sagt, ob er zustaendig war.
+  /** Leads a Editing-Command from. The Rueckgabewert says, if he zustaendig war.
     *
-    * Undo und Redo laufen ueber die History selbst und nicht ueber einen Dispatch: sie setzen
-    * dabei `Origin.History`, und der Rekorder ueberspringt genau diese Herkunft (§14).
+    * Undo and Redo laufen over the History selbst and not over a Dispatch: sie setzen
+    * with it `Origin.History`, and the Rekorder ueberspringt exactly this Herkunft (§14).
     */
   def perform(command: DemoCommand): Boolean =
     val outcome = command match
@@ -110,6 +113,12 @@ final class DemoSession:
       case DemoCommand.Delete       => session.dispatch(RichText.DeleteForward)
       case DemoCommand.Undo         => return handled(history.undo())
       case DemoCommand.Redo         => return handled(history.redo())
+      case DemoCommand.Mark(mark)   => session.dispatch(RichText.ToggleMark, mark)
+      case DemoCommand.Heading(level) => session.dispatch(RichText.SetHeading, level)
+      case DemoCommand.Quote        => session.dispatch(RichText.Quote)
+      case DemoCommand.Unquote      => session.dispatch(RichText.Unquote)
+      case DemoCommand.HardBreak    => session.dispatch(RichText.InsertBreak, BreakKind.Hard)
+      case DemoCommand.Rule         => session.dispatch(RichText.InsertThematicBreak)
 
     outcome match
       case Right(result) => result.wasHandled
@@ -125,18 +134,21 @@ final class DemoSession:
 
   def error: Option[String] = lastError
 
-  /** Der Knoten, in dem der Modellcaret steht, und sein Offset.
+  /** The marks a toolbar would show as active (§11). */
+  def activeMarks: MarkSet = RangeFormatting.activeMarks(session.state)
+
+  /** The Node, in the the Modellcaret is, and sein Offset.
     *
-    * '''Es gibt noch keine DOM-Selection.''' Der Caret ist ein Modellwert (§11); ihn in eine
-    * echte Browserauswahl zu uebersetzen ist der `SelectionPort` aus P21. Bis dahin zeigt die
-    * Demo, was das Modell weiss, und behauptet nichts darueber hinaus.
+    * '''It is still no DOM-Selection.''' The Caret is a Modellwert (§11); ihn in a
+    * echte Browserauswahl to uebersetzen is the `SelectionPort` from P21. Until dahin zeigt the
+    * Demo, was the Modell weiss, and behauptet nothing about it hinaus.
     */
   def caret: Option[(NodeId, Int)] =
     session.selection
       .collect { case range: RangeSelection if range.isCollapsed => range.focus }
       .collect { case Point.Text(node, offset, _) => (node, offset) }
 
-  /** Der Dokumentbaum als eingerueckter Text. */
+  /** The Document tree als eingerueckter Text. */
   def outline: String =
     val document = session.document
 
@@ -161,18 +173,18 @@ final class DemoSession:
 
   /** Derselbe Stand als ausgeliefertes HTML (P09, Content-Profil).
     *
-    * Ueber denselben Weg wie die Flaeche links -- `DocumentView` nimmt einen beliebigen Cursor,
-    * hier einen `SsrCursor`. Dass beide dasselbe liefern, ist deshalb keine Absprache zwischen
+    * Over denselben Weg wie the Flaeche links -- `DocumentView` nimmt a beliebigen Cursor,
+    * here a `SsrCursor`. Dass beide dasselbe liefern, is deshalb no Absprache between
     * zwei Implementierungen.
     */
   def html: String =
-    DocumentView.renderToHtml(session.document, ParagraphSupport.views, RenderProfile.Content)
+    DocumentView.renderToHtml(session.document, views, RenderProfile.Content)
 
-  /** Und die Editierfassung, mit den Knoten-IDs als Attribute (§19.1). */
+  /** And the Editierfassung, with the Node-IDs als Attribute (§19.1). */
   def editorHtml: String =
-    DocumentView.renderToHtml(session.document, ParagraphSupport.views, RenderProfile.Editor)
+    DocumentView.renderToHtml(session.document, views, RenderProfile.Editor)
 
-/** Was die Demo ausloesen kann. Keine Dispatch-API -- die Commands sind Werte (§12). */
+/** Was the Demo trigger can. No Dispatch-API -- the Commands are Werte (§12). */
 enum DemoCommand:
   case Insert(text: String)
   case Paragraph
@@ -180,3 +192,9 @@ enum DemoCommand:
   case Delete
   case Undo
   case Redo
+  case Mark(mark: TextMark)
+  case Heading(level: Option[HeadingLevel])
+  case Quote
+  case Unquote
+  case HardBreak
+  case Rule

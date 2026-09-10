@@ -2,7 +2,7 @@ package ember.editor.demo
 
 import ember.editor.core.*
 import ember.editor.jfx.{DocumentView, EditorProperties}
-import ember.editor.standard.ParagraphSupport
+import ember.editor.richtext.{BreakKind, HeadingLevel, StandardMarks}
 import jfx.core.component.{AbstractComponent, Runtime}
 import jfx.core.dsl.AttributeDsl.setAttribute
 import jfx.core.dsl.ClassDsl.classes
@@ -16,25 +16,25 @@ import jfx.core.render.Cursor
 import jfx.core.state.{Disposable, Property, ReadOnlyProperty}
 import org.scalajs.dom
 
-/** Die Demoseite.
+/** The Demoseite.
   *
-  * ==Was sie zeigt und was noch nicht==
+  * ==Was sie zeigt and was still not==
   *
-  * Sie zeigt den Stand nach P10: ein unveraenderliches Dokumentmodell, atomare Transaktionen,
-  * Commands, die keyed Projektion aus P09 und das versionierte JSON aus P10 -- alles am selben
-  * Dokument, nebeneinander.
+  * Sie zeigt the Stand after P10: a unveraenderliches Document model, atomare Transaktionen,
+  * Commands, the keyed Projektion from P09 and the versionierte JSON from P10 -- all am selben
+  * Document, nebeneinander.
   *
-  * Sie zeigt '''keine''' Editierflaeche im vollen Sinn. Es gibt kein `contenteditable`, keine
-  * DOM-Selection und keine native Eingabe; das sind P20 bis P23. Die Flaeche faengt
-  * Tastendruecke ab und uebersetzt sie in Commands -- dieselbe Kette, die eine echte Eingabe
-  * spaeter nimmt, nur ohne den nativen Teil davor. Der Caret ist ein Modellwert und wird als
+  * Sie zeigt '''no''' Editierflaeche im vollen Sinn. It is no `contenteditable`, no
+  * DOM-Selection and no native Eingabe; the are P20 until P23. The Flaeche faengt
+  * Tastendruecke ab and translated sie in Commands -- dieselbe Kette, the a echte Eingabe
+  * spaeter nimmt, nur ohne the nativen Part davor. The Caret is a Modellwert and is als
   * solcher angezeigt.
   *
-  * ==Zwei Runtimes, ein Baum==
+  * ==Zwei Runtimes, a Baum==
   *
-  * Die Seite selbst ist ein gewoehnlicher JFX-Komponentenbaum. Die Editierflaeche darin ist
-  * eine [[DocumentView]] -- und zwar als Kind der Flaechenkomponente, nicht als zweite Wurzel:
-  * damit raeumt ein `Runtime.unmount` der Seite auch die Ansicht ab.
+  * The Seite selbst is a gewoehnlicher JFX-Komponentenbaum. The Editierflaeche darin is
+  * a [[DocumentView]] -- and zwar als Kind the Flaechenkomponente, not als zweite Wurzel:
+  * damit raeumt a `Runtime.unmount` the Seite also the View ab.
   */
 final class DemoApp extends AbstractComponent:
 
@@ -42,7 +42,7 @@ final class DemoApp extends AbstractComponent:
 
   private val editor = new DemoSession
 
-  /** Was in der Statuszeile steht. Getrennt von der Sitzung, weil es Anzeige ist. */
+  /** Was in the Statuszeile is. Getrennt von the Sitzung, weil it Anzeige is. */
   private val status = Property("")
 
   private var view: DocumentView = null
@@ -78,7 +78,7 @@ final class DemoApp extends AbstractComponent:
     entry._1
 
   // -----------------------------------------------------------------------------------------
-  // Kopf und Fuss
+  // Kopf and Fuss
   // -----------------------------------------------------------------------------------------
 
   private def header()(using AbstractComponent, Cursor): Unit =
@@ -101,7 +101,7 @@ final class DemoApp extends AbstractComponent:
     }
 
   // -----------------------------------------------------------------------------------------
-  // Die Flaeche
+  // The Flaeche
   // -----------------------------------------------------------------------------------------
 
   private def surface()(using AbstractComponent, Cursor): Unit =
@@ -112,8 +112,8 @@ final class DemoApp extends AbstractComponent:
 
       val host = div {
         classes = Seq("ember-demo__surface")
-        // Fokussierbar ohne contenteditable: der Browser soll die Flaeche erreichen koennen,
-        // aber nichts an ihr veraendern. Wer sie veraendert, ist die Projektion.
+        // Fokussierbar ohne contenteditable: the Browser should the Flaeche erreichen can,
+        // but nothing an ihr veraendern. Who sie veraendert, is the Projektion.
         setAttribute("tabindex", "0")
         setAttribute("role", "textbox")
         setAttribute("aria-label", "Ember-Demodokument")
@@ -122,7 +122,7 @@ final class DemoApp extends AbstractComponent:
       view = DocumentView.mount(
         editor.session,
         Runtime.contentCursor(host),
-        ParagraphSupport.views,
+        editor.views,
         parent = Some(host)
       )
 
@@ -130,16 +130,16 @@ final class DemoApp extends AbstractComponent:
       commandBar()
       statusLine()
 
-      // Erst jetzt, damit die Flaeche schon steht.
+      // First jetzt, damit the Flaeche schon is.
       view.onProjected(_ => refreshStatus()): Unit
       refreshStatus()
     }
 
-  /** Verbindet echte Tastendruecke mit den Commands.
+  /** Verbindet echte Tastendruecke with the Commands.
     *
-    * `preventDefault` fuer alles Behandelte, weil es hier keine native Editierflaeche gibt, die
-    * die Aktion sonst ausfuehren koennte. Die echte Abwaegung -- wann eine native Aktion
-    * verhindert wird und wann nicht -- gehoert zu P22.
+    * `preventDefault` for all Behandelte, weil it here no native Editierflaeche is, the
+    * the Aktion otherwise ausfuehren could. The echte Abwaegung -- wann a native Aktion
+    * verhindert is and wann not -- gehoert to P22.
     */
   private def keys(host: AbstractComponent): Unit =
     host.onHandler("keydown") { event =>
@@ -161,10 +161,15 @@ final class DemoApp extends AbstractComponent:
     div {
       classes = Seq("ember-demo__actions")
 
-      action("Text einfuegen", DemoCommand.Insert("Ember "))
-      action("Neuer Absatz", DemoCommand.Paragraph)
-      action("Backspace", DemoCommand.Backspace)
-      action("Delete", DemoCommand.Delete)
+      action("Fett", DemoCommand.Mark(StandardMarks.Strong))
+      action("Kursiv", DemoCommand.Mark(StandardMarks.Emphasis))
+      action("Code", DemoCommand.Mark(StandardMarks.InlineCode))
+      action("H2", DemoCommand.Heading(Some(HeadingLevel.H2)))
+      action("Absatz", DemoCommand.Heading(None))
+      action("Zitat", DemoCommand.Quote)
+      action("Zitat aufheben", DemoCommand.Unquote)
+      action("Umbruch", DemoCommand.HardBreak)
+      action("Trenner", DemoCommand.Rule)
       action("Undo", DemoCommand.Undo)
       action("Redo", DemoCommand.Redo)
     }
@@ -185,11 +190,11 @@ final class DemoApp extends AbstractComponent:
   private def statusLine()(using AbstractComponent, Cursor): Unit =
     div { classes = Seq("ember-demo__status"); text(status) {} }
 
-  /** Fuehrt Statuszeile und Caretmarkierung nach.
+  /** Leads Statuszeile and Caretmarkierung after.
     *
-    * Die Markierung laeuft ueber [[DocumentView.componentFor]] -- den Index, den §15.1 als
-    * "eine Zuordnung, keine zweite Ownership-Liste" fuehrt. Die Demo faerbt damit den Lauf ein,
-    * in dem der Modellcaret steht; sie setzt keine DOM-Auswahl, denn die gibt es noch nicht.
+    * The Markierung runs over [[DocumentView.componentFor]] -- the Index, the §15.1 als
+    * "a Zuordnung, no zweite Ownership-List" leads. The Demo faerbt damit the Lauf a,
+    * in the the Modellcaret is; sie setzt no DOM-Selection, denn the is it still not.
     */
   private def refreshStatus(): Unit =
     val caret = editor.caret
@@ -206,16 +211,18 @@ final class DemoApp extends AbstractComponent:
 
     val projected = view.projectedRevision.value
     val revision  = editor.session.state.revision.value
+    val marks     = editor.activeMarks.markIds.map(_.value.split("/").head.split(Array(0x2e.toChar)).last)
     val undo      = editor.history.state.undo.length
     val redo      = editor.history.state.redo.length
     val problem   = editor.error.map(text => s"  ·  Fehler: $text").getOrElse("")
 
     status.set(
       s"$position  ·  Revision $revision, projiziert $projected  ·  " +
-        s"${editor.session.document.size} Knoten  ·  History $undo/$redo$problem"
+        s"${editor.session.document.size} Knoten  ·  History $undo/$redo" +
+        (if marks.isEmpty then "" else marks.mkString("  ·  Marks ", ", ", "")) + problem
     )
 
-/** Die drei Ansichten desselben Dokuments. */
+/** The drei Ansichten desselben Dokuments. */
 private object Inspector:
 
   def render(
@@ -235,8 +242,8 @@ private object Inspector:
       Panel.values.foreach { panel =>
         when(active.map(_ == panel)) {
           div { classes = Seq("ember-demo__panel-hint"); text(panel.hint) {} }
-          // Der Inhalt haengt am Dokument, nicht an einem Timer: `EditorProperties` fuehrt die
-          // Property bei jedem Commit nach (§10), und diese Ableitung ist die ganze Bindung.
+          // The Inhalt haengt am Document, not an a Timer: `EditorProperties` leads the
+          // Property bei jedem Commit after (§10), and this Ableitung is the ganze Bindung.
           div {
             classes = Seq("ember-demo__code")
             text(document.map(_ => panel.contentOf(editor))) {}
@@ -250,13 +257,13 @@ private object Inspector:
       classes = Seq("ember-demo__tab")
       onClick(_ => active.set(panel))
     }
-    // Der aktive Zustand steht im Attribut, nicht in einer zweiten Klassenliste: so bleibt die
-    // Klassenmenge der Komponente das, was der Aufbau gesetzt hat.
+    // The aktive State is im Attribut, not in a zweiten Klassenliste: so bleibt the
+    // Klassenmenge the Komponente the, was the Construction gesetzt has.
     entry.addDisposable(
       active.observe(current => entry.setAttribute("aria-selected", (current == panel).toString))
     )
 
-/** Welche Sicht der Inspektor gerade zeigt. */
+/** Which Sicht the Inspektor gerade zeigt. */
 private enum Panel(val label: String, val hint: String):
 
   case Outline

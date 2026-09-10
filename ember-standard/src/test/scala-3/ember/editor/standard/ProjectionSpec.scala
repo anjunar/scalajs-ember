@@ -4,6 +4,7 @@ import ember.editor.core.*
 import ember.editor.html.*
 import ember.editor.jfx.*
 import ember.editor.richtext.*
+import ember.editor.richtext.StandardMarks.Strong
 import jfx.core.component.AbstractComponent
 import jfx.core.layout.TextComponent
 import jfx.core.render.SsrCursor
@@ -39,13 +40,19 @@ final class ProjectionSpec extends AnyFlatSpec with Matchers {
 
     val document = Document.unsafe(resolved.schema, root, nodes.toVector)
     val editor = EditorSession
-      .create(document, resolved, resolved.sessionConfig())
+      .create(
+        document,
+        resolved,
+        // Ein geworfener Listener geht sonst still an den Error-Sink -- und die Projektion ist
+        // ein Listener. Ohne diese Zeile schweigt ein Projektionsfehler den Test an.
+        resolved.sessionConfig(errorSink = error => fail(s"Projektion: ${error.render}"))
+      )
       .getOrElse(fail("Sitzung nicht erzeugbar"))
     (editor, generator)
 
   private def mounted(editor: EditorSession): (DocumentView, SsrCursor) =
     val cursor = new SsrCursor()
-    (DocumentView.mount(editor, cursor, ParagraphSupport.views), cursor)
+    (DocumentView.mount(editor, cursor, RichTextSupport.views), cursor)
 
   private def id(value: String): NodeId = NodeId(value)
 
@@ -58,6 +65,14 @@ final class ProjectionSpec extends AnyFlatSpec with Matchers {
     */
   private def visible(html: String): String =
     html.replaceAll("<!--.*?-->", "").replaceAll("<[^>]*>", "")
+
+  /** Macht einen Lauf fett -- damit er nicht mit seinem Nachbarn verschmilzt (§8.2, P12). */
+  private def bolden(editor: EditorSession, node: NodeId): Unit =
+    edit(editor) { tx =>
+      editor.document.node(node).collect { case run: TextNode => run }.foreach { run =>
+        tx.replace(node, run.copy(marks = MarkSet.of(Strong))): Unit
+      }
+    }
 
   private def edit(editor: EditorSession)(body: Transaction => Unit): Unit =
     editor.update(body) match
@@ -195,6 +210,8 @@ final class ProjectionSpec extends AnyFlatSpec with Matchers {
       val nodeType: NodeType[N] = view.nodeType
       def create(node: N, profile: RenderProfile): AbstractComponent =
         view.create(node, profile)
+      def accepts(component: AbstractComponent, node: N, profile: RenderProfile): Boolean =
+        view.accepts(component, node, profile)
       def update(component: AbstractComponent, node: N, profile: RenderProfile): Unit =
         log += node.id.value
         view.update(component, node, profile)
@@ -232,7 +249,12 @@ final class ProjectionSpec extends AnyFlatSpec with Matchers {
   "A moved node" should "keep its component instance" in {
     // §15.1: "Move erhaelt Node-Identitaet." Ueber `transferTo`, damit beide Schluesselindizes
     // konsistent bleiben.
+    //
+    // Der bewegte Lauf ist fett: seit P12 wachsen benachbarte Laeufe mit gleichen Marks wieder
+    // zusammen (§8.2), und ein zusammengefuehrter Knoten hat keine Komponente mehr, ueber die
+    // sich Identitaet pruefen liesse. Verschiedene Marks halten die beiden auseinander.
     val (editor, _) = open("Erster", "Zweiter")
+    bolden(editor, id("t1"))
     val (view, _)   = mounted(editor)
     val before      = view.componentFor(id("t1"))
 
@@ -255,7 +277,7 @@ final class ProjectionSpec extends AnyFlatSpec with Matchers {
     val (editor, _) = open("A")
     val (_, cursor) = mounted(editor)
 
-    edit(editor)(_.insert(id("p0"), 1, TextNode(id("extra"), "B")))
+    edit(editor)(_.insert(id("p0"), 1, TextNode(id("extra"), "B", MarkSet.of(Strong))))
     visible(cursor.collectHtml()) should include("AB")
 
     edit(editor)(_.move(id("extra"), id("p0"), 0))
@@ -350,7 +372,7 @@ final class ProjectionSpec extends AnyFlatSpec with Matchers {
     // duerfen in der Ausgabe nicht zu einem verschmelzen, sonst laesst sich beim Hydrieren
     // nicht mehr sagen, wo der eine aufhoert.
     val (editor, _) = open("Hallo")
-    edit(editor)(_.insert(id("p0"), 1, TextNode(id("zweiter"), "Welt")))
+    edit(editor)(_.insert(id("p0"), 1, TextNode(id("zweiter"), "Welt", MarkSet.of(Strong))))
 
     val html = DocumentView.renderToHtml(
       editor.document,
@@ -365,5 +387,143 @@ final class ProjectionSpec extends AnyFlatSpec with Matchers {
     html should not include ">HalloWelt<"
     html.split("<span").length - 1 shouldBe 2
     visible(html) shouldBe "HalloWelt"
+  }
+
+  // ---------------------------------------------------------------------------------------
+  // Marks and block types (P12)
+  // ---------------------------------------------------------------------------------------
+
+  "A marked run" should "render its marks as inner tags" in {
+    // §15.1: "Mark-Aenderungen koennen semantische Innentags ersetzen." Innen und nicht am
+    // Wrapper: der Wrapper traegt die Knoten-ID und ueberlebt eine Formatierungsaenderung.
+    val (editor, _) = open("Hallo")
+    edit(editor) { tx =>
+      tx.replace(id("t0"), TextNode(id("t0"), "Hallo", MarkSet.of(Strong, StandardMarks.Emphasis)))
+    }
+
+    val html = DocumentView.renderToHtml(editor.document, RichTextSupport.views)
+
+    html should include("<span><em><strong>Hallo</strong></em></span>")
+  }
+
+  it should "use semantic tags, not presentational ones" in {
+    // §16 verlangt semantisches HTML: `strong` sagt, was gemeint ist, `b` nur, wie es aussieht.
+    val (editor, _) = open("Hallo")
+    edit(editor)(_.replace(id("t0"), TextNode(id("t0"), "Hallo", MarkSet.of(Strong))))
+
+    val html = DocumentView.renderToHtml(editor.document, RichTextSupport.views)
+
+    html should include("<strong>")
+    html should not include "<b>"
+  }
+
+  it should "keep the wrapper across a mark change" in {
+    // Der Punkt des Wrappers: die Komponente, an der die ID haengt, bleibt dieselbe.
+    val (editor, _) = open("Hallo")
+    val (view, _)   = mounted(editor)
+    val before      = view.componentFor(id("t0"))
+
+    edit(editor)(_.replace(id("t0"), TextNode(id("t0"), "Hallo", MarkSet.of(Strong))))
+
+    view.componentFor(id("t0")) shouldBe before
+  }
+
+  it should "replace the inner tags when the marks change" in {
+    val (editor, _)  = open("Hallo")
+    val (_, cursor)  = mounted(editor)
+
+    edit(editor)(_.replace(id("t0"), TextNode(id("t0"), "Hallo", MarkSet.of(Strong))))
+    cursor.collectHtml() should include("<strong>Hallo</strong>")
+
+    edit(editor)(_.replace(id("t0"), TextNode(id("t0"), "Hallo", MarkSet.of(StandardMarks.Emphasis))))
+    cursor.collectHtml() should include("<em>Hallo</em>")
+    cursor.collectHtml() should not include "<strong>"
+  }
+
+  it should "drop the tags again when the marks go" in {
+    val (editor, _) = open("Hallo")
+    val (_, cursor) = mounted(editor)
+    edit(editor)(_.replace(id("t0"), TextNode(id("t0"), "Hallo", MarkSet.of(Strong))))
+
+    edit(editor)(_.replace(id("t0"), TextNode(id("t0"), "Hallo")))
+
+    visible(cursor.collectHtml()) shouldBe "Hallo"
+    cursor.collectHtml() should not include "<strong>"
+  }
+
+  "The block types" should "render semantically" in {
+    val (editor, _) = open("Hallo")
+    edit(editor) { tx =>
+      tx.replace(id("p0"), HeadingNode(id("p0"), Vector(id("t0")), HeadingLevel.H2))
+      tx.insert(root, 1, ThematicBreakNode(id("hr")))
+    }
+
+    val html = DocumentView.renderToHtml(editor.document, RichTextSupport.views)
+
+    html should include("<h2>")
+    html should include("<hr>")
+  }
+
+  it should "keep a hard break distinct from a soft one" in {
+    // §8.2: beide bleiben unterscheidbar, damit Markdown und HTML ihre Bedeutung behalten.
+    val (editor, _) = open("Hallo")
+    edit(editor) { tx =>
+      tx.insert(id("p0"), 1, BreakNode(id("hard"), BreakKind.Hard))
+      tx.insert(id("p0"), 2, BreakNode(id("soft"), BreakKind.Soft))
+    }
+
+    val html = DocumentView.renderToHtml(editor.document, RichTextSupport.views)
+
+    html should include("<br>")
+    html should include("<span></span>")
+  }
+
+  it should "wrap a quote in blockquote" in {
+    val (editor, _) = open("Hallo")
+    edit(editor) { tx =>
+      tx.insert(root, 0, QuoteNode(id("q"), Vector.empty))
+      tx.move(id("p0"), id("q"), 0)
+    }
+
+    val html = DocumentView.renderToHtml(editor.document, RichTextSupport.views)
+
+    html should include("<blockquote>")
+    visible(html) shouldBe "Hallo"
+  }
+
+  "A node that changes its type" should "be replaced, not patched" in {
+    // §15.1: "Ein typwechselnder Node unter gleicher ID ist eine explizite View-Ersetzung."
+    // Seit P12 gibt es den Fall wirklich -- `SetHeading` wechselt den Tag unter gleicher ID.
+    val (editor, _) = open("Hallo")
+    val (view, cursor) = mounted(editor)
+    val before = view.componentFor(id("p0"))
+
+    edit(editor)(_.replace(id("p0"), HeadingNode(id("p0"), Vector(id("t0")), HeadingLevel.H2)))
+
+    cursor.collectHtml() should include("<h2")
+    cursor.collectHtml() should not include "<p "
+    view.componentFor(id("p0")) should not be before
+  }
+
+  it should "keep its siblings" in {
+    val (editor, _) = open("Erster", "Zweiter")
+    val (view, _)   = mounted(editor)
+    val untouched   = view.componentFor(id("p1"))
+
+    edit(editor)(_.replace(id("p0"), HeadingNode(id("p0"), Vector(id("t0")), HeadingLevel.H1)))
+
+    view.componentFor(id("p1")) shouldBe untouched
+    view.size shouldBe editor.document.size
+  }
+
+  it should "rebuild its subtree" in {
+    val (editor, _) = open("Hallo")
+    val (view, cursor) = mounted(editor)
+    val child = view.componentFor(id("t0"))
+
+    edit(editor)(_.replace(id("p0"), HeadingNode(id("p0"), Vector(id("t0")), HeadingLevel.H3)))
+
+    view.componentFor(id("t0")) should not be child
+    visible(cursor.collectHtml()) shouldBe "Hallo"
   }
 }
