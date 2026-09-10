@@ -181,6 +181,30 @@ lazy val emberRichText =
     )
 
 
+// §6: List/ListItem, Ein-/Ausruecken, Listennormalisierung. Haengt am Rich-Text-Profil, weil
+// ein ListItem Blockinhalte enthaelt (§8.2) und der haeufigste davon ein Absatz ist.
+lazy val emberList =
+  Project(id = "scalajs-ember-list", base = file("ember-list"))
+    .enablePlugins(ScalaJSPlugin)
+    .dependsOn(emberCore, emberRichText)
+    .settings(
+      name        := "scalajs-ember-list",
+      moduleName  := "scalajs-ember-list",
+      description := "Ordered and unordered lists with indent, outdent and normalisation."
+    )
+    .settings(testSettings)
+    .settings(commonJsSettings)
+    .settings(publishSettings)
+    .settings(
+      boundarySettings(
+        allowedProjects = Seq("scalajs-ember-core", "scalajs-ember-rich-text"),
+        forbiddenImports = forbiddenJfxImports ++ forbiddenUpwardImports ++
+          Seq("ember.editor.html", "ember.editor.markdown", "ember.editor.json"),
+        forbiddenModules = forbiddenArtifacts :+ "scalajs-dom"
+      )
+    )
+
+
 // §6: Wire-ADT, Node-Codecs, Schema-/Dokumentversionen, Validierung. Haengt nur am Kern --
 // Persistenz ist keine Frage des Renderers, und ein Server, der Dokumente speichert, soll
 // weder JFX noch HTML mitlinken muessen.
@@ -283,7 +307,7 @@ lazy val emberJfx =
 lazy val emberStandard =
   Project(id = "scalajs-ember-standard", base = file("ember-standard"))
     .enablePlugins(ScalaJSPlugin)
-    .dependsOn(emberCore, emberRichText, emberHtml, emberJfx)
+    .dependsOn(emberCore, emberRichText, emberList, emberHtml, emberJfx)
     .settings(
       name        := "scalajs-ember-standard",
       moduleName  := "scalajs-ember-standard",
@@ -300,6 +324,7 @@ lazy val emberStandard =
         allowedProjects = Seq(
           "scalajs-ember-core",
           "scalajs-ember-rich-text",
+          "scalajs-ember-list",
           "scalajs-ember-html",
           "scalajs-ember-jfx"
         ),
@@ -360,8 +385,8 @@ lazy val emberIntegration =
 lazy val emberDemo =
   Project(id = "scalajs-ember-demo", base = file("ember-demo"))
     .enablePlugins(ScalaJSPlugin)
-    .dependsOn(emberCore, emberRichText, emberJson, emberHistory, emberHtml, emberJfx,
-      emberStandard, jfxCore)
+    .dependsOn(emberCore, emberRichText, emberList, emberJson, emberHistory, emberHtml,
+      emberJfx, emberStandard, jfxCore)
     .settings(
       name                            := "scalajs-ember-demo",
       moduleName                      := "scalajs-ember-demo",
@@ -382,16 +407,16 @@ lazy val emberDemo =
     .settings(
       boundarySettings(
         allowedProjects =
-          Seq("scalajs-ember-core", "scalajs-ember-rich-text", "scalajs-ember-json",
-              "scalajs-ember-history", "scalajs-ember-html", "scalajs-ember-jfx",
-              "scalajs-ember-standard", "scalajs-jfx-core"),
+          Seq("scalajs-ember-core", "scalajs-ember-rich-text", "scalajs-ember-list",
+              "scalajs-ember-json", "scalajs-ember-history", "scalajs-ember-html",
+              "scalajs-ember-jfx", "scalajs-ember-standard", "scalajs-jfx-core"),
         forbiddenImports = forbiddenUpwardImports.filterNot(_ == "ember.editor.jfx"),
         forbiddenModules = Seq("scalajs-lexical")
       )
     )
 
 lazy val root = Project(id = "scalajs-ember-root", base = file("."))
-  .aggregate(emberCore, emberRichText, emberJson, emberHistory, emberHtml, emberJfx,
+  .aggregate(emberCore, emberRichText, emberList, emberJson, emberHistory, emberHtml, emberJfx,
     emberStandard, emberIntegration, emberDemo)
   .settings(
     name           := "scalajs-ember",

@@ -59,6 +59,9 @@ final class DocumentProjection private[jfx] (
   private type Group = KeyedChildren[NodeId, EditorNode, AbstractComponent]
 
   private val components = mutable.HashMap.empty[NodeId, AbstractComponent]
+
+  /** Nodes arriving from another parent in the commit being applied. Empty outside one. */
+  private var incoming = Set.empty[NodeId]
   private val groups     = mutable.HashMap.empty[NodeId, Group]
   private var current: Document = null
   private var rootComponent: AbstractComponent = null
@@ -93,10 +96,57 @@ final class DocumentProjection private[jfx] (
     val changes = commit.changes
 
     forget(changes.removed)
-    changes.moved.foreach(transfer)
-    changes.textSplices.foreach(applySplices)
-    (changes.childListChanged ++ changes.moved.flatMap(current.parentOf)).foreach(reorder)
-    changes.updated.foreach(refresh)
+
+    // Nodes that keep their component and change parent. Every group built during this commit
+    // has to leave them alone -- see `mountNewContainers`.
+    incoming = changes.moved.filter(components.contains)
+
+    try
+      mountNewContainers(changes)
+      changes.moved.foreach(transfer)
+      changes.textSplices.foreach(applySplices)
+      (changes.childListChanged ++ changes.moved.flatMap(current.parentOf)).foreach(reorder)
+      changes.updated.foreach(refresh)
+    finally incoming = Set.empty
+
+  /** Mounts containers that were created in this commit, before anything is transferred.
+    *
+    * ==The problem this solves==
+    *
+    * Wrapping a paragraph in a list is three changes at once: a list is created, an item is
+    * created, and the paragraph moves into the item. `transferTo` needs the destination group to
+    * exist -- and it does not, because the item is mounted by its parent's reorder, which runs
+    * afterwards. Left to the plain order, the reorder drops the paragraph from the old group
+    * (unmounting it) and the new item's group builds a fresh one. §15.1's "Move erhaelt
+    * Node-Identitaet" would hold for every move except the most common one in a list.
+    *
+    * ==What happens instead==
+    *
+    * The new containers are mounted first, with two adjustments that make it safe:
+    *
+    *   - The item list handed to the parent group still contains the nodes that are on their way
+    *     out. Without them the parent group would unmount their components before anything could
+    *     be transferred.
+    *   - The new containers' own groups are built '''without''' the arriving nodes ([[newGroup]]
+    *     consults `incoming`). Otherwise the item's group would build a second paragraph a
+    *     moment before the real one arrives.
+    *
+    * Afterwards `transfer` finds a mounted destination, and the closing reorder puts everything
+    * in document order. The intermediate arrangement exists for the length of one synchronous
+    * commit; §10 guarantees no observer runs inside it.
+    */
+  private def mountNewContainers(changes: ChangeSet): Unit =
+    changes.created
+      .flatMap(current.parentOf)
+      .foreach { parentId =>
+        groups.get(parentId).foreach { group =>
+          val settled = current.childrenOf(parentId)
+          val leaving = incoming.toVector
+            .filter(id => group.componentFor(id).isDefined && !settled.contains(id))
+
+          group.setItems((settled.filterNot(incoming.contains) ++ leaving).flatMap(current.node))
+        }
+      }
 
   // -----------------------------------------------------------------------------------------
   // Aufbau
@@ -130,7 +180,10 @@ final class DocumentProjection private[jfx] (
     */
   private def newGroup(element: ElementNode): Group =
     val group = new KeyedChildren[NodeId, EditorNode, AbstractComponent](
-      element.children.flatMap(current.node),
+      // Without `incoming`, a group built during a commit would create its own copy of a node
+      // whose component is still mounted elsewhere, moments before `transfer` brings the real
+      // one over. See `mountNewContainers`.
+      element.children.filterNot(incoming.contains).flatMap(current.node),
       _.id,
       build,
       (child, node) => support.update(child, node, profile)
@@ -154,9 +207,13 @@ final class DocumentProjection private[jfx] (
       parentId    <- current.parentOf(nodeId)
       destination <- groups.get(parentId)
       source      <- groups.values.find(_.componentFor(nodeId).isDefined)
-      index = current.childrenOf(parentId).indexOf(nodeId)
-      if index >= 0 && !(source eq destination)
-    do source.transferTo(nodeId, destination, index)
+      wanted = current.childrenOf(parentId).indexOf(nodeId)
+      if wanted >= 0 && !(source eq destination)
+    do
+      // The destination may still be missing the siblings that arrive later in this commit, so
+      // the document index can be past its end. The closing reorder puts everything right.
+      val room = current.childrenOf(parentId).count(destination.componentFor(_).isDefined)
+      source.transferTo(nodeId, destination, math.min(wanted, room))
 
   private def applySplices(entry: (NodeId, Vector[TextSplice])): Unit =
     val (nodeId, splices) = entry

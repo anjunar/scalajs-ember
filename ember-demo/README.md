@@ -34,7 +34,7 @@ ausgeliefertes HTML und Editor-HTML. Alle vier hängen an **einem** Dokument; di
 `EditorProperties.document(session)` gebunden und werden bei jedem Commit nachgeführt (§10), nicht
 von einem Timer.
 
-Damit ist der Stand nach P11 an einem Stück sichtbar:
+Damit ist der Stand nach P12 an einem Stück sichtbar:
 
 | | |
 | --- | --- |
@@ -43,10 +43,18 @@ Damit ist der Stand nach P11 an einem Stück sichtbar:
 | P09 | die keyed Projektion und dieselbe Semantik für SSR und Browser |
 | P10 | das versionierte JSON |
 | P11 | Undo und Redo mit den Gruppierungsregeln aus §14 |
+| P12 | Marks, Überschriften, Zitate, Umbrüche und die Textlauf-Normalisierung |
+| P13 | Listen mit Ein- und Ausrücken |
 
 Undo und Redo gibt es als Knöpfe und über Strg+Z beziehungsweise Strg+Shift+Z; die Statuszeile
 zeigt die Tiefe beider Stapel. Zusammenhängendes Tippen wird dabei zu einer Stufe zusammengefasst
 — ein Undo nimmt das Wort zurück, nicht den Buchstaben.
+
+Seit P12 stehen daneben Fett, Kursiv, Code, H2, Zitat, Umbruch und Trenner; die Statuszeile zeigt
+die aktiven Marks. P13 bringt Liste, Nummern, Einrücken und Ausrücken dazu -- Letztere auch auf
+Tab und Shift+Tab, was P13 ausdrücklich als Sache der Anwendung führt und nicht des Moduls. Wer bei leerem Caret „Fett" drückt, erzeugt keinen Text -- die nächste Eingabe
+kommt fett heraus (§11). Und wer die Formatierung wieder wegnimmt, sieht im Panel „Dokument", wie
+die drei Läufe zu einem zusammenwachsen.
 
 ## Was ausdrücklich noch fehlt
 

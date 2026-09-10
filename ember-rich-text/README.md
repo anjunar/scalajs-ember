@@ -13,9 +13,10 @@ Verbindlicher Entwurf: [JFX_EDITOR_ARCHITECTURE.md](../JFX_EDITOR_ARCHITECTURE.m
 
 ## Stand
 
-P06 abgeschlossen. Vorhanden: `ParagraphNode`, die vier Editing-Commands, die
-Normalisierung und die Unicode-Segmentierung. Marks, Heading, Quote und Breaks folgen mit
-P12.
+P06 und P12 abgeschlossen. Vorhanden: `ParagraphNode`, `HeadingNode`, `QuoteNode`, `BreakNode`
+und `ThematicBreakNode`, die fünf eingebauten Marks, Bereichsformatierung, das Zustandsfeld
+`TypingMarks`, die Textlauf-Normalisierung, die Editing- und Blockbefehle sowie die
+UAX-29-Segmentierung. Listen folgen mit P13, Links mit P14, Code mit P15.
 
 ## Verwendung
 
@@ -30,6 +31,84 @@ editor.dispatch(RichText.InsertText, "Hallo")
 editor.dispatch(RichText.InsertParagraph)
 editor.dispatch(RichText.DeleteBackward)
 ```
+
+## Marks
+
+Fünf eingebaute (§8.2): Strong, Emphasis, Underline, Strike, InlineCode. Case Objects ohne
+Nutzdaten — die Identität einer Mark ist ihr Typ, und ohne Payload ist ein beliebiger CSS-String
+als Dokumentformat nicht bloß unerwünscht, sondern unmöglich.
+
+**`InlineCode` schließt die übrigen aus, und sie ihn.** §8.2 überlässt Widersprüche dem Profil;
+der Grund hier ist kein Geschmack. Markdown kann in einer Code-Spanne nichts fett schreiben —
+Backticks machen ihren Inhalt wörtlich —, ein Lauf mit beidem wäre also ein Dokument, das §18
+nicht verlustfrei exportieren kann. Die Regel gilt in beide Richtungen; keiner gewinnt dadurch,
+dass er zuletzt angewandt wurde.
+
+Links sind **keine** Mark, sondern ein Inline-Container mit Kindern und Ziel (§8.2, P14).
+
+### Bereichsformatierung
+
+`RangeFormatting.toggleMark` schneidet die Läufe an beiden Enden und schreibt die Marks der
+Stücke dazwischen. Ein Toggle über einen gemischten Bereich **setzt überall** — die Alternative,
+jeden Lauf einzeln zu invertieren, lässt einen zweiten Druck für den Benutzer wie ein No-op
+aussehen, während die Stücke stillschweigend tauschen.
+
+Am kollabierten Caret entsteht kein Text, sondern ein Eintrag in `TypingMarks` (§11).
+
+`RangeFormatting.activeMarks(state)` liest, was eine Toolbar als aktiv anzeigt — aus einem
+`EditorState`, nicht aus einer laufenden Transaktion: eine Toolbar hat einen.
+
+## TypingMarks
+
+Das Zustandsfeld aus §11: `Inherit` oder ein explizites `MarkSet` **an einer gemappten
+Caretposition**. Der Punkt ist keine Zierde — ohne ihn ließe sich „der Caret hat sich durch mein
+Tippen bewegt" nicht von „jemand hat woanders hingeklickt" unterscheiden, und genau das verlangt
+§11.
+
+Der gemerkte Punkt wird durch die Abbildung der Transaktion geführt, bevor er mit dem Caret
+verglichen wird. Darin steckt der ganze Trick: ein getipptes Zeichen bewegt den Caret von 4 nach
+5 *und* bildet den Punkt von 4 auf 5 ab — beide stimmen weiter überein, die Wahl überlebt. Ein
+Klick bewegt den Caret, ohne etwas abzubilden; sie ist weg.
+
+Das Feld deklariert `HistoryRestorePolicy.Restore`. §11 verbietet ausdrücklich, die wirksamen
+Marks nach einem Undo aus der Darstellung abzuleiten — ein nicht wiederhergestelltes Feld ließe
+genau dieses Raten als einzige Möglichkeit.
+
+## Textlauf-Normalisierung
+
+§8.2: benachbarte Läufe desselben Elternknotens mit gleichen Marks wachsen zu einem maximalen
+Lauf zusammen.
+
+```text
+Ausgang:              Text("Hallo Welt!", {})
+"Welt" fett:          Text("Hallo ", {}), Text("Welt", {Strong}), Text("!", {})
+Fett wieder entfernt: Text("Hallo Welt!", {})
+```
+
+Als **Transform**, nicht als Schritt in der Formatierung (§8.2 verlangt es so): dadurch läuft es
+in derselben Transaktion wie die Ursache — der Merge kostet keinen eigenen Undo-Schritt — und
+greift auch nach einem Löschvorgang, der zwei Blöcke zusammenfügt.
+
+**Die Regel hängt am Lauf, nicht am Block.** Die naheliegende Form („für jeden Absatz über seine
+Kinder laufen") würde nie ausgeführt: §3.4 hält fest, dass Vorfahren auf dem Pfad einer Änderung
+keine Transform-Kandidaten sind — `ChangeSet.touchedAncestors` gibt es genau dafür. Eine
+Markänderung macht den Absatz nicht dirty. Am Lauf aufgehängt wird sie gefragt, wenn eine Naht
+entstehen kann, und funktioniert dadurch in jedem Container, ohne einen einzigen zu kennen.
+
+Nicht zusammengeführt wird über Block-, Break- oder Atomgrenzen und bei verschiedenen Marks —
+alle vier fallen aus einer Regel: nur direkt benachbarte `TextNode`s desselben Elternknotens mit
+gleichem `MarkSet`. Nichts davon muss wissen, was ein Link oder ein Atom ist, weshalb P14 und
+P16 hier nicht nachbessern müssen.
+
+## Blocktypen
+
+| | |
+| --- | --- |
+| `HeadingNode` | Ein Container plus typisiertes `HeadingLevel` — sechs Stufen, kein `Int`. Sechs Knotenarten wären sechsmal alles, und `SetHeading` wäre eine Typersetzung statt einer Feldänderung. |
+| `QuoteNode` | Hält **Blöcke** (§8.2). Zitieren heißt einen Absatz in einen Container legen, nicht eine Eigenschaft an ihm setzen — deshalb bewegen `Quote`/`Unquote` Kinder. |
+| `BreakNode` | `Soft` und `Hard` bleiben unterscheidbar (§8.2), damit Markdown und HTML ihre Bedeutung behalten. Ein Atom, kein `
+` im Text: ein Caret kann auf beiden Seiten stehen. |
+| `ThematicBreakNode` | Blockebene, deshalb ein eigener Typ und keine dritte `BreakKind`. |
 
 `RichText` trägt auch `RootNode` und `TextNode` bei, obwohl beide im Kern definiert sind.
 Der Kern ist ein Modell, kein Profil — er registriert nichts von selbst. Module, die auf
@@ -55,10 +134,8 @@ Die dritte hat zwei Wächter, beide notwendig: sie greift nur, wenn der Block no
 **nicht leeren** Lauf hat (sonst Endlosschleife mit der zweiten Regel), und sie rührt den Lauf
 nicht an, auf den die Auswahl zeigt (ein aufgeräumter Baum ist keinen verlorenen Cursor wert).
 
-Zwei Dinge tut das Modul bewusst **nicht**: Enter teilt am Absatzanfang und -ende nicht, und
-beim Zusammenführen zweier Blöcke werden die Textläufe an der Naht nicht verschmolzen. Beides
-erzeugte oder beseitigte Läufe, über deren Marks dieses Modul nichts weiß — das ist §8.2s
-Normalisierung und gehört zu P12.
+Enter teilt am Absatzanfang und -ende weiterhin nicht — das bleibt eine bewusste Auslassung.
+Die Naht beim Zusammenführen zweier Blöcke räumt seit P12 die Normalisierung auf.
 
 ## Unicode-Grenzen
 
@@ -108,3 +185,12 @@ sbt --server "scalajs-ember-rich-text/Test/testOnly *"
 Markenstapel, ZWJ-Familien, Hauttöne, Flaggenparität, CRLF, Hangul. `TextEditingSpec` fährt
 komplette Bearbeitungsfolgen und validiert nach jedem Schritt unabhängig gegen den
 `DocumentValidator` und den Auswahlvertrag des Kerns.
+
+Aus P12 kommen vier weitere: `TextRunNormalizationSpec` (der in der Architektur ausgeschriebene
+Fall samt Gegenfällen), `RangeFormattingSpec`, `TypingMarksSpec` und `RichTextStructureSpec`.
+
+**Keine Undo/Redo-Tests hier.** §6 stellt `history` neben das Profil, nicht darunter; dieses
+Modul kann es nicht linken. Geprüft wird stattdessen, was von hier aus prüfbar ist: dass der
+geschnittene und der zusammengeführte Zustand über dieselben Operationen erreichbar sind und
+keiner eine Sackgasse ist — und dass `TypingMarks` die Wiederherstellung deklariert, auf die
+`ember-history` reagiert.

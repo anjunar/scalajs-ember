@@ -148,6 +148,8 @@ final class DemoApp extends AbstractComponent:
         case "z" if native.ctrlKey || native.metaKey =>
           editor.perform(if native.shiftKey then DemoCommand.Redo else DemoCommand.Undo)
         case "y" if native.ctrlKey => editor.perform(DemoCommand.Redo)
+        case "Tab" =>
+          editor.perform(if native.shiftKey then DemoCommand.Outdent else DemoCommand.Indent)
         case "Enter"     => editor.perform(DemoCommand.Paragraph)
         case "Backspace" => editor.perform(DemoCommand.Backspace)
         case "Delete"    => editor.perform(DemoCommand.Delete)
@@ -170,6 +172,10 @@ final class DemoApp extends AbstractComponent:
       action("Zitat aufheben", DemoCommand.Unquote)
       action("Umbruch", DemoCommand.HardBreak)
       action("Trenner", DemoCommand.Rule)
+      action("Liste", DemoCommand.Bullets)
+      action("Nummern", DemoCommand.Numbers)
+      action("Einruecken", DemoCommand.Indent)
+      action("Ausruecken", DemoCommand.Outdent)
       action("Undo", DemoCommand.Undo)
       action("Redo", DemoCommand.Redo)
     }

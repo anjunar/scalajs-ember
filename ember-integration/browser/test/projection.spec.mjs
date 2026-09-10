@@ -127,6 +127,10 @@ test.describe('Struktur', () => {
     // §15.1: "Move erhaelt Node-Identitaet." Ueber `transferTo`, damit beide Schluesselindizes
     // konsistent bleiben -- und im DOM ueber `Runtime.move`, nicht ueber Neubau.
     await open(page)
+    // Seit P12 wachsen benachbarte Laeufe mit gleichen Marks wieder zusammen (§8.2). Ein
+    // zusammengefuehrter Knoten hat keine Komponente mehr, an der sich Identitaet pruefen
+    // liesse -- verschiedene Marks halten die beiden auseinander.
+    await page.evaluate(() => window.projection.markRun('t1'))
 
     const same = await page.evaluate(() => {
       const before = document.querySelector('[data-ember-node="t1"]')
@@ -151,7 +155,7 @@ test.describe('Struktur', () => {
   test('ordnet Geschwister in Dokumentreihenfolge', async ({ page }) => {
     await open(page)
     await page.evaluate(() => {
-      window.projection.insertText('p0', 1, 'extra', 'B')
+      window.projection.insertMarked('p0', 1, 'extra', 'B')
     })
     expect(await page.locator(run('p0')).textContent()).toBe('HalloB')
 
@@ -164,7 +168,7 @@ test.describe('Struktur', () => {
     // zwei benachbarte Laeufe im DOM ein einziger Textknoten -- die Grenze zwischen ihnen
     // liesse sich weder beim Hydrieren noch fuer die Selection wiederfinden.
     await open(page)
-    await page.evaluate(() => window.projection.insertText('p0', 1, 'extra', 'Welt'))
+    await page.evaluate(() => window.projection.insertMarked('p0', 1, 'extra', 'Welt'))
 
     const kinds = await page.evaluate(() =>
       [...document.querySelector('[data-ember-node="p0"]').childNodes]

@@ -15,6 +15,15 @@ object UpdateError:
     override def path: DiagnosticPath = error.path
 
   /** Die Auswahl liesse sich im Ergebnis nicht darstellen. */
+  /** Ein geaenderter Knoten wurde von seinem Deskriptor abgewiesen (§8.2).
+    *
+    * Getrennt von [[InvalidSelection]], weil es etwas anderes beschreibt: dort passt eine
+    * Auswahl nicht zum Dokument, hier passt der Knoten nicht zu sich selbst.
+    */
+  final case class InvalidDocument(violations: Vector[Violation]) extends UpdateError:
+    def message: String =
+      violations.map(_.render).mkString("Der Commit wurde abgewiesen: ", "; ", "")
+
   final case class InvalidSelection(violations: Vector[Violation]) extends UpdateError:
     def message: String =
       violations.map(_.render).mkString("Ungueltige Auswahl: ", "; ", "")

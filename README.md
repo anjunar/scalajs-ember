@@ -14,7 +14,7 @@ Laufzeitabhängigkeit.
 
 ## Stand
 
-**Meilenstein A und B stehen, C und D angefangen** — P01–P11 abgeschlossen, P12–P30 offen. Der frühere
+**Meilenstein A und B stehen, C und D angefangen** — P01–P13 abgeschlossen, P14–P30 offen. Der frühere
 `contenteditable`-Prototyp (`ember.core.Editor` mit `execCommand` und HTML-String als
 Zustand) und seine vite-Demo wurden entfernt — Architektur §2 und §25 schließen diesen
 Ansatz aus.
@@ -45,6 +45,16 @@ den ausdrücklichen Regeln aus §14 -- zusammenhängendes Tippen verschmilzt, Ba
 nicht, ein Caretsprung beendet die Gruppe -- und begrenzt sich über Stufenzahl und ein
 geschätztes Byte-Budget. Auch dieses Modul hängt allein am Kern und ist optional.
 
+P12 macht aus dem Textprofil ein Rich-Text-Profil: die fünf eingebauten Marks, Bereichs-
+formatierung, Überschriften, Zitate und Umbrüche. Getrennte Textläufe wachsen nach dem
+Entformatieren wieder zusammen — in derselben Transaktion, also ohne eigenen Undo-Schritt --,
+und was die nächste Eingabe formatiert, steht in einem Zustandsfeld statt in der Darstellung.
+
+P13 ergänzt Listen. Ein- und Ausrücken bewegen Knoten, statt sie neu zu bauen -- ein Caret im
+dritten Wort steht danach im dritten Wort --, Enter und Backspace bedeuten an Listengrenzen
+etwas anderes und treten über §12s Prioritätskette vor die Rich-Text-Handler, und vier
+Normalisierungsregeln halten die Struktur legal, egal wer sie verändert hat.
+
 ## Module
 
 Konvention: Verzeichnis `ember-<modul>`, sbt-ID und Artefakt `scalajs-ember-<modul>`,
@@ -59,6 +69,8 @@ Vorhanden:
 - [`ember-rich-text`](ember-rich-text/README.md) — sbt-ID `scalajs-ember-rich-text`,
   Paket `ember.editor.richtext`. Absätze, Editing-Commands, Normalisierung und die
   UAX-29-Graphemgrenzen. Hängt ausschließlich am Kern.
+- [`ember-list`](ember-list/README.md) — sbt-ID `scalajs-ember-list`, Paket
+  `ember.editor.list`. Listen, Ein- und Ausrücken, Listennormalisierung. Headless und optional.
 - [`ember-json`](ember-json/README.md) — sbt-ID `scalajs-ember-json`, Paket
   `ember.editor.json`. Wire-ADT, Node- und Mark-Codecs, Grenzen, Schema-Migration. Headless.
 - [`ember-history`](ember-history/README.md) — sbt-ID `scalajs-ember-history`, Paket

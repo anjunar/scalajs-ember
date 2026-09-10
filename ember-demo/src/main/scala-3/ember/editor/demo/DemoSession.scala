@@ -2,11 +2,12 @@ package ember.editor.demo
 
 import ember.editor.core.*
 import ember.editor.history.{History, HistoryConfig}
+import ember.editor.list.{ListCommands, ListExtension, ListKind}
 import ember.editor.html.RenderProfile
 import ember.editor.jfx.{DocumentView, ViewSupport}
 import ember.editor.json.*
 import ember.editor.richtext.*
-import ember.editor.standard.{ParagraphSupport, RichTextSupport}
+import ember.editor.standard.ListSupport
 
 /** The Sitzung the Demo samt all, was daran haengt.
   *
@@ -28,7 +29,7 @@ final class DemoSession:
   val history: History = new History(HistoryConfig.default)
 
   private val resolved: ResolvedExtensions =
-    ExtensionResolver.resolve(Vector(RichText(generator), history)) match
+    ExtensionResolver.resolve(Vector(RichText(generator), ListExtension(generator), history)) match
       case Right(value) => value
       case Left(errors) =>
         throw new IllegalStateException(errors.map(_.render).mkString("; "))
@@ -57,7 +58,7 @@ final class DemoSession:
   private val codecs: JsonSupport = CoreJsonSupport.all ++ JsonSupport.of(paragraphCodec)
 
   /** The adapter set: root, paragraph and text plus the block types P12 added. */
-  val views: ViewSupport = RichTextSupport.views
+  val views: ViewSupport = ListSupport.views
 
   private var lastError: Option[String] = None
 
@@ -119,6 +120,10 @@ final class DemoSession:
       case DemoCommand.Unquote      => session.dispatch(RichText.Unquote)
       case DemoCommand.HardBreak    => session.dispatch(RichText.InsertBreak, BreakKind.Hard)
       case DemoCommand.Rule         => session.dispatch(RichText.InsertThematicBreak)
+      case DemoCommand.Bullets      => session.dispatch(ListCommands.ToggleList, ListKind.Unordered)
+      case DemoCommand.Numbers      => session.dispatch(ListCommands.ToggleList, ListKind.Ordered)
+      case DemoCommand.Indent       => session.dispatch(ListCommands.Indent)
+      case DemoCommand.Outdent      => session.dispatch(ListCommands.Outdent)
 
     outcome match
       case Right(result) => result.wasHandled
@@ -198,3 +203,7 @@ enum DemoCommand:
   case Unquote
   case HardBreak
   case Rule
+  case Bullets
+  case Numbers
+  case Indent
+  case Outdent

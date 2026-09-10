@@ -163,6 +163,32 @@ object ProjectionFixtures:
   def insertText(parentId: String, index: Int, nodeId: String, text: String): Boolean =
     edit(_.insert(NodeId(parentId), index, TextNode(NodeId(nodeId), text)))
 
+  /** Inserts a run that carries a mark, so it will not merge with its neighbour.
+    *
+    * Since P12 adjacent runs with equal marks grow back together (§8.2). A test about ordering
+    * or about DOM identity needs two runs that stay two -- and a difference in marks is the
+    * honest way to get them, not a special case in the normalisation.
+    */
+  @JSExport
+  def insertMarked(parentId: String, index: Int, nodeId: String, text: String): Boolean =
+    edit(
+      _.insert(
+        NodeId(parentId),
+        index,
+        TextNode(NodeId(nodeId), text, MarkSet.of(StandardMarks.Strong))
+      )
+    )
+
+  /** Gives an existing run a mark. Same purpose as [[insertMarked]]. */
+  @JSExport
+  def markRun(nodeId: String): Boolean =
+    val id = NodeId(nodeId)
+    edit(tx =>
+      session.document.node(id).collect { case run: TextNode => run }.foreach { run =>
+        tx.replace(id, run.copy(marks = MarkSet.of(StandardMarks.Strong))): Unit
+      }
+    )
+
   private def edit(body: Transaction => Unit): Boolean =
     session.update(body) match
       case Right(_) => true

@@ -289,12 +289,50 @@ final class EditorSession private (initial: EditorState, config: SessionConfig):
   ): Either[UpdateError, Commit] =
     val candidate = raw.copy(fields = applyPolicies(raw, assigned))
 
-    checkRules(candidate) match
+    checkChangedNodes(candidate).orElse(checkRules(candidate)) match
       case Some(error) => Left(error)
       case None        =>
         reduceFields(candidate) match
           case Left(error)   => Left(error)
           case Right(fields) => Right(publish(candidate, fields))
+
+  /** Laesst die Deskriptoren der geaenderten Knoten urteilen.
+    *
+    * §8.2: "Vollvalidierung erfolgt beim Import; lokale Aenderungen validieren betroffene Nodes
+    * und Strukturpfade." Die strukturellen Invarianten pruefen die Operationen selbst, jede fuer
+    * ihren eigenen Fall. Die '''fachliche''' Pruefung eines Knotens kann nur sein Deskriptor
+    * anstellen ([[NodeType.validate]]) -- und die lief bis P13 ausschliesslich in
+    * [[Document.build]], also beim Import und sonst nie.
+    *
+    * ==Warum hier und nicht in der Operation==
+    *
+    * Weil ein Zwischenstand kein Urteil verdient. Eine Formatierung schneidet einen Textlauf in
+    * drei Teile und fuegt sie danach wieder zusammen; eine Liste verliert ihr letztes Kind und
+    * bekommt im selben Commit eines zurueck. Wer nach jeder Operation urteilt, weist Dokumente
+    * ab, die es nie gegeben haette -- deshalb steht die Pruefung dort, wo §10 auch die
+    * [[PreCommitRule]]n hinstellt: hinter den Transforms, vor der Veroeffentlichung.
+    *
+    * Geprueft werden nur die tatsaechlich geaenderten Knoten. Ein Tastendruck in einem Dokument
+    * mit 100 000 Knoten kostet damit eine Pruefung und nicht 100 000.
+    */
+  private def checkChangedNodes(candidate: CommitCandidate): Option[UpdateError] =
+    if !candidate.documentChanged then None
+    else
+      val document = candidate.document
+      val violations = candidate.changes.changedNodes.toVector
+        .flatMap(document.node)
+        .flatMap(node =>
+          document.schema.descriptorFor(node).toVector.flatMap(validateNode(_, node, document))
+        )
+
+      if violations.isEmpty then None else Some(UpdateError.InvalidDocument(violations))
+
+  private def validateNode[N <: EditorNode](
+      descriptor: NodeType[N],
+      node: EditorNode,
+      document: DocumentRead
+  ): Vector[Violation] =
+    descriptor.project(node).fold(Vector.empty)(descriptor.validate(_, document))
 
   /** §9: Felder erklaeren ausdruecklich, was bei einer Dokumentaenderung mit ihnen geschieht.
     *

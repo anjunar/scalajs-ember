@@ -1,8 +1,8 @@
 # JFX Editor: ausführbarer Implementierungsplan
 
-Status: **Meilenstein A und B stehen, C und D angefangen** — P01–P11 abgeschlossen (440
+Status: **Meilenstein A und B stehen, C und D angefangen** — P01–P13 abgeschlossen (569
 Scala-Tests und 126 Browserfälle in Chromium, Firefox und WebKit grün),
-P12–P30 offen. Dieses Repository (`scalajs-ember`) ist das in
+P14–P30 offen. Dieses Repository (`scalajs-ember`) ist das in
 Architektur und Plan gemeinte „eigene Repository“. Die generischen JFX-Core-Anteile aus
 P08/P09, P19a, P20 und P23 sind **nicht hier, sondern im Nachbar-Repo `../scalajs-jfx`**
 implementiert und über eine Quell-Abhängigkeit auf dessen Submodul `jfx-core` eingebunden
@@ -850,6 +850,100 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 
 ## P12 — Rich-Text-Marks und Blocksemantik
 
+> **Abgeschlossen.** Marks, Heading, Quote, Breaks, Bereichsformatierung, `TypingMarks` und die
+> Textlauf-Normalisierung — in `ember-rich-text`, mit Adaptern in `ember-standard` und dem
+> Vertrag dafür in `ember-core`, `ember-history`, `ember-html` und `ember-jfx`. Abnahme:
+>
+> ```
+> sbt --server "Test/testOnly *"
+> ```
+>
+> | Suite | Ergebnis |
+> | --- | --- |
+> | `TextRunNormalizationSpec` | 14 Tests grün |
+> | `RangeFormattingSpec` | 17 Tests grün |
+> | `TypingMarksSpec` | 16 Tests grün |
+> | `RichTextStructureSpec` | 21 Tests grün |
+> | `ProjectionSpec` (semantischer Export) | 30 Tests grün, 11 neu |
+> | Gesamtes Scala-Gate | 519 Tests grün |
+>
+> **Der konkrete Normalisierungstest steht wörtlich.** `"Hallo Welt!"`, `"Welt"` fett → drei
+> Läufe; Strong wieder weg → wieder **ein** Lauf mit identischem Gesamttext und erhaltener
+> linker ID, in **einem** Commit. Fünf Zyklen hintereinander fragmentieren nicht, erneute
+> Normalisierung ist ein No-op, und die Gegenfälle (verschiedene Marks, verschiedene Blöcke,
+> Breaks dazwischen) verschmelzen nicht.
+>
+> **Zwei Fehler im eigenen Entwurf, die die Tests gefunden haben:**
+>
+> 1. *Die Bereichsformatierung markierte den falschen Lauf.* Nach dem Splitten benutzte sie die
+>    Range weiter, mit der sie hereinkam — `t0` ist danach aber ein kürzerer Lauf, und dessen
+>    Offset 10 bedeutet nichts mehr. Die Transaktion führt die Auswahl über jede Operation mit
+>    (§10, Schritt 3); sie muss zurückgelesen und nicht gemerkt werden.
+> 2. *Der Merge-Transform lief nie.* Er hing am Absatz — und §3.4 ist eindeutig: ein Vorfahr,
+>    der nur auf dem Pfad einer Änderung liegt, ist kein Transform-Kandidat, `touchedAncestors`
+>    gibt es genau dafür. Eine Markänderung macht den Absatz nicht dirty. Am Textlauf aufgehängt
+>    wird die Regel gefragt, wenn eine Naht entstehen kann — und funktioniert dadurch in jedem
+>    Container, ohne einen einzigen zu kennen.
+>
+> **Backspace/Delete-Erkenntnis aus P11, hier zum zweiten Mal:** eine Regel, die aus dem
+> Ergebnis nicht ablesbar ist, muss aus dem Zustand *davor* kommen. Dieselbe Bauform trägt hier
+> die Gruppierung und dort die Auswahlrichtung.
+>
+> **Kernänderungen, die die Phase erzwungen hat:**
+>
+> - `StateField.onHistoryRestore` samt `HistoryRestorePolicy` und `FieldValue` — §14:
+>   "StateFields deklarieren einen eigenen Restore-/Mapping-Vertrag." `TypingMarks` ist der Fall,
+>   für den der Satz geschrieben wurde: §11 verbietet ausdrücklich, die für die nächste Eingabe
+>   wirksamen Marks nach einem Undo aus der Darstellung zu erraten. `ember-history` trägt den
+>   Wert seitdem typisiert im Snapshot, nicht als `Any`.
+> - `TransformScope.field`/`setField` — ein Toggle am kollabierten Caret ändert nur dieses Feld.
+> - `HtmlShape.TextRun` bekam die inneren Mark-Tags, `TextRunElement` baut die Kette.
+>
+> **Die explizite View-Ersetzung, gefunden durch die Demo.** `SetHeading` wechselt den Tag unter
+> gleicher ID — genau der Fall, den der P09-Wächter noch abgewiesen hat. §15.1 nennt ihn „eine
+> explizite View-Ersetzung", also führt die Projektion sie jetzt aus: `NodeView.accepts` fragt
+> den Adapter, ob seine Komponente noch passt, und `DocumentProjection.replaceView` baut den
+> einen Knoten neu, während die Geschwister nur bewegt werden. Zwei `setItems`-Durchgänge, weil
+> `KeyedChildren` einen bekannten Schlüssel grundsätzlich aktualisiert statt neu zu bauen — was
+> sein Sinn ist und der Grund, warum unveränderte Geschwister überleben.
+>
+> Dabei fiel eine Lücke in der Testinfrastruktur auf: ein geworfener Projektionsfehler ging
+> still an den Error-Sink, weil die Projektion ein Listener ist. `ProjectionSpec` lässt ihn
+> jetzt den Test brechen.
+>
+> **Bewusste Entscheidungen:**
+>
+> - *`InlineCode` verdrängt die anderen Marks, und sie ihn.* §8.2 überlässt Widersprüche dem
+>   Profil. Der Grund ist kein Geschmack: Markdown kann in einer Code-Spanne nichts fett
+>   schreiben — Backticks machen ihren Inhalt wörtlich —, ein Lauf mit beidem wäre also ein
+>   Dokument, das §18 nicht verlustfrei exportieren kann.
+> - *Toggle über einen gemischten Bereich setzt überall.* Die Alternative — jeden Lauf einzeln
+>   invertieren — lässt einen zweiten Druck für den Benutzer wie ein No-op aussehen, während die
+>   Stücke stillschweigend tauschen.
+> - *Kein `<b>`, kein `<i>`.* §16 verlangt semantisches HTML: `strong` sagt, was gemeint ist,
+>   `b` nur, wie es aussieht. Underline bekommt `u` — nicht weil HTML dafür eine gute Antwort
+>   hätte, sondern weil §8.2 die Mark aufzählt.
+> - *Keine Undo/Redo-Tests in `ember-rich-text`.* §6 stellt `history` neben das Profil, nicht
+>   darunter; das Modul kann es nicht linken. Geprüft wird stattdessen, was von hier aus prüfbar
+>   ist: dass beide Zustände über dieselben Operationen erreichbar sind und keiner eine Sackgasse
+>   ist.
+>
+> **Nachgetragen in P13.** Die Browser-Suite `projection.spec.mjs` war von der neuen
+> Normalisierung genauso betroffen wie `ProjectionSpec` -- drei Faelle fuegen benachbarte Laeufe
+> ein und erwarten, dass sie zwei bleiben. Ich hatte die headless-Suite angepasst und die
+> Browser-Suite uebersehen; aufgefallen ist es beim Browser-Gate von P13. Die Fixture kann jetzt
+> markierte Laeufe einfuegen, und die drei Faelle halten damit wieder das fest, worum es ihnen
+> geht: DOM-Identitaet und Reihenfolge.
+>
+> **Zwischenfall.** Während der Phase hat ein zweiter Agent einen Wort-für-Wort-Ersetzungslauf
+> Deutsch→Englisch über 59 Dateien gefahren und die Kommentarprosa zerstört („The Marks in
+> stabiler Order after [[MarkId]]"). Kein Code betroffen, Build blieb grün. Zurückgenommen; der
+> Fix steht in `c8408fe`. Merkposten: bei parallel arbeitenden Agenten vor längeren Läufen
+> `git status` prüfen.
+>
+> Modulverträge: [ember-rich-text/README.md](ember-rich-text/README.md),
+> [ember-standard/README.md](ember-standard/README.md).
+
 - **Ziel:** Bereichsformatierung und grundlegende Blocktypen auf den primitiven Operationen aufbauen.
 - **Module:** rich-text; standard; IT.
 - **Neue Dateien:** `rich-text/HeadingNode.scala`, `QuoteNode.scala`, `BreakNode.scala`, `StandardMarks.scala`, `TypingMarks.scala`, `RichTextCommands.scala`, `RangeFormatting.scala`, `TextRunNormalization.scala`; zugehörige `standard/*Support.scala`; Tests `RangeFormattingSpec.scala`, `RichTextStructureSpec.scala`, `TypingMarksSpec.scala`, `TextRunNormalizationSpec.scala`.
@@ -862,6 +956,81 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 - **Dependencies:** P06, P09, P11; Architektur §§8, 11, 15.
 
 ## P13 — Listen
+
+> **Abgeschlossen.** Neues Modul `ember-list` (sbt-ID `scalajs-ember-list`, Paket
+> `ember.editor.list`), abhängig von Kern und Rich-Text-Profil. Abnahme:
+>
+> ```
+> sbt --server "Test/testOnly *"
+> ```
+>
+> | Suite | Ergebnis |
+> | --- | --- |
+> | `ListEditingSpec` | 28 Tests grün |
+> | `ListNormalizationSpec` | 13 Tests grün |
+> | `ListProjectionSpec` (ember-standard) | 9 Tests grün |
+> | Gesamtes Scala-Gate | 569 Tests grün |
+>
+> **Kernlücke, die die Phase gefunden hat — `NodeType.validate` lief nie.**
+>
+> §8.2: „Vollvalidierung erfolgt beim Import; lokale Änderungen validieren betroffene Nodes und
+> Strukturpfade." Die strukturellen Invarianten prüfen die Operationen selbst. Die **fachliche**
+> Prüfung eines Knotens kann nur sein Deskriptor anstellen — und `NodeType.validate` lief bis
+> hierher ausschließlich in `Document.build`, also beim Import und sonst nie. Ein `ListNode` mit
+> `start = 0` ging glatt durch.
+>
+> Neu ist deshalb `EditorSession.checkChangedNodes` samt `UpdateError.InvalidDocument`: an der
+> Commit-Grenze, wo §10 auch die `PreCommitRule`n hinstellt — hinter den Transforms, vor der
+> Veröffentlichung. Nicht in der Operation, denn ein Zwischenstand verdient kein Urteil: eine
+> Formatierung schneidet einen Textlauf in drei Teile und fügt sie danach wieder zusammen. Und
+> nur für die tatsächlich geänderten Knoten, damit ein Tastendruck in einem 100 000-Knoten-
+> Dokument eine Prüfung kostet und nicht 100 000.
+>
+> **Projektionsfehler, den die Phase gefunden hat — ein Move in einen neu erzeugten Container.**
+>
+> Einen Absatz in eine Liste zu fassen sind drei Änderungen auf einmal: Liste erzeugt, Item
+> erzeugt, Absatz bewegt. `transferTo` braucht die Zielgruppe — und die entsteht erst durch die
+> Neuordnung, die *nach* dem Transfer läuft. In der bisherigen Reihenfolge warf die Neuordnung
+> den Absatz aus der alten Gruppe (und unmountete ihn), und die neue Item-Gruppe baute einen
+> frischen. §15.1s „Move erhält Node-Identität" galt damit für jeden Move außer dem häufigsten
+> in einer Liste.
+>
+> `DocumentProjection.mountNewContainers` montiert neu erzeugte Container jetzt vorab, mit zwei
+> Anpassungen: die Elterngruppe behält die abwandernden Knoten vorläufig (sonst unmountet sie
+> deren Komponenten), und die neuen Gruppen entstehen **ohne** die ankommenden Knoten (sonst
+> baute die Item-Gruppe einen zweiten Absatz, Sekundenbruchteile bevor der echte ankommt). Der
+> Zwischenzustand lebt für die Dauer eines synchronen Commits; §10 garantiert, dass darin kein
+> Beobachter läuft.
+>
+> **Eine Entwurfsentscheidung, die ein Test erzwungen hat — Ausrücken nimmt die Nachfolger mit.**
+>
+> Ein Item verlässt seine Liste *unten*, also in Lesereihenfolge hinter allem, was noch darin
+> steckt. Blieben die nachfolgenden Punkte zurück, stünden sie vor dem Punkt, dem sie folgten:
+> `[Zwei, Drei]` ausrücken und das Dokument läse „Drei, Zwei". Sie werden deshalb zur Unterliste
+> des ausgerückten Items (verschachtelt) beziehungsweise zu einer neuen Liste hinter den
+> herausgelösten Blöcken (oberste Ebene). Das ist auch, was Ein- und Ausrücken zueinander invers
+> macht.
+>
+> **Bewusste Entscheidungen:**
+>
+> - *Das Teilen ruft die Funktion, nicht den Command.* Der Blocksplit liegt im Rich-Text-Profil
+>   und ist über einen Dispatch nicht erreichbar: §10 gibt Command-Handlern einen
+>   `TransformScope`, gerade damit sie keine Command-Kette starten können. Der gemeinsame Code
+>   wird als Funktion auf dem Entwurf aufgerufen — gleiches Verhalten, keine Kette, und die
+>   Beschränkung bleibt intakt statt umgangen.
+> - *`adjacentListsJoin` schaut rückwärts.* Der dirty Knoten muss handeln; eine vorwärts
+>   schauende Regel würde nur den fragen, der nichts hinter sich hat. Derselbe Fehler wie beim
+>   Textlauf-Merge in P12, in derselben Form — und diesmal beim Schreiben erkannt.
+> - *Tightness wird getragen, nicht abgeleitet.* Sonst änderte sich das Dokument, sobald jemand
+>   einen zweiten Absatz in ein Item schreibt.
+> - *`ListSupport` unterdrückt den Absatz eines tight-Items nicht.* Das hieße, ein Kind zu
+>   verstecken, und eine `HtmlSemantics` beschreibt einen Knoten ohne seine Kinder mit Absicht
+>   (§15.1). Der Unterschied bleibt im Dokument, wo §18.2 ihn will, und zeigt sich beim
+>   Markdown-Writer in P18.
+> - *Tab-Einrückung in der Demo, nicht als Vertrag.* P13s Risikozeile hält fest, dass sie „eine
+>   spätere opt-in Browserentscheidung" bleibt; die Demo bindet sie, das Modul nicht.
+>
+> Modulvertrag: [ember-list/README.md](ember-list/README.md).
 
 - **Ziel:** Strukturell korrekte Listen mit vorhersehbarer Editing-Semantik.
 - **Module:** Neues list; standard; IT.

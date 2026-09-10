@@ -28,7 +28,8 @@ final case class HtmlAttribute private (name: String, value: String)
 object HtmlAttribute:
 
   /** Bewusst eng. Erweitert wird die Liste, wenn ein Knotentyp ein Attribut belegt braucht. */
-  private val allowed = Set("id", "lang", "dir", "href", "title", "alt", "src", "width", "height")
+  private val allowed =
+    Set("id", "lang", "dir", "href", "title", "alt", "src", "width", "height", "start")
 
   private val editorPrefix = "data-ember-"
 

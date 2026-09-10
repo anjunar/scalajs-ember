@@ -1,4 +1,4 @@
-# scalajs-ember-standard
+| Produktionsabhängigkeiten | `scalajs-ember-core`, `scalajs-ember-rich-text`, `scalajs-ember-list`, `scalajs-ember-html`, `scalajs-ember-jfx` |# scalajs-ember-standard
 
 Die Standardadapter des Ember-Editors: der Ort, an dem Knotenarten und Renderer einander
 kennen. Einzeln wählbar, nicht als Sammelregistrierung.
@@ -13,8 +13,14 @@ Verbindlicher Entwurf: [JFX_EDITOR_ARCHITECTURE.md](../JFX_EDITOR_ARCHITECTURE.m
 
 ## Stand
 
-P09 abgeschlossen. Vorhanden: `ParagraphSupport` mit Wurzel, Absatz und Textlauf. Heading,
-Quote, Listen, Links, Code und Bilder folgen mit P12–P16, jeweils als eigenes `*Support`.
+P09, P12 und P13 abgeschlossen. Vorhanden: `ParagraphSupport` (Wurzel, Absatz, Textlauf),
+`RichTextSupport` (Überschrift, Zitat, Umbrüche) samt `StandardMarkTags` — der Tabelle, die aus
+den fünf eingebauten Marks HTML-Tags macht — und `ListSupport` (`ul`/`ol`/`li` samt Startnummer).
+Links, Code und Bilder folgen mit P14–P16, jeweils als eigenes `*Support`.
+
+`strong` und `em`, nicht `b` und `i`: §16 verlangt semantisches HTML, und das sagt, was gemeint
+ist, statt wie es aussieht. Underline bekommt `u` — nicht weil HTML dafür eine gute Antwort
+hätte, sondern weil §8.2 die Mark aufzählt.
 
 ## Warum das ein eigenes Modul ist
 
