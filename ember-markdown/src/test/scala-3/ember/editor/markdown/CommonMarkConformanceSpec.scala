@@ -3,35 +3,36 @@ package ember.editor.markdown
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-/** The block parser against the official conformance suite.
+/** The parser against the official conformance suite.
   *
   * ==What this suite can claim and what it cannot==
   *
-  * P17's risk line is blunt about it: "Keine behauptete vollstaendige CommonMark-Konformitaet
-  * aus einfachen Happy-Path-Tests." So this suite does not claim conformance. It measures three
-  * things, and each is a different kind of statement:
+  * P17s risk line is blunt: "Keine behauptete vollstaendige CommonMark-Konformitaet aus
+  * einfachen Happy-Path-Tests." So this suite claims nothing. It measures three things, and
+  * each is a different kind of statement:
   *
   *   1. '''Robustness.''' All 652 examples parse, within the default limits, without an
   *      exception. That is a real property and it holds today.
   *   2. '''Well-formed spans.''' Every span of every parse lies inside its parent's and inside
   *      the source. §18.2 asks for source maps; a source map with a span pointing outside its
   *      block is worse than none.
-  *   3. '''Coverage, as a number.''' How many examples a '''block-only''' renderer reproduces
-  *      byte for byte. That number is the "tatsaechlich getestete Teilmenge" of §18.1 -- and
-  *      because it is asserted exactly and not as a lower bound, neither a regression nor an
-  *      improvement can pass unnoticed.
+  *   3. '''Coverage, as a number.''' How many examples the parser reproduces byte for byte.
+  *      That number is the "tatsaechlich getestete Teilmenge" of §18.1 -- and because it is
+  *      asserted exactly and not as a lower bound, neither a regression nor an improvement can
+  *      pass unnoticed.
   *
-  * The number is not a conformance score. Most of the remaining examples fail on inline
-  * content the block parser deliberately leaves alone -- emphasis, links, code spans, entities,
-  * escapes. P18 is what moves it.
+  * After P18 the number is 651 of 652, and the one that is left is not an accident: it uses
+  * named character references the default [[EntityTable]] deliberately does not carry. Swapping
+  * in a fuller table is one line of application code; shipping 2231 names in every browser
+  * bundle is not something a library should decide for its users.
   */
-final class CommonMarkBlockSpec extends AnyFlatSpec with Matchers {
+final class CommonMarkConformanceSpec extends AnyFlatSpec with Matchers {
 
-  /** How many of the 652 examples a block-only renderer reproduces exactly.
+  /** How many of the 652 examples the parser reproduces exactly.
     *
     * Raise it when the parser gets better; never lower it without saying why in the commit.
     */
-  private val BlockOnlyMatches = 337
+  private val ExactMatches = 651
 
   private lazy val outcomes: Vector[(SpecExample, Outcome)] =
     SpecFixtures.all.map(example => example -> outcomeOf(example))
@@ -47,7 +48,7 @@ final class CommonMarkBlockSpec extends AnyFlatSpec with Matchers {
       Markdown.parseSyntax(example.markdown) match
         case Left(error) => Outcome.Refused(error)
         case Right(result) =>
-          val rendered = BlockHtml.render(result.document)
+          val rendered = ConformanceHtml.render(result.document)
           if rendered == example.html then Outcome.Matches else Outcome.Differs(rendered)
     catch case failure: Throwable => Outcome.Threw(s"${failure.getClass.getName}: ${failure.getMessage}")
 
@@ -134,7 +135,7 @@ final class CommonMarkBlockSpec extends AnyFlatSpec with Matchers {
   // 3. Abdeckung, als Zahl
   // ---------------------------------------------------------------------------------------
 
-  "A block-only renderer" should s"reproduce exactly $BlockOnlyMatches of the 652 examples" in {
+  "The parser" should s"reproduce exactly $ExactMatches of the 652 examples" in {
     val matching = outcomes.count(_._2 == Outcome.Matches)
 
     withClue(
@@ -142,7 +143,7 @@ final class CommonMarkBlockSpec extends AnyFlatSpec with Matchers {
         "Steigt sie, ist die Zahl in dieser Suite nachzuziehen; faellt sie, ist etwas kaputt.\n" +
         report + "\n"
     ) {
-      matching shouldBe BlockOnlyMatches
+      matching shouldBe ExactMatches
     }
   }
 

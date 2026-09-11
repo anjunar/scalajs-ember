@@ -1,34 +1,28 @@
 package ember.editor.markdown
 
-/** A block-only HTML renderer. '''Test scope only.'''
+/** The conformance suites HTML renderer. '''Test scope only.'''
   *
   * ==Why this exists==
   *
-  * The conformance suite states its expectation as HTML. To compare against it at all, the
-  * block tree has to become HTML -- and P17 has no writer yet (that is P18, and it writes
-  * Markdown, not HTML).
+  * The conformance suite states its expectation as HTML, so comparing against it needs an HTML
+  * renderer -- and this module has no such thing on purpose. §6 puts HTML in `ember-html`, and
+  * P18s writer writes Markdown.
   *
-  * So this renders exactly what a block parser knows and puts the '''unparsed inline source'''
-  * where inline content would go, escaped as text. Every example whose inline content is plain
-  * text then matches the specification byte for byte; every example that needs emphasis, a
-  * link, a code span, an entity or a backslash escape does not.
-  *
-  * That is the point. The count of matching examples is a measurement of how much of CommonMark
-  * this module actually implements, and §18.1 asks for exactly that: "Bis die Konformitaetsfaelle
-  * vollstaendig bestanden sind, wird nur die tatsaechlich getestete Teilmenge beworben." The
-  * number lives in [[CommonMarkBlockSpec]] and will move in P18.
+  * So this exists here, in the test scope, doing exactly one job: turning a syntax tree into
+  * the HTML the specification expects, so that the count of matching examples is a measurement
+  * and not an impression. §18.1 asks for that measurement.
   *
   * ==Why it is not in the main sources==
   *
-  * Because it would be a second HTML writer, and §6 puts HTML in `ember-html`. A renderer that
-  * exists only to make a test comparable is a test fixture, and putting it in `src/main` would
-  * make it something an application could find and mistake for the real one.
+  * Because it would be a second HTML writer. A renderer that exists only to make a test
+  * comparable is a test fixture, and putting it in `src/main` would make it something an
+  * application could find and mistake for the real one.
   *
   * The whitespace rules follow `lib/render/html.js` of commonmark.js: `cr` writes a newline
   * unless the last thing written was one. Getting that wrong makes every comparison fail for a
   * reason that has nothing to do with the parser.
   */
-object BlockHtml:
+object ConformanceHtml:
 
   def render(block: MarkdownBlock): String =
     val out = new Builder
@@ -40,21 +34,21 @@ object BlockHtml:
       case document: MarkdownDocument =>
         document.children.foreach(write(_, out, tightItem = false))
 
-      case MarkdownBlock.Paragraph(_, _, source) =>
+      case MarkdownBlock.Paragraph(_, _, inlines) =>
         // In einer engen Liste hat ein Absatz keine Huelle -- das ist der ganze sichtbare
         // Unterschied zwischen eng und weit (§18.2).
-        if tightItem then out.literal(escape(source))
+        if tightItem then out.literal(inlineHtml(inlines))
         else
           out.newline()
           out.literal("<p>")
-          out.literal(escape(source))
+          out.literal(inlineHtml(inlines))
           out.literal("</p>")
           out.newline()
 
-      case MarkdownBlock.Heading(_, _, level, _, source) =>
+      case MarkdownBlock.Heading(_, _, level, _, inlines) =>
         out.newline()
         out.literal(s"<h$level>")
-        out.literal(escape(source))
+        out.literal(inlineHtml(inlines))
         out.literal(s"</h$level>")
         out.newline()
 
@@ -114,6 +108,33 @@ object BlockHtml:
         children.foreach(write(_, out, tightItem))
         out.literal("</li>")
         out.newline()
+
+  /** Inline content as HTML, following `lib/render/html.js`.
+    *
+    * Not called `inline` -- that is a soft keyword in Scala 3 and the call sites stop
+    * compiling in a way that names everything except the cause.
+    */
+  private def inlineHtml(inlines: Vector[MarkdownInline]): String =
+    inlines.map {
+      case MarkdownInline.Text(_, _, value)   => escape(value)
+      case MarkdownInline.Code(_, _, literal) => s"<code>${escape(literal)}</code>"
+      case MarkdownInline.SoftBreak(_, _)     => "\n"
+      case MarkdownInline.HardBreak(_, _)     => "<br />\n"
+      case MarkdownInline.HtmlInline(_, _, literal) => literal
+      case MarkdownInline.Emphasis(_, _, kids)      => s"<em>${inlineHtml(kids)}</em>"
+      case MarkdownInline.Strong(_, _, kids)        => s"<strong>${inlineHtml(kids)}</strong>"
+
+      case MarkdownInline.Link(_, _, destination, title, kids) =>
+        val titleAttribute = title.map(value => s""" title="${escape(value)}"""").getOrElse("")
+        s"""<a href="${escape(destination)}"$titleAttribute>${inlineHtml(kids)}</a>"""
+
+      case MarkdownInline.Image(_, _, destination, title, kids) =>
+        // Der Alt-Text ist der reine Text der Kinder -- ein `<em>` darin verschwindet, weil ein
+        // Attribut kein Markup traegt. Genau so macht es die Vorlage.
+        val titleAttribute = title.map(value => s""" title="${escape(value)}"""").getOrElse("")
+        val alt            = escape(MarkdownInline.plainText(kids))
+        s"""<img src="${escape(destination)}" alt="$alt"$titleAttribute />"""
+    }.mkString
 
   /** `escapeXml` from `lib/common.js`: exactly these four, and nothing else. */
   private def escape(text: String): String =

@@ -1,8 +1,8 @@
 # JFX Editor: ausführbarer Implementierungsplan
 
-Status: **Meilenstein A und B stehen, C und D angefangen** — P01–P17 abgeschlossen (790
-Scala-Tests und 126 Browserfälle in Chromium, Firefox und WebKit grün),
-P18–P30 offen. Dieses Repository (`scalajs-ember`) ist das in
+Status: **Meilenstein A und B stehen, C und D angefangen** — P01–P17 abgeschlossen, P18 zur
+Hälfte (864 Scala-Tests und 126 Browserfälle in Chromium, Firefox und WebKit grün),
+P18s Dokumentadapter und P19–P30 offen. Dieses Repository (`scalajs-ember`) ist das in
 Architektur und Plan gemeinte „eigene Repository“. Die generischen JFX-Core-Anteile aus
 P08/P09, P19a, P20 und P23 sind **nicht hier, sondern im Nachbar-Repo `../scalajs-jfx`**
 implementiert und seit P17 als veröffentlichtes Artefakt `com.anjunar:scalajs-jfx-core:3.0.5`
@@ -1402,6 +1402,80 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 - **Dependencies:** P06; Architektur §18.
 
 ## P18 — Markdown: Inlines, Writer und Document-Adapter
+
+> **Zur Hälfte erledigt: Parser und Writer stehen, der Dokumentadapter fehlt.**
+>
+> Vorhanden: `InlineParser.scala`, `DelimiterStack.scala`, `EntityTable.scala`,
+> `MarkdownWriter.scala` sowie `MarkdownInlineSpec` und `MarkdownRoundTripSpec`.
+> **Offen:** `MarkdownRule.scala`, `MarkdownCodec.scala`, `standard/MarkdownSupport.scala`,
+> `standard/StandardJsonSupport.scala` und die Suiten `MarkdownSourceMapSpec` sowie
+> `StandardJsonRoundTripSpec`. Bis dahin gibt es einen Parser und einen Writer, aber keinen
+> Import-/Exportweg ins Dokument.
+>
+> ```
+> sbt --server "Test/testOnly *"
+> ```
+>
+> | Suite | Ergebnis |
+> | --- | --- |
+> | `MarkdownInlineSpec` | 53 Tests grün |
+> | `MarkdownRoundTripSpec` | 19 Tests grün |
+> | `CommonMarkConformanceSpec` | 7 Tests grün |
+> | `ember-markdown` gesamt | 145 Tests grün |
+> | Gesamtes Scala-Gate | 864 Tests grün |
+> | Browser-Gate | 126 Fälle grün |
+>
+> **Zwei Zahlen, zwei verschiedene Aussagen: 651 und 621 von 652.**
+> Die erste ist, wie viel der Parser zeichengenau reproduziert (337 → **651**, gemessen gegen
+> denselben Korpus wie in P17). Die zweite ist, wie viele Bäume Schreiben und Neu-Parsen
+> unverändert überstehen — die einzige Zusicherung, die §18.2 macht:
+> `decode(encode(x)) ≃ x`. Dass sie niedriger liegt, ist erwartbar und kein Mangel: der
+> Round-Trip prüft die strengere Eigenschaft. Beide werden **exakt** geprüft.
+>
+> **Vier Fehler, die nur der Korpus gefunden hat.** Jeder einzelne wäre in handgeschriebenen
+> Tests durchgerutscht:
+>
+> - *Code-Spans schlossen nie.* Das Muster `[^`]*`+` liefert Text und Backtick-Lauf in einem
+>   Stück, und der Vergleich mit dem Öffnungslauf kann dann nie stimmen. `` `foo` `` blieb Text.
+>   Jetzt ein expliziter Scan statt einer Regex.
+> - *`*foo*` ergab ein leeres `<em>`.* `wrap` markierte die verschobenen Slots als entfernt --
+>   und dieselben Objekte standen anschließend in den Kindern des neuen Knotens, wo die
+>   Markierung sie ebenso ausblendete. Sie müssen aus dem Puffer **entfernt** werden.
+> - *`[*a*](/url)` verlor seine Emphasis.* Ein Delimiter überlebt den Move, der seinen Text in
+>   einen Link geschoben hat -- eine verkettete Liste stört das nicht, ein flacher Puffer schon.
+>   `locate` sucht jetzt rekursiv.
+> - *`out.append(uri, i, i + 3)` schrieb `(uri,3,6)` in den Puffer.* Scalas `StringBuilder` hat
+>   diese Überladung nicht, und statt eines Compilefehlers greift **Auto-Tupling**. Fällt erst
+>   in einer URL auf, die ein `%` enthält.
+>
+> **Ein zweiter unbegrenzter Rekursionspfad, der die Grenze umging.** `collectReferences` lief
+> **vor** `materialise`, wo `maxDepth` die Tiefe abfängt -- `"> " * 50000` überlief damit den
+> Aufrufstapel, obwohl die Grenze dafür da war. Jetzt mit eigenem Stapel. Der Test, der es fand,
+> stammt aus P17 und prüfte genau diese Grenze; er wurde rot, weil eine neue Codepfad-Ebene
+> daran vorbeiging.
+>
+> **Bewusste Entscheidungen:**
+>
+> - *Keine Smart Punctuation, und keinen Schalter dafür.* Die Vorlage kann Anführungszeichen
+>   runden und `--` zu Gedankenstrichen machen. §18.2 verlangt einen Round-Trip, der Bedeutung
+>   erhält, und die Zeichensetzung des Autors umzuschreiben ist eine Änderung des Inhalts.
+> - *Eine benannte Entity-Teilmenge statt der WHATWG-Liste.* 2231 Namen wären rund 150 kB
+>   Tabelle in jedem Browser-Bundle, für `&angmsdaa;` und Verwandte. `EntityTable.common` deckt
+>   ab, was in Prosa steht -- vor allem das Latin-1-Supplement, ohne das `Gr&ouml;&szlig;e`
+>   einen Round-Trip nicht überlebt. Ein unbekannter Name bleibt unverändert stehen, und eine
+>   Anwendung gibt mehr mit. Das ist der eine der 652 Fälle, der nicht durchgeht.
+> - *Der Trie aus `node_modules/entities` wurde bewusst nicht angezapft.* Er liegt im
+>   **Nachbar**-`node_modules`, von dem dieser Build sich gerade gelöst hat; ein Build an einem
+>   fremden npm-Install wäre schlechter als die Quell-Abhängigkeit vorher.
+> - *Ziele bleiben `String`, nicht `LinkUrl`.* §6 gibt diesem Modul den Kern allein. Die Tür
+>   steht einen Schritt später: `ember-standard` fährt die Policy, genau wie §19.1 es verlangt.
+>   Der Parser normalisiert, der Adapter entscheidet.
+> - *Der Writer schreibt einen Rückstrich für den harten Umbruch*, nicht zwei Leerzeichen.
+>   Unsichtbarer Leerraum am Zeilenende überlebt keinen Editor, der ihn trimmt.
+> - *`inline` ist ein Soft Keyword.* Zweimal in Folge als Methodenname gewählt, zweimal mit
+>   Fehlermeldungen, die alles außer der Ursache benennen. Steht jetzt als Kommentar dort.
+>
+> Modulvertrag: [ember-markdown/README.md](ember-markdown/README.md).
 
 - **Ziel:** Verbindliche Markdown-Teilmenge direkt zwischen Syntax und Editor-Document austauschen.
 - **Module:** markdown; standard; Node-Feature-Module.

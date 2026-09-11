@@ -13,15 +13,12 @@ package ember.editor.markdown
   * `ParagraphNode` directly would have to know the rich-text profile, and an application with
   * its own block types could not reuse it.
   *
-  * ==Inline content is still source==
+  * ==Inline content==
   *
-  * P17 is the '''block''' parser. Where a block holds inline content -- a paragraph, a heading
-  * -- that content is the raw source text, unparsed, with the leading and trailing whitespace
-  * the block rules stripped and nothing else. P18 turns it into inline structure.
-  *
-  * The type says so: the field is called `source`, not `text`, and its documentation says what
-  * it still contains. A `String` named `text` would invite someone to render it, and rendering
-  * unparsed Markdown as text is exactly the bug this naming prevents.
+  * A paragraph and a heading hold [[MarkdownInline]] values, not a string. Under a profile
+  * whose [[Conformance]] is [[Conformance.BlocksOnly]] that vector is a single
+  * [[MarkdownInline.Text]] holding the raw source -- which is what "not parsed" means, stated
+  * as a value rather than as an empty field a consumer has to know about.
   */
 sealed trait MarkdownBlock:
 
@@ -43,13 +40,12 @@ object MarkdownBlock:
   sealed trait Leaf extends MarkdownBlock:
     final def children: Vector[MarkdownBlock] = Vector.empty
 
-  /** One or more lines of inline source, separated by newlines.
-    *
-    * A paragraph that begins with a link reference definition still contains it: resolving
-    * those needs the inline parser and belongs to P18. Until then a `[foo]: /url` line is
-    * paragraph source like any other.
-    */
-  final case class Paragraph(id: SyntaxId, span: SourceSpan, source: String) extends Leaf
+  /** A paragraph, as inline content. */
+  final case class Paragraph(
+      id: SyntaxId,
+      span: SourceSpan,
+      inlines: Vector[MarkdownInline]
+  ) extends Leaf
 
   /** ATX (`# foo`) or Setext (`foo` over `===`).
     *
@@ -63,7 +59,7 @@ object MarkdownBlock:
       span: SourceSpan,
       level: Int,
       style: HeadingStyle,
-      source: String
+      inlines: Vector[MarkdownInline]
   ) extends Leaf
 
   /** Fenced or indented code. `literal` is verbatim, including inner blank lines.
@@ -111,6 +107,88 @@ object MarkdownBlock:
   /** One item. Holds blocks, plural -- §18.2 asks for "mehrteilige ListItems". */
   final case class ListItem(id: SyntaxId, span: SourceSpan, children: Vector[MarkdownBlock])
       extends Container
+
+/** Inline syntax: what lives inside a paragraph or a heading.
+  *
+  * ==Why the destinations are plain strings==
+  *
+  * A [[MarkdownInline.Link]] carries `destination: String` and not a `LinkUrl`. That looks like
+  * a missed opportunity for the "type is the door" pattern the rest of this editor uses -- and
+  * it is deliberate: `LinkUrl` lives in `ember-link` and `MediaUrl` in `ember-image`, and §6
+  * gives this module the core alone.
+  *
+  * The door is still there, one step later. `ember-standard` runs the application's policy when
+  * it turns syntax into a document, exactly as §19.1 asks: "URLs werden nach
+  * Entities-/Whitespace-Normalisierung durch die jeweilige Link-/Media-Policy geprueft." The
+  * parser normalises; the adapter decides. A parser that decided would need to know which
+  * policy, and there is no such thing as the one policy.
+  */
+sealed trait MarkdownInline:
+
+  def id: SyntaxId
+
+  /** Where this came from, in UTF-16 units of the original source. */
+  def span: SourceSpan
+
+  def children: Vector[MarkdownInline]
+
+object MarkdownInline:
+
+  sealed trait Leaf extends MarkdownInline:
+    final def children: Vector[MarkdownInline] = Vector.empty
+
+  /** Literal text. Escapes and entities are already resolved. */
+  final case class Text(id: SyntaxId, span: SourceSpan, value: String) extends Leaf
+
+  /** A code span. `literal` is verbatim, with the specification's whitespace rule applied. */
+  final case class Code(id: SyntaxId, span: SourceSpan, literal: String) extends Leaf
+
+  /** A newline inside a paragraph. §18.2 asks to keep it apart from a hard break. */
+  final case class SoftBreak(id: SyntaxId, span: SourceSpan) extends Leaf
+
+  /** Two trailing spaces, or a trailing backslash. A `<br>`. */
+  final case class HardBreak(id: SyntaxId, span: SourceSpan) extends Leaf
+
+  /** A raw inline tag, kept as text under the safe profile (§18.1). */
+  final case class HtmlInline(id: SyntaxId, span: SourceSpan, literal: String) extends Leaf
+
+  final case class Emphasis(id: SyntaxId, span: SourceSpan, children: Vector[MarkdownInline])
+      extends MarkdownInline
+
+  final case class Strong(id: SyntaxId, span: SourceSpan, children: Vector[MarkdownInline])
+      extends MarkdownInline
+
+  final case class Link(
+      id: SyntaxId,
+      span: SourceSpan,
+      destination: String,
+      title: Option[String],
+      children: Vector[MarkdownInline]
+  ) extends MarkdownInline
+
+  /** An image. Its children are the alt text -- CommonMark models it that way because the alt
+    * text may itself contain markup, and flattening it too early would lose that.
+    */
+  final case class Image(
+      id: SyntaxId,
+      span: SourceSpan,
+      destination: String,
+      title: Option[String],
+      children: Vector[MarkdownInline]
+  ) extends MarkdownInline
+
+  /** The plain text of an inline tree -- what an image's alt attribute becomes. */
+  def plainText(inlines: Vector[MarkdownInline]): String =
+    val out = new StringBuilder
+    def walk(inline: MarkdownInline): Unit = inline match
+      case Text(_, _, value)     => out.append(value)
+      case Code(_, _, literal)   => out.append(literal)
+      case SoftBreak(_, _)       => out.append('\n')
+      case HardBreak(_, _)       => out.append('\n')
+      case HtmlInline(_, _, _)   => ()
+      case other                 => other.children.foreach(walk)
+    inlines.foreach(walk)
+    out.toString
 
 /** Which syntax produced a heading. */
 enum HeadingStyle:

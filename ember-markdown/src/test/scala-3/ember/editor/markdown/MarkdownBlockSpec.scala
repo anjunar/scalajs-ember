@@ -7,7 +7,7 @@ import org.scalatest.matchers.should.Matchers
   *
   * ==Why this suite exists next to the conformance suite==
   *
-  * [[CommonMarkBlockSpec]] measures a number. It says how much of the specification the parser
+  * [[CommonMarkConformanceSpec]] measures a number. It says how much of the specification the parser
   * reproduces, and it catches a regression anywhere -- but when it fails it says "336 instead
   * of 337", and finding out what broke means reading a diff of the whole suite.
   *
@@ -26,9 +26,9 @@ final class MarkdownBlockSpec extends AnyFlatSpec with Matchers {
   private def outline(source: String): String =
     def describe(block: MarkdownBlock): String = block match
       case _: MarkdownDocument                        => "document"
-      case MarkdownBlock.Paragraph(_, _, text)        => s"""paragraph "${escape(text)}""""
-      case MarkdownBlock.Heading(_, _, level, style, text) =>
-        s"""h$level ${style.toString.toLowerCase} "${escape(text)}""""
+      case MarkdownBlock.Paragraph(_, _, inlines) => s"""paragraph "${flatten(inlines)}""""
+      case MarkdownBlock.Heading(_, _, level, style, inlines) =>
+        s"""h$level ${style.toString.toLowerCase} "${flatten(inlines)}""""
       case MarkdownBlock.CodeBlock(_, _, literal, None) => s"""code indented "${escape(literal)}""""
       case MarkdownBlock.CodeBlock(_, _, literal, Some(fence)) =>
         s"""code ${fence.char}${fence.length} info="${fence.info}" "${escape(literal)}""""
@@ -49,6 +49,24 @@ final class MarkdownBlockSpec extends AnyFlatSpec with Matchers {
 
   private def escape(text: String): String = text.replace("\n", "\\n").replace("\t", "\\t")
 
+  /** Inline content as one line. Structure gets brackets; a soft break stays a `\n`.
+    *
+    * This suite is about '''blocks''', so inline structure is shown only far enough to see that
+    * it is there. `MarkdownInlineSpec` is where it gets looked at properly.
+    */
+  private def flatten(inlines: Vector[MarkdownInline]): String =
+    escape(inlines.map {
+      case MarkdownInline.Text(_, _, value)  => value
+      case MarkdownInline.Code(_, _, value)  => s"`$value`"
+      case MarkdownInline.SoftBreak(_, _)    => "\n"
+      case MarkdownInline.HardBreak(_, _)    => "\\\\n"
+      case MarkdownInline.HtmlInline(_, _, v) => v
+      case MarkdownInline.Emphasis(_, _, kids) => s"<em>${flatten(kids)}</em>"
+      case MarkdownInline.Strong(_, _, kids)   => s"<strong>${flatten(kids)}</strong>"
+      case MarkdownInline.Link(_, _, target, _, kids)  => s"<a:$target>${flatten(kids)}</a>"
+      case MarkdownInline.Image(_, _, target, _, kids) => s"<img:$target>${flatten(kids)}</img>"
+    }.mkString)
+
   private def blocks(source: String): Vector[MarkdownBlock] = parse(source).children
 
   // ---------------------------------------------------------------------------------------
@@ -56,11 +74,18 @@ final class MarkdownBlockSpec extends AnyFlatSpec with Matchers {
   // ---------------------------------------------------------------------------------------
 
   "A paragraph" should "keep its soft line breaks" in {
-    // §18.2: "Paragraphen, Soft-/Hardbreaks -- Unterschied erhalten." Ein Soft Break ist im
-    // Blockparser genau ein `\n` im Quelltext des Absatzes; was daraus wird, ist P18.
-    blocks("eins\nzwei\n") shouldBe Vector(
-      MarkdownBlock.Paragraph(blocks("eins\nzwei\n").head.id, SourceSpan(0, 9), "eins\nzwei")
-    )
+    // §18.2: "Paragraphen, Soft-/Hardbreaks -- Unterschied erhalten."
+    parse("eins\nzwei\n").children.head match
+      case MarkdownBlock.Paragraph(_, span, inlines) =>
+        span shouldBe SourceSpan(0, 9)
+        inlines should matchPattern {
+          case Vector(
+                MarkdownInline.Text(_, _, "eins"),
+                MarkdownInline.SoftBreak(_, _),
+                MarkdownInline.Text(_, _, "zwei")
+              ) =>
+        }
+      case other => fail(s"kein Absatz: $other")
   }
 
   it should "be separated from the next by a blank line" in {
@@ -76,12 +101,28 @@ final class MarkdownBlockSpec extends AnyFlatSpec with Matchers {
         |  paragraph "eins\nzwei"""".stripMargin
   }
 
-  it should "still hold its link reference definition" in {
-    // Die aufzuloesen braucht den Inline-Parser (P18). Bis dahin ist sie Absatzquelltext, und
-    // das ist ehrlicher, als sie stillschweigend wegzuwerfen.
-    outline("[foo]: /url\n") shouldBe
+  it should "disappear when it held nothing but link reference definitions" in {
+    // Eine Definition ist kein Block, sondern das Praefix eines Absatzes. Bleibt danach nichts
+    // uebrig, gibt es auch keinen Absatz -- ein leerer waere ein Knoten, den der Quelltext
+    // nicht meint.
+    outline("[foo]: /url\n") shouldBe "document"
+  }
+
+  it should "keep what stands after the definition" in {
+    outline("[foo]: /url\nText\n") shouldBe
       """document
-        |  paragraph "[foo]: /url"""".stripMargin
+        |  paragraph "Text"""".stripMargin
+  }
+
+  it should "keep the definition under a profile that resolves no inlines" in {
+    val document = Markdown
+      .parseSyntax("[foo]: /url\n", MarkdownProfile.blocksOnly)
+      .map(_.document)
+      .getOrElse(fail("nicht parsebar"))
+
+    document.children.head should matchPattern {
+      case MarkdownBlock.Paragraph(_, _, Vector(MarkdownInline.Text(_, _, "[foo]: /url"))) =>
+    }
   }
 
   // ---------------------------------------------------------------------------------------
@@ -388,8 +429,8 @@ final class MarkdownBlockSpec extends AnyFlatSpec with Matchers {
     // Wie in der Vorlage, und aus demselben Grund: ein NUL, das bis in ein DOM durchkommt, ist
     // eine Gefahr. U+FFFD hat dieselbe UTF-16-Laenge, also verschiebt es keinen Offset.
     parse("a\u0000b\n").children.head match
-      case MarkdownBlock.Paragraph(_, span, text) =>
-        text shouldBe "a\ufffdb"
+      case MarkdownBlock.Paragraph(_, span, inlines) =>
+        MarkdownInline.plainText(inlines) shouldBe "a\ufffdb"
         span shouldBe SourceSpan(0, 3)
       case other => fail(s"kein Absatz: $other")
   }
@@ -451,7 +492,7 @@ final class MarkdownBlockSpec extends AnyFlatSpec with Matchers {
     val result = Markdown.parseSyntax(source).getOrElse(fail("nicht parsebar"))
 
     result.sourceMap.blockAt(result.document, source.indexOf("eins")) should matchPattern {
-      case Some(MarkdownBlock.Paragraph(_, _, "eins")) =>
+      case Some(MarkdownBlock.Paragraph(_, _, Vector(MarkdownInline.Text(_, _, "eins")))) =>
     }
   }
 
@@ -570,11 +611,13 @@ final class MarkdownBlockSpec extends AnyFlatSpec with Matchers {
   // Das Profil
   // ---------------------------------------------------------------------------------------
 
-  "The profile" should "say that it resolves blocks only" in {
+  "The profile" should "say how much it resolves" in {
     // §18.1: "Bis die Konformitaetsfaelle vollstaendig bestanden sind, wird nur die
-    // tatsaechlich getestete Teilmenge beworben." Ein Feld statt eines Kommentars.
-    MarkdownProfile.commonMarkSafe.conformance shouldBe Conformance.BlocksOnly
-    MarkdownProfile.untrustedPaste.conformance shouldBe Conformance.BlocksOnly
+    // tatsaechlich getestete Teilmenge beworben." Ein Feld statt eines Kommentars -- und was
+    // `Inlines` wert ist, steht als Zahl in `CommonMarkConformanceSpec`.
+    MarkdownProfile.commonMarkSafe.conformance shouldBe Conformance.Inlines
+    MarkdownProfile.untrustedPaste.conformance shouldBe Conformance.Inlines
+    MarkdownProfile.blocksOnly.conformance shouldBe Conformance.BlocksOnly
   }
 
   it should "carry paste-sized limits in the paste profile" in {

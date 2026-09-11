@@ -123,6 +123,11 @@ private final class BlockParser(source: String, profile: MarkdownProfile):
 
       if failure.isEmpty then while tip != null do finalizeBlock(tip, lines.length)
 
+      // Erst alle Referenzdefinitionen einsammeln, dann die Inlines. Die Reihenfolge ist
+      // zwingend: eine Definition am Ende des Dokuments gilt fuer einen Link am Anfang.
+      if failure.isEmpty && profile.conformance == Conformance.Inlines then
+        collectReferences(document)
+
       failure match
         case Some(error) => Left(error)
         case None =>
@@ -135,6 +140,60 @@ private final class BlockParser(source: String, profile: MarkdownProfile):
               // Unerreichbar: die Wurzel ist immer `OpenKind.Document`. Der Fall steht hier,
               // damit der Compiler die Vollstaendigkeit prueft statt eines Casts.
               Left(ParseError.LimitExceeded("root", 1, other.children.length))
+
+  // -----------------------------------------------------------------------------------------
+  // Inlines
+  // -----------------------------------------------------------------------------------------
+
+  private val references = new ReferenceMap
+
+  private val inlineParser =
+    new InlineParser(profile, references, () => freshId(), amount => spend(amount))
+
+  private def freshId(): SyntaxId =
+    val id = SyntaxId(nextId)
+    nextId += 1
+    id
+
+  /** Reads leading link reference definitions off every paragraph, document-wide.
+    *
+    * A definition is not a block; it is a prefix of a paragraph. What remains after stripping
+    * is the paragraph, and a paragraph that was nothing but definitions disappears -- which is
+    * why this marks it rather than editing the tree from underneath itself.
+    */
+  private def collectReferences(root: OpenBlock): Unit =
+    // Mit einem eigenen Stapel und nicht rekursiv. Der Grund ist gemessen: `"> " * 50000`
+    // ueberlief hier den Aufrufstapel -- und zwar '''vor''' `materialise`, wo `maxDepth` die
+    // Tiefe abfaengt. Eine zweite unbegrenzte Rekursion hatte die Grenze umgangen, ohne dass
+    // ihr jemand das ansah.
+    val pending = mutable.Stack(root)
+    while pending.nonEmpty do
+      val block = pending.pop()
+      block.kind match
+        case OpenKind.Paragraph =>
+          val text     = trimWhitespace(block.content.toString)
+          val consumed = inlineParser.parseReferences(text)
+          if consumed > 0 then
+            // Der Offset zaehlt im getrimmten Text; `inlineSource` trimmt erneut, also stimmt
+            // beides ueberein.
+            val leading = block.content.toString.indexWhere(c => !isTrimmable(c))
+            block.referenceOffset = (if leading < 0 then 0 else leading) + consumed
+            if trimWhitespace(block.content.toString.substring(block.referenceOffset)).isEmpty
+            then block.kind = OpenKind.ReferencesOnly
+        case _ =>
+          // Rueckwaerts auf den Stapel, damit die Dokumentreihenfolge erhalten bleibt: die
+          // erste Definition eines Labels gewinnt, und "erste" heisst hier "im Quelltext".
+          block.children.reverseIterator.foreach(pending.push)
+
+  private def inlinesOf(block: OpenBlock): Vector[MarkdownInline] =
+    if profile.conformance == Conformance.BlocksOnly then
+      val text = block.inlineSource
+      if text.isEmpty then Vector.empty
+      else Vector(MarkdownInline.Text(freshId(), spanOfContent(block, 0, text.length), text))
+    else inlineParser.parse(block.inlineSource, position => block.sourceOffsetOf(position))
+
+  private def spanOfContent(block: OpenBlock, from: Int, to: Int): SourceSpan =
+    SourceSpan(block.sourceOffsetOf(from), block.sourceOffsetOf(to))
 
   // -----------------------------------------------------------------------------------------
   // Budget
@@ -242,6 +301,7 @@ private final class BlockParser(source: String, profile: MarkdownProfile):
     if partiallyConsumedTab then
       offset += 1
       tip.content.append(" " * (4 - (column % 4)))
+    tip.lineMap += ((tip.content.length, lineStart + offset))
     tip.content.append(restOfLine(offset)).append('\n')
 
   private def closeUnmatchedBlocks(): Unit =
@@ -286,7 +346,9 @@ private final class BlockParser(source: String, profile: MarkdownProfile):
         val newline   = content.indexOf('\n')
         val firstLine = if newline < 0 then content else content.substring(0, newline)
         val rest      = if newline < 0 then "" else content.substring(newline + 1)
-        block.info = unescapeString(trimWhitespace(firstLine))
+        // Entity-bewusst: ```` f&ouml;&ouml;` ist ein Info-String mit Umlauten, und der
+        // Info-String wird hier entschieden und nie vom Inline-Parser gesehen.
+        block.info = InlineParser.unescapeString(trimWhitespace(firstLine), profile.entities)
         block.literal = rest
 
       case OpenKind.Code(false, _, _, _) =>
@@ -485,7 +547,7 @@ private final class BlockParser(source: String, profile: MarkdownProfile):
       if blank && (container.htmlKind == 6 || container.htmlKind == 7) then Continue.Failed
       else Continue.Matched
 
-    case OpenKind.Paragraph =>
+    case OpenKind.Paragraph | OpenKind.ReferencesOnly =>
       if blank then Continue.Failed else Continue.Matched
 
     case OpenKind.Heading(_, _) | OpenKind.ThematicBreak =>
@@ -539,6 +601,7 @@ private final class BlockParser(source: String, profile: MarkdownProfile):
           val block = addChild(OpenKind.Heading(trimWhitespace(marker).length, HeadingStyle.Atx), at)
           // Ein `###` am Zeilenende ist eine schliessende Sequenz, kein Inhalt.
           val rest = restOfLine(offset)
+          block.lineMap += ((0, lineStart + offset))
           block.content.append(
             AtxTrailing.replaceFirstIn(AtxOnlyClosing.replaceFirstIn(rest, ""), "")
           )
@@ -595,7 +658,13 @@ private final class BlockParser(source: String, profile: MarkdownProfile):
       if SetextHeadingLine.findPrefixOf(rest).isEmpty then Start.None
       else
         closeUnmatchedBlocks()
-        if container.content.isEmpty then Start.None
+
+        // Referenzdefinitionen zuerst: `[foo]: /url` ueber einem `===` ist eine Definition und
+        // keine Ueberschrift, und was danach nichts mehr uebrig laesst, ist auch keine.
+        if profile.conformance == Conformance.Inlines then collectReferences(container)
+
+        if trimWhitespace(container.content.toString.substring(container.referenceOffset)).isEmpty
+        then Start.None
         else
           // In place: der Absatz haelt Inhalt und Startoffset bereits, ein neuer Knoten muesste
           // beides kopieren. Die Vorlage haengt um, weil ihr Baum eine verkettete Liste ist.
@@ -721,7 +790,10 @@ private final class BlockParser(source: String, profile: MarkdownProfile):
       var error: Option[ParseError] = None
 
       block.children.foreach { child =>
-        if error.isEmpty then
+        // Ein Absatz, der nur Referenzdefinitionen enthielt, verschwindet: die Definitionen
+        // stehen jetzt in der Referenzkarte, und ein leerer Absatz waere ein Knoten, den der
+        // Quelltext nicht meint.
+        if error.isEmpty && child.kind != OpenKind.ReferencesOnly then
           materialise(child, depth + 1, spans) match
             case Left(problem) => error = Some(problem)
             case Right(built)  => builder += built
@@ -747,9 +819,12 @@ private final class BlockParser(source: String, profile: MarkdownProfile):
             case OpenKind.Item(_) =>
               MarkdownBlock.ListItem(id, span, children)
             case OpenKind.Paragraph =>
-              MarkdownBlock.Paragraph(id, span, trimWhitespace(block.content.toString))
+              MarkdownBlock.Paragraph(id, span, inlinesOf(block))
+            case OpenKind.ReferencesOnly =>
+              // Nur erreichbar, wenn die Wurzel selbst so markiert waere -- sie ist es nie.
+              MarkdownBlock.Paragraph(id, span, Vector.empty)
             case OpenKind.Heading(level, style) =>
-              MarkdownBlock.Heading(id, span, level, style, trimWhitespace(block.content.toString))
+              MarkdownBlock.Heading(id, span, level, style, inlinesOf(block))
             case OpenKind.Code(fenced, char, length, _) =>
               val fence = if fenced then Some(Fence(char, length, block.info)) else None
               MarkdownBlock.CodeBlock(id, span, block.literal, fence)
@@ -893,7 +968,7 @@ private object BlockParser:
     * graphic space standing. The specification has examples with both, so the difference is
     * observable and this is not pedantry.
     */
-  private def isTrimmable(c: Char): Boolean =
+  def isTrimmable(c: Char): Boolean =
     c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\f' || c == '\u000b' ||
       c == '\u00a0' || c == '\u1680' || (c >= '\u2000' && c <= '\u200a') ||
       c == '\u2028' || c == '\u2029' || c == '\u202f' || c == '\u205f' ||
@@ -905,29 +980,6 @@ private object BlockParser:
     while start < end && isTrimmable(text.charAt(start)) do start += 1
     while end > start && isTrimmable(text.charAt(end - 1)) do end -= 1
     text.substring(start, end)
-
-  private val EscapableChars = """!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~""".toSet
-
-  /** Backslash escapes in an info string.
-    *
-    * The only unescaping the block parser does, and it does it because the info string is a
-    * block-level value: it is decided when the fence is finalised, not when inlines are parsed.
-    * Everything else stays escaped for P18.
-    */
-  def unescapeString(text: String): String =
-    if text.indexOf('\\') < 0 then text
-    else
-      val out = new StringBuilder(text.length)
-      var i   = 0
-      while i < text.length do
-        val c = text.charAt(i)
-        if c == '\\' && i + 1 < text.length && EscapableChars.contains(text.charAt(i + 1)) then
-          out.append(text.charAt(i + 1))
-          i += 2
-        else
-          out.append(c)
-          i += 1
-      out.toString
 
   /** The result of one continuation check. Three outcomes, exactly as in the reference. */
   enum Continue:
@@ -959,6 +1011,15 @@ private object BlockParser:
     val children: mutable.ArrayBuffer[OpenBlock] = mutable.ArrayBuffer.empty
     val content: StringBuilder                   = new StringBuilder
 
+    /** Where each appended line started, as `(position in content, absolute source offset)`.
+      *
+      * The two are '''not''' the same string. Block parsing strips markers -- the `> ` of a
+      * quote, the indentation of an item, the four spaces of a code block -- so the content is
+      * not a slice of the source, and an inline span computed from a content position alone
+      * would point at the wrong character. This is the map back.
+      */
+    val lineMap: mutable.ArrayBuffer[(Int, Int)] = mutable.ArrayBuffer.empty
+
     var open      = true
     var endOffset = startOffset
     var startLine = 0
@@ -968,12 +1029,40 @@ private object BlockParser:
     var info      = ""
     var htmlKind  = 0
 
+    /** How many characters of `content` a link reference definition consumed. */
+    var referenceOffset = 0
+
+    /** Content with its leading references removed, and the leading whitespace trimmed. */
+    def inlineSource: String = trimWhitespace(content.toString.substring(referenceOffset))
+
+    /** Maps a position in [[inlineSource]] back to an absolute source offset. */
+    def sourceOffsetOf(position: Int): Int =
+      val raw = content.toString
+      val leading = raw.substring(referenceOffset).indexWhere(c => !isTrimmable(c)) match
+        case -1    => 0
+        case found => found
+      val wanted = referenceOffset + leading + position
+
+      var mapped = startOffset
+      var index  = 0
+      while index < lineMap.length && lineMap(index)._1 <= wanted do
+        val (contentStart, sourceStart) = lineMap(index)
+        mapped = sourceStart + (wanted - contentStart)
+        index += 1
+      mapped
+
   enum OpenKind:
     case Document
     case BlockQuote
     case ListBlock(marker: ListMarker)
     case Item(marker: ListMarker)
     case Paragraph
+
+    /** A paragraph that held nothing but link reference definitions. Dropped when the
+      * immutable tree is built -- the definitions live in the reference map now.
+      */
+    case ReferencesOnly
+
     case Heading(level: Int, style: HeadingStyle)
     case Code(fenced: Boolean, fenceChar: Char, fenceLength: Int, fenceOffset: Int)
     case Html

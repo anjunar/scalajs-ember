@@ -8,10 +8,9 @@ package ember.editor.markdown
   * tatsaechlich getestete Teilmenge beworben." A comment saying so would be a promise; a field
   * saying so is a value a caller can read and branch on.
   *
-  * After P17 that field says [[Conformance.BlocksOnly]] on every profile in this file, and it
-  * will keep saying it until P18 lands the inline parser. An application that wants to know
-  * whether emphasis will survive a round trip asks the profile instead of guessing from the
-  * version number.
+  * An application that wants to know whether emphasis will survive a round trip asks the
+  * profile instead of guessing from the version number. And what [[Conformance.Inlines]] is
+  * worth is a measured number, not the word -- see `CommonMarkConformanceSpec`.
   *
   * @param name
   *   Shown in diagnostics. §18.1 names the target profile `CommonMarkSafe`.
@@ -24,13 +23,17 @@ package ember.editor.markdown
   *   Resource bounds; see [[ParseLimits]].
   * @param rawHtml
   *   What happens to raw HTML. §18.1 fixes the answer for the safe profile.
+  * @param entities
+  *   Which named character references are resolved; see [[EntityTable]]. Numeric references
+  *   need no table and are always complete.
   */
 final case class MarkdownProfile(
     name: String,
     specVersion: String,
     conformance: Conformance,
     limits: ParseLimits,
-    rawHtml: RawHtmlPolicy
+    rawHtml: RawHtmlPolicy,
+    entities: EntityTable
 )
 
 object MarkdownProfile:
@@ -49,14 +52,21 @@ object MarkdownProfile:
   val commonMarkSafe: MarkdownProfile = MarkdownProfile(
     name = "CommonMarkSafe",
     specVersion = specVersion,
-    conformance = Conformance.BlocksOnly,
+    conformance = Conformance.Inlines,
     limits = ParseLimits.default,
-    rawHtml = RawHtmlPolicy.AsText
+    rawHtml = RawHtmlPolicy.AsText,
+    entities = EntityTable.common
   )
 
   /** The same rules under paste-sized bounds. For a source a user did not write. */
   val untrustedPaste: MarkdownProfile =
     commonMarkSafe.copy(name = "CommonMarkSafe/Paste", limits = ParseLimits.paste)
+
+  /** Block structure only -- for a table of contents or a search index, where resolving
+    * emphasis and links would be work nobody reads.
+    */
+  val blocksOnly: MarkdownProfile =
+    commonMarkSafe.copy(name = "Blocks", conformance = Conformance.BlocksOnly)
 
 /** How much of the syntax a profile actually resolves.
   *
@@ -69,14 +79,20 @@ enum Conformance:
   /** Block structure per CommonMark; inline content left as source.
     *
     * Emphasis, links, code spans, entities and backslash escapes are '''not''' resolved --
-    * they are still in the `source` field of the paragraph or heading that holds them. Link
-    * reference definitions are likewise still there, because resolving them needs the inline
-    * parser.
+    * a paragraph holds a single [[MarkdownInline.Text]] with the raw source. Link reference
+    * definitions are likewise left standing, because resolving them needs the inline parser.
+    *
+    * Useful for a cheap outline: a table of contents, a search index, a document map.
     */
   case BlocksOnly
 
-  /** Blocks and inlines. Reserved for P18; no profile carries it yet. */
-  case Full
+  /** Blocks and inlines, to the extent the conformance suite records.
+    *
+    * The name states the ambition, not a proof. What this profile actually reproduces is a
+    * number, measured against the versioned corpus and asserted exactly in
+    * `CommonMarkConformanceSpec`. §18.1 asks for the number and not for the word.
+    */
+  case Inlines
 
 /** What becomes of raw HTML. */
 enum RawHtmlPolicy:
