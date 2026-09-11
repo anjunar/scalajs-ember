@@ -345,6 +345,36 @@ lazy val emberMarkdown =
     )
 
 
+// §6: Markdown-/JSON-Feld, Textarea-Fallback, Submit/Reset, Media-Service-Port und
+// Multipart-Vertrag. P19b baut davon den Feldteil; der Media-Service ist P26.
+//
+// §6 fuehrt ausserdem `browser` und `jfx-forms` als Abhaengigkeiten. Beide fehlen hier mit
+// Absicht: `ember-browser` gibt es erst ab P20, und die Textarea kommt aus jfx-core (P19a).
+// Ein Modul auf Vorrat einzubinden waere eine Abhaengigkeit ohne Nutzer.
+lazy val emberForms =
+  Project(id = "scalajs-ember-forms", base = file("ember-forms"))
+    .enablePlugins(ScalaJSPlugin)
+    .dependsOn(emberCore, emberMarkdown, emberJson, emberHtml, emberJfx)
+    .settings(
+      name        := "scalajs-ember-forms",
+      moduleName  := "scalajs-ember-forms",
+      description := "Form fields, source drafts and the no-JavaScript fallback for Ember."
+    )
+    .settings(testSettings)
+    .settings(commonJsSettings)
+    .settings(publishSettings)
+    .settings(
+      boundarySettings(
+        allowedProjects = Seq("scalajs-ember-core", "scalajs-ember-markdown",
+          "scalajs-ember-json", "scalajs-ember-html", "scalajs-ember-jfx"),
+        // `ember.editor.jfx` fehlt hier mit Absicht: ein Formularfeld traegt eine Vorschau, und
+        // die ist eine DocumentView. `browser` und `ui` liegen darueber und bleiben verboten.
+        forbiddenImports = forbiddenUpwardImports.filterNot(_ == "ember.editor.jfx"),
+        allowedModules = Seq("scalajs-jfx-core")
+      )
+    )
+
+
 // §6: Wire-ADT, Node-Codecs, Schema-/Dokumentversionen, Validierung. Haengt nur am Kern --
 // Persistenz ist keine Frage des Renderers, und ein Server, der Dokumente speichert, soll
 // weder JFX noch HTML mitlinken muessen.
@@ -493,7 +523,8 @@ lazy val emberStandard =
 lazy val emberIntegration =
   Project(id = "scalajs-ember-integration", base = file("ember-integration"))
     .enablePlugins(ScalaJSPlugin)
-    .dependsOn(emberCore, emberRichText, emberHtml, emberJfx, emberStandard)
+    .dependsOn(emberCore, emberRichText, emberMarkdown, emberHtml, emberJfx, emberForms,
+      emberStandard)
     .settings(
       name                            := "scalajs-ember-integration",
       moduleName                      := "scalajs-ember-integration",
@@ -517,11 +548,15 @@ lazy val emberIntegration =
     .settings(
       boundarySettings(
         allowedProjects =
-          Seq("scalajs-ember-core", "scalajs-ember-rich-text", "scalajs-ember-html",
-              "scalajs-ember-jfx", "scalajs-ember-standard"),
+          Seq("scalajs-ember-core", "scalajs-ember-rich-text", "scalajs-ember-markdown",
+              "scalajs-ember-html", "scalajs-ember-jfx", "scalajs-ember-forms",
+              "scalajs-ember-standard"),
         // Wie bei `standard` fehlt `ember.editor.jfx` mit Absicht: der Harness haengt an der
-        // Projektion, das ist seit P09 sein Zweck.
-        forbiddenImports = forbiddenUpwardImports.filterNot(_ == "ember.editor.jfx"),
+        // Projektion, das ist seit P09 sein Zweck. Seit P19b faehrt er ausserdem das
+        // Formularfeld -- der Harness liegt ueber allen Modulen, nicht unter ihnen.
+        forbiddenImports =
+          forbiddenUpwardImports.filterNot(name =>
+            name == "ember.editor.jfx" || name == "ember.editor.forms"),
         allowedModules = Seq("scalajs-jfx-core")
       )
     )
@@ -569,7 +604,8 @@ lazy val emberDemo =
 
 lazy val root = Project(id = "scalajs-ember-root", base = file("."))
   .aggregate(emberCore, emberRichText, emberList, emberLink, emberCode, emberImage,
-    emberMarkdown, emberJson, emberHistory, emberHtml, emberJfx, emberStandard, emberIntegration, emberDemo)
+    emberMarkdown, emberJson, emberHistory, emberHtml, emberJfx, emberForms, emberStandard,
+    emberIntegration, emberDemo)
   .settings(
     name           := "scalajs-ember",
     publish / skip := true

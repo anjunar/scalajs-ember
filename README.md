@@ -14,7 +14,7 @@ Laufzeitabhängigkeit.
 
 ## Stand
 
-**Meilenstein A und B stehen, C und D angefangen** — P01–P18 abgeschlossen, P19–P30 offen. Der frühere
+**Meilenstein A und B stehen, C und D angefangen** — P01–P19 abgeschlossen, P20–P30 offen. Der frühere
 `contenteditable`-Prototyp (`ember.core.Editor` mit `execCommand` und HTML-String als
 Zustand) und seine vite-Demo wurden entfernt — Architektur §2 und §25 schließen diesen
 Ansatz aus.
@@ -86,6 +86,14 @@ und kein Knoten — `*a*` ist ein Lauf mit einer Eigenschaft, kein Knoten um ein
 Linkziel —, meldet der Export: unter `Strict` als Fehler, unter `AllowLossy` als Diagnose.
 Still verloren geht nichts.
 
+P19 macht den Editor zu einem Formularfeld. Genau eine benannte Textarea trägt den Wert; ohne
+JavaScript ist sie sichtbar und normal submitbar, und erst nach erfolgreicher Aktivierung
+verschwindet sie hinter der Rich-Ansicht — verborgen, nie `disabled`. Im Quelltextmodus besitzt
+ein `SourceDraft` den Wert, und eine Dokumentänderung überschreibt ihn nicht: sie wird
+zurückgestellt oder abgewiesen. Die **Formatgrenze liegt vor dem Commit** — ein
+`ToggleUnderline` in einem Strict-CommonMark-Feld erzeugt kein Dokument, dessen Formwert
+veraltet wäre, sondern gar keines.
+
 ## Module
 
 Konvention: Verzeichnis `ember-<modul>`, sbt-ID und Artefakt `scalajs-ember-<modul>`,
@@ -112,6 +120,9 @@ Vorhanden:
 - [`ember-markdown`](ember-markdown/README.md) — sbt-ID `scalajs-ember-markdown`, Paket
   `ember.editor.markdown`. CommonMark-Parser, -Writer, Syntaxbaum, SourceMaps und die
   Adapter-SPI. Headless, hängt allein am Kern — die Regeln kommen von außen.
+- [`ember-forms`](ember-forms/README.md) — sbt-ID `scalajs-ember-forms`, Paket
+  `ember.editor.forms`. Das Editorfeld als Formularfeld: eine benannte Textarea, ein
+  geschützter Quelltextentwurf und der Weg ohne JavaScript.
 - [`ember-json`](ember-json/README.md) — sbt-ID `scalajs-ember-json`, Paket
   `ember.editor.json`. Wire-ADT, Node- und Mark-Codecs, Grenzen, Schema-Migration. Headless.
 - [`ember-history`](ember-history/README.md) — sbt-ID `scalajs-ember-history`, Paket

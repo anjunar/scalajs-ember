@@ -122,3 +122,28 @@ Keine der Fixtures hat `contenteditable`:
 
 Reale IME- und Screen-Reader-Abnahmen brauchen dokumentierte manuelle Tests (§24) und lassen
 sich durch synthetische Ereignisse nicht ersetzen.
+
+## Das Formularfeld (P19b)
+
+`nojs-form.spec.mjs` laeuft mit **abgeschaltetem JavaScript**. Das ist der Punkt: §16 verlangt
+eine Textarea, die ohne JavaScript sichtbar, benannt, fokussierbar und normal submitbar ist,
+und das kann nur eine echte Engine beantworten.
+
+Der Testserver rendert das Feld dabei **im Serverprozess** — er importiert das Scala.js-Modul
+und ruft `formFixtures.renderForNoScript`. Moeglich ist das nur, weil §15.2 zusichert, dass ein
+Modulimport weder `window` noch `document` liest; `server-import.mjs` prueft dieselbe Zusicherung
+von der anderen Seite. Ohne sie gaebe es kein serverseitig gerendertes Feld zum Absenden, und
+der Test muesste einen handgeschriebenen HTML-String pruefen statt den echten.
+
+Gefunden hat diese Suite eine Verletzung von §16, die der SSR-Test nicht finden konnte: die
+Textarea war schon beim Rendern verborgen. Im HTML stand das korrekt, und genau das prueft ein
+SSR-Test — dass eine Seite ohne JavaScript damit ein Formular hatte, das niemand ausfuellen
+kann, sieht man erst im Browser.
+
+`source-form.spec.mjs` faehrt den Quelltextmodus mit JavaScript: dass dieselbe benannte Textarea
+bleibt, dass sie beim Aktivieren verschwindet statt abgeschaltet zu werden, und dass ein
+Entwurf eine fremde Dokumentaenderung ueberlebt.
+
+Die Vertragsregeln selbst — Besitz, Baseline, Atomaritaet — stehen headless in
+`ember-forms/…/EditorFieldSpec.scala`. Eine Regel prueft man besser als eine ihrer
+Darstellungen.

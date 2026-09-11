@@ -1,8 +1,8 @@
 # JFX Editor: ausführbarer Implementierungsplan
 
-Status: **Meilenstein A und B stehen, C und D angefangen** — P01–P18 abgeschlossen (942
-Scala-Tests und 126 Browserfälle in Chromium, Firefox und WebKit grün),
-P19–P30 offen. Dieses Repository (`scalajs-ember`) ist das in
+Status: **Meilenstein A und B stehen, C und D angefangen** — P01–P19 abgeschlossen (985
+Scala-Tests und 201 Browserfälle in Chromium, Firefox und WebKit grün),
+P20–P30 offen. Dieses Repository (`scalajs-ember`) ist das in
 Architektur und Plan gemeinte „eigene Repository“. Die generischen JFX-Core-Anteile aus
 P08/P09, P19a, P20 und P23 sind **nicht hier, sondern im Nachbar-Repo `../scalajs-jfx`**
 implementiert und seit P17 als veröffentlichtes Artefakt `com.anjunar:scalajs-jfx-core:3.0.5`
@@ -1546,6 +1546,83 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 - **Dependencies:** P07, P09; Architektur §§4, 16–17.
 
 ## P19b — Source-Feld, Draft und No-JS-Formular
+
+> **Abgeschlossen.** Neues Modul `ember-forms` (sbt-ID `scalajs-ember-forms`, Paket
+> `ember.editor.forms`). Abnahme:
+>
+> ```
+> sbt --server "Test/testOnly *"
+> ```
+>
+> | Suite | Ergebnis |
+> | --- | --- |
+> | `EditorFieldSpec` | 33 Tests grün |
+> | `EditorFieldViewSpec` | 10 Tests grün |
+> | `nojs-form.spec.mjs` | 36 Fälle grün (3 Engines) |
+> | `source-form.spec.mjs` | 39 Fälle grün (3 Engines) |
+> | Gesamtes Scala-Gate | 985 Tests grün |
+> | Browser-Gate | 201 Fälle grün |
+>
+> **Der Kern hatte die Form für §16s Formatgrenze schon.** `StateField.reduce` läuft in §10s
+> Schritt 5 gegen den fertig normalisierten Kandidaten, und ein `Left` weist die Transaktion ab
+> — genau das, was §16 verlangt. Deshalb sind die „Darstellbarkeitsregel" und das „abgeleitete
+> `EncodedFieldValue`-StateField" hier **ein** Objekt und nicht zwei: eine separate
+> `PreCommitRule` mit derselben Frage würde entweder das Encode verdoppeln oder ihm
+> widersprechen.
+>
+> Die Folge ist die, die §16 als Beispiel nennt: ein `ToggleUnderline` in einem Strict-Feld
+> erzeugt **kein** Dokument, dessen Formwert veraltet ist. Es erzeugt gar keines. Drei Tests
+> halten Dokument, Formwert und History einzeln nach — „nur die UI deaktivieren" wäre etwas
+> anderes.
+>
+> **Ein Browsertest hat eine Verletzung von §16 gefunden, die ein SSR-Test nicht finden
+> konnte.** Die Textarea war schon beim Rendern `hidden` — korrekt im HTML, und der SSR-Test
+> prüfte genau das. §16 sagt aber: sie ist **ohne JavaScript sichtbar**, und verborgen wird sie
+> erst „nach erfolgreicher Aktivierung". Eine serverseitig gerenderte Seite hatte damit ein
+> Formular, das niemand ausfüllen kann. `EditorFieldView.activate()` trennt die beiden
+> Zeitpunkte jetzt, und der Non-JS-Modus heißt im Markup `data-editor-mode="nojs"`.
+>
+> **Drei weitere Fehler, die erst der Browser zeigte:**
+>
+> - *Die Vorschau-Attribute landeten auf der Section statt auf dem Div.* Innerhalb einer
+>   `AbstractComponent` verdeckt deren eigenes `setAttribute` die DSL-Erweiterung — kein
+>   Compilefehler, nur ein Attribut an der falschen Stelle. Damit fand `[data-editor-preview]
+>   [name]` die Textarea, und die Zusicherung „die Vorschau trägt keinen Formularnamen" war
+>   nachweislich falsch geprüft.
+> - *`editDraft` setzte nur das Modell.* Die Textarea behielt den alten String, und das nächste
+>   `captureDraft` las ihn zurück — der Entwurf machte sich selbst rückgängig.
+> - *`setAttribute(name, null)` ist kein Entfernen.* Der SSR-Host versucht `null` zu escapen und
+>   fliegt. `removeAttribute` gibt es dafür.
+>
+> **Das Schema gehört der Sitzung.** Der Codec bekam es zuerst beim Bauen mitgegeben, und ein
+> Dokument gegen ein *anderes* `Schema`-Objekt ist ein fremdes — `Transaction.restore` weist es
+> zu Recht mit `ForeignSchema` ab. `FieldCodec.decode` nimmt Schema und Wurzel jetzt vom
+> Aufrufer, und nur das Binding hat beide.
+>
+> **Die Initialrevision ist eine echte Revision.** Der Anfangswert eines Feldes behauptete
+> Revision 0 — dieselbe, die der erste Zustand hat —, und wurde deshalb für aktuell gehalten:
+> ein Formular hätte einen leeren Payload für ein Dokument mit Inhalt gesendet.
+> `EncodedFieldValue.revision` ist jetzt eine `Option`, und `None` gehört zu keinem Zustand.
+>
+> **Bewusste Entscheidungen:**
+>
+> - *Zurückgestellte Intents sind Thunks, keine Werte.* §16 verlangt, sie nach dem Import **neu
+>   zu validieren** — sie sollen das importierte Dokument sehen, nicht das, gegen das sie
+>   geschrieben wurden.
+> - *Ein abgewiesener Import lässt den Modus stehen.* Alle drei Wege dorthin (Parsefehler,
+>   veraltete Baseline, nicht darstellbares Ergebnis) erhalten den sichtbaren String.
+> - *Der Testserver rendert das Feld im **Serverprozess**.* Das geht nur, weil §15.2 zusichert,
+>   dass ein Modulimport weder `window` noch `document` liest. Ohne diese Zusicherung gäbe es
+>   kein serverseitig gerendertes Feld zum Absenden, und der No-JS-Test müsste einen
+>   handgeschriebenen HTML-String prüfen statt den echten.
+> - *`browser` und `jfx-forms` fehlen in den Abhängigkeiten.* §6 führt beide, aber
+>   `ember-browser` gibt es erst ab P20 und die Textarea kommt aus jfx-core. Ein Modul auf
+>   Vorrat einzubinden wäre eine Abhängigkeit ohne Nutzer.
+> - *Die Kosten stehen im Scaladoc.* §16 verlangt, die Vollstring-Materialisierung **nicht** als
+>   O(1) darzustellen. Ein Tastendruck fasst in der Projektion eine Handvoll Komponenten an und
+>   kodiert zusätzlich das ganze Dokument — linear, bei jedem Commit.
+>
+> Modulvertrag: [ember-forms/README.md](ember-forms/README.md).
 
 - **Ziel:** Neues Editorfeld funktioniert ohne JavaScript und schützt unbestätigten Source-Text.
 - **Module:** Neues forms; jfx; markdown/json; standard; IT.
