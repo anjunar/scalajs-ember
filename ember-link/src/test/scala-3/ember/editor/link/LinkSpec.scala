@@ -241,7 +241,7 @@ final class LinkSpec extends AnyFlatSpec with Matchers {
   "A link inside a link" should "lose its inner wrapper" in {
     // §8.2: "Ein Link enthaelt keine anderen Links." In HTML nicht ausdrueckbar, in Markdown
     // nicht schreibbar.
-    val f = linked()
+    val f     = linked()
     val outer = f.links.head
 
     f.edit(
@@ -259,7 +259,7 @@ final class LinkSpec extends AnyFlatSpec with Matchers {
   }
 
   "An empty link" should "disappear" in {
-    val f = linked()
+    val f    = linked()
     val link = f.links.head
 
     f.edit(_.remove(link.children.head): Unit)
@@ -293,7 +293,7 @@ final class LinkSpec extends AnyFlatSpec with Matchers {
   }
 
   "A whitespace title" should "be rejected" in {
-    val f = linked()
+    val f    = linked()
     val link = f.links.head
 
     val outcome = f.session.update(

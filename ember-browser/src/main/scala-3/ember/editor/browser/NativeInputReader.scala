@@ -24,8 +24,8 @@ enum NativeImport:
   /** The DOM changed in a way this reader cannot express as a document change.
     *
     * §15.4: "Rohtext bzw. der letzte Source-Draft bleibt fuer Recovery verfuegbar." So the text
-    * that was found travels with the report -- losing what someone just typed because its
-    * structure was unexpected is the one outcome worth any amount of trouble to avoid.
+    * that was found travels with the report -- losing what someone just typed because its structure
+    * was unexpected is the one outcome worth any amount of trouble to avoid.
     *
     * Repairing it is P23's Recovery. What P22 owes is to notice and to say so.
     */
@@ -37,28 +37,28 @@ enum NativeImport:
   *
   * §15.2, for a `beforeinput` that was not cancelable or did not arrive: "Native Aenderung
   * beobachten; `input` liest begrenzten betroffenen Bereich und erzeugt eine NativeInput-Tx." The
-  * DOM is ahead of the model at that point, and the model has to be brought to it -- not the
-  * other way round, which would throw away what the user just typed.
+  * DOM is ahead of the model at that point, and the model has to be brought to it -- not the other
+  * way round, which would throw away what the user just typed.
   *
   * ==Why the affected area is one run==
   *
-  * Because that is what a normal native edit touches, and because more would be a guess. The
-  * caret is in a run, the browser changed that run's text, and a splice says the difference
-  * exactly. Anything wider -- a new element, a split wrapper, a `<br>` the browser felt like
-  * adding -- is not a text change at all, and pretending it is would produce a document that says
-  * something nobody typed. Those cases are reported, with the text, for P23's recovery.
+  * Because that is what a normal native edit touches, and because more would be a guess. The caret
+  * is in a run, the browser changed that run's text, and a splice says the difference exactly.
+  * Anything wider -- a new element, a split wrapper, a `<br>` the browser felt like adding -- is
+  * not a text change at all, and pretending it is would produce a document that says something
+  * nobody typed. Those cases are reported, with the text, for P23's recovery.
   */
 final class NativeInputReader(positions: DomPositionMap, scope: BrowserScope):
 
   /** Compares the run the caret sits in against the document. */
   def read(document: DocumentRead): NativeImport =
     scope.selection.flatMap(native => Option(native.anchorNode)) match
-      case None => NativeImport.Nothing
+      case None         => NativeImport.Nothing
       case Some(anchor) =>
         if !scope.contains(anchor) then NativeImport.Nothing
         else
           positions.nodeAt(anchor, document) match
-            case None => NativeImport.Nothing
+            case None     => NativeImport.Nothing
             case Some(id) => readRun(id, document)
 
   /** Compares one named run. For a caller that knows which one changed. */
@@ -123,8 +123,8 @@ object NativeInputReader:
     *
     * §15.1 spends its argument on exactly this: a splice reaches `CharacterData.replaceData` for
     * the changed range, a full assignment rewrites the whole run. In a long paragraph that is the
-    * difference the whole projection was built for -- and it is also the difference between a
-    * caret that stays put and one that jumps to the end.
+    * difference the whole projection was built for -- and it is also the difference between a caret
+    * that stays put and one that jumps to the end.
     *
     * ==Surrogate pairs==
     *
@@ -134,8 +134,8 @@ object NativeInputReader:
     * afterwards.
     *
     * This is not grapheme segmentation -- combining marks, ZWJ sequences and flags are split
-    * happily here, because a splice does not have to respect them. Only the UTF-16 encoding has
-    * to stay well formed.
+    * happily here, because a splice does not have to respect them. Only the UTF-16 encoding has to
+    * stay well formed.
     */
   def delta(before: String, after: String): Option[TextSplice] =
     if before == after then None

@@ -16,13 +16,12 @@ object LinkCommands:
   *
   * ==Everything is a move, again==
   *
-  * The same reason as in `ember-list`: §11 says a move keeps the node, so every point inside
-  * the linked stretch survives. Linking a word must not disturb a caret sitting in it, and
-  * unlinking must not touch its marks -- P14's test list asks for exactly that ("Unlink erhaelt
-  * Marks/Text").
+  * The same reason as in `ember-list`: §11 says a move keeps the node, so every point inside the
+  * linked stretch survives. Linking a word must not disturb a caret sitting in it, and unlinking
+  * must not touch its marks -- P14's test list asks for exactly that ("Unlink erhaelt Marks/Text").
   *
-  * It falls out of the model rather than needing care: marks live on the runs, the link wraps
-  * the runs, and neither operation reads the other's data.
+  * It falls out of the model rather than needing care: marks live on the runs, the link wraps the
+  * runs, and neither operation reads the other's data.
   */
 object LinkEditing:
 
@@ -30,11 +29,11 @@ object LinkEditing:
     *
     * Three cases, and they are genuinely different:
     *
-    *   - '''A caret inside a link.''' Nothing is selected, so nothing can be wrapped -- the
-    *     author means the link they are standing in. Its target changes.
-    *   - '''A caret anywhere else.''' There is nothing to link. Some editors insert the URL as
-    *     text here; that is a decision for a UI, not for the model, and doing it silently would
-    *     put text into the document that the author did not type.
+    *   - '''A caret inside a link.''' Nothing is selected, so nothing can be wrapped -- the author
+    *     means the link they are standing in. Its target changes.
+    *   - '''A caret anywhere else.''' There is nothing to link. Some editors insert the URL as text
+    *     here; that is a decision for a UI, not for the model, and doing it silently would put text
+    *     into the document that the author did not type.
     *   - '''A range.''' The covered runs are cut at both ends and wrapped.
     */
   def setLink(
@@ -58,10 +57,10 @@ object LinkEditing:
 
   /** Cuts the runs at the range's ends and puts a link around what is between.
     *
-    * The cutting is [[RangeFormatting]]'s job -- it already splits a run at a boundary, handles
-    * a backward range and leaves the selection mapped afterwards. Calling it with a rewrite
-    * that changes nothing uses exactly that and nothing else: the marks come out as they went
-    * in, and what this function gets back is a selection whose ends are run boundaries.
+    * The cutting is [[RangeFormatting]]'s job -- it already splits a run at a boundary, handles a
+    * backward range and leaves the selection mapped afterwards. Calling it with a rewrite that
+    * changes nothing uses exactly that and nothing else: the marks come out as they went in, and
+    * what this function gets back is a selection whose ends are run boundaries.
     */
   private def wrap(
       scope: TransformScope,
@@ -115,15 +114,15 @@ object LinkEditing:
 
   /** Takes the link at the caret away and leaves its content where it was.
     *
-    * The runs keep their ids, their text and their marks -- they are moved, not rebuilt. Once
-    * they sit next to their former neighbours, the rich-text normalisation from P12 merges what
-    * matches: unlinking a word in the middle of a sentence leaves one run again, not three.
+    * The runs keep their ids, their text and their marks -- they are moved, not rebuilt. Once they
+    * sit next to their former neighbours, the rich-text normalisation from P12 merges what matches:
+    * unlinking a word in the middle of a sentence leaves one run again, not three.
     */
   def removeLink(scope: TransformScope): CommandResult =
     scope.selection
       .collect { case range: RangeSelection => range.focus }
       .flatMap(Links.linkAt(scope.document, _)) match
-      case None => CommandResult.Pass
+      case None       => CommandResult.Pass
       case Some(link) =>
         Links.unwrap(scope, link)
         CommandResult.Handled

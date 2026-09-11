@@ -101,7 +101,7 @@ final class SchemaMigrationSpec extends AnyFlatSpec with Matchers {
   it should "record the version it reached" in {
     // Die Buchhaltung ueber `schemaVersion` gehoert der Kette, nicht dem einzelnen Schritt --
     // sonst koennte ein Schritt sie vergessen, und die Kette liefe im Kreis.
-    val chain = SchemaMigrations.unsafe(rename(1, 2, "test.section/1", "test.block/1"))
+    val chain  = SchemaMigrations.unsafe(rename(1, 2, "test.section/1", "test.block/1"))
     val parsed = JsonText.parse(envelope(1, "test.section/1"), DecodeLimits.default)
 
     val migrated = parsed match
@@ -168,7 +168,7 @@ final class SchemaMigrationSpec extends AnyFlatSpec with Matchers {
   "A chain" should "reject a step that runs backwards" in {
     SchemaMigrations.of(SchemaMigration(3, 2, Right(_))) match
       case Left(Vector(error: MigrationSetupError.NotAscending)) => error.from shouldBe 3
-      case other => fail(s"unerwartet: $other")
+      case other                                                 => fail(s"unerwartet: $other")
   }
 
   it should "reject a step that stands still" in {
@@ -189,9 +189,11 @@ final class SchemaMigrationSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "accept an ascending chain" in {
-    SchemaMigrations.of(
-      SchemaMigration(1, 2, Right(_)),
-      SchemaMigration(2, 5, Right(_))
-    ).map(_.steps.length) shouldBe Right(2)
+    SchemaMigrations
+      .of(
+        SchemaMigration(1, 2, Right(_)),
+        SchemaMigration(2, 5, Right(_))
+      )
+      .map(_.steps.length) shouldBe Right(2)
   }
 }

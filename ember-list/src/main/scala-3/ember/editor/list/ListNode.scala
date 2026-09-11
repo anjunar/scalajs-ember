@@ -14,19 +14,19 @@ enum ListKind:
   * §8.2 states the schema rule: "eine Liste ListItems, ein ListItem Blockinhalte." A paragraph
   * sitting directly in a list is not a shortcut, it is a document neither HTML nor Markdown can
   * express -- `<ul><p>` is invalid, and Markdown has no way to write it at all.
-  * [[ListNormalization]] wraps such a child rather than rejecting the document, because the way
-  * it usually appears is a move that landed one level too high.
+  * [[ListNormalization]] wraps such a child rather than rejecting the document, because the way it
+  * usually appears is a move that landed one level too high.
   *
   * @param start
-  *   the number the first item carries. §18.2 asks for it: "Startnummer, Verschachtelung, enge
-  *   und weite Listen und mehrteilige ListItems erhalten." Markdown can write a list that
-  *   begins at 3, and a round trip that silently renumbered it would be lossy. Meaningless for
+  *   the number the first item carries. §18.2 asks for it: "Startnummer, Verschachtelung, enge und
+  *   weite Listen und mehrteilige ListItems erhalten." Markdown can write a list that begins at 3,
+  *   and a round trip that silently renumbered it would be lossy. Meaningless for
   *   [[ListKind.Unordered]], where it stays at its default.
   * @param tight
   *   whether the items are rendered without paragraph spacing. A CommonMark distinction that
-  *   survives into HTML: a tight item renders its single paragraph as bare inline content, a
-  *   loose one keeps the `<p>`. Carried here rather than derived, because deriving it from the
-  *   current children would change the document every time someone adds a second paragraph.
+  *   survives into HTML: a tight item renders its single paragraph as bare inline content, a loose
+  *   one keeps the `<p>`. Carried here rather than derived, because deriving it from the current
+  *   children would change the document every time someone adds a second paragraph.
   */
 final case class ListNode(
     id: NodeId,
@@ -68,13 +68,13 @@ object ListNode extends ElementNodeType[ListNode]:
   * ==Why it holds blocks and not inline content==
   *
   * §8.2 again: "ein ListItem Blockinhalte." That is not pedantry -- it is what makes a list item
-  * able to hold two paragraphs, a nested list, or a quote, all of which real documents do. An
-  * item that held inline content directly would need a second, parallel structure for every one
-  * of those cases.
+  * able to hold two paragraphs, a nested list, or a quote, all of which real documents do. An item
+  * that held inline content directly would need a second, parallel structure for every one of those
+  * cases.
   *
-  * The price is one more level of nesting than a naive model, and it is paid in exactly one
-  * place: [[ListNormalization]] gives an empty item a paragraph, so that there is always a
-  * caret position inside it. Same reason as `BlockNeedsText` in the rich-text profile.
+  * The price is one more level of nesting than a naive model, and it is paid in exactly one place:
+  * [[ListNormalization]] gives an empty item a paragraph, so that there is always a caret position
+  * inside it. Same reason as `BlockNeedsText` in the rich-text profile.
   */
 final case class ListItemNode(id: NodeId, children: Vector[NodeId]) extends ElementNode
 

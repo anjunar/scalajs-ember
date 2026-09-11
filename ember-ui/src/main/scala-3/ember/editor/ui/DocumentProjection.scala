@@ -12,46 +12,45 @@ import scala.collection.mutable
   *
   * ==Was hier bewusst nicht steht==
   *
-  * Kein zweiter Renderer, kein VDOM, kein Scheduler (§2, §15.1). Diese Klasse erzeugt kein
-  * einziges DOM-Element und bewegt keines. Sie ordnet Knoten-IDs Komponenten zu und ruft
-  * `Runtime`-APIs -- Besitz, Einfuegen, Verschieben und Entfernen gehoeren ausschliesslich
-  * UI.
+  * Kein zweiter Renderer, kein VDOM, kein Scheduler (§2, §15.1). Diese Klasse erzeugt kein einziges
+  * DOM-Element und bewegt keines. Sie ordnet Knoten-IDs Komponenten zu und ruft `Runtime`-APIs --
+  * Besitz, Einfuegen, Verschieben und Entfernen gehoeren ausschliesslich UI.
   *
-  * Der Index ist "eine Zuordnung, keine zweite Ownership-Liste" (§15.1). Er sagt, welche
-  * Komponente zu welcher ID gehoert; er sagt nicht, wer sie besitzt.
+  * Der Index ist "eine Zuordnung, keine zweite Ownership-Liste" (§15.1). Er sagt, welche Komponente
+  * zu welcher ID gehoert; er sagt nicht, wer sie besitzt.
   *
   * ==Warum KeyedChildren==
   *
   * Jeder Container bekommt eine [[KeyedChildren]]-Gruppe, gekeyt auf [[NodeId]]. Damit ist die
-  * Reihenfolgeabstimmung nicht selbst geschrieben, sondern getesteter Code aus `ui-core`, und
-  * ein Knoten, dessen Wert gleich geblieben ist, wird gar nicht erst angefasst. Ein Wechsel
-  * des Elternknotens laeuft ueber `transferTo`, damit beide Schluesselindizes konsistent
-  * bleiben (UI_CORE_INTEGRATION.md).
+  * Reihenfolgeabstimmung nicht selbst geschrieben, sondern getesteter Code aus `ui-core`, und ein
+  * Knoten, dessen Wert gleich geblieben ist, wird gar nicht erst angefasst. Ein Wechsel des
+  * Elternknotens laeuft ueber `transferTo`, damit beide Schluesselindizes konsistent bleiben
+  * (UI_CORE_INTEGRATION.md).
   *
   * ==Der Aufbau ist eine einzige Rekursion==
   *
   * [[build]] erzeugt eine Komponente und haengt einem Container sofort seine Gruppe ein --
   * '''vor''' dem Mount. Die Gruppe komponiert waehrend `compose` des Containers und ruft dabei
-  * wieder [[build]]. So entsteht der ganze Baum in einem Durchgang, in Dokumentreihenfolge,
-  * und der Cursor steht bei jedem Kind genau dort, wo es hingehoert. Ein Nachtragen der
-  * Gruppen nach dem Mount haette diese Reihenfolge nicht.
+  * wieder [[build]]. So entsteht der ganze Baum in einem Durchgang, in Dokumentreihenfolge, und der
+  * Cursor steht bei jedem Kind genau dort, wo es hingehoert. Ein Nachtragen der Gruppen nach dem
+  * Mount haette diese Reihenfolge nicht.
   *
   * ==Die Reihenfolge einer Anwendung==
   *
   *   1. Neu erzeugte Container montieren, damit ein Transfer ein Ziel hat.
-  *   1. Verschobene Knoten zwischen Gruppen uebertragen. '''Vor''' der Neuordnung, sonst
-  *      wuerde die Zielgruppe den Knoten als neu ansehen und ein zweites Mal erzeugen.
-  *   1. Textsplices anwenden. Vor der Neuordnung, damit der anschliessende Wertvergleich der
-  *      Gruppe keinen Unterschied mehr findet und den Text nicht ein zweites Mal schreibt --
-  *      diesmal vollstaendig statt gezielt.
+  *   1. Verschobene Knoten zwischen Gruppen uebertragen. '''Vor''' der Neuordnung, sonst wuerde die
+  *      Zielgruppe den Knoten als neu ansehen und ein zweites Mal erzeugen.
+  *   1. Textsplices anwenden. Vor der Neuordnung, damit der anschliessende Wertvergleich der Gruppe
+  *      keinen Unterschied mehr findet und den Text nicht ein zweites Mal schreibt -- diesmal
+  *      vollstaendig statt gezielt.
   *   1. Geaenderte Kindlisten neu ordnen.
   *   1. Geaenderte Knoten nachfuehren.
   *   1. Entfernte Knoten aus dem Index nehmen -- '''zuletzt''', weil ein entfernter Container die
   *      Quelle der Knoten ist, die ihn gerade verlassen haben.
   *
   * Schritt 3 sieht nach Umweg aus und ist der Kern der Sache: ein `spliceText` schreibt
-  * `CharacterData.replaceData` fuer den geaenderten Bereich, ein `setText` den ganzen Lauf.
-  * Bei einem langen Absatz ist das der Unterschied, um den es §15.1 geht.
+  * `CharacterData.replaceData` fuer den geaenderten Bereich, ein `setText` den ganzen Lauf. Bei
+  * einem langen Absatz ist das der Unterschied, um den es §15.1 geht.
   */
 final class DocumentProjection private[ui] (
     support: ViewSupport,
@@ -63,9 +62,9 @@ final class DocumentProjection private[ui] (
   private val components = mutable.HashMap.empty[NodeId, AbstractComponent]
 
   /** Nodes arriving from another parent in the commit being applied. Empty outside one. */
-  private var incoming = Set.empty[NodeId]
-  private val groups     = mutable.HashMap.empty[NodeId, Group]
-  private var current: Document = null
+  private var incoming                         = Set.empty[NodeId]
+  private val groups                           = mutable.HashMap.empty[NodeId, Group]
+  private var current: Document                = null
   private var rootComponent: AbstractComponent = null
 
   /** Die Komponente zu einer Knoten-ID, sofern projiziert. */
@@ -131,15 +130,15 @@ final class DocumentProjection private[ui] (
     * The new containers are mounted first, with two adjustments that make it safe:
     *
     *   - The item list handed to the parent group still contains the nodes that are on their way
-    *     out. Without them the parent group would unmount their components before anything could
-    *     be transferred.
+    *     out. Without them the parent group would unmount their components before anything could be
+    *     transferred.
     *   - The new containers' own groups are built '''without''' the arriving nodes ([[newGroup]]
-    *     consults `incoming`). Otherwise the item's group would build a second paragraph a
-    *     moment before the real one arrives.
+    *     consults `incoming`). Otherwise the item's group would build a second paragraph a moment
+    *     before the real one arrives.
     *
-    * Afterwards `transfer` finds a mounted destination, and the closing reorder puts everything
-    * in document order. The intermediate arrangement exists for the length of one synchronous
-    * commit; §10 guarantees no observer runs inside it.
+    * Afterwards `transfer` finds a mounted destination, and the closing reorder puts everything in
+    * document order. The intermediate arrangement exists for the length of one synchronous commit;
+    * §10 guarantees no observer runs inside it.
     */
   private def mountNewContainers(changes: ChangeSet): Unit =
     changes.created
@@ -160,9 +159,9 @@ final class DocumentProjection private[ui] (
 
   /** Erzeugt die Komponente eines Knotens und, wenn er Kinder hat, ihre Gruppe.
     *
-    * Montiert nichts: das besorgt der Aufrufer -- die Runtime beim Wurzelknoten, sonst die
-    * Gruppe des Elternknotens. Sie tut es unmittelbar nach diesem Aufruf, und erst dabei
-    * komponiert die hier eingehaengte Gruppe ihrerseits.
+    * Montiert nichts: das besorgt der Aufrufer -- die Runtime beim Wurzelknoten, sonst die Gruppe
+    * des Elternknotens. Sie tut es unmittelbar nach diesem Aufruf, und erst dabei komponiert die
+    * hier eingehaengte Gruppe ihrerseits.
     */
   private def build(node: EditorNode): AbstractComponent =
     val component = support.create(node, profile)
@@ -171,7 +170,7 @@ final class DocumentProjection private[ui] (
       case element: ElementNode =>
         component match
           case container: ContainerElement => container.attach(newGroup(element))
-          case _ =>
+          case _                           =>
             throw EditorContractViolation(
               s"`${node.id.value}` hat Kinder, seine NodeView liefert aber keinen Container. " +
                 "Ein Knoten mit Kindern braucht ein Element, an dem sie haengen koennen (§15.1)."
@@ -181,8 +180,8 @@ final class DocumentProjection private[ui] (
 
   /** Die Kindergruppe eines Containers.
     *
-    * `create` und `update` greifen auf denselben Index zu wie die Projektion -- darueber findet
-    * ein spaeteres `transferTo` seine Komponenten wieder.
+    * `create` und `update` greifen auf denselben Index zu wie die Projektion -- darueber findet ein
+    * spaeteres `transferTo` seine Komponenten wieder.
     */
   private def newGroup(element: ElementNode): Group =
     val group = new KeyedChildren[NodeId, EditorNode, AbstractComponent](
@@ -259,17 +258,17 @@ final class DocumentProjection private[ui] (
   /** Rebuilds the one node whose view no longer fits.
     *
     * §15.1: "Ein typwechselnder Node unter gleicher ID ist eine explizite View-Ersetzung." A
-    * heading that was a paragraph is exactly that -- the ID and the children stay, the element
-    * does not, and no amount of attribute writing turns a `<p>` into an `<h2>`.
+    * heading that was a paragraph is exactly that -- the ID and the children stay, the element does
+    * not, and no amount of attribute writing turns a `<p>` into an `<h2>`.
     *
     * ==Two passes over the group, and why==
     *
     * `KeyedChildren` reconciles by key, so a key it already knows is updated, never rebuilt --
-    * which is the whole point of it and the reason unchanged siblings survive. There is no
-    * "replace this key" on it, and inventing one in `ui-core` for a case this rare would be
-    * the wrong place to spend the API. So the node is taken out of the item list (the group
-    * unmounts it and forgets the key) and put back (the group builds it afresh, at its
-    * position). The siblings are moved, not rebuilt: `Runtime.move` keeps them.
+    * which is the whole point of it and the reason unchanged siblings survive. There is no "replace
+    * this key" on it, and inventing one in `ui-core` for a case this rare would be the wrong place
+    * to spend the API. So the node is taken out of the item list (the group unmounts it and forgets
+    * the key) and put back (the group builds it afresh, at its position). The siblings are moved,
+    * not rebuilt: `Runtime.move` keeps them.
     *
     * The subtree below goes with it. That is what a replacement means, and §15.1 says it needs
     * selection restoration -- the `SelectionPort` from P21.

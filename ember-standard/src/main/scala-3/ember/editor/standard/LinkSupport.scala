@@ -9,18 +9,17 @@ import ember.editor.link.*
   *
   * ==What "External-Link-Attribute bewusst gesetzt" means here==
   *
-  * P14's acceptance asks for the decision to be deliberate, not for a particular answer. The
-  * answer this adapter gives is: '''nothing by default'''.
+  * P14's acceptance asks for the decision to be deliberate, not for a particular answer. The answer
+  * this adapter gives is: '''nothing by default'''.
   *
   * `target="_blank"` is an editorial choice, not a technical one. It overrides the reader's own
   * decision about how to open a link, it breaks the back button, and §16 wants the delivered
-  * document to be what a reader expects. A library that set it silently would be making that
-  * choice for every document written with it.
+  * document to be what a reader expects. A library that set it silently would be making that choice
+  * for every document written with it.
   *
   * An application that wants it says so -- and then `rel` comes along automatically, because the
   * two belong together: without `rel="noopener"` the opened page can reach back through
-  * `window.opener`. Modern browsers imply it, older ones do not, and the attribute costs
-  * nothing.
+  * `window.opener`. Modern browsers imply it, older ones do not, and the attribute costs nothing.
   *
   * `mailto:` and `tel:` never get either. They hand over to another application rather than to
   * another page, so there is no tab to open and no opener to protect.

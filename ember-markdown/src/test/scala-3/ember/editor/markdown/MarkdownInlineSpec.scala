@@ -5,10 +5,9 @@ import org.scalatest.matchers.should.Matchers
 
 /** The inline parser, case by case (P18).
   *
-  * The same division of labour as between [[MarkdownBlockSpec]] and
-  * [[CommonMarkConformanceSpec]]: the conformance suite says '''how much''', this one says
-  * '''what''', and it asserts the tree rather than rendered HTML -- because the tree is what
-  * the document adapter consumes.
+  * The same division of labour as between [[MarkdownBlockSpec]] and [[CommonMarkConformanceSpec]]:
+  * the conformance suite says '''how much''', this one says '''what''', and it asserts the tree
+  * rather than rendered HTML -- because the tree is what the document adapter consumes.
   */
 final class MarkdownInlineSpec extends AnyFlatSpec with Matchers {
 
@@ -19,19 +18,19 @@ final class MarkdownInlineSpec extends AnyFlatSpec with Matchers {
       case Left(error)   => fail(s"abgewiesen: ${error.render}")
 
     document.children.headOption match
-      case Some(MarkdownBlock.Paragraph(_, _, content)) => show(content)
+      case Some(MarkdownBlock.Paragraph(_, _, content))     => show(content)
       case Some(MarkdownBlock.Heading(_, _, _, _, content)) => show(content)
-      case other => fail(s"kein Absatz: $other")
+      case other                                            => fail(s"kein Absatz: $other")
 
   private def show(content: Vector[MarkdownInline]): String =
     content.map {
-      case MarkdownInline.Text(_, _, value)         => value
-      case MarkdownInline.Code(_, _, literal)       => s"code($literal)"
-      case MarkdownInline.SoftBreak(_, _)           => "~"
-      case MarkdownInline.HardBreak(_, _)           => "|"
-      case MarkdownInline.HtmlInline(_, _, literal) => s"html($literal)"
-      case MarkdownInline.Emphasis(_, _, kids)      => s"em(${show(kids)})"
-      case MarkdownInline.Strong(_, _, kids)        => s"strong(${show(kids)})"
+      case MarkdownInline.Text(_, _, value)               => value
+      case MarkdownInline.Code(_, _, literal)             => s"code($literal)"
+      case MarkdownInline.SoftBreak(_, _)                 => "~"
+      case MarkdownInline.HardBreak(_, _)                 => "|"
+      case MarkdownInline.HtmlInline(_, _, literal)       => s"html($literal)"
+      case MarkdownInline.Emphasis(_, _, kids)            => s"em(${show(kids)})"
+      case MarkdownInline.Strong(_, _, kids)              => s"strong(${show(kids)})"
       case MarkdownInline.Link(_, _, target, title, kids) =>
         s"link($target${title.map(t => s",$t").getOrElse("")}){${show(kids)}}"
       case MarkdownInline.Image(_, _, target, title, kids) =>
@@ -174,7 +173,9 @@ final class MarkdownInlineSpec extends AnyFlatSpec with Matchers {
   // ---------------------------------------------------------------------------------------
 
   "An autolink" should "become a link with its own text" in {
-    inlines("<https://example.com/x>\n") shouldBe "link(https://example.com/x){https://example.com/x}"
+    inlines(
+      "<https://example.com/x>\n"
+    ) shouldBe "link(https://example.com/x){https://example.com/x}"
   }
 
   it should "prefix an email with mailto" in {
@@ -257,7 +258,8 @@ final class MarkdownInlineSpec extends AnyFlatSpec with Matchers {
     val profile = MarkdownProfile.commonMarkSafe.copy(
       entities = EntityTable.common.and("Dcaron" -> "\u010e")
     )
-    val document = Markdown.parseSyntax("&Dcaron;\n", profile).map(_.document).getOrElse(fail("nope"))
+    val document =
+      Markdown.parseSyntax("&Dcaron;\n", profile).map(_.document).getOrElse(fail("nope"))
 
     document.children.head match
       case MarkdownBlock.Paragraph(_, _, content) =>
@@ -266,8 +268,9 @@ final class MarkdownInlineSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "resolve nothing at all under the numeric-only table" in {
-    val profile = MarkdownProfile.commonMarkSafe.copy(entities = EntityTable.numericOnly)
-    val document = Markdown.parseSyntax("&amp; &#35;\n", profile).map(_.document).getOrElse(fail("nope"))
+    val profile  = MarkdownProfile.commonMarkSafe.copy(entities = EntityTable.numericOnly)
+    val document =
+      Markdown.parseSyntax("&amp; &#35;\n", profile).map(_.document).getOrElse(fail("nope"))
 
     document.children.head match
       case MarkdownBlock.Paragraph(_, _, content) =>
@@ -313,7 +316,8 @@ final class MarkdownInlineSpec extends AnyFlatSpec with Matchers {
 
     result.document.children.head match
       case MarkdownBlock.Paragraph(_, _, content) =>
-        val emphasis = content.collectFirst { case value: MarkdownInline.Emphasis => value }
+        val emphasis = content
+          .collectFirst { case value: MarkdownInline.Emphasis => value }
           .getOrElse(fail("kein em"))
         source.substring(emphasis.span.start, emphasis.span.end) shouldBe "kursiv"
       case other => fail(s"kein Absatz: $other")

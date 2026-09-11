@@ -7,10 +7,10 @@ import ember.editor.core.*
   * §8.2 is explicit that the two must not collapse into one: "SoftBreak und HardBreak bleiben
   * unterscheidbar, damit Markdown und semantisches HTML ihre Bedeutung erhalten."
   *
-  * The difference is real in both formats. In Markdown a soft break is a newline that renders as
-  * a space; a hard break is two trailing spaces or a backslash and renders as `<br>`. Storing
-  * them as the same node would make the export a guess, and §18 does not promise a
-  * source-identical round trip but does promise to keep the supported semantics.
+  * The difference is real in both formats. In Markdown a soft break is a newline that renders as a
+  * space; a hard break is two trailing spaces or a backslash and renders as `<br>`. Storing them as
+  * the same node would make the export a guess, and §18 does not promise a source-identical round
+  * trip but does promise to keep the supported semantics.
   */
 enum BreakKind:
 
@@ -23,16 +23,15 @@ enum BreakKind:
 /** A line break inside a block.
   *
   * An [[AtomNode]]: it has no children and no inside to edit. §8.1 keeps atoms deliberately
-  * narrower than Lexical's `DecoratorNode` -- "keine Slots, keine editierbaren Teilbereiche" --
-  * and a break is the smallest possible case of that.
+  * narrower than Lexical's `DecoratorNode` -- "keine Slots, keine editierbaren Teilbereiche" -- and
+  * a break is the smallest possible case of that.
   *
   * ==Why it is not a `\n` in a text run==
   *
-  * Because a text run's text is addressed in UTF-16 offsets (§11), and a caret can stand on
-  * either side of a break. As a character, the two sides are the same offset with different
-  * affinity; as a node, they are two distinct child positions. Selection, mapping and
-  * normalisation all become simpler for it -- and the merge rule below gets a boundary it can
-  * actually see.
+  * Because a text run's text is addressed in UTF-16 offsets (§11), and a caret can stand on either
+  * side of a break. As a character, the two sides are the same offset with different affinity; as a
+  * node, they are two distinct child positions. Selection, mapping and normalisation all become
+  * simpler for it -- and the merge rule below gets a boundary it can actually see.
   */
 final case class BreakNode(id: NodeId, kind: BreakKind) extends AtomNode
 
@@ -51,10 +50,10 @@ object BreakNode extends NodeType[BreakNode]:
 
 /** A thematic break -- the horizontal rule. A block-level atom.
   *
-  * Block-level, unlike [[BreakNode]]: it stands between blocks, not inside one. That is why it
-  * is a separate type rather than a third [[BreakKind]] -- the two live at different levels of
-  * the tree, and a schema rule that allowed both in both places would allow documents that
-  * neither Markdown nor HTML can express.
+  * Block-level, unlike [[BreakNode]]: it stands between blocks, not inside one. That is why it is a
+  * separate type rather than a third [[BreakKind]] -- the two live at different levels of the tree,
+  * and a schema rule that allowed both in both places would allow documents that neither Markdown
+  * nor HTML can express.
   */
 final case class ThematicBreakNode(id: NodeId) extends AtomNode
 

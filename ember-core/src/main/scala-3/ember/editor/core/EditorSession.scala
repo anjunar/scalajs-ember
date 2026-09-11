@@ -298,27 +298,27 @@ final class EditorSession private (initial: EditorState, config: SessionConfig):
 
   /** Laesst die Deskriptoren der geaenderten Knoten urteilen.
     *
-    * §8.2: "Vollvalidierung erfolgt beim Import; lokale Aenderungen validieren betroffene Nodes
-    * und Strukturpfade." Die strukturellen Invarianten pruefen die Operationen selbst, jede fuer
-    * ihren eigenen Fall. Die '''fachliche''' Pruefung eines Knotens kann nur sein Deskriptor
-    * anstellen ([[NodeType.validate]]) -- und die lief bis P13 ausschliesslich in
-    * [[Document.build]], also beim Import und sonst nie.
+    * §8.2: "Vollvalidierung erfolgt beim Import; lokale Aenderungen validieren betroffene Nodes und
+    * Strukturpfade." Die strukturellen Invarianten pruefen die Operationen selbst, jede fuer ihren
+    * eigenen Fall. Die '''fachliche''' Pruefung eines Knotens kann nur sein Deskriptor anstellen
+    * ([[NodeType.validate]]) -- und die lief bis P13 ausschliesslich in [[Document.build]], also
+    * beim Import und sonst nie.
     *
     * ==Warum hier und nicht in der Operation==
     *
     * Weil ein Zwischenstand kein Urteil verdient. Eine Formatierung schneidet einen Textlauf in
     * drei Teile und fuegt sie danach wieder zusammen; eine Liste verliert ihr letztes Kind und
-    * bekommt im selben Commit eines zurueck. Wer nach jeder Operation urteilt, weist Dokumente
-    * ab, die es nie gegeben haette -- deshalb steht die Pruefung dort, wo §10 auch die
+    * bekommt im selben Commit eines zurueck. Wer nach jeder Operation urteilt, weist Dokumente ab,
+    * die es nie gegeben haette -- deshalb steht die Pruefung dort, wo §10 auch die
     * [[PreCommitRule]]n hinstellt: hinter den Transforms, vor der Veroeffentlichung.
     *
-    * Geprueft werden nur die tatsaechlich geaenderten Knoten. Ein Tastendruck in einem Dokument
-    * mit 100 000 Knoten kostet damit eine Pruefung und nicht 100 000.
+    * Geprueft werden nur die tatsaechlich geaenderten Knoten. Ein Tastendruck in einem Dokument mit
+    * 100 000 Knoten kostet damit eine Pruefung und nicht 100 000.
     */
   private def checkChangedNodes(candidate: CommitCandidate): Option[UpdateError] =
     if !candidate.documentChanged then None
     else
-      val document = candidate.document
+      val document   = candidate.document
       val violations = candidate.changes.changedNodes.toVector
         .flatMap(document.node)
         .flatMap(node =>

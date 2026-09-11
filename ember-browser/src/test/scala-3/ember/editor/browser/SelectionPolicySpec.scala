@@ -207,7 +207,7 @@ final class SelectionPolicySpec extends AnyFlatSpec with Matchers {
     // The difference `MappedPoint.Displaced` exists for: "Ein Caret darf auf die Grenze
     // zurueckfallen -- der Cursor muss irgendwo stehen. Ein Upload-Bookmark darf das nicht."
     val boundary = Point.childrenBefore(other, 0)
-    val mapping = RevisionMapping(
+    val mapping  = RevisionMapping(
       Revision(3),
       Revision(4),
       PositionMapping.of(Set(run))(_ => MappedPoint.Displaced(boundary))

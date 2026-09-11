@@ -7,8 +7,8 @@ import scala.collection.mutable
 /** Which of the two views owns the value right now. */
 enum FieldMode:
 
-  /** The document is authoritative. The textarea is hidden but '''not disabled''' -- §16 asks
-    * for exactly one successful named field, and a disabled control submits nothing.
+  /** The document is authoritative. The textarea is hidden but '''not disabled''' -- §16 asks for
+    * exactly one successful named field, and a disabled control submits nothing.
     */
   case Rich
 
@@ -19,9 +19,9 @@ enum FieldMode:
   *
   * ==What this class is for==
   *
-  * A form has exactly one value for a field, and an editor has two places a value could come
-  * from: the document and the textarea. §16 resolves that by making ownership explicit and
-  * switchable, and this is where the switch lives.
+  * A form has exactly one value for a field, and an editor has two places a value could come from:
+  * the document and the textarea. §16 resolves that by making ownership explicit and switchable,
+  * and this is where the switch lives.
   *
   * {{{
   * val field   = MarkdownField("body", …)
@@ -35,15 +35,15 @@ enum FieldMode:
   *
   * ==Headless on purpose==
   *
-  * Nothing here touches a DOM or a component. §16's structure -- preview, textarea, status -- is
-  * a '''structure illustration''', and the rules it states are about ownership, staleness and
-  * atomicity. Those are testable without a browser, and the browser gate then checks the parts
-  * that are not: that the textarea is named, focusable and submits without JavaScript.
+  * Nothing here touches a DOM or a component. §16's structure -- preview, textarea, status -- is a
+  * '''structure illustration''', and the rules it states are about ownership, staleness and
+  * atomicity. Those are testable without a browser, and the browser gate then checks the parts that
+  * are not: that the textarea is named, focusable and submits without JavaScript.
   *
   * ==What it does not do==
   *
-  * No HTTP. §16: "Form action/method, CSRF, Validation, Persistenz und Fehlerrueckgabe liefert
-  * die Anwendung." This class produces a string and says whose it is.
+  * No HTTP. §16: "Form action/method, CSRF, Validation, Persistenz und Fehlerrueckgabe liefert die
+  * Anwendung." This class produces a string and says whose it is.
   */
 final class EditorFormBinding(
     session: EditorSession,
@@ -52,9 +52,9 @@ final class EditorFormBinding(
     val submits: SubmitPolicy = SubmitPolicy.ImportDraft
 ):
 
-  private var currentMode: FieldMode          = FieldMode.Rich
-  private var draft: Option[SourceDraft]      = None
-  private val pending                         = mutable.Queue.empty[DeferredIntent[?]]
+  private var currentMode: FieldMode              = FieldMode.Rich
+  private var draft: Option[SourceDraft]          = None
+  private val pending                             = mutable.Queue.empty[DeferredIntent[?]]
   private var lastGood: Option[EncodedFieldValue] = None
 
   /** A queued change. A thunk, not a value: §16 asks for waiting intents to be '''re-validated'''
@@ -78,8 +78,8 @@ final class EditorFormBinding(
     * §16: "Im Rich-Modus wird der Submit-Wert nach jedem Dokumentcommit synchron aktualisiert",
     * which is what avoids a stale payload on Enter or `requestSubmit`.
     *
-    * In [[FieldMode.Source]] it is the draft, unconfirmed and unparsed. That is the point: the
-    * user sees the string they typed, and a submit sends the string they see.
+    * In [[FieldMode.Source]] it is the draft, unconfirmed and unparsed. That is the point: the user
+    * sees the string they typed, and a submit sends the string they see.
     */
   def submitValue: String = currentMode match
     case FieldMode.Source => draft.map(_.text).getOrElse(encodedNow)
@@ -88,8 +88,8 @@ final class EditorFormBinding(
   /** The last value the codec produced, or the last good one if the current state has none.
     *
     * A state without a representable value should not be reachable -- [[EditorField.reduce]]
-    * rejects the transaction that would create one. The fallback exists for the one case it
-    * cannot cover: a session created with a document that was already unrepresentable, where no
+    * rejects the transaction that would create one. The fallback exists for the one case it cannot
+    * cover: a session created with a document that was already unrepresentable, where no
     * transaction ever ran.
     */
   private def encodedNow: String =
@@ -158,13 +158,13 @@ final class EditorFormBinding(
         // Schema und Wurzel kommen aus der Sitzung: ein Dokument gegen ein anderes
         // Schema-Objekt ist ein fremdes, und `restore` weist es zu Recht ab.
         field.codec.decode(open.text, session.document.schema, session.document.rootId) match
-          case Left(error) => Left(error)
+          case Left(error)     => Left(error)
           case Right(document) =>
             // Eine Transaktion, nicht zwei: der Import ist atomar, und ein abgelehnter laesst
             // Dokument, Formwert und History unberuehrt (§16).
             session.update(transaction => transaction.restore(document, None): Unit) match
               case Left(error) => Left(error)
-              case Right(_) =>
+              case Right(_)    =>
                 draft = None
                 currentMode = FieldMode.Rich
                 releaseDeferred()
@@ -187,8 +187,8 @@ final class EditorFormBinding(
   /** Runs a change, or does not, depending on whether a draft is open.
     *
     * §16 names upload completion as the case that made this necessary: a file finishes uploading
-    * while the user is editing the source, and applying it would overwrite what they typed. The
-    * two allowed answers are [[IntentPolicy.Defer]] and [[IntentPolicy.Reject]].
+    * while the user is editing the source, and applying it would overwrite what they typed. The two
+    * allowed answers are [[IntentPolicy.Defer]] and [[IntentPolicy.Reject]].
     *
     * The rich mode runs everything immediately -- there is nothing to protect.
     */
@@ -197,7 +197,7 @@ final class EditorFormBinding(
     else
       intents match
         case IntentPolicy.Reject => IntentOutcome.Refused(FieldError.SourceBusy(what))
-        case IntentPolicy.Defer =>
+        case IntentPolicy.Defer  =>
           pending.enqueue(new DeferredIntent(what, () => change))
           IntentOutcome.Deferred
 
@@ -216,8 +216,8 @@ final class EditorFormBinding(
   /** The value to send, or why there is nothing to send.
     *
     * Under [[SubmitPolicy.ImportDraft]] an open draft is imported first, so that the server
-    * receives a document and not an unconfirmed string. Under
-    * [[SubmitPolicy.RefuseWhileDirty]] an open draft blocks the submit outright.
+    * receives a document and not an unconfirmed string. Under [[SubmitPolicy.RefuseWhileDirty]] an
+    * open draft blocks the submit outright.
     */
   def valueForSubmit(): Either[EditorError, String] =
     (currentMode, draft, submits) match

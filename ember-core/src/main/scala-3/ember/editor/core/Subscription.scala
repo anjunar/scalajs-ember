@@ -26,8 +26,8 @@ object Subscription:
   /** Baut eine Registrierung aus ihrer Aufraeumaktion.
     *
     * Oeffentlich, weil auch Module ausserhalb des Kerns Registrierungen anbieten -- die
-    * Dokumentansicht meldet ueber `onProjected`, spaeter der SelectionPort und die Toolbar.
-    * Sie alle sollen dafuer denselben Vertrag verwenden und keinen eigenen nachbauen.
+    * Dokumentansicht meldet ueber `onProjected`, spaeter der SelectionPort und die Toolbar. Sie
+    * alle sollen dafuer denselben Vertrag verwenden und keinen eigenen nachbauen.
     */
   def apply(cancel: () => Unit): Subscription =
     new Subscription:

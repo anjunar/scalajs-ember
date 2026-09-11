@@ -8,11 +8,11 @@ import scala.scalajs.js.annotation.JSExportTopLevel
 
 /** Einstiegspunkt der Demo.
   *
-  * Kein Initialisierungscode auf oberster Ebene: §15.2 verlangt, dass ein Modul beim Laden
-  * weder `window` noch `document` liest. Alles Browserabhaengige beginnt in [[boot]].
+  * Kein Initialisierungscode auf oberster Ebene: §15.2 verlangt, dass ein Modul beim Laden weder
+  * `window` noch `document` liest. Alles Browserabhaengige beginnt in [[boot]].
   *
-  * Auch keine Hydration -- die ist P20. Die Seite rendert clientseitig in `#root`, und der
-  * Server liefert nur die leere Huelle.
+  * Auch keine Hydration -- die ist P20. Die Seite rendert clientseitig in `#root`, und der Server
+  * liefert nur die leere Huelle.
   */
 object Main:
 

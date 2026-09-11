@@ -8,37 +8,37 @@ import ember.editor.core.*
   *
   * §14: "ViewState, DOM, Uploads und '''rekursiv die History selbst''' werden nicht in
   * History-Snapshots aufgenommen." Waere sie ein [[StateField]], stuende sie in jedem
-  * [[EditorState]] -- und jeder Snapshot enthielte alle vorherigen. Deshalb lebt sie hier, in
-  * einem Objekt neben der Sitzung, und nicht in ihr.
+  * [[EditorState]] -- und jeder Snapshot enthielte alle vorherigen. Deshalb lebt sie hier, in einem
+  * Objekt neben der Sitzung, und nicht in ihr.
   *
-  * Der Preis ist sichtbar: eine `History` ist veraenderlich und gehoert genau '''einer'''
-  * Sitzung. Sie zweimal zu installieren ist ein Aufrufvertragsfehler.
+  * Der Preis ist sichtbar: eine `History` ist veraenderlich und gehoert genau '''einer''' Sitzung.
+  * Sie zweimal zu installieren ist ein Aufrufvertragsfehler.
   *
   * ==Was ein Undo tut==
   *
   * Es setzt einen frueheren Stand ein, es dreht keine Uhr zurueck. §9 ist da eindeutig: "Beide
-  * steigen auch bei Undo: der wiederhergestellte Inhalt ist ein neuer Stand." Dokument und
-  * Auswahl kommen in '''einem''' Commit zurueck (§14) -- nicht in zweien, sonst saehe ein
-  * Beobachter dazwischen einen Stand, den es nie gab.
+  * steigen auch bei Undo: der wiederhergestellte Inhalt ist ein neuer Stand." Dokument und Auswahl
+  * kommen in '''einem''' Commit zurueck (§14) -- nicht in zweien, sonst saehe ein Beobachter
+  * dazwischen einen Stand, den es nie gab.
   *
   * ==Wie ein Undo sich selbst nicht aufzeichnet==
   *
   * Zwei Wege, und beide muessen halten:
   *
-  *   1. [[undo]] und [[redo]] setzen [[Origin.History]]; der Rekorder ueberspringt diese
-  *      Herkunft. Das ist die Zusage aus §14 ("History-origin wird nicht neu aufgezeichnet"),
-  *      und sie gilt fuer jeden, der eine Wiederherstellung selbst ausloest.
-  *   1. Wer dagegen [[HistoryCommands.Undo]] dispatcht, bestimmt die Herkunft nicht -- das tut
-  *      der Aufrufer des Dispatches. Deshalb merkt sich dieses Objekt das Dokument, das es
-  *      gerade eingesetzt hat, und ueberspringt den Commit, der genau dieses Objekt
-  *      veroeffentlicht. Referenzgleichheit, nicht Wertgleichheit: der wiederhergestellte
-  *      Snapshot ''ist'' derselbe Wert, den die History haelt.
+  *   1. [[undo]] und [[redo]] setzen [[Origin.History]]; der Rekorder ueberspringt diese Herkunft.
+  *      Das ist die Zusage aus §14 ("History-origin wird nicht neu aufgezeichnet"), und sie gilt
+  *      fuer jeden, der eine Wiederherstellung selbst ausloest.
+  *   1. Wer dagegen [[HistoryCommands.Undo]] dispatcht, bestimmt die Herkunft nicht -- das tut der
+  *      Aufrufer des Dispatches. Deshalb merkt sich dieses Objekt das Dokument, das es gerade
+  *      eingesetzt hat, und ueberspringt den Commit, der genau dieses Objekt veroeffentlicht.
+  *      Referenzgleichheit, nicht Wertgleichheit: der wiederhergestellte Snapshot ''ist'' derselbe
+  *      Wert, den die History haelt.
   *
   * Dass der zweite Weg traegt, haengt an einer Eigenschaft, die es zu wissen lohnt: Transforms
-  * laufen nach der Wiederherstellung erneut, und wenn sie den Stand veraendern, ist es nicht
-  * mehr derselbe. Sie tun es nicht, weil jeder gespeicherte Snapshot ein '''veroeffentlichter'''
-  * Stand ist und damit bereits normalisiert -- ein Transform, der darauf noch etwas zu tun
-  * faende, waere nicht idempotent. `HistorySpec` haelt das fest.
+  * laufen nach der Wiederherstellung erneut, und wenn sie den Stand veraendern, ist es nicht mehr
+  * derselbe. Sie tun es nicht, weil jeder gespeicherte Snapshot ein '''veroeffentlichter''' Stand
+  * ist und damit bereits normalisiert -- ein Transform, der darauf noch etwas zu tun faende, waere
+  * nicht idempotent. `HistorySpec` haelt das fest.
   */
 final class History(
     config: HistoryConfig = HistoryConfig.default,
@@ -47,10 +47,10 @@ final class History(
 
   val id: ExtensionId = ExtensionId("ember.history")
 
-  private var session: EditorSession       = null
-  private var current: HistoryState        = HistoryState.empty
-  private var restored: Option[Document]   = None
-  private var group: Option[OpenGroup]     = None
+  private var session: EditorSession     = null
+  private var current: HistoryState      = HistoryState.empty
+  private var restored: Option[Document] = None
+  private var group: Option[OpenGroup]   = None
 
   /** Eine ausdruecklich geoeffnete Gruppe -- Composition, Drag, ein mehrstufiger Dialog. */
   private final case class OpenGroup(before: HistorySnapshot, label: Option[String])
@@ -103,17 +103,17 @@ final class History(
   /** Beginnt eine ausdrueckliche Gruppe.
     *
     * §14 beschreibt sie an der `CompositionSession`: "Alle vorlaeufigen Aenderungen einer
-    * CompositionSession verschmelzen zu genau einem Eintrag mit dem Zustand vor
-    * Composition-Beginn; abgebrochene Composition ohne Inhaltsaenderung erzeugt keinen Eintrag."
-    * Beides faellt hier zusammen: der Stand bei [[beginGroup]] wird gemerkt, und wenn bis
-    * [[endGroup]] nichts passiert, entsteht nichts.
+    * CompositionSession verschmelzen zu genau einem Eintrag mit dem Zustand vor Composition-Beginn;
+    * abgebrochene Composition ohne Inhaltsaenderung erzeugt keinen Eintrag." Beides faellt hier
+    * zusammen: der Stand bei [[beginGroup]] wird gemerkt, und wenn bis [[endGroup]] nichts
+    * passiert, entsteht nichts.
     *
-    * Composition selbst gibt es noch nicht -- sie ist P23. Was es gibt, ist der Vertrag, den
-    * sie benutzen wird, und er ist ohne Browser pruefbar.
+    * Composition selbst gibt es noch nicht -- sie ist P23. Was es gibt, ist der Vertrag, den sie
+    * benutzen wird, und er ist ohne Browser pruefbar.
     *
     * '''Nicht enthalten:''' das Zurueckstellen fremder Transaktionen waehrend der Gruppe. §14
-    * verlangt es, aber es ist eine Eigenschaft der Sitzung und nicht der History -- und es
-    * betrifft nur Composition, also P23.
+    * verlangt es, aber es ist eine Eigenschaft der Sitzung und nicht der History -- und es betrifft
+    * nur Composition, also P23.
     */
   def beginGroup(label: Option[String] = None): Unit =
     requireInstalled()
@@ -136,8 +136,7 @@ final class History(
             marks = MarkSet.empty,
             at = clock.now(),
             label = open.label,
-            estimatedBytes =
-              HistoryEntry.estimate(open.before.document, session.document)
+            estimatedBytes = HistoryEntry.estimate(open.before.document, session.document)
           ),
           config.limits
         )
@@ -177,8 +176,7 @@ final class History(
       marks = marks,
       at = at,
       label = commit.meta.label,
-      estimatedBytes =
-        HistoryEntry.estimate(commit.previous.document, commit.current.document)
+      estimatedBytes = HistoryEntry.estimate(commit.previous.document, commit.current.document)
     )
 
     current =
@@ -196,10 +194,10 @@ final class History(
       at: Long
   ): Boolean =
     commit.meta.history match
-      case Some(HistoryPolicy.Push)  => false
-      case Some(HistoryPolicy.Merge) => current.openEntry.isDefined
+      case Some(HistoryPolicy.Push)   => false
+      case Some(HistoryPolicy.Merge)  => current.openEntry.isDefined
       case Some(HistoryPolicy.Ignore) => false // schon oben abgefangen
-      case None =>
+      case None                       =>
         current.openEntry.exists(
           HistoryGrouping.mergeable(_, kind, marks, at, config.limits)
         )
@@ -220,7 +218,7 @@ final class History(
   ): Either[UpdateError, Boolean] =
     requireInstalled()
     take(current) match
-      case None => Right(false)
+      case None                 => Right(false)
       case Some((target, next)) =>
         val previous = current
         current = next
@@ -229,7 +227,7 @@ final class History(
           transaction.restore(target.document, target.selection): Unit
           target.fields.foreach(_.applyTo(transaction))
         } match
-          case Right(_) => Right(true)
+          case Right(_)    => Right(true)
           case Left(error) =>
             // Die Stufe ist nicht verbraucht, wenn sie nicht angekommen ist.
             current = previous
@@ -238,9 +236,9 @@ final class History(
 
   /** Der Weg aus §12: `editor.register(Undo) { (tx, _) => history.undo(tx) }`.
     *
-    * Innerhalb eines laufenden Entwurfs -- deshalb kein eigener Commit und kein `Either`,
-    * sondern ein [[CommandResult]]. Ein leerer Stapel ist kein Fehler, sondern
-    * Nichtzustaendigkeit: [[CommandResult.Pass]], damit ein Fallback-Handler noch drankommt.
+    * Innerhalb eines laufenden Entwurfs -- deshalb kein eigener Commit und kein `Either`, sondern
+    * ein [[CommandResult]]. Ein leerer Stapel ist kein Fehler, sondern Nichtzustaendigkeit:
+    * [[CommandResult.Pass]], damit ein Fallback-Handler noch drankommt.
     */
   def undo(scope: TransformScope): CommandResult = run(scope, undone)
 
@@ -251,7 +249,7 @@ final class History(
       take: HistoryState => Option[(HistorySnapshot, HistoryState)]
   ): CommandResult =
     take(current) match
-      case None => CommandResult.Pass
+      case None                 => CommandResult.Pass
       case Some((target, next)) =>
         scope.restore(target.document, target.selection) match
           case Right(_) =>

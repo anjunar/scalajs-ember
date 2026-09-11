@@ -9,9 +9,8 @@ import ui.core.state.Disposable
   *
   * ==What it is and what it is not==
   *
-  * §15.3: "Der UI-HostMutationGuard verhindert Textschreibzugriffe, Moves, Remounts und
-  * Entfernung in diesem Bereich vor Seiteneffekten, der SelectionPort verhindert
-  * Selection-Writes."
+  * §15.3: "Der UI-HostMutationGuard verhindert Textschreibzugriffe, Moves, Remounts und Entfernung
+  * in diesem Bereich vor Seiteneffekten, der SelectionPort verhindert Selection-Writes."
   *
   * So this is a lease on a region of the '''view''', not a lock on the document and not a
   * scheduler. It stops the projection from writing where a browser is composing text -- because a
@@ -23,8 +22,8 @@ import ui.core.state.Disposable
   *
   * ==Why it protects blocks and not the whole host by default==
   *
-  * Because a composition in one paragraph should not stop the rest of the document from updating.
-  * A remote change three paragraphs down is not the composition's business, and §15.3 draws the
+  * Because a composition in one paragraph should not stop the rest of the document from updating. A
+  * remote change three paragraphs down is not the composition's business, and §15.3 draws the
   * barrier around "den vollstaendigen anfaenglichen Ersetzungsbereich" -- not around everything.
   * Where that area cannot be named, [[ProtectedRegion.WholeHost]] says so and the whole host goes
   * under the lease.
@@ -39,13 +38,15 @@ final class ProjectionWriteGuard(view: DocumentView, scope: BrowserScope):
   def protect(region: ProtectedRegion): Unit =
     if leases.isEmpty then
       leases = region match
-        case ProtectedRegion.WholeHost     => Vector(HostMutationGuard.protect(DomNodes.wrap(scope.host)))
+        case ProtectedRegion.WholeHost =>
+          Vector(HostMutationGuard.protect(DomNodes.wrap(scope.host)))
         case ProtectedRegion.Blocks(nodes) =>
           val hosts = nodes.flatMap(hostOf)
           // A block that is not projected cannot be protected, and a barrier with holes in it is
           // worse than none: it would look like protection while the gap is exactly where the
           // projection writes. So an incomplete set falls back to the whole host.
-          if hosts.length == nodes.length && hosts.nonEmpty then hosts.map(HostMutationGuard.protect)
+          if hosts.length == nodes.length && hosts.nonEmpty then
+            hosts.map(HostMutationGuard.protect)
           else Vector(HostMutationGuard.protect(DomNodes.wrap(scope.host)))
 
   /** Releases it. Safe to call when nothing is held.

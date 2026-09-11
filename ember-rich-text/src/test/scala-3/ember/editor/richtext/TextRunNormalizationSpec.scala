@@ -8,8 +8,8 @@ import org.scalatest.matchers.should.Matchers
 /** The normal form of adjacent text runs (§8.2).
   *
   * The plan spells this one out as a "Konkreter Normalisierungstest" rather than leaving it to
-  * judgement, and that is the shape of this suite: the worked example from §8.2, then each of
-  * its promises separately, then the cases that must *not* merge.
+  * judgement, and that is the shape of this suite: the worked example from §8.2, then each of its
+  * promises separately, then the cases that must *not* merge.
   */
 final class TextRunNormalizationSpec extends AnyFlatSpec with Matchers {
 
@@ -125,7 +125,8 @@ final class TextRunNormalizationSpec extends AnyFlatSpec with Matchers {
     // no commit at all (§10).
     val f = hallo
 
-    val outcome = f.session.update(_.select(RangeSelection.caret(Point.textBefore(NodeId("t0"), 3))))
+    val outcome =
+      f.session.update(_.select(RangeSelection.caret(Point.textBefore(NodeId("t0"), 3))))
 
     outcome.map(_.documentChanged) shouldBe Right(false)
     f.shape() shouldBe Vector(("Hallo Welt!", Vector.empty))

@@ -4,9 +4,9 @@ import ember.editor.core.*
 
 /** Der Zeitgeber der History.
   *
-  * §14: "Zeitgeber wird injiziert." Nicht aus Reinheitsliebe -- die Zeitfenster der
-  * Gruppierung sind sonst nicht pruefbar. Ein Test, der auf echte Millisekunden wartet, um
-  * eine Gruppengrenze zu belegen, prueft die Systemuhr und nicht die Regel.
+  * §14: "Zeitgeber wird injiziert." Nicht aus Reinheitsliebe -- die Zeitfenster der Gruppierung
+  * sind sonst nicht pruefbar. Ein Test, der auf echte Millisekunden wartet, um eine Gruppengrenze
+  * zu belegen, prueft die Systemuhr und nicht die Regel.
   */
 trait HistoryClock:
   /** Millisekunden seit einem beliebigen, aber festen Nullpunkt. */
@@ -19,7 +19,7 @@ object HistoryClock:
 
   /** Eine Uhr, die stillsteht, bis jemand sie stellt. */
   final class Fake(private var current: Long = 0L) extends HistoryClock:
-    def now(): Long                = current
+    def now(): Long                 = current
     def advance(millis: Long): Unit = current += millis
     def set(millis: Long): Unit     = current = millis
 
@@ -30,8 +30,8 @@ object HistoryClock:
   * @param maxRetainedBytes
   *   '''Geschaetztes''' Budget, siehe [[HistoryEntry.estimatedBytes]]. Keine Heapmessung.
   * @param mergeWindowMillis
-  *   Wie lange zusammenhaengendes Tippen verschmelzen darf (§14). Danach beginnt eine neue
-  *   Gruppe, auch wenn der Caret nahtlos weiterlaeuft -- eine Pause ist eine Absicht.
+  *   Wie lange zusammenhaengendes Tippen verschmelzen darf (§14). Danach beginnt eine neue Gruppe,
+  *   auch wenn der Caret nahtlos weiterlaeuft -- eine Pause ist eine Absicht.
   */
 final case class HistoryLimits(
     maxEntries: Int = 200,
@@ -50,8 +50,8 @@ final case class HistoryConfig(
     limits: HistoryLimits = HistoryLimits.default,
     /** §14: "Import setzt History standardmaessig zurueck."
       *
-      * Standardmaessig, nicht zwingend: "fachlich gewuenschte Einfuegung importierter Fragmente
-      * ist eine normale Aenderung" -- die traegt dann [[Origin.User]] und nicht [[Origin.Import]].
+      * Standardmaessig, nicht zwingend: "fachlich gewuenschte Einfuegung importierter Fragmente ist
+      * eine normale Aenderung" -- die traegt dann [[Origin.User]] und nicht [[Origin.Import]].
       */
     resetOnImport: Boolean = true
 )

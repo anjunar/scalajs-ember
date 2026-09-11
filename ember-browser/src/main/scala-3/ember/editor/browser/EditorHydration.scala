@@ -10,35 +10,34 @@ import scala.collection.mutable
   *
   * ==The check UI cannot make==
   *
-  * §17 step 5: "Ein zusaetzlicher Editor-Check validiert IDs, Textinhalt und semantisch
-  * relevante Attribute gegen das erwartete Profil, '''bevor''' Binding sie verdeckt.
-  * UI-Strict allein beweist dies heute nicht."
+  * §17 step 5: "Ein zusaetzlicher Editor-Check validiert IDs, Textinhalt und semantisch relevante
+  * Attribute gegen das erwartete Profil, '''bevor''' Binding sie verdeckt. UI-Strict allein beweist
+  * dies heute nicht."
   *
   * UI's hydrating cursor checks that it finds the tag it expects where it expects it. That is
-  * necessary and not sufficient: a `<p>` with the wrong `data-ember-node`, or with the right id
-  * and different text, passes a structural check and then quietly becomes a document that says
+  * necessary and not sufficient: a `<p>` with the wrong `data-ember-node`, or with the right id and
+  * different text, passes a structural check and then quietly becomes a document that says
   * something other than what the server sent. [[preflight]] is the check that catches it, and it
   * runs before the first claim so that a mismatch costs nothing.
   *
   * ==Why it compares against the semantics and not against a second renderer==
   *
   * The expectation comes from the same [[HtmlSupport]] that produced the SSR output. A separate
-  * description of "what the server should have sent" would be a second source of truth, and the
-  * two would drift -- and the drift would look exactly like a hydration mismatch.
+  * description of "what the server should have sent" would be a second source of truth, and the two
+  * would drift -- and the drift would look exactly like a hydration mismatch.
   */
 object EditorHydration:
 
   /** Checks a server-rendered subtree against the document it should represent.
     *
-    * Throws on the first mismatch: the boundary's `preflight` is a `(HostElement, A) => Unit`,
-    * and ui-core turns a throw into a scoped rebuild with the fallback intact. Returning an
-    * `Either` here would mean the caller had to decide what a failure means, and §17 already
-    * decided.
+    * Throws on the first mismatch: the boundary's `preflight` is a `(HostElement, A) => Unit`, and
+    * ui-core turns a throw into a scoped rebuild with the fallback intact. Returning an `Either`
+    * here would mean the caller had to decide what a failure means, and §17 already decided.
     *
     * @param profile
-    *   the render profile the server used. A page rendered as [[RenderProfile.Content]] carries
-    *   no node ids, so hydrating it as an editor is a mismatch of the '''profile''', not of the
-    *   markup -- and saying so is more useful than reporting a missing attribute.
+    *   the render profile the server used. A page rendered as [[RenderProfile.Content]] carries no
+    *   node ids, so hydrating it as an editor is a mismatch of the '''profile''', not of the markup
+    *   -- and saying so is more useful than reporting a missing attribute.
     */
   def preflight(
       root: dom.Element,
@@ -55,9 +54,9 @@ object EditorHydration:
     * the view: §17.3 puts the fallback outside the boundary, so the boundary is a wrapper by
     * construction. The document's root node is the first element inside it.
     *
-    * Comparing the container against the root instead would report `<article>` against `<div>`
-    * on every correct page -- a check that fails for structural reasons has no way to report a
-    * real mismatch.
+    * Comparing the container against the root instead would report `<article>` against `<div>` on
+    * every correct page -- a check that fails for structural reasons has no way to report a real
+    * mismatch.
     */
   def preflightContent(
       container: dom.Element,
@@ -68,7 +67,8 @@ object EditorHydration:
     elementChildren(container).headOption match
       // Ein leerer Container ist kein fehlendes Attribut, sondern eine fehlende Ansicht --
       // und als solche zu melden erspart dem Leser die Suche nach dem Knoten, der fehlt.
-      case None => throw HydrationMismatch(Vector(HydrationProblem.ChildCount(document.rootId, 1, 0)))
+      case None =>
+        throw HydrationMismatch(Vector(HydrationProblem.ChildCount(document.rootId, 1, 0)))
       case Some(root) => preflight(root, document, support, profile)
 
   /** The same check, as a value. For a test, and for a caller that wants to log before failing. */
@@ -129,8 +129,8 @@ object EditorHydration:
               fail(HydrationProblem.TextMismatch(node.id, expected, actual))
 
           case HtmlShape.Element(_, _, _) =>
-            val children  = childrenOf(node, document)
-            val elements  = elementChildren(element)
+            val children = childrenOf(node, document)
+            val elements = elementChildren(element)
 
             if children.length != elements.length then
               fail(HydrationProblem.ChildCount(node.id, children.length, elements.length))
@@ -144,9 +144,9 @@ object EditorHydration:
 
   /** How many problems to collect before giving up.
     *
-    * A mismatch near the top usually makes every node below it mismatch too, and a diagnosis of
-    * ten thousand lines is not a diagnosis. The first few say where the divergence started,
-    * which is the question a reader actually has.
+    * A mismatch near the top usually makes every node below it mismatch too, and a diagnosis of ten
+    * thousand lines is not a diagnosis. The first few say where the divergence started, which is
+    * the question a reader actually has.
     */
   private val MaxProblems = 8
 
@@ -157,11 +157,11 @@ object EditorHydration:
 
   /** Element children only.
     *
-    * The UI runtime writes comment anchors for keyed groups (`<!--ui:KeyedChildren:start-->`),
-    * and they are not document nodes. Counting them would make every keyed container mismatch.
+    * The UI runtime writes comment anchors for keyed groups (`<!--ui:KeyedChildren:start-->`), and
+    * they are not document nodes. Counting them would make every keyed container mismatch.
     */
   private def elementChildren(element: dom.Element): Vector[dom.Element] =
-    val out = Vector.newBuilder[dom.Element]
+    val out   = Vector.newBuilder[dom.Element]
     var index = 0
     while index < element.childNodes.length do
       // `nodeType` and not a type test: a document in an iframe has its own `Element`, and
@@ -169,7 +169,6 @@ object EditorHydration:
       DomKinds.asElement(element.childNodes(index)).foreach(child => out += child)
       index += 1
     out.result()
-
 
 /** Why a server-rendered subtree does not match the document it claims to be. */
 enum HydrationProblem:
@@ -195,8 +194,8 @@ enum HydrationProblem:
 /** The failure a preflight throws.
   *
   * An exception and not an `Either`, because that is what `HydrationBoundary` takes: it turns a
-  * throw into a scoped rebuild of exactly this boundary, with the fallback outside it intact
-  * (§17). Returning a value would mean re-inventing that mechanism one level up.
+  * throw into a scoped rebuild of exactly this boundary, with the fallback outside it intact (§17).
+  * Returning a value would mean re-inventing that mechanism one level up.
   */
 final class HydrationMismatch(val problems: Vector[HydrationProblem])
     extends RuntimeException(

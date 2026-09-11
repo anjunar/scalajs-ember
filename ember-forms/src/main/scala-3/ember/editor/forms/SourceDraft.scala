@@ -20,13 +20,13 @@ import ember.editor.core.*
   * applied at revision 9 is stale, and [[FieldError.StaleDraft]] says so instead of guessing.
   *
   * @param text
-  *   what is in the textarea. Unconfirmed input -- it may not parse, and that is not an error
-  *   until someone applies it.
+  *   what is in the textarea. Unconfirmed input -- it may not parse, and that is not an error until
+  *   someone applies it.
   * @param baseline
   *   the document revision the draft was opened against.
   * @param selection
-  *   where the caret is in the textarea. Kept because a round trip through the form must not
-  *   move it (§16 names it among what the draft owns).
+  *   where the caret is in the textarea. Kept because a round trip through the form must not move
+  *   it (§16 names it among what the draft owns).
   */
 final case class SourceDraft(
     text: String,
@@ -44,18 +44,18 @@ final case class SourceSelection(start: Int, end: Int):
 /** Which of §16's two answers an application gives to a change during source editing.
   *
   * §16: "Unabhaengige Dokumentaenderungen, einschliesslich Upload-Completion, werden waehrend
-  * dieser Bearbeitung als Intent zurueckgestellt '''oder''' mit `SourceBusy` abgewiesen." Both
-  * are allowed, so it is a value the application sets rather than a decision this module makes.
+  * dieser Bearbeitung als Intent zurueckgestellt '''oder''' mit `SourceBusy` abgewiesen." Both are
+  * allowed, so it is a value the application sets rather than a decision this module makes.
   */
 enum IntentPolicy:
 
-  /** Queue it. After the draft lands, §16 asks for the queue to be '''re-validated''', not
-    * replayed -- the document it was computed against is gone.
+  /** Queue it. After the draft lands, §16 asks for the queue to be '''re-validated''', not replayed
+    * -- the document it was computed against is gone.
     */
   case Defer
 
-  /** Refuse it now, with [[FieldError.SourceBusy]]. Honest for anything a user triggered and
-    * would otherwise wait for without feedback.
+  /** Refuse it now, with [[FieldError.SourceBusy]]. Honest for anything a user triggered and would
+    * otherwise wait for without feedback.
     */
   case Reject
 
@@ -65,13 +65,13 @@ enum IntentPolicy:
   */
 enum SubmitPolicy:
 
-  /** Import the draft first. A decode or conflict error blocks the submit '''and keeps the
-    * visible string''' -- §16 is explicit that the text survives a failed import.
+  /** Import the draft first. A decode or conflict error blocks the submit '''and keeps the visible
+    * string''' -- §16 is explicit that the text survives a failed import.
     */
   case ImportDraft
 
-  /** Refuse to submit while anything is unconfirmed. For a form where an implicit import would
-    * be a surprise.
+  /** Refuse to submit while anything is unconfirmed. For a form where an implicit import would be a
+    * surprise.
     */
   case RefuseWhileDirty
 
@@ -80,8 +80,8 @@ enum IntentOutcome[+A]:
 
   case Applied[A](result: A) extends IntentOutcome[A]
 
-  /** Queued. It will be offered again after the draft lands, against the document of that
-    * moment -- which is why it is a '''thunk''' and not a computed value.
+  /** Queued. It will be offered again after the draft lands, against the document of that moment --
+    * which is why it is a '''thunk''' and not a computed value.
     */
   case Deferred extends IntentOutcome[Nothing]
 

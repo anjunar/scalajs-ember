@@ -6,9 +6,9 @@ import scala.collection.mutable
 
 /** How an element's text is spaced.
   *
-  * HTML collapses runs of whitespace, and clipboard HTML is full of indentation that is not
-  * content -- a newline and four spaces between two `<li>` tags mean nothing. `<pre>` is the
-  * exception, and it is an exception a rule has to declare, because only the rule knows.
+  * HTML collapses runs of whitespace, and clipboard HTML is full of indentation that is not content
+  * -- a newline and four spaces between two `<li>` tags mean nothing. `<pre>` is the exception, and
+  * it is an exception a rule has to declare, because only the rule knows.
   */
 enum Whitespace:
   case Collapse, Preserve
@@ -16,8 +16,8 @@ enum Whitespace:
 /** Whether a node stands between blocks or inside a line.
   *
   * §8.2 makes the distinction and gives the example: "Links sind Inline-Container, keine
-  * Text-Mark." A link has children and a target, so it is not a mark -- but it also does not end
-  * a paragraph, so it is not a block. Without this, an imported link ended a paragraph and lost
+  * Text-Mark." A link has children and a target, so it is not a mark -- but it also does not end a
+  * paragraph, so it is not a block. Without this, an imported link ended a paragraph and lost
   * itself: every `<a>` came back as bare text, which a browser test of the import duly showed.
   */
 enum NodeLevel:
@@ -28,8 +28,8 @@ enum NodeLevel:
   * §19.1 lists "Verarbeitung von Kindern" among the things a rule defines, and this is why it
   * cannot be guessed: `<li>a</li>` holds a paragraph even though no `<p>` is written, and
   * `<p><span><p>x</p></span></p>` holds one paragraph even though two are. Deciding by what is
-  * inside would get both wrong, and getting them wrong is how a pasted list ends up with text
-  * where a block belongs.
+  * inside would get both wrong, and getting them wrong is how a pasted list ends up with text where
+  * a block belongs.
   */
 enum ChildMode:
 
@@ -78,9 +78,9 @@ enum HtmlImportDecision:
 
 /** What a rule may ask for while it decides.
   *
-  * Deliberately small: ids, the schema, the policy, a way to report a loss, and URL handling.
-  * A rule that could reach further would be a rule that could make the import depend on
-  * something the caller did not pass in.
+  * Deliberately small: ids, the schema, the policy, a way to report a loss, and URL handling. A
+  * rule that could reach further would be a rule that could make the import depend on something the
+  * caller did not pass in.
   */
 final class HtmlImportScope private[html] (
     val schema: Schema,
@@ -164,8 +164,8 @@ object HtmlImportRule:
       whitespace: Whitespace = Whitespace.Collapse
   )(build: (HtmlFragment.Element, Vector[NodeId], HtmlImportScope) => EditorNode): HtmlImportRule =
     new HtmlImportRule:
-      val name                = ruleName
-      override val priority   = rulePriority
+      val name                                            = ruleName
+      override val priority                               = rulePriority
       def handles(element: HtmlFragment.Element): Boolean = tags.contains(element.tag)
       def decide(element: HtmlFragment.Element, scope: HtmlImportScope): HtmlImportDecision =
         HtmlImportDecision.Container(
@@ -178,7 +178,7 @@ object HtmlImportRule:
   /** A rule that turns a set of tags into one mark. */
   def mark(ruleName: String, tags: Set[String], value: TextMark): HtmlImportRule =
     new HtmlImportRule:
-      val name = ruleName
+      val name                                            = ruleName
       def handles(element: HtmlFragment.Element): Boolean = tags.contains(element.tag)
       def decide(element: HtmlFragment.Element, scope: HtmlImportScope): HtmlImportDecision =
         HtmlImportDecision.Marked(value)
@@ -186,8 +186,8 @@ object HtmlImportRule:
 /** What a profile supplies that HTML cannot say for itself.
   *
   * Pasted HTML has loose text at the top level, inline elements outside any block, and blocks
-  * inside inline wrappers. A document has none of those. Something has to make a paragraph out of
-  * a bare sentence -- and "paragraph" is a rich-text idea (§6 keeps it out of this module), so it
+  * inside inline wrappers. A document has none of those. Something has to make a paragraph out of a
+  * bare sentence -- and "paragraph" is a rich-text idea (§6 keeps it out of this module), so it
   * comes in from outside.
   */
 trait HtmlImportProfile:

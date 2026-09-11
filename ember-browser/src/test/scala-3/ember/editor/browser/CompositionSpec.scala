@@ -9,17 +9,17 @@ import org.scalatest.matchers.should.Matchers
   *
   * ==What is here==
   *
-  * The parts that are decisions about values: which area a composition owns, which transactions
-  * are refused while it runs, what happens to the ones that wait. Those carry the reasoning; an
-  * engine would only make them harder to read.
+  * The parts that are decisions about values: which area a composition owns, which transactions are
+  * refused while it runs, what happens to the ones that wait. Those carry the reasoning; an engine
+  * would only make them harder to read.
   *
   * ==What is not==
   *
-  * Everything an IME actually does. §15.3's own warning applies to the tests as much as to the
-  * code -- "Ein willkuerlicher Timeout ohne reproduzierten Browserfall ist kein
-  * Abschlussprotokoll" -- and a synthetic `compositionstart` is not an IME. The engine-level
-  * behaviour is in `composition.spec.mjs` and `mutation-race.spec.mjs`, and the real acceptance
-  * is a person with a keyboard: `manual-ime.md`.
+  * Everything an IME actually does. §15.3's own warning applies to the tests as much as to the code
+  * -- "Ein willkuerlicher Timeout ohne reproduzierten Browserfall ist kein Abschlussprotokoll" --
+  * and a synthetic `compositionstart` is not an IME. The engine-level behaviour is in
+  * `composition.spec.mjs` and `mutation-race.spec.mjs`, and the real acceptance is a person with a
+  * keyboard: `manual-ime.md`.
   */
 final class CompositionSpec extends AnyFlatSpec with Matchers {
 
@@ -35,7 +35,7 @@ final class CompositionSpec extends AnyFlatSpec with Matchers {
     var running: Option[Long] = None
 
     private object Gate extends Extension:
-      val id: ExtensionId = ExtensionId("ember.test.composition-gate")
+      val id: ExtensionId                             = ExtensionId("ember.test.composition-gate")
       override def contribute: ExtensionContributions =
         ExtensionContributions(preCommitRules = Vector(CompositionGate.rule(() => running)))
 
@@ -146,7 +146,10 @@ final class CompositionSpec extends AnyFlatSpec with Matchers {
       .map(_ => ())
 
   private def textOf(fixture: Fixture, node: String): String =
-    fixture.session.document.node(NodeId(node)).collect { case run: TextNode => run.text }.getOrElse("")
+    fixture.session.document
+      .node(NodeId(node))
+      .collect { case run: TextNode => run.text }
+      .getOrElse("")
 
   "An independent change" should "be refused while a composition runs" in {
     // §15.3: "Waehrend Composition werden alle unabhaengigen Dokumenttransaktionen, auch
@@ -211,10 +214,14 @@ final class CompositionSpec extends AnyFlatSpec with Matchers {
   // Die Warteschlange (§15.3)
   // ---------------------------------------------------------------------------------------
 
-  private def intent(label: String, marks: Boolean = false)(using fixture: Fixture): DeferredIntent =
+  private def intent(label: String, marks: Boolean = false)(using
+      fixture: Fixture
+  ): DeferredIntent =
     DeferredIntent(
       label,
-      Option.when(marks)(Bookmark(Point.textBefore(NodeId("t0"), 2), fixture.session.state.revision)),
+      Option.when(marks)(
+        Bookmark(Point.textBefore(NodeId("t0"), 2), fixture.session.state.revision)
+      ),
       (session, point) =>
         session.update(_.spliceText(NodeId("t0"), 0, 0, label.take(1)): Unit).map(_ => ())
     )
@@ -223,7 +230,7 @@ final class CompositionSpec extends AnyFlatSpec with Matchers {
 
   "A deferred intent" should "run when the queue is released" in {
     given fixture: Fixture = new Fixture
-    val queue             = new DeferredIntentQueue()
+    val queue              = new DeferredIntentQueue()
 
     queue.offer(intent("Alpha"), busy) shouldBe Right(())
     queue.size shouldBe 1
@@ -234,7 +241,7 @@ final class CompositionSpec extends AnyFlatSpec with Matchers {
 
   it should "run in the order it arrived" in {
     given fixture: Fixture = new Fixture
-    val queue             = new DeferredIntentQueue()
+    val queue              = new DeferredIntentQueue()
 
     queue.offer(intent("Alpha"), busy): Unit
     queue.offer(intent("Beta"), busy): Unit
@@ -247,7 +254,7 @@ final class CompositionSpec extends AnyFlatSpec with Matchers {
     // §15.3 says "begrenzte Queue", and the failure mode is why: a composition that never ends
     // would otherwise collect work without limit and apply all of it minutes later.
     given fixture: Fixture = new Fixture
-    val queue             = new DeferredIntentQueue(limit = 1)
+    val queue              = new DeferredIntentQueue(limit = 1)
 
     queue.offer(intent("Alpha"), busy) shouldBe Right(())
     queue.offer(intent("Beta"), busy) shouldBe Left(busy)
@@ -258,8 +265,8 @@ final class CompositionSpec extends AnyFlatSpec with Matchers {
     // §11: an insertion may not take the replacement boundary. An upload whose target is gone
     // must not land somewhere else.
     given fixture: Fixture = new Fixture
-    val queue             = new DeferredIntentQueue()
-    val stale = DeferredIntent(
+    val queue              = new DeferredIntentQueue()
+    val stale              = DeferredIntent(
       "Upload",
       Some(Bookmark(Point.textBefore(NodeId("t0"), 2), Revision(99))),
       (session, _) => Right(())
@@ -272,8 +279,8 @@ final class CompositionSpec extends AnyFlatSpec with Matchers {
 
   it should "report a rejection with its reason" in {
     given fixture: Fixture = new Fixture
-    val queue             = new DeferredIntentQueue()
-    val doomed = DeferredIntent(
+    val queue              = new DeferredIntentQueue()
+    val doomed             = DeferredIntent(
       "Kaputt",
       None,
       (session, _) => session.update(_.remove(NodeId("root")): Unit).map(_ => ())
@@ -288,7 +295,7 @@ final class CompositionSpec extends AnyFlatSpec with Matchers {
 
   it should "be droppable without running" in {
     given fixture: Fixture = new Fixture
-    val queue             = new DeferredIntentQueue()
+    val queue              = new DeferredIntentQueue()
 
     queue.offer(intent("Alpha"), busy): Unit
     queue.clear() shouldBe Vector("Alpha")
@@ -306,7 +313,7 @@ final class CompositionSpec extends AnyFlatSpec with Matchers {
     // "Die laufende Composition besitzt eine Session-ID, Ausgangsrevision, gemappte Selection und
     // die letzte erfasste native Eingabe."
     val fixture = new Fixture
-    val open =
+    val open    =
       CompositionSession.start(fixture.document, fixture.caret("t1", 2), Revision(5))
 
     open.baseRevision shouldBe Revision(5)
@@ -327,7 +334,7 @@ final class CompositionSpec extends AnyFlatSpec with Matchers {
 
   it should "remember the last text it took" in {
     val fixture = new Fixture
-    val open = CompositionSession
+    val open    = CompositionSession
       .start(fixture.document, fixture.caret("t1", 2), Revision.initial)
       .withCapture(NodeId("t1"), "私")
 

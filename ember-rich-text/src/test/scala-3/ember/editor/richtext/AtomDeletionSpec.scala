@@ -10,16 +10,16 @@ import org.scalatest.matchers.should.Matchers
   *
   * §22: "Atomare Medien sind per Tastatur erreichbar und loeschbar." They were not. A caret
   * resolves to a position in a '''text run''' ([[TextEditing.textPositionOf]]), and an atom is not
-  * one -- so a Backspace behind a picture reached past it and took the last character of the run
-  * in front instead. The picture stayed; something else vanished.
+  * one -- so a Backspace behind a picture reached past it and took the last character of the run in
+  * front instead. The picture stayed; something else vanished.
   *
   * Found by using the demo, which is what a demo is for.
   *
   * ==The local atom==
   *
   * `ember-rich-text` has no atom type of its own, and §6 keeps `image` out of it. A marker node
-  * standing in for one is enough: the rule is about [[AtomNode]] and not about pictures, and a
-  * test that needed the image module would be testing the wrong level.
+  * standing in for one is enough: the rule is about [[AtomNode]] and not about pictures, and a test
+  * that needed the image module would be testing the wrong level.
   */
 final class AtomDeletionSpec extends AnyFlatSpec with Matchers {
 
@@ -201,7 +201,6 @@ final class AtomDeletionSpec extends AnyFlatSpec with Matchers {
     fixture.outline shouldBe Vector(""""Hallo """", "atom", """"Welt"""")
   }
 
-
   // ---------------------------------------------------------------------------------------
   // Bereiche innerhalb eines Blocks
   // ---------------------------------------------------------------------------------------
@@ -210,7 +209,10 @@ final class AtomDeletionSpec extends AnyFlatSpec with Matchers {
     // What a click on a picture produces: the browser selects the image, and the port maps that
     // to a range from the boundary before it to the boundary after it.
     val fixture = new Fixture
-    fixture.selectRange(Point.childrenBefore(NodeId("p0"), 1), Point.childrenBefore(NodeId("p0"), 2))
+    fixture.selectRange(
+      Point.childrenBefore(NodeId("p0"), 1),
+      Point.childrenBefore(NodeId("p0"), 2)
+    )
 
     fixture.backspace() shouldBe true
 

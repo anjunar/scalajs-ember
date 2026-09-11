@@ -102,8 +102,7 @@ final class HistoryFixture(config: HistoryConfig = HistoryConfig.default):
   /** Delete: loescht hinter dem Caret, der Caret bleibt stehen. */
   def delete(meta: TransactionMeta = TransactionMeta.user): Unit =
     val at = caret.getOrElse(0)
-    if at < textOf().length then
-      edit(meta)(_.spliceText(text, at, 1, ""): Unit)
+    if at < textOf().length then edit(meta)(_.spliceText(text, at, 1, ""): Unit)
 
   def edit(meta: TransactionMeta = TransactionMeta.user)(body: Transaction => Unit): Unit =
     session.update(meta)(body) match

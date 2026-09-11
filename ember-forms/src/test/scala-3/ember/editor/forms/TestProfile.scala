@@ -6,8 +6,8 @@ import ember.editor.markdown.*
 
 /** A block type this suite invents, so that nothing here needs the rich-text profile.
   *
-  * §6 gives `ember-forms` the core, `markdown`, `json`, `html` and `ui` -- no node module. If
-  * the field contracts ever needed a `ParagraphNode`, this file would stop compiling.
+  * §6 gives `ember-forms` the core, `markdown`, `json`, `html` and `ui` -- no node module. If the
+  * field contracts ever needed a `ParagraphNode`, this file would stop compiling.
   */
 final case class Box(id: NodeId, children: Vector[NodeId]) extends ElementNode
 
@@ -23,9 +23,9 @@ object Box extends ElementNodeType[Box]:
 
 /** A mark with a Markdown spelling, and one without.
   *
-  * [[Quiet]] is this suite's stand-in for the underline of §16: a mark the document can carry
-  * and Markdown cannot write. It is what makes the pre-commit rejection observable without
-  * pulling in `ember-rich-text`.
+  * [[Quiet]] is this suite's stand-in for the underline of §16: a mark the document can carry and
+  * Markdown cannot write. It is what makes the pre-commit rejection observable without pulling in
+  * `ember-rich-text`.
   */
 case object Loud extends TextMark:
   val markId: MarkId = MarkId("test.loud/1")
@@ -108,7 +108,10 @@ object TestRules:
   private val boxCodec: NodeJsonCodec[Box] = new NodeJsonCodec[Box]:
     val nodeType: NodeType[Box] = Box
 
-    def encode(node: Box, context: EncodeContext): Either[EncodeError, Vector[(String, JsonValue)]] =
+    def encode(
+        node: Box,
+        context: EncodeContext
+    ): Either[EncodeError, Vector[(String, JsonValue)]] =
       Right(Vector.empty)
 
     def decode(

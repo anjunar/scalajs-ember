@@ -8,9 +8,9 @@ object Links:
 
   /** The link a point sits in, if any.
     *
-    * Walks upwards, not downwards: a point names a run, and the link -- if there is one -- is
-    * one of its ancestors. Stopping at the first block keeps the search finite and honest, since
-    * a link is inline and cannot be above one (§8.2).
+    * Walks upwards, not downwards: a point names a run, and the link -- if there is one -- is one
+    * of its ancestors. Stopping at the first block keeps the search finite and honest, since a link
+    * is inline and cannot be above one (§8.2).
     */
   def linkAt(document: DocumentRead, point: Point): Option[LinkNode] =
     ancestorsOf(document, point.owner)
@@ -29,9 +29,9 @@ object Links:
 
   /** Moves a link's children out and removes the link.
     *
-    * The children keep their ids -- `move` preserves the node (§11), so marks, text and any
-    * point inside them survive. What happens afterwards is P12's business: adjacent runs with
-    * equal marks grow back together, so unlinking in the middle of a sentence leaves one run.
+    * The children keep their ids -- `move` preserves the node (§11), so marks, text and any point
+    * inside them survive. What happens afterwards is P12's business: adjacent runs with equal marks
+    * grow back together, so unlinking in the middle of a sentence leaves one run.
     */
   def unwrap(scope: TransformScope, link: LinkNode): Unit =
     (for
@@ -46,21 +46,21 @@ object Links:
 
 /** Link normalisation.
   *
-  * The same shape as the list rules, for the same reason (§3.2): the commands could each be
-  * careful enough, and would then each be careful separately for as long as anyone remembers.
-  * A paste, a move or a later feature would not be.
+  * The same shape as the list rules, for the same reason (§3.2): the commands could each be careful
+  * enough, and would then each be careful separately for as long as anyone remembers. A paste, a
+  * move or a later feature would not be.
   */
 private[link] object LinkNormalization:
 
   /** A link inside a link loses its wrapper.
     *
     * §8.2: "Ein Link enthaelt keine anderen Links." Unwrapping the '''inner''' one keeps the
-    * stretch the author most likely meant -- the outer link covers more, so its target is the
-    * one that survives, and no content is lost either way.
+    * stretch the author most likely meant -- the outer link covers more, so its target is the one
+    * that survives, and no content is lost either way.
     *
-    * The rule hangs on the inner node, which is the one whose parent changed and therefore the
-    * one that is dirty. A rule on the outer link would look at children that a move made no
-    * claim about (§3.4).
+    * The rule hangs on the inner node, which is the one whose parent changed and therefore the one
+    * that is dirty. A rule on the outer link would look at children that a move made no claim about
+    * (§3.4).
     */
   val noNestedLinks: Transform[LinkNode] = new Transform[LinkNode]:
     val name           = "link.no-nested-links"
@@ -90,13 +90,12 @@ private[link] object LinkNormalization:
 
   /** Two neighbouring links to the same place become one.
     *
-    * Linking two adjacent stretches separately leaves two anchors where a reader sees one
-    * clickable region -- and where Markdown would write two identical link definitions.
+    * Linking two adjacent stretches separately leaves two anchors where a reader sees one clickable
+    * region -- and where Markdown would write two identical link definitions.
     *
     * Backwards, like the list rule and for the same reason: the newly created link is the dirty
     * one, and a rule looking forward would only ever be asked on the node with nothing after it
-    * (§3.4). That mistake has now been made twice; the third time it will be recognised on
-    * sight.
+    * (§3.4). That mistake has now been made twice; the third time it will be recognised on sight.
     */
   val adjacentLinksJoin: Transform[LinkNode] = new Transform[LinkNode]:
     val name           = "link.adjacent-links-join"
@@ -111,7 +110,9 @@ private[link] object LinkNormalization:
         index  <- document.indexOfChild(node.id)
         if index > 0
         before <- document.childrenOf(parent).lift(index - 1)
-        link   <- document.node(before).collect { case value: LinkNode if value.target == node.target => value }
+        link   <- document.node(before).collect {
+          case value: LinkNode if value.target == node.target => value
+        }
       yield link
 
       predecessor.foreach { earlier =>
@@ -128,13 +129,13 @@ private[link] object LinkNormalization:
   * ==Why no dialog is needed==
   *
   * P14's acceptance: "Linkdialog nicht noetig, headless nutzbar." Everything here takes a
-  * [[LinkTarget]] and returns a document change; where that target comes from -- a dialog, a
-  * paste, a Markdown import, a test -- is somebody else's question. `ember-ui` (P27) will put a
-  * dialog in front of it, and nothing in this module will have to change.
+  * [[LinkTarget]] and returns a document change; where that target comes from -- a dialog, a paste,
+  * a Markdown import, a test -- is somebody else's question. `ember-ui` (P27) will put a dialog in
+  * front of it, and nothing in this module will have to change.
   *
   * @param policy
-  *   which targets this profile accepts. Injected, because "erlaubt" is an application's
-  *   decision and not a library's: an intranet editor and a public one disagree about `http`.
+  *   which targets this profile accepts. Injected, because "erlaubt" is an application's decision
+  *   and not a library's: an intranet editor and a public one disagree about `http`.
   */
 final class LinkExtension private (
     generator: NodeIdGenerator,

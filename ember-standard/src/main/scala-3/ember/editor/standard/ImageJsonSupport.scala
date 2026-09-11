@@ -8,9 +8,9 @@ import ember.editor.json.*
   *
   * ==Why it lives here and not in `ember-image`==
   *
-  * §6 puts `image` on the core alone -- it knows nothing about a wire format, exactly as it
-  * knows nothing about HTML. And `ember-json` knows nothing about images. `standard` is the one
-  * place where both are on the classpath, and §6 names it for that: "der einzige Ort, an dem
+  * §6 puts `image` on the core alone -- it knows nothing about a wire format, exactly as it knows
+  * nothing about HTML. And `ember-json` knows nothing about images. `standard` is the one place
+  * where both are on the classpath, and §6 names it for that: "der einzige Ort, an dem
   * Feature-Nodes und Renderer einander kennen".
   *
   * ==Why decoding takes a policy==
@@ -19,9 +19,9 @@ import ember.editor.json.*
   * dialog, and §20 does not distinguish. Passing the policy in means the two paths run the same
   * check -- and there is no other way to build a [[MediaUrl]], so they cannot drift.
   *
-  * A document whose image sources the profile refuses does not decode. That is the point: an
-  * `img` with a `javascript:` source is not a slightly wrong document, it is one that must never
-  * reach a renderer.
+  * A document whose image sources the profile refuses does not decode. That is the point: an `img`
+  * with a `javascript:` source is not a slightly wrong document, it is one that must never reach a
+  * renderer.
   */
 object ImageJsonSupport:
 
@@ -71,7 +71,7 @@ object ImageJsonSupport:
       at: DiagnosticPath
   ): Either[DecodeError, Option[MediaId]] =
     payload.optionalString("mediaId", at).flatMap {
-      case None => Right(None)
+      case None      => Right(None)
       case Some(raw) =>
         MediaId
           .parse(raw)
@@ -81,9 +81,9 @@ object ImageJsonSupport:
 
   /** A measurement that is not one is a decode error, not a silently dropped field.
     *
-    * §19.2 asks decoding to check "Zahlenbereiche". Dropping a `width: 0` would produce a
-    * document that differs from the payload without saying so, and the next round trip would
-    * quietly lose it.
+    * §19.2 asks decoding to check "Zahlenbereiche". Dropping a `width: 0` would produce a document
+    * that differs from the payload without saying so, and the next round trip would quietly lose
+    * it.
     */
   private def pixels(
       payload: JsonValue.Obj,
@@ -92,7 +92,7 @@ object ImageJsonSupport:
   ): Either[DecodeError, Option[PositivePixels]] =
     payload.get(name) match
       case None | Some(JsonValue.Null) => Right(None)
-      case Some(_) =>
+      case Some(_)                     =>
         payload.int(name, at).flatMap { value =>
           PositivePixels
             .parse(value)

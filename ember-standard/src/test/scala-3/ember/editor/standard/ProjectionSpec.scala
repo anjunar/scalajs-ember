@@ -16,9 +16,9 @@ import scala.collection.mutable
 /** Der Rendererbeweis aus P09 (Architektur §§5–7, 15, 19).
   *
   * Laeuft headless gegen einen `SsrCursor`. Das ist keine Notloesung, sondern derselbe Weg:
-  * `DocumentView` nimmt einen beliebigen Cursor, und dass SSR und Browser dasselbe liefern,
-  * ist damit keine Absprache zwischen zwei Implementierungen. Die Browserseite -- DOM-Identitaet
-  * und Schreibzugriffe -- prueft `projection.spec.mjs` im Harness.
+  * `DocumentView` nimmt einen beliebigen Cursor, und dass SSR und Browser dasselbe liefern, ist
+  * damit keine Absprache zwischen zwei Implementierungen. Die Browserseite -- DOM-Identitaet und
+  * Schreibzugriffe -- prueft `projection.spec.mjs` im Harness.
   */
 final class ProjectionSpec extends AnyFlatSpec with Matchers {
 
@@ -26,20 +26,19 @@ final class ProjectionSpec extends AnyFlatSpec with Matchers {
 
   private def open(paragraphs: String*): (EditorSession, NodeIdGenerator) =
     val generator = NodeIdGenerator.sequential("g")
-    val resolved = ExtensionResolver
+    val resolved  = ExtensionResolver
       .resolve(Vector(RichText(generator)))
       .getOrElse(fail("Extensions nicht aufloesbar"))
 
-    val blocks = paragraphs.zipWithIndex.map((text, index) =>
-      (NodeId(s"p$index"), NodeId(s"t$index"), text)
-    )
+    val blocks =
+      paragraphs.zipWithIndex.map((text, index) => (NodeId(s"p$index"), NodeId(s"t$index"), text))
     val nodes = RootNode(root, blocks.map(_._1).toVector) +:
       blocks.flatMap((block, text, content) =>
         Vector(ParagraphNode(block, Vector(text)), TextNode(text, content))
       )
 
     val document = Document.unsafe(resolved.schema, root, nodes.toVector)
-    val editor = EditorSession
+    val editor   = EditorSession
       .create(
         document,
         resolved,
@@ -59,9 +58,8 @@ final class ProjectionSpec extends AnyFlatSpec with Matchers {
   /** Der sichtbare Text der Ausgabe, ohne Tags und Gruppenanker.
     *
     * Fuer Aussagen ueber die Reihenfolge. Seit die Textlaeufe je einen `span` tragen (§15.1),
-    * stehen zwei aufeinanderfolgende Laeufe im Markup nicht mehr nebeneinander -- und genau
-    * das ist der Zweck des Wrappers. Die Reihenfolge steht trotzdem fest, sie steht nur eine
-    * Ebene tiefer.
+    * stehen zwei aufeinanderfolgende Laeufe im Markup nicht mehr nebeneinander -- und genau das ist
+    * der Zweck des Wrappers. Die Reihenfolge steht trotzdem fest, sie steht nur eine Ebene tiefer.
     */
   private def visible(html: String): String =
     html.replaceAll("<!--.*?-->", "").replaceAll("<[^>]*>", "")
@@ -86,8 +84,8 @@ final class ProjectionSpec extends AnyFlatSpec with Matchers {
   "The projection" should "render semantic HTML" in {
     // §16: Absaetze, semantische Tags. Ein Leser ohne Stylesheet und ein Screenreader sollen
     // dasselbe Dokument vorfinden.
-    val (editor, _)  = open("Hallo", "Welt")
-    val (_, cursor)  = mounted(editor)
+    val (editor, _) = open("Hallo", "Welt")
+    val (_, cursor) = mounted(editor)
 
     cursor.collectHtml() should include("<p")
     cursor.collectHtml() should include("Hallo")
@@ -156,8 +154,8 @@ final class ProjectionSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "reach the rendered output" in {
-    val (editor, _)  = open("Hallo")
-    val (_, cursor)  = mounted(editor)
+    val (editor, _) = open("Hallo")
+    val (_, cursor) = mounted(editor)
 
     edit(editor)(_.spliceText(id("t0"), 5, 0, " Welt"))
 
@@ -168,22 +166,22 @@ final class ProjectionSpec extends AnyFlatSpec with Matchers {
     // §15.1, Akzeptanz: "Ein 10k-Node-Dokument wird fuer einen Textedit nicht vollstaendig
     // traversiert." Gemessen an den Komponenten, die eine Sicht tatsaechlich anfasst.
     val generator = NodeIdGenerator.sequential("g")
-    val resolved = ExtensionResolver
+    val resolved  = ExtensionResolver
       .resolve(Vector(RichText(generator)))
       .getOrElse(fail("Extensions nicht aufloesbar"))
 
     val count  = 2000
     val blocks = (0 until count).map(index => (NodeId(s"p$index"), NodeId(s"t$index")))
-    val nodes = RootNode(root, blocks.map(_._1).toVector) +:
+    val nodes  = RootNode(root, blocks.map(_._1).toVector) +:
       blocks.flatMap((block, text) =>
         Vector(ParagraphNode(block, Vector(text)), TextNode(text, s"Absatz $text"))
       )
     val document = Document.unsafe(resolved.schema, root, nodes.toVector)
-    val editor = EditorSession
+    val editor   = EditorSession
       .create(document, resolved, resolved.sessionConfig())
       .getOrElse(fail("Sitzung nicht erzeugbar"))
 
-    val touched = mutable.Set.empty[String]
+    val touched  = mutable.Set.empty[String]
     val counting = ViewSupport.of(
       ParagraphSupport.views.views.map(spyOn(_, touched))*
     )
@@ -207,7 +205,7 @@ final class ProjectionSpec extends AnyFlatSpec with Matchers {
 
   private def wrap[N <: EditorNode](view: NodeView[N], log: mutable.Set[String]): NodeView[N] =
     new NodeView[N]:
-      val nodeType: NodeType[N] = view.nodeType
+      val nodeType: NodeType[N]                                      = view.nodeType
       def create(node: N, profile: RenderProfile): AbstractComponent =
         view.create(node, profile)
       def accepts(component: AbstractComponent, node: N, profile: RenderProfile): Boolean =
@@ -221,7 +219,7 @@ final class ProjectionSpec extends AnyFlatSpec with Matchers {
   // ---------------------------------------------------------------------------------------
 
   "A new paragraph" should "appear in the output" in {
-    val (editor, _) = open("Hallo")
+    val (editor, _)    = open("Hallo")
     val (view, cursor) = mounted(editor)
 
     edit(editor) { tx =>
@@ -255,8 +253,8 @@ final class ProjectionSpec extends AnyFlatSpec with Matchers {
     // sich Identitaet pruefen liesse. Verschiedene Marks halten die beiden auseinander.
     val (editor, _) = open("Erster", "Zweiter")
     bolden(editor, id("t1"))
-    val (view, _)   = mounted(editor)
-    val before      = view.componentFor(id("t1"))
+    val (view, _) = mounted(editor)
+    val before    = view.componentFor(id("t1"))
 
     edit(editor)(_.move(id("t1"), id("p0"), 1))
 
@@ -265,8 +263,8 @@ final class ProjectionSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "show up under its new parent" in {
-    val (editor, _)    = open("Erster", "Zweiter")
-    val (_, cursor)    = mounted(editor)
+    val (editor, _) = open("Erster", "Zweiter")
+    val (_, cursor) = mounted(editor)
 
     edit(editor)(_.move(id("t1"), id("p0"), 1))
 
@@ -291,9 +289,9 @@ final class ProjectionSpec extends AnyFlatSpec with Matchers {
   "onProjected" should "report the rendered revision after the projection" in {
     // §5: Commit und Rendering sind zwei Zeitpunkte. Wer wissen will, ob etwas zu sehen ist,
     // fragt hier -- nicht den Commit-Listener.
-    val (editor, _) = open("Hallo")
+    val (editor, _)    = open("Hallo")
     val (view, cursor) = mounted(editor)
-    val seen = mutable.ArrayBuffer.empty[(Long, Boolean)]
+    val seen           = mutable.ArrayBuffer.empty[(Long, Boolean)]
 
     view.onProjected(revision =>
       seen += ((revision.value, cursor.collectHtml().contains("Hallo!")))
@@ -338,8 +336,8 @@ final class ProjectionSpec extends AnyFlatSpec with Matchers {
     // §15.1: "zwei Editoren verwechselt keine IDs." Beide Dokumente benutzen hier absichtlich
     // dieselben IDs -- IDs gelten dokumentlokal (§8.3), und jede Sicht fuehrt ihren eigenen
     // Index.
-    val (first, _)  = open("Erster")
-    val (second, _) = open("Zweiter")
+    val (first, _)       = open("Erster")
+    val (second, _)      = open("Zweiter")
     val (viewA, cursorA) = mounted(first)
     val (viewB, cursorB) = mounted(second)
 
@@ -429,13 +427,15 @@ final class ProjectionSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "replace the inner tags when the marks change" in {
-    val (editor, _)  = open("Hallo")
-    val (_, cursor)  = mounted(editor)
+    val (editor, _) = open("Hallo")
+    val (_, cursor) = mounted(editor)
 
     edit(editor)(_.replace(id("t0"), TextNode(id("t0"), "Hallo", MarkSet.of(Strong))))
     cursor.collectHtml() should include("<strong>Hallo</strong>")
 
-    edit(editor)(_.replace(id("t0"), TextNode(id("t0"), "Hallo", MarkSet.of(StandardMarks.Emphasis))))
+    edit(editor)(
+      _.replace(id("t0"), TextNode(id("t0"), "Hallo", MarkSet.of(StandardMarks.Emphasis)))
+    )
     cursor.collectHtml() should include("<em>Hallo</em>")
     cursor.collectHtml() should not include "<strong>"
   }
@@ -494,9 +494,9 @@ final class ProjectionSpec extends AnyFlatSpec with Matchers {
   "A node that changes its type" should "be replaced, not patched" in {
     // §15.1: "Ein typwechselnder Node unter gleicher ID ist eine explizite View-Ersetzung."
     // Seit P12 gibt es den Fall wirklich -- `SetHeading` wechselt den Tag unter gleicher ID.
-    val (editor, _) = open("Hallo")
+    val (editor, _)    = open("Hallo")
     val (view, cursor) = mounted(editor)
-    val before = view.componentFor(id("p0"))
+    val before         = view.componentFor(id("p0"))
 
     edit(editor)(_.replace(id("p0"), HeadingNode(id("p0"), Vector(id("t0")), HeadingLevel.H2)))
 
@@ -517,9 +517,9 @@ final class ProjectionSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "rebuild its subtree" in {
-    val (editor, _) = open("Hallo")
+    val (editor, _)    = open("Hallo")
     val (view, cursor) = mounted(editor)
-    val child = view.componentFor(id("t0"))
+    val child          = view.componentFor(id("t0"))
 
     edit(editor)(_.replace(id("p0"), HeadingNode(id("p0"), Vector(id("t0")), HeadingLevel.H3)))
 

@@ -9,16 +9,16 @@ import ember.editor.richtext.*
   *
   * §6 puts `list` above `rich-text`, and §8.2 says why: "ein ListItem Blockinhalte." The most
   * common block is a paragraph, so a list needs paragraphs to be worth anything -- while the
-  * rich-text profile is perfectly useful without lists. An application that only edits prose
-  * never links this module.
+  * rich-text profile is perfectly useful without lists. An application that only edits prose never
+  * links this module.
   *
   * ==Where it takes precedence, and where it does not==
   *
-  * Enter and Backspace mean something different inside a list, and §12's priority chain is
-  * exactly the mechanism for that: both handlers register at [[CommandPriority.High]], above
-  * the rich-text ones, and return [[CommandResult.Pass]] when the caret is not in a list. The
-  * rich-text handler then does the ordinary thing. This module does not replace paragraph
-  * splitting; it takes precedence where lists are involved and steps aside everywhere else.
+  * Enter and Backspace mean something different inside a list, and §12's priority chain is exactly
+  * the mechanism for that: both handlers register at [[CommandPriority.High]], above the rich-text
+  * ones, and return [[CommandResult.Pass]] when the caret is not in a list. The rich-text handler
+  * then does the ordinary thing. This module does not replace paragraph splitting; it takes
+  * precedence where lists are involved and steps aside everywhere else.
   *
   * That is also why splitting an item calls `RichText.InsertParagraph` rather than reimplementing
   * it. The block split already handles marks, empty runs and caret placement -- a second

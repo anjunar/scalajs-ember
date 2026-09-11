@@ -6,14 +6,14 @@ import ember.editor.core.*
   *
   * ==Rein, und zwar an der Signatur erkennbar==
   *
-  * §19.2: "Migrationsfunktionen sind versioniert und rein." [[migrate]] bekommt das
-  * Envelope-Objekt und liefert ein neues -- kein Editor, keine Sitzung, kein Dokument, kein
-  * Schema. Eine Migration, die eine Sitzung braeuchte, waere keine Migration, sondern eine
-  * Bearbeitung, und sie liefe genau dann, wenn noch gar kein gueltiges Dokument existiert.
+  * §19.2: "Migrationsfunktionen sind versioniert und rein." [[migrate]] bekommt das Envelope-Objekt
+  * und liefert ein neues -- kein Editor, keine Sitzung, kein Dokument, kein Schema. Eine Migration,
+  * die eine Sitzung braeuchte, waere keine Migration, sondern eine Bearbeitung, und sie liefe genau
+  * dann, wenn noch gar kein gueltiges Dokument existiert.
   *
   * Sie arbeitet auf dem '''ganzen Envelope''', nicht auf einzelnen Knoten. Eine Umbenennung von
-  * Knotenarten, das Aufspalten eines Knotens in zwei oder das Nachtragen eines Kindes sind
-  * genau die Faelle, um die es geht, und keiner davon ist knotenlokal.
+  * Knotenarten, das Aufspalten eines Knotens in zwei oder das Nachtragen eines Kindes sind genau
+  * die Faelle, um die es geht, und keiner davon ist knotenlokal.
   *
   * @param from
   *   die Schemaversion, die dieser Schritt liest
@@ -54,8 +54,8 @@ final class SchemaMigrations private (val steps: Vector[SchemaMigration]):
 
   /** Migriert ein Envelope von `from` auf `to`.
     *
-    * Trifft die Kette die Zielversion nicht genau, ist das ein fehlender Pfad und damit ein
-    * Fehler (§19.2) -- nicht eine Uebernahme des zuletzt erreichten Standes.
+    * Trifft die Kette die Zielversion nicht genau, ist das ein fehlender Pfad und damit ein Fehler
+    * (§19.2) -- nicht eine Uebernahme des zuletzt erreichten Standes.
     */
   def apply(
       envelope: JsonValue.Obj,
@@ -66,22 +66,21 @@ final class SchemaMigrations private (val steps: Vector[SchemaMigration]):
     else if from > to then Left(DecodeError.MissingMigration(from, to))
     else
       byFrom.get(from) match
-        case None => Left(DecodeError.MissingMigration(from, to))
+        case None                       => Left(DecodeError.MissingMigration(from, to))
         case Some(step) if step.to > to =>
           // Der Schritt springt ueber das Ziel hinweg. Ihn trotzdem anzuwenden hiesse, ein
           // Dokument in eine Version zu heben, die der Aufrufer nicht angefordert hat.
           Left(DecodeError.MissingMigration(from, to))
         case Some(step) =>
           step.migrate(envelope) match
-            case Left(reason) => Left(DecodeError.MigrationFailed(step.from, step.to, reason))
+            case Left(reason)    => Left(DecodeError.MigrationFailed(step.from, step.to, reason))
             case Right(migrated) =>
               apply(setVersion(migrated, step.to), step.to, to)
 
   /** Traegt die erreichte Schemaversion ein.
     *
-    * Damit muss eine Migration es nicht selbst tun -- und kann es auch nicht vergessen. Der
-    * Schritt beschreibt die Umformung der Daten, die Buchhaltung ueber die Version gehoert
-    * hierher.
+    * Damit muss eine Migration es nicht selbst tun -- und kann es auch nicht vergessen. Der Schritt
+    * beschreibt die Umformung der Daten, die Buchhaltung ueber die Version gehoert hierher.
     */
   private def setVersion(envelope: JsonValue.Obj, version: Int): JsonValue.Obj =
     JsonValue.Obj(
@@ -95,11 +94,14 @@ object SchemaMigrations:
   val none: SchemaMigrations = new SchemaMigrations(Vector.empty)
 
   def of(steps: SchemaMigration*): Either[Vector[MigrationSetupError], SchemaMigrations] =
-    val descending = steps.filter(step => step.to <= step.from)
+    val descending = steps
+      .filter(step => step.to <= step.from)
       .map(step => MigrationSetupError.NotAscending(step.from, step.to))
     val ambiguous = steps
       .groupBy(_.from)
-      .collect { case (from, entries) if entries.sizeIs > 1 => MigrationSetupError.AmbiguousStep(from) }
+      .collect {
+        case (from, entries) if entries.sizeIs > 1 => MigrationSetupError.AmbiguousStep(from)
+      }
       .toVector
       .sortBy(_.from)
 

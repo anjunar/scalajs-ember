@@ -28,8 +28,8 @@ enum BusyPolicy:
   * The same reasoning as §16's deferred form intents, and deliberately the same shape.
   *
   * @param bookmark
-  *   where the change wanted to happen, if it cared. Mapped forward when the queue is released;
-  *   an expired one is reported, never guessed at.
+  *   where the change wanted to happen, if it cared. Mapped forward when the queue is released; an
+  *   expired one is reported, never guessed at.
   */
 final case class DeferredIntent(
     label: String,
@@ -74,8 +74,8 @@ final class DeferredIntentQueue(val limit: Int = DeferredIntentQueue.DefaultLimi
 
   /** Runs everything in order, mapping each bookmark to the document as it is now.
     *
-    * The session is handed in rather than held, so the queue survives a session it does not own
-    * and so that the caller decides when "now" is.
+    * The session is handed in rather than held, so the queue survives a session it does not own and
+    * so that the caller decides when "now" is.
     */
   def release(session: EditorSession): Vector[IntentOutcome] =
     val waiting = pending
@@ -83,7 +83,7 @@ final class DeferredIntentQueue(val limit: Int = DeferredIntentQueue.DefaultLimi
 
     waiting.map { intent =>
       resolve(session, intent.bookmark) match
-        case Left(_) => IntentOutcome.Expired(intent.label)
+        case Left(_)      => IntentOutcome.Expired(intent.label)
         case Right(point) =>
           intent.run(session, point) match
             case Right(_)    => IntentOutcome.Applied(intent.label)
@@ -101,7 +101,7 @@ final class DeferredIntentQueue(val limit: Int = DeferredIntentQueue.DefaultLimi
       bookmark: Option[Bookmark]
   ): Either[ExpiredBookmark, Option[Point]] =
     bookmark match
-      case None => Right(None)
+      case None       => Right(None)
       case Some(mark) =>
         // The strict resolution, not the fallback: §11 is explicit that an insertion may not take
         // the replacement boundary -- "wuerde eine Einfuegung an der Grenze das Ergebnis an einer
@@ -127,7 +127,7 @@ object DeferredIntentQueue:
           case Left(error) => IntentOutcome.Rejected(intent.label, error.render)
       case Some(mark) =>
         session.mappingSince(mark.revision).flatMap(mark.resolve) match
-          case Left(_) => IntentOutcome.Expired(intent.label)
+          case Left(_)      => IntentOutcome.Expired(intent.label)
           case Right(point) =>
             intent.run(session, Some(point)) match
               case Right(_)    => IntentOutcome.Applied(intent.label)

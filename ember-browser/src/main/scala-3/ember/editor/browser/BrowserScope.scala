@@ -8,11 +8,11 @@ import scala.scalajs.js
   *
   * ==Why not `dom.window`==
   *
-  * §15.4 is explicit: "Fuer Editor-Hosts in iframes werden ownerDocument/defaultView verwendet."
-  * A host inside an iframe has its own document and its own selection, and the global `window`
-  * of the outer page knows nothing about either. Code that reaches for `dom.window.getSelection()`
-  * works until someone embeds the editor, and then it silently reads an empty selection instead
-  * of failing.
+  * §15.4 is explicit: "Fuer Editor-Hosts in iframes werden ownerDocument/defaultView verwendet." A
+  * host inside an iframe has its own document and its own selection, and the global `window` of the
+  * outer page knows nothing about either. Code that reaches for `dom.window.getSelection()` works
+  * until someone embeds the editor, and then it silently reads an empty selection instead of
+  * failing.
   *
   * Everything the selection and focus machinery touches goes through this object, so there is
   * exactly one place where that decision is made.
@@ -32,10 +32,10 @@ final class BrowserScope private (val host: dom.Element):
 
   /** The window of that document.
     *
-    * `None` for a detached or foreign-document host: a node created by `DOMParser` or belonging
-    * to an iframe that has since been removed has an `ownerDocument` without a `defaultView`.
-    * There is nothing to select in it, and saying so is better than reaching for a window that
-    * belongs to someone else.
+    * `None` for a detached or foreign-document host: a node created by `DOMParser` or belonging to
+    * an iframe that has since been removed has an `ownerDocument` without a `defaultView`. There is
+    * nothing to select in it, and saying so is better than reaching for a window that belongs to
+    * someone else.
     */
   def window: Option[dom.Window] = Option(htmlDocument.defaultView)
 
@@ -65,10 +65,10 @@ final class BrowserScope private (val host: dom.Element):
 
   /** Whether the host can take focus at all.
     *
-    * §22 keeps the two apart: "Fokusfaehigkeit und Editierbarkeit sind getrennte Entscheidungen."
-    * A readonly rich view may well be focusable, and an editable one has to be. `tabindex` is
-    * read as an attribute because the `scalajs-dom` 2.8.1 facade has no `tabIndex`; the attribute
-    * is what an editor sets anyway.
+    * §22 keeps the two apart: "Fokusfaehigkeit und Editierbarkeit sind getrennte Entscheidungen." A
+    * readonly rich view may well be focusable, and an editable one has to be. `tabindex` is read as
+    * an attribute because the `scalajs-dom` 2.8.1 facade has no `tabIndex`; the attribute is what
+    * an editor sets anyway.
     */
   def focusable: Boolean = DomKinds.isFocusable(host)
 
@@ -77,12 +77,13 @@ final class BrowserScope private (val host: dom.Element):
 
   /** What this scope can do about selection, honestly stated.
     *
-    * §15.4: "Shadow-DOM-Selection ist ein eigener Capability-Test; es wird nicht behauptet,
-    * globale `window.getSelection` loese diesen Fall."
+    * §15.4: "Shadow-DOM-Selection ist ein eigener Capability-Test; es wird nicht behauptet, globale
+    * `window.getSelection` loese diesen Fall."
     */
   def capability: SelectionCapability =
     shadowRoot match
-      case None => if window.isDefined then SelectionCapability.Document else SelectionCapability.Detached
+      case None =>
+        if window.isDefined then SelectionCapability.Document else SelectionCapability.Detached
       case Some(root) =>
         if js.typeOf(root.asInstanceOf[js.Dynamic].getSelection) == "function" then
           SelectionCapability.ShadowNative
@@ -109,8 +110,8 @@ final class BrowserScope private (val host: dom.Element):
   /** The shadow root containing the host, if it is in one.
     *
     * `getRootNode` is not in the `scalajs-dom` 2.8.1 facade; every target engine has it. The
-    * dynamic access is this file's one narrow spot, next to `getSelection` on a shadow root,
-    * which is not standard at all.
+    * dynamic access is this file's one narrow spot, next to `getSelection` on a shadow root, which
+    * is not standard at all.
     */
   private def shadowRoot: Option[dom.ShadowRoot] =
     val dynamic = host.asInstanceOf[js.Dynamic]
@@ -121,7 +122,9 @@ final class BrowserScope private (val host: dom.Element):
       else
         val node = root.asInstanceOf[dom.Node]
         // 11 is DOCUMENT_FRAGMENT_NODE. A host outside any shadow root reports its document.
-        Option.when(node.nodeType == 11 && (node ne ownerDocument))(node.asInstanceOf[dom.ShadowRoot])
+        Option.when(node.nodeType == 11 && (node ne ownerDocument))(
+          node.asInstanceOf[dom.ShadowRoot]
+        )
 
 object BrowserScope:
 

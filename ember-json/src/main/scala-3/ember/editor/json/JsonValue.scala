@@ -11,10 +11,10 @@ import scala.scalajs.js
   * vollstaendiger Validierung."
   *
   * Der Unterschied zu `js.Any` ist nicht kosmetisch. Ein Codec, der auf `js.Dynamic` arbeitet,
-  * prueft nichts, was er nicht ausdruecklich prueft -- und was er vergisst, faellt erst auf,
-  * wenn ein fremder Payload es ausnutzt. Hier ist die Pruefung nicht Disziplin, sondern
-  * Typsystem: wer einen [[JsonValue]] in der Hand hat, hat einen konvertierten Wert, dessen
-  * Tiefe und Groesse bereits gegen die [[DecodeLimits]] gehalten wurden.
+  * prueft nichts, was er nicht ausdruecklich prueft -- und was er vergisst, faellt erst auf, wenn
+  * ein fremder Payload es ausnutzt. Hier ist die Pruefung nicht Disziplin, sondern Typsystem: wer
+  * einen [[JsonValue]] in der Hand hat, hat einen konvertierten Wert, dessen Tiefe und Groesse
+  * bereits gegen die [[DecodeLimits]] gehalten wurden.
   *
   * Geschlossen ist es aus demselben Grund wie [[PathSegment]] im Kern: die Struktur eines
   * Wire-Werts ist eine Eigenschaft des Formats, keine Erweiterung.
@@ -37,7 +37,7 @@ object JsonValue:
 
   /** Der Name der Art, fuer Typdiagnosen. */
   def kindOf(value: JsonValue): String = value match
-    case Null   => "null"
+    case Null    => "null"
     case _: Bool => "boolean"
     case _: Num  => "number"
     case _: Str  => "string"
@@ -60,9 +60,9 @@ object JsonValue:
 
     /** Eine ganze Zahl im `Int`-Bereich.
       *
-      * JSON kennt nur `number`, und `js.JSON.parse` liefert `Double`. Eine Zahl mit
-      * Nachkommaanteil ist deshalb keine ganze Zahl mit Rundungsspielraum, sondern ein
-      * Formatfehler -- §19.2 verlangt die Pruefung von "Zahlenbereichen" ausdruecklich.
+      * JSON kennt nur `number`, und `js.JSON.parse` liefert `Double`. Eine Zahl mit Nachkommaanteil
+      * ist deshalb keine ganze Zahl mit Rundungsspielraum, sondern ein Formatfehler -- §19.2
+      * verlangt die Pruefung von "Zahlenbereichen" ausdruecklich.
       */
     def asInt(at: DiagnosticPath): Either[DecodeError, Int] = value match
       case Num(number) if number.isWhole && number >= Int.MinValue && number <= Int.MaxValue =>
@@ -113,23 +113,23 @@ object JsonText:
     *
     * ==Was hier nicht geprueft werden kann==
     *
-    * `js.JSON.parse` fasst doppelte Objektschluessel zusammen, bevor dieses Modul den Wert zu
-    * sehen bekommt: aus `{"a":1,"a":2}` wird `{"a":2}`, und die erste Belegung ist dann
-    * spurlos verschwunden. Das ist keine Nachlaessigkeit, sondern die Semantik der
-    * Plattformfunktion -- ein eigener Parser koennte es melden, waere aber ein zweiter,
-    * schlechter getesteter JSON-Parser fuer eine Diagnose, die kein Datenverlust ist: der
-    * letzte Wert gewinnt, deterministisch und dokumentiert.
+    * `js.JSON.parse` fasst doppelte Objektschluessel zusammen, bevor dieses Modul den Wert zu sehen
+    * bekommt: aus `{"a":1,"a":2}` wird `{"a":2}`, und die erste Belegung ist dann spurlos
+    * verschwunden. Das ist keine Nachlaessigkeit, sondern die Semantik der Plattformfunktion -- ein
+    * eigener Parser koennte es melden, waere aber ein zweiter, schlechter getesteter JSON-Parser
+    * fuer eine Diagnose, die kein Datenverlust ist: der letzte Wert gewinnt, deterministisch und
+    * dokumentiert.
     *
-    * '''Doppelte Node-IDs bleiben davon unberuehrt.''' Sie sind der Fall, der wirklich zaehlt,
-    * und deshalb steht die Knotenliste im Format als Array und nicht als Objekt, das nach ID
+    * '''Doppelte Node-IDs bleiben davon unberuehrt.''' Sie sind der Fall, der wirklich zaehlt, und
+    * deshalb steht die Knotenliste im Format als Array und nicht als Objekt, das nach ID
     * schluesselt -- so bleibt eine doppelte ID sichtbar und wird zum Fehler
     * ([[DecodeError.DuplicateNodeId]]).
     */
   def parse(text: String, limits: DecodeLimits): Either[DecodeError, JsonValue] =
     if text.length > limits.maxSourceChars then
       Left(
-        DecodeError.LimitExceeded("maxSourceChars", limits.maxSourceChars, text.length,
-          DiagnosticPath.Root)
+        DecodeError
+          .LimitExceeded("maxSourceChars", limits.maxSourceChars, text.length, DiagnosticPath.Root)
       )
     else
       val raw =
@@ -203,8 +203,8 @@ object JsonText:
   private def collect[A, B](items: Iterable[A])(
       step: A => Either[DecodeError, B]
   ): Either[DecodeError, Vector[B]] =
-    val built = Vector.newBuilder[B]
-    val iterator = items.iterator
+    val built                        = Vector.newBuilder[B]
+    val iterator                     = items.iterator
     var failure: Option[DecodeError] = None
     while iterator.hasNext && failure.isEmpty do
       step(iterator.next()) match
@@ -221,8 +221,8 @@ object JsonText:
     *      [[JsonValue.Obj]], nicht die Einfuegereihenfolge eines JavaScript-Objekts.
     *   1. '''Einbettbarkeit.''' Der Payload landet spaeter in einem `<script>`-Tag (§16). Ein
     *      `</script` im Text wuerde ihn dort beenden -- deshalb entkommen `<`, `>` und `&`
-    *      grundsaetzlich, und U+2028/U+2029 dazu, die in JavaScript-Quelltext Zeilentrenner
-    *      sind. Das Ergebnis bleibt gewoehnliches JSON; jeder Parser liest dieselben Zeichen.
+    *      grundsaetzlich, und U+2028/U+2029 dazu, die in JavaScript-Quelltext Zeilentrenner sind.
+    *      Das Ergebnis bleibt gewoehnliches JSON; jeder Parser liest dieselben Zeichen.
     */
   def render(value: JsonValue): String =
     val out = new StringBuilder
@@ -231,10 +231,9 @@ object JsonText:
 
   /** Serialisiert eingerueckt, fuer Menschen.
     *
-    * '''Nicht die Wire-Form.''' [[render]] bleibt die: kompakt, weil jedes eingefuegte
-    * Leerzeichen den byteweisen Vergleich zweier Staende erschwert. Diese Fassung ist fuer
-    * Diagnoseausgaben und Demos -- gleiche Zeichenmaskierung, gleiche Feldreihenfolge, nur
-    * lesbar umbrochen.
+    * '''Nicht die Wire-Form.''' [[render]] bleibt die: kompakt, weil jedes eingefuegte Leerzeichen
+    * den byteweisen Vergleich zweier Staende erschwert. Diese Fassung ist fuer Diagnoseausgaben und
+    * Demos -- gleiche Zeichenmaskierung, gleiche Feldreihenfolge, nur lesbar umbrochen.
     */
   def renderPretty(value: JsonValue, indent: String = "  "): String =
     val out = new StringBuilder
@@ -280,8 +279,8 @@ object JsonText:
   private def write(value: JsonValue, out: StringBuilder): Unit = value match
     case JsonValue.Null       => out ++= "null"
     case JsonValue.Bool(flag) => out ++= (if flag then "true" else "false")
-    case JsonValue.Num(value)  => out ++= renderNumber(value)
-    case JsonValue.Str(text)   => quote(text, out)
+    case JsonValue.Num(value) => out ++= renderNumber(value)
+    case JsonValue.Str(text)  => quote(text, out)
     case JsonValue.Arr(items) =>
       out += '['
       var first = true
@@ -311,16 +310,16 @@ object JsonText:
   private def quote(text: String, out: StringBuilder): Unit =
     out += '"'
     text.foreach {
-      case '"'  => out ++= "\\\""
-      case '\\' => out ++= "\\\\"
-      case '\n' => out ++= "\\n"
-      case '\r' => out ++= "\\r"
-      case '\t' => out ++= "\\t"
-      case '<'  => out ++= "\\u003c"
-      case '>'  => out ++= "\\u003e"
-      case '&'  => out ++= "\\u0026"
-      case ' ' => out ++= "\\u2028"
-      case ' ' => out ++= "\\u2029"
+      case '"'                          => out ++= "\\\""
+      case '\\'                         => out ++= "\\\\"
+      case '\n'                         => out ++= "\\n"
+      case '\r'                         => out ++= "\\r"
+      case '\t'                         => out ++= "\\t"
+      case '<'                          => out ++= "\\u003c"
+      case '>'                          => out ++= "\\u003e"
+      case '&'                          => out ++= "\\u0026"
+      case ' '                          => out ++= "\\u2028"
+      case ' '                          => out ++= "\\u2029"
       case character if character < ' ' =>
         out ++= "\\u%04x".format(character.toInt)
       case character => out += character

@@ -12,11 +12,11 @@ object Markdown:
 
   /** Parses a source into block syntax.
     *
-    * Deterministic and free of side effects: the same source and profile give the same tree, on
-    * any platform, with no DOM and no clock involved (P17, acceptance).
+    * Deterministic and free of side effects: the same source and profile give the same tree, on any
+    * platform, with no DOM and no clock involved (P17, acceptance).
     *
-    * Returns `Either` rather than throwing, because every failure here is a resource bound, and
-    * a resource bound is an expected outcome for foreign input rather than a broken call
+    * Returns `Either` rather than throwing, because every failure here is a resource bound, and a
+    * resource bound is an expected outcome for foreign input rather than a broken call
     * (`ember-core/package.scala`).
     */
   def parseSyntax(
@@ -48,31 +48,31 @@ final case class ParseResult(
   *
   * ==Provenance==
   *
-  * This is a port of the rule structure of `lib/blocks.js` from commonmark.js 0.31.2
-  * (BSD-2-Clause, Copyright (c) 2014 John MacFarlane -- see `ember-markdown/NOTICE`). What was
-  * taken is the shape: the order of block starts, the continuation condition of each container,
-  * the lazy-continuation rule and the list-marker arithmetic. Those are the parts P17's risk
-  * line calls "echte Parserarbeit", and re-deriving them from the specification would produce a
-  * worse parser and the same rules.
+  * This is a port of the rule structure of `lib/blocks.js` from commonmark.js 0.31.2 (BSD-2-Clause,
+  * Copyright (c) 2014 John MacFarlane -- see `ember-markdown/NOTICE`). What was taken is the shape:
+  * the order of block starts, the continuation condition of each container, the lazy-continuation
+  * rule and the list-marker arithmetic. Those are the parts P17's risk line calls "echte
+  * Parserarbeit", and re-deriving them from the specification would produce a worse parser and the
+  * same rules.
   *
   * What was '''not''' taken is the code. Each difference has a reason:
   *
-  *   - '''Offsets instead of line/column.''' commonmark.js reports `sourcepos` as line/column
-  *     pairs with tab-expanded columns. §18.2 wants UTF-16 ranges, and everything else in this
-  *     editor counts that way (§11). Converting afterwards is where an off-by-one hides, so this
-  *     parser tracks absolute offsets from the start.
+  *   - '''Offsets instead of line/column.''' commonmark.js reports `sourcepos` as line/column pairs
+  *     with tab-expanded columns. §18.2 wants UTF-16 ranges, and everything else in this editor
+  *     counts that way (§11). Converting afterwards is where an off-by-one hides, so this parser
+  *     tracks absolute offsets from the start.
   *   - '''A budget.''' §18.2 bounds work steps; the reference has no such notion.
-  *   - '''No inline parser.''' P17 is blocks. Where commonmark.js calls `processInlines` and
-  *     strips link reference definitions, this parser leaves the source where it is.
-  *   - '''An immutable result.''' The mutable open-block tree exists only during the parse and
-  *     is converted once at the end. Nothing outside this file can observe a half-built block.
+  *   - '''No inline parser.''' P17 is blocks. Where commonmark.js calls `processInlines` and strips
+  *     link reference definitions, this parser leaves the source where it is.
+  *   - '''An immutable result.''' The mutable open-block tree exists only during the parse and is
+  *     converted once at the end. Nothing outside this file can observe a half-built block.
   *
   * ==Why one mutable class and not a fold==
   *
-  * Because the algorithm is a line-at-a-time state machine over an open-block spine, and every
-  * line touches `offset`, `column`, `tip` and the partially consumed tab. Threading eight fields
-  * through a fold would not make it more functional, only harder to compare against the
-  * reference -- and comparing against the reference is how this stays correct.
+  * Because the algorithm is a line-at-a-time state machine over an open-block spine, and every line
+  * touches `offset`, `column`, `tip` and the partially consumed tab. Threading eight fields through
+  * a fold would not make it more functional, only harder to compare against the reference -- and
+  * comparing against the reference is how this stays correct.
   *
   * The mutability is contained: the class is `private`, single-use, and its only surface is
   * [[run]], which returns an immutable value.
@@ -86,11 +86,11 @@ private final class BlockParser(source: String, profile: MarkdownProfile):
   /** Lines and their absolute start offsets. Computed once -- every span reads them. */
   private val (lines, lineStarts) = splitLines(source)
 
-  private val document           = new OpenBlock(OpenKind.Document, 0, null)
-  private var tip: OpenBlock     = document
-  private var oldTip: OpenBlock  = document
+  private val document               = new OpenBlock(OpenKind.Document, 0, null)
+  private var tip: OpenBlock         = document
+  private var oldTip: OpenBlock      = document
   private var lastMatched: OpenBlock = document
-  private var allClosed          = true
+  private var allClosed              = true
 
   private var currentLine    = ""
   private var lineNumber     = 0
@@ -130,10 +130,10 @@ private final class BlockParser(source: String, profile: MarkdownProfile):
 
       failure match
         case Some(error) => Left(error)
-        case None =>
+        case None        =>
           val spans = mutable.Map.empty[Int, SourceSpan]
           materialise(document, 0, spans) match
-            case Left(error) => Left(error)
+            case Left(error)                   => Left(error)
             case Right(root: MarkdownDocument) =>
               Right(ParseResult(root, SourceMap(spans.toMap, lineStarts.toVector)))
             case Right(other) =>
@@ -157,9 +157,9 @@ private final class BlockParser(source: String, profile: MarkdownProfile):
 
   /** Reads leading link reference definitions off every paragraph, document-wide.
     *
-    * A definition is not a block; it is a prefix of a paragraph. What remains after stripping
-    * is the paragraph, and a paragraph that was nothing but definitions disappears -- which is
-    * why this marks it rather than editing the tree from underneath itself.
+    * A definition is not a block; it is a prefix of a paragraph. What remains after stripping is
+    * the paragraph, and a paragraph that was nothing but definitions disappears -- which is why
+    * this marks it rather than editing the tree from underneath itself.
     */
   private def collectReferences(root: OpenBlock): Unit =
     // Mit einem eigenen Stapel und nicht rekursiv. Der Grund ist gemessen: `"> " * 50000`
@@ -201,8 +201,8 @@ private final class BlockParser(source: String, profile: MarkdownProfile):
 
   /** Charges work and records the first overrun.
     *
-    * Recording instead of throwing: an exception thrown through a mutable state machine leaves
-    * it in an unknown state, and the caller gets a stack trace where the convention asks for a
+    * Recording instead of throwing: an exception thrown through a mutable state machine leaves it
+    * in an unknown state, and the caller gets a stack trace where the convention asks for a
     * [[ParseError]]. Every loop checks `failure` and stops.
     */
   private def spend(amount: Int): Boolean =
@@ -329,9 +329,9 @@ private final class BlockParser(source: String, profile: MarkdownProfile):
   /** Closes a block, computes its end and runs whatever its kind still owes.
     *
     * `lastLineLength` is deliberately the length of the '''last processed''' line and not of
-    * `atLine`: a closing code fence sets it short, so the block ends at the fence and not at
-    * the trailing spaces after it. That is the reference's behaviour, and the two only differ
-    * where CommonMark itself makes the distinction.
+    * `atLine`: a closing code fence sets it short, so the block ends at the fence and not at the
+    * trailing spaces after it. That is the reference's behaviour, and the two only differ where
+    * CommonMark itself makes the distinction.
     */
   private def finalizeBlock(block: OpenBlock, atLine: Int): Unit =
     val above = block.parent
@@ -391,9 +391,9 @@ private final class BlockParser(source: String, profile: MarkdownProfile):
 
   /** A list is loose when a blank line separates two items, or two blocks inside one item.
     *
-    * The reference reads this off line numbers in `sourcepos`; so does this, for the same
-    * reason -- the question is whether anything ends more than one line before its successor
-    * begins, and that is a statement about lines, not offsets.
+    * The reference reads this off line numbers in `sourcepos`; so does this, for the same reason --
+    * the question is whether anything ends more than one line before its successor begins, and that
+    * is a statement about lines, not offsets.
     */
   private def markLooseness(list: OpenBlock): Unit =
     def separated(children: mutable.ArrayBuffer[OpenBlock]): Boolean =
@@ -402,7 +402,8 @@ private final class BlockParser(source: String, profile: MarkdownProfile):
         children(index).endLine < children(index + 1).startLine - 1
       }
 
-    list.tight = !(separated(list.children) || list.children.exists(item => separated(item.children)))
+    list.tight =
+      !(separated(list.children) || list.children.exists(item => separated(item.children)))
 
   // -----------------------------------------------------------------------------------------
   // Eine Zeile
@@ -432,7 +433,7 @@ private final class BlockParser(source: String, profile: MarkdownProfile):
     var descending = true
     while descending do
       container.children.lastOption.filter(_.open) match
-        case None => descending = false
+        case None        => descending = false
         case Some(child) =>
           container = child
           findNextNonspace()
@@ -560,13 +561,13 @@ private final class BlockParser(source: String, profile: MarkdownProfile):
 
   /** The order is load-bearing.
     *
-    * A Setext underline has to be tried before a thematic break, or `---` under a paragraph
-    * would end it instead of making it a heading. A list item has to come after the thematic
-    * break, or `- - -` would start three nested lists. This is the reference's order, and
-    * changing it is not a refactoring.
+    * A Setext underline has to be tried before a thematic break, or `---` under a paragraph would
+    * end it instead of making it a heading. A list item has to come after the thematic break, or
+    * `- - -` would start three nested lists. This is the reference's order, and changing it is not
+    * a refactoring.
     *
-    * `orElse` takes its argument by name, which matters more than it looks: every one of these
-    * has side effects on the parser position, so a strict argument would run all eight.
+    * `orElse` takes its argument by name, which matters more than it looks: every one of these has
+    * side effects on the parser position, so a strict argument would run all eight.
     */
   private def tryBlockStarts(container: OpenBlock): Start =
     startBlockQuote()
@@ -592,13 +593,14 @@ private final class BlockParser(source: String, profile: MarkdownProfile):
     if indented then Start.None
     else
       AtxHeadingMarker.findPrefixOf(restOfLine(nextNonspace)) match
-        case None => Start.None
+        case None         => Start.None
         case Some(marker) =>
           val at = lineStart + nextNonspace
           advanceNextNonspace()
           advanceOffset(marker.length, false)
           closeUnmatchedBlocks()
-          val block = addChild(OpenKind.Heading(trimWhitespace(marker).length, HeadingStyle.Atx), at)
+          val block =
+            addChild(OpenKind.Heading(trimWhitespace(marker).length, HeadingStyle.Atx), at)
           // Ein `###` am Zeilenende ist eine schliessende Sequenz, kein Inhalt.
           val rest = restOfLine(offset)
           block.lineMap += ((0, lineStart + offset))
@@ -612,7 +614,7 @@ private final class BlockParser(source: String, profile: MarkdownProfile):
     if indented then Start.None
     else
       CodeFence.findPrefixOf(restOfLine(nextNonspace)) match
-        case None => Start.None
+        case None        => Start.None
         case Some(fence) =>
           closeUnmatchedBlocks()
           addChild(
@@ -668,7 +670,8 @@ private final class BlockParser(source: String, profile: MarkdownProfile):
         else
           // In place: der Absatz haelt Inhalt und Startoffset bereits, ein neuer Knoten muesste
           // beides kopieren. Die Vorlage haengt um, weil ihr Baum eine verkettete Liste ist.
-          container.kind = OpenKind.Heading(if rest.charAt(0) == '=' then 1 else 2, HeadingStyle.Setext)
+          container.kind =
+            OpenKind.Heading(if rest.charAt(0) == '=' then 1 else 2, HeadingStyle.Setext)
           tip = container
           advanceOffset(currentLine.length - offset, false)
           Start.Leaf
@@ -685,7 +688,7 @@ private final class BlockParser(source: String, profile: MarkdownProfile):
     if indented && !isList(container.kind) then Start.None
     else
       parseListMarker(container) match
-        case None => Start.None
+        case None         => Start.None
         case Some(marker) =>
           closeUnmatchedBlocks()
 
@@ -701,7 +704,10 @@ private final class BlockParser(source: String, profile: MarkdownProfile):
     if indented && !isParagraph(tip.kind) && !blank then
       advanceOffset(CodeIndent, true)
       closeUnmatchedBlocks()
-      addChild(OpenKind.Code(fenced = false, fenceChar = ' ', fenceLength = 0, fenceOffset = 0), here)
+      addChild(
+        OpenKind.Code(fenced = false, fenceChar = ' ', fenceLength = 0, fenceOffset = 0),
+        here
+      )
       Start.Leaf
     else Start.None
 
@@ -709,10 +715,10 @@ private final class BlockParser(source: String, profile: MarkdownProfile):
     *
     * This is the fiddliest rule in the block grammar, and the port keeps it literally. The two
     * branches at the end are why: normally an item's content starts after the marker plus the
-    * spaces that follow it, but with five or more spaces -- or none, or a blank item -- the
-    * content starts one space after the marker and the rest is indentation '''inside''' the
-    * item. Getting this wrong turns `-     foo` from an item holding a paragraph into an item
-    * holding a code block.
+    * spaces that follow it, but with five or more spaces -- or none, or a blank item -- the content
+    * starts one space after the marker and the rest is indentation '''inside''' the item. Getting
+    * this wrong turns `-     foo` from an item holding a paragraph into an item holding a code
+    * block.
     */
   private def parseListMarker(container: OpenBlock): Option[ListMarker] =
     if indent >= CodeIndent then None
@@ -722,9 +728,9 @@ private final class BlockParser(source: String, profile: MarkdownProfile):
       val parsed: Option[(String, ListKind)] =
         BulletListMarker.findPrefixOf(rest) match
           case Some(bullet) => Some((bullet, ListKind.Bullet(bullet.charAt(0))))
-          case None =>
+          case None         =>
             OrderedListMarker.findPrefixMatchOf(rest) match
-              case None => None
+              case None        => None
               case Some(found) =>
                 val start = found.group(1).toInt
                 // An ordered list can only interrupt a paragraph when it starts at 1 --
@@ -770,13 +776,13 @@ private final class BlockParser(source: String, profile: MarkdownProfile):
 
   /** Converts the open tree into the immutable one, depth first.
     *
-    * This is the only recursion in the module, and `maxDepth` is what keeps it off the stack
-    * limit: a source of fifty thousand `>` would otherwise overflow here, where the parse loop
-    * could not see it coming.
+    * This is the only recursion in the module, and `maxDepth` is what keeps it off the stack limit:
+    * a source of fifty thousand `>` would otherwise overflow here, where the parse loop could not
+    * see it coming.
     *
-    * Ids are handed out in post order, so a child's id is always smaller than its parent's.
-    * That is not load-bearing, but it makes a printed tree readable, and an id scheme with no
-    * property at all is a missed opportunity.
+    * Ids are handed out in post order, so a child's id is always smaller than its parent's. That is
+    * not load-bearing, but it makes a printed tree readable, and an id scheme with no property at
+    * all is a missed opportunity.
     */
   private def materialise(
       block: OpenBlock,
@@ -801,7 +807,7 @@ private final class BlockParser(source: String, profile: MarkdownProfile):
 
       error match
         case Some(problem) => Left(problem)
-        case None =>
+        case None          =>
           val children = builder.result()
           val id       = SyntaxId(nextId)
           nextId += 1
@@ -861,8 +867,8 @@ private final class BlockParser(source: String, profile: MarkdownProfile):
 
     parent match
       case OpenKind.Document | OpenKind.BlockQuote | OpenKind.Item(_) => !childIsItem
-      case OpenKind.ListBlock(_)                                     => childIsItem
-      case _                                                         => false
+      case OpenKind.ListBlock(_)                                      => childIsItem
+      case _                                                          => false
 
 private object BlockParser:
 
@@ -884,9 +890,9 @@ private object BlockParser:
   val AtxOnlyClosing: Regex = raw"""^[ \t]*#+[ \t]*$$""".r
   val AtxTrailing: Regex    = raw"""[ \t]+#+[ \t]*$$""".r
 
-  /** Cheap pre-filter: a line whose first non-space character is none of these can begin no
-    * block. The reference keeps it as a performance optimisation; here it also keeps the step
-    * budget honest, because an ordinary paragraph line then costs one step instead of eight.
+  /** Cheap pre-filter: a line whose first non-space character is none of these can begin no block.
+    * The reference keeps it as a performance optimisation; here it also keeps the step budget
+    * honest, because an ordinary paragraph line then costs one step instead of eight.
     */
   private val MaybeSpecialChars = "#`~*+_=<>0123456789-".toSet
 
@@ -933,8 +939,8 @@ private object BlockParser:
   /** Splits a source into lines and their absolute start offsets.
     *
     * All three line endings, and a trailing newline does '''not''' produce a final empty line --
-    * the reference drops it, and keeping it would append an empty paragraph to every document
-    * that ends the way documents normally end.
+    * the reference drops it, and keeping it would append an empty paragraph to every document that
+    * ends the way documents normally end.
     */
   def splitLines(source: String): (Array[String], Array[Int]) =
     val texts  = Array.newBuilder[String]
@@ -1004,8 +1010,8 @@ private object BlockParser:
       case (ListKind.Ordered(_, a), ListKind.Ordered(_, b)) => a == b
       case _                                                => false
 
-  /** A block while it is still open. Mutable, file-private, and gone before anyone outside sees
-    * a result.
+  /** A block while it is still open. Mutable, file-private, and gone before anyone outside sees a
+    * result.
     */
   final class OpenBlock(var kind: OpenKind, val startOffset: Int, val parent: OpenBlock):
     val children: mutable.ArrayBuffer[OpenBlock] = mutable.ArrayBuffer.empty
@@ -1013,10 +1019,10 @@ private object BlockParser:
 
     /** Where each appended line started, as `(position in content, absolute source offset)`.
       *
-      * The two are '''not''' the same string. Block parsing strips markers -- the `> ` of a
-      * quote, the indentation of an item, the four spaces of a code block -- so the content is
-      * not a slice of the source, and an inline span computed from a content position alone
-      * would point at the wrong character. This is the map back.
+      * The two are '''not''' the same string. Block parsing strips markers -- the `> ` of a quote,
+      * the indentation of an item, the four spaces of a code block -- so the content is not a slice
+      * of the source, and an inline span computed from a content position alone would point at the
+      * wrong character. This is the map back.
       */
     val lineMap: mutable.ArrayBuffer[(Int, Int)] = mutable.ArrayBuffer.empty
 
@@ -1037,7 +1043,7 @@ private object BlockParser:
 
     /** Maps a position in [[inlineSource]] back to an absolute source offset. */
     def sourceOffsetOf(position: Int): Int =
-      val raw = content.toString
+      val raw     = content.toString
       val leading = raw.substring(referenceOffset).indexWhere(c => !isTrimmable(c)) match
         case -1    => 0
         case found => found
@@ -1058,8 +1064,8 @@ private object BlockParser:
     case Item(marker: ListMarker)
     case Paragraph
 
-    /** A paragraph that held nothing but link reference definitions. Dropped when the
-      * immutable tree is built -- the definitions live in the reference map now.
+    /** A paragraph that held nothing but link reference definitions. Dropped when the immutable
+      * tree is built -- the definitions live in the reference map now.
       */
     case ReferencesOnly
 

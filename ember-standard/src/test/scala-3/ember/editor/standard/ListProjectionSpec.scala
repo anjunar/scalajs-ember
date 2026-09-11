@@ -17,7 +17,7 @@ final class ListProjectionSpec extends AnyFlatSpec with Matchers {
   /** A session with lists installed, on one paragraph. */
   private def open(): (EditorSession, NodeIdGenerator) =
     val generator = NodeIdGenerator.sequential("g")
-    val resolved = ExtensionResolver
+    val resolved  = ExtensionResolver
       .resolve(Vector(RichText(generator), ListExtension(generator)))
       .getOrElse(fail("Extensions nicht aufloesbar"))
 
@@ -83,7 +83,8 @@ final class ListProjectionSpec extends AnyFlatSpec with Matchers {
     edit(editor)(_.select(RangeSelection.caret(Point.textBefore(NodeId("t0"), 0))): Unit)
     editor.dispatch(ListCommands.ToggleList, ListKind.Ordered): Unit
 
-    val list = editor.document.inDocumentOrder.collectFirst { case value: ListNode => value }
+    val list = editor.document.inDocumentOrder
+      .collectFirst { case value: ListNode => value }
       .getOrElse(fail("keine Liste"))
     edit(editor)(_.replace(list.id, list.copy(start = 7)): Unit)
 
@@ -102,7 +103,8 @@ final class ListProjectionSpec extends AnyFlatSpec with Matchers {
   "A nested list" should "nest in the output" in {
     val (editor, generator) = open()
     bullets(editor)
-    val item = editor.document.inDocumentOrder.collectFirst { case value: ListItemNode => value }
+    val item = editor.document.inDocumentOrder
+      .collectFirst { case value: ListItemNode => value }
       .getOrElse(fail("kein Item"))
 
     // Als ganzer Teilbaum: eine leere Liste raeumt `emptyListGoes` im selben Commit wieder weg,

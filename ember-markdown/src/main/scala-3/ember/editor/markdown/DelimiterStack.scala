@@ -6,11 +6,10 @@ import scala.collection.mutable
   *
   * ==Why a doubly linked list and not a `List`==
   *
-  * Because `processEmphasis` walks '''forward''' from a bottom marker looking for closers,
-  * walks '''backward''' from each closer looking for an opener, and removes entries from the
-  * middle -- and it does all three interleaved. That is a doubly linked list, and pretending
-  * otherwise would mean rebuilding an immutable structure inside the innermost loop of the
-  * parser.
+  * Because `processEmphasis` walks '''forward''' from a bottom marker looking for closers, walks
+  * '''backward''' from each closer looking for an opener, and removes entries from the middle --
+  * and it does all three interleaved. That is a doubly linked list, and pretending otherwise would
+  * mean rebuilding an immutable structure inside the innermost loop of the parser.
   *
   * The mutability is contained the same way the block parser's is: these types are
   * `private[markdown]`, they exist only during one inline parse, and nothing outside sees them.
@@ -41,9 +40,9 @@ private[markdown] final class Bracket(
 
 /** A text node while it is still being built.
   *
-  * Emphasis processing shortens the literal of an opener or closer as it consumes delimiters,
-  * so the text is mutable until the parse ends. The final [[MarkdownInline.Text]] is built
-  * afterwards, from whatever is left.
+  * Emphasis processing shortens the literal of an opener or closer as it consumes delimiters, so
+  * the text is mutable until the parse ends. The final [[MarkdownInline.Text]] is built afterwards,
+  * from whatever is left.
   */
 private[markdown] final class PendingText(var literal: String, var start: Int, var end: Int)
 
@@ -78,8 +77,8 @@ private[markdown] final case class LinkReference(destination: String, title: Opt
 
 /** The map of link reference definitions, keyed by normalised label.
   *
-  * §18.2 lets reference labels be canonicalised, and CommonMark says how: strip the brackets,
-  * trim, collapse internal whitespace, then case-fold. The reference does the fold as
+  * §18.2 lets reference labels be canonicalised, and CommonMark says how: strip the brackets, trim,
+  * collapse internal whitespace, then case-fold. The reference does the fold as
   * `toLowerCase().toUpperCase()`, which is not a mistake -- it is how you reach a single
   * case-folded form for characters whose upper and lower cases are not symmetric.
   */
@@ -101,10 +100,10 @@ private[markdown] object ReferenceMap:
 
   /** `[ Foo  Bar ]` and `[foo bar]` are the same label. */
   def normalise(rawLabel: String): String =
-    val inner = if rawLabel.length >= 2 then rawLabel.substring(1, rawLabel.length - 1) else ""
+    val inner     = if rawLabel.length >= 2 then rawLabel.substring(1, rawLabel.length - 1) else ""
     val collapsed = new StringBuilder
     var pendingSpace = false
-    var seen = false
+    var seen         = false
     inner.foreach { c =>
       if c == ' ' || c == '\t' || c == '\r' || c == '\n' then pendingSpace = seen
       else

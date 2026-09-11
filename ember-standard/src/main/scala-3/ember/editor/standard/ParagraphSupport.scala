@@ -9,26 +9,26 @@ import ember.editor.richtext.ParagraphNode
   *
   * ==Warum das ein eigenes Modul ist==
   *
-  * §6: "`standard` ist bewusst ein optionales Integrationsmodul: Dadurch kennen die
-  * Node-Module weder Markdown noch UI und die Format-SPIs keine konkreten Feature-Nodes."
+  * §6: "`standard` ist bewusst ein optionales Integrationsmodul: Dadurch kennen die Node-Module
+  * weder Markdown noch UI und die Format-SPIs keine konkreten Feature-Nodes."
   *
   * Hier laufen beide Seiten zusammen -- und nur hier. `ember-rich-text` weiss nichts von HTML,
-  * `ember-html` nichts von Absaetzen. Eine Anwendung, die ihr Dokument nur als JSON
-  * verarbeitet, linkt diese Datei nie mit.
+  * `ember-html` nichts von Absaetzen. Eine Anwendung, die ihr Dokument nur als JSON verarbeitet,
+  * linkt diese Datei nie mit.
   *
   * ==Einzeln waehlbar, nicht als Sammelregistrierung==
   *
-  * §6 nennt das Risiko ausdruecklich: "Eager Sammelregistrierungen halten optionale Module
-  * fest." Deshalb ist jeder Adapter ein eigener Wert, und [[all]] ist eine Bequemlichkeit,
-  * kein Zwang. Wer nur Absaetze braucht, nimmt die drei Eintraege und nicht mehr.
+  * §6 nennt das Risiko ausdruecklich: "Eager Sammelregistrierungen halten optionale Module fest."
+  * Deshalb ist jeder Adapter ein eigener Wert, und [[all]] ist eine Bequemlichkeit, kein Zwang. Wer
+  * nur Absaetze braucht, nimmt die drei Eintraege und nicht mehr.
   */
 object ParagraphSupport:
 
   /** Die Dokumentwurzel als `article`.
     *
     * Nicht `div`: die Wurzel ist ein in sich abgeschlossener Inhalt, und §16 verlangt fuer die
-    * ausgelieferte Fassung semantisches HTML. Ein Leser ohne Stylesheet und ein Screenreader
-    * sollen dasselbe Dokument vorfinden.
+    * ausgelieferte Fassung semantisches HTML. Ein Leser ohne Stylesheet und ein Screenreader sollen
+    * dasselbe Dokument vorfinden.
     */
   val root: HtmlSemantics[RootNode] = new HtmlSemantics[RootNode]:
     val nodeType: NodeType[RootNode] = RootNode
@@ -47,8 +47,8 @@ object ParagraphSupport:
     * §15.1 verlangt den Wrapper ausdruecklich, und zwar fuer beide Profile: er "vermeidet
     * zusammengefasste benachbarte SSR-Textnodes und erlaubt eine eindeutige
     * ID->Textpunkt-Zuordnung". Zwei Laeufe nebeneinander waeren ohne ihn in der Ausgabe ein
-    * einziger Textknoten -- die Grenze zwischen ihnen liesse sich beim Hydrieren nicht mehr
-    * finden, und der SelectionPort (P21) faende sie ebenso wenig.
+    * einziger Textknoten -- die Grenze zwischen ihnen liesse sich beim Hydrieren nicht mehr finden,
+    * und der SelectionPort (P21) faende sie ebenso wenig.
     *
     * `span` und nicht `div`: ein Textlauf steht im Fluss seines Absatzes.
     */
@@ -71,8 +71,8 @@ object ParagraphSupport:
 
   /** Traegt die Knoten-ID nur in der Editieransicht ein.
     *
-    * §19.1: browserseitige Wrapper und Editor-Attribute werden beim Austausch entfernt. Statt
-    * sie hinterher wieder herauszunehmen, entstehen sie in der Content-Fassung gar nicht erst.
+    * §19.1: browserseitige Wrapper und Editor-Attribute werden beim Austausch entfernt. Statt sie
+    * hinterher wieder herauszunehmen, entstehen sie in der Content-Fassung gar nicht erst.
     */
   private def identify(id: NodeId, profile: RenderProfile): Vector[HtmlAttribute] =
     Identity.of(id, profile)

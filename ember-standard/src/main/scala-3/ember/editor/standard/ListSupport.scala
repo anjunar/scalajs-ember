@@ -15,12 +15,12 @@ object ListSupport:
 
   /** `ol` or `ul`, with `start` when the list does not begin at one.
     *
-    * §18.2 asks for the start number to survive. HTML has an attribute for it, and writing it
-    * only when it differs from the default keeps the common case clean -- a `start="1"` on every
-    * list would be noise that no reader and no diff wants.
+    * §18.2 asks for the start number to survive. HTML has an attribute for it, and writing it only
+    * when it differs from the default keeps the common case clean -- a `start="1"` on every list
+    * would be noise that no reader and no diff wants.
     *
-    * `tight` produces no attribute at all. It is a rendering difference in Markdown, and in HTML
-    * it shows up inside the item -- see [[item]].
+    * `tight` produces no attribute at all. It is a rendering difference in Markdown, and in HTML it
+    * shows up inside the item -- see [[item]].
     */
   val list: HtmlSemantics[ListNode] = new HtmlSemantics[ListNode]:
     val nodeType: NodeType[ListNode] = ListNode
@@ -46,9 +46,9 @@ object ListSupport:
     * [[HtmlSemantics]] describes one node without its children on purpose (§15.1): a shape that
     * could hide children would be a view tree, and something would have to diff it.
     *
-    * So the paragraph stays. The tight/loose distinction is kept in the document, where §18.2
-    * wants it, and the Markdown writer in P18 -- which builds its own output rather than
-    * projecting components -- is where it will show.
+    * So the paragraph stays. The tight/loose distinction is kept in the document, where §18.2 wants
+    * it, and the Markdown writer in P18 -- which builds its own output rather than projecting
+    * components -- is where it will show.
     */
   val item: HtmlSemantics[ListItemNode] = new HtmlSemantics[ListItemNode]:
     val nodeType: NodeType[ListItemNode] = ListItemNode

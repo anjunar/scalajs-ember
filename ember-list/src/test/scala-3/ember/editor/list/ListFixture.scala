@@ -5,8 +5,8 @@ import ember.editor.richtext.*
 
 /** A session with the rich-text profile and lists, on plain paragraphs.
   *
-  * Every test starts from paragraphs and builds its lists with the commands. Constructing a list
-  * by hand would test the assertions against a structure the commands never produce.
+  * Every test starts from paragraphs and builds its lists with the commands. Constructing a list by
+  * hand would test the assertions against a structure the commands never produce.
   */
 final class ListFixture(paragraphs: String*):
 
@@ -57,8 +57,8 @@ final class ListFixture(paragraphs: String*):
   /** The document as an indented outline -- the shape a list test is really about.
     *
     * `ol`/`ul` for lists, `li` for items, the text for anything with text in it. Comparing this
-    * against a literal is far more readable than walking ids, and it fails with a picture of
-    * what actually happened.
+    * against a literal is far more readable than walking ids, and it fails with a picture of what
+    * actually happened.
     */
   def outline: Vector[String] =
     def walk(id: NodeId, depth: Int): Vector[String] =
@@ -113,10 +113,10 @@ final class ListFixture(paragraphs: String*):
 
   def dispatch(command: EditorCommand[Unit]): Boolean = dispatch(command, ())
 
-  def bullets(): Boolean  = dispatch(ListCommands.ToggleList, ListKind.Unordered)
-  def numbers(): Boolean  = dispatch(ListCommands.ToggleList, ListKind.Ordered)
-  def indent(): Boolean   = dispatch(ListCommands.Indent)
-  def outdent(): Boolean = dispatch(ListCommands.Outdent)
-  def enter(): Boolean    = dispatch(RichText.InsertParagraph)
-  def backspace(): Boolean = dispatch(RichText.DeleteBackward)
+  def bullets(): Boolean              = dispatch(ListCommands.ToggleList, ListKind.Unordered)
+  def numbers(): Boolean              = dispatch(ListCommands.ToggleList, ListKind.Ordered)
+  def indent(): Boolean               = dispatch(ListCommands.Indent)
+  def outdent(): Boolean              = dispatch(ListCommands.Outdent)
+  def enter(): Boolean                = dispatch(RichText.InsertParagraph)
+  def backspace(): Boolean            = dispatch(RichText.DeleteBackward)
   def typeText(text: String): Boolean = dispatch(RichText.InsertText, text)

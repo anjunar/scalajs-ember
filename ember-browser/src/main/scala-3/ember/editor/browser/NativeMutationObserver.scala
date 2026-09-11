@@ -15,7 +15,7 @@ final case class MutationSummary(
     childList: Int,
     attributes: Int
 ):
-  def total: Int      = characterData + childList + attributes
+  def total: Int       = characterData + childList + attributes
   def isEmpty: Boolean = total == 0
 
   def ++(other: MutationSummary): MutationSummary =
@@ -40,9 +40,8 @@ object MutationSummary:
   * ==Why the records are only a trigger==
   *
   * §15.2 rules out the obvious approach in one line: "ein synchrones Boolean `suppress`
-  * unterscheidet eigene und native Mutationen nicht zuverlaessig", because delivery is
-  * asynchronous -- our own writes and a native one can arrive in the same batch, long after the
-  * flag was reset.
+  * unterscheidet eigene und native Mutationen nicht zuverlaessig", because delivery is asynchronous
+  * -- our own writes and a native one can arrive in the same batch, long after the flag was reset.
   *
   * Predicting the exact list of writes a projection will make and subtracting it is the other
   * obvious approach, and it is worse: it is a second model of the renderer, and when the two
@@ -76,8 +75,8 @@ final class NativeMutationObserver(host: dom.Element):
   /** Everything seen since the last call, including what is still queued for delivery.
     *
     * `takeRecords` is what makes the "vor/nach Projektion" of §15.2 possible at all: it drains the
-    * queue synchronously, so a caller can draw a line before its own writes and another after
-    * them without waiting for a microtask.
+    * queue synchronously, so a caller can draw a line before its own writes and another after them
+    * without waiting for a microtask.
     */
   def take(): MutationSummary =
     if observer != null then collect(observer.takeRecords())

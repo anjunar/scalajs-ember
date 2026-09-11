@@ -109,10 +109,11 @@ final class MarkSupport private (val codecs: Vector[MarkJsonCodec[?]]):
     for
       payload <- value.asObject(at)
       name    <- payload.string("mark", at)
-      markId  <- MarkId.parse(name)
-                   .toRight(DecodeError.InvalidValue(s"Keine gueltige MarkId: `$name`", at))
-      codec   <- byId.get(markId).toRight(DecodeError.UnknownMark(name, at))
-      mark    <- codec.decode(payload, at)
+      markId  <- MarkId
+        .parse(name)
+        .toRight(DecodeError.InvalidValue(s"Keine gueltige MarkId: `$name`", at))
+      codec <- byId.get(markId).toRight(DecodeError.UnknownMark(name, at))
+      mark  <- codec.decode(payload, at)
     yield mark
 
 object MarkSupport:
@@ -150,7 +151,7 @@ final class JsonSupport private (
   ): Either[EncodeError, (NodeTypeId, Int, Vector[(String, JsonValue)])] =
     codecFor(node) match
       case Some(codec) => write(codec, node, at)
-      case None =>
+      case None        =>
         Left(EncodeError.NoCodec(node.id, node.getClass.getSimpleName, at))
 
   private def write[N <: EditorNode](

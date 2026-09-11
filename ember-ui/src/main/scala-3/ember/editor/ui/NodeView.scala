@@ -8,9 +8,9 @@ import ui.core.render.{Cursor, HostElement, HostNode}
 
 /** Eine UI-Komponente mit semantischem Tag und Attributen.
   *
-  * Der gemeinsame Nenner fuer alle Dokumentknoten. Ein Adapter braucht dafuer keine eigene
-  * Klasse -- und bekommt damit auch keine unbeschraenkten DOM-Schreibrechte (§15.1): er
-  * beschreibt Tag und Attribute, das Schreiben besorgt diese Komponente.
+  * Der gemeinsame Nenner fuer alle Dokumentknoten. Ein Adapter braucht dafuer keine eigene Klasse
+  * -- und bekommt damit auch keine unbeschraenkten DOM-Schreibrechte (§15.1): er beschreibt Tag und
+  * Attribute, das Schreiben besorgt diese Komponente.
   */
 sealed abstract class SemanticElement(val tagName: String) extends AbstractComponent:
 
@@ -25,7 +25,8 @@ sealed abstract class SemanticElement(val tagName: String) extends AbstractCompo
       applied = next
       if isBound then
         // Entfallene zuerst, sonst bliebe ein Attribut stehen, das der neue Stand nicht kennt.
-        previous.filterNot(attribute => next.exists(_.name == attribute.name))
+        previous
+          .filterNot(attribute => next.exists(_.name == attribute.name))
           .foreach(attribute => host.removeAttribute(attribute.name))
         write(next.filterNot(previous.contains))
 
@@ -35,15 +36,15 @@ sealed abstract class SemanticElement(val tagName: String) extends AbstractCompo
 /** Ein Container: seine Kinder haelt eine [[ui.core.statement.KeyedChildren]]-Gruppe.
   *
   * Die Gruppe haengt die Projektion vor dem Mount ein ([[attach]]), montiert wird sie hier --
-  * waehrend `compose`, also im selben Durchgang wie der Container selbst. Ein Nachtragen
-  * hinterher waere nicht nur umstaendlich, es waere falsch: der Cursor steht dann nicht mehr
-  * dort, wo die Kinder hingehoeren.
+  * waehrend `compose`, also im selben Durchgang wie der Container selbst. Ein Nachtragen hinterher
+  * waere nicht nur umstaendlich, es waere falsch: der Cursor steht dann nicht mehr dort, wo die
+  * Kinder hingehoeren.
   */
 final class ContainerElement(tagName: String) extends SemanticElement(tagName):
 
   private var group: Option[AbstractComponent] = None
-  private var tags = Vector.empty[String]
-  private var contentOwner: AbstractComponent = null
+  private var tags                             = Vector.empty[String]
+  private var contentOwner: AbstractComponent  = null
 
   private[ui] def attach(children: AbstractComponent): Unit =
     require(group.isEmpty && !isBound, "Die Kindergruppe steht vor dem Mount fest.")
@@ -51,8 +52,8 @@ final class ContainerElement(tagName: String) extends SemanticElement(tagName):
 
   /** The tags between this element and its children -- `<pre>` around `<code>`, say.
     *
-    * Fixed before the mount, like the group. A change would mean rebuilding the chain and with
-    * it the children, which is a view replacement (§15.1) and goes through `NodeView.accepts`.
+    * Fixed before the mount, like the group. A change would mean rebuilding the chain and with it
+    * the children, which is a view replacement (§15.1) and goes through `NodeView.accepts`.
     */
   private[ui] def setInner(next: Vector[String]): Unit =
     require(!isBound, "Die inneren Tags stehen vor dem Mount fest.")
@@ -62,11 +63,10 @@ final class ContainerElement(tagName: String) extends SemanticElement(tagName):
 
   /** The element that actually holds the document children.
     *
-    * With inner tags -- `<pre><code>` -- that is not this component's own host but the
-    * innermost of them. A child boundary of this node sits in '''that''' element, and deriving
-    * it from the outer host would be one level off for every code block (§11: "Bei
-    * DOM-Elementoffsets zaehlen DOM-Kinder einschliesslich Renderhilfen anders als
-    * Dokumentkinder").
+    * With inner tags -- `<pre><code>` -- that is not this component's own host but the innermost of
+    * them. A child boundary of this node sits in '''that''' element, and deriving it from the outer
+    * host would be one level off for every code block (§11: "Bei DOM-Elementoffsets zaehlen
+    * DOM-Kinder einschliesslich Renderhilfen anders als Dokumentkinder").
     */
   def contentHost: HostElement = if contentOwner == null then host else contentOwner.host
 
@@ -88,16 +88,16 @@ final class ContainerElement(tagName: String) extends SemanticElement(tagName):
 /** Ein Textlauf mit stabilem Wrapper (§15.1).
   *
   * Das Textkind ueberlebt jede Textaenderung: [[spliceText]] reicht bis zu
-  * `CharacterData.replaceData` durch, und ein neuer Textknoten naehme Caret und Selection mit
-  * ins Grab. Das ist der Unterschied, um den es §15.1 bei langen Absaetzen geht.
+  * `CharacterData.replaceData` durch, und ein neuer Textknoten naehme Caret und Selection mit ins
+  * Grab. Das ist der Unterschied, um den es §15.1 bei langen Absaetzen geht.
   *
-  * Genau eine Aenderung tauscht es doch aus, und §15.1 erlaubt sie ausdruecklich: ein Wechsel
-  * der Markierungen ([[setMarkTags]]). Dort steht, warum es nicht anders geht.
+  * Genau eine Aenderung tauscht es doch aus, und §15.1 erlaubt sie ausdruecklich: ein Wechsel der
+  * Markierungen ([[setMarkTags]]). Dort steht, warum es nicht anders geht.
   */
 final class TextRunElement(tagName: String) extends SemanticElement(tagName):
 
-  private var content = new TextComponent()
-  private var tags    = Vector.empty[String]
+  private var content                  = new TextComponent()
+  private var tags                     = Vector.empty[String]
   private var chain: AbstractComponent = null
 
   override def compose(cursor: Cursor): Unit =
@@ -108,8 +108,8 @@ final class TextRunElement(tagName: String) extends SemanticElement(tagName):
 
   /** The DOM text node of this run, once mounted.
     *
-    * The `SelectionPort` needs exactly this node: a `Point.Text` offset is a UTF-16 offset into
-    * it (§11). Finding it from the outside by descending [[markTags]] levels would be a second
+    * The `SelectionPort` needs exactly this node: a `Point.Text` offset is a UTF-16 offset into it
+    * (§11). Finding it from the outside by descending [[markTags]] levels would be a second
     * description of a structure this component already holds -- and the two would part ways the
     * first time a mark renders as something other than one element.
     */
@@ -128,11 +128,11 @@ final class TextRunElement(tagName: String) extends SemanticElement(tagName):
     * semantische Innentags ersetzen und benoetigen Selection-Restoration." The text node inside
     * really is a new one afterwards -- there is no way to turn `<em>` into `<strong>` in place --
     * so a caret standing in it has to be put back. That restoration is the `SelectionPort`'s job
-    * (P21); until it exists, this is the one operation in the projection that does not preserve
-    * a caret, and it is the only one §15.1 permits not to.
+    * (P21); until it exists, this is the one operation in the projection that does not preserve a
+    * caret, and it is the only one §15.1 permits not to.
     *
-    * The wrapper itself survives. That is the point of having one: the node ID stays on an
-    * element that formatting does not touch.
+    * The wrapper itself survives. That is the point of having one: the node ID stays on an element
+    * that formatting does not touch.
     */
   def setMarkTags(next: Vector[String]): Unit =
     if next != tags then
@@ -141,10 +141,10 @@ final class TextRunElement(tagName: String) extends SemanticElement(tagName):
 
   /** Rebuilds this run's DOM from a known-good value.
     *
-    * §15.4's sanctioned repair: "laesst UI diesen Bereich aus dem gueltigen State neu aufbauen."
-    * It exists because a browser can leave more in the wrapper than the one text node the
-    * projection owns -- Firefox splits a run into three when an astral character is inserted
-    * natively, and a splice afterwards would write into one of them while the others stand.
+    * §15.4's sanctioned repair: "laesst UI diesen Bereich aus dem gueltigen State neu aufbauen." It
+    * exists because a browser can leave more in the wrapper than the one text node the projection
+    * owns -- Firefox splits a run into three when an astral character is inserted natively, and a
+    * splice afterwards would write into one of them while the others stand.
     *
     * Unlike [[setMarkTags]] this also clears what the projection did not put there. That is the
     * point: the wrapper is the boundary of what this component owns, and after a repair it holds
@@ -169,8 +169,8 @@ final class TextRunElement(tagName: String) extends SemanticElement(tagName):
 
 /** One tag that only describes: a mark around a text run, or `<code>` inside a `<pre>`.
   *
-  * Carries no attributes and no identity. Neither a mark (§8.2) nor a presentational wrapper is
-  * a node -- they have no ID, and nothing outside their chain ever needs to find them again.
+  * Carries no attributes and no identity. Neither a mark (§8.2) nor a presentational wrapper is a
+  * node -- they have no ID, and nothing outside their chain ever needs to find them again.
   */
 private final class MarkElement(val tagName: String, inner: AbstractComponent)
     extends AbstractComponent:
@@ -181,11 +181,10 @@ private final class MarkElement(val tagName: String, inner: AbstractComponent)
   *
   * ==Was ein Adapter bekommt und was nicht==
   *
-  * §15.1: "Ein Adapter erhaelt immutable Node-Daten und Rendering-Kontext, nicht
-  * unbeschraenkte DOM-Schreibrechte." Deshalb liefert [[create]] eine Komponente und
-  * [[update]] fuehrt sie nach -- beides ohne Cursor, ohne Zugriff auf Geschwister, ohne
-  * Moeglichkeit, am Baum zu montieren. Wer die Kinder haelt, ist die Projektion, und wer sie
-  * bewegt, ist ausschliesslich die UI-Runtime.
+  * §15.1: "Ein Adapter erhaelt immutable Node-Daten und Rendering-Kontext, nicht unbeschraenkte
+  * DOM-Schreibrechte." Deshalb liefert [[create]] eine Komponente und [[update]] fuehrt sie nach --
+  * beides ohne Cursor, ohne Zugriff auf Geschwister, ohne Moeglichkeit, am Baum zu montieren. Wer
+  * die Kinder haelt, ist die Projektion, und wer sie bewegt, ist ausschliesslich die UI-Runtime.
   *
   * Der Regelfall braucht diesen Vertrag gar nicht selbst: [[NodeView.semantic]] leitet ihn aus
   * einer [[HtmlSemantics]] ab. Eigene Adapter sind fuer Atome gedacht, deren Inneres kein
@@ -211,13 +210,13 @@ trait NodeView[N <: EditorNode]:
 
   /** Whether `component` can still be brought to `node`, or has to be replaced.
     *
-    * §15.1: "Ein typwechselnder Node unter gleicher ID ist eine explizite View-Ersetzung." This
-    * is where that judgement is made -- the adapter knows what it built, and the projection
-    * does not. Answering `false` costs a remount of exactly this node; answering `true` when it
-    * is not true leaves a `<p>` standing where a heading belongs.
+    * §15.1: "Ein typwechselnder Node unter gleicher ID ist eine explizite View-Ersetzung." This is
+    * where that judgement is made -- the adapter knows what it built, and the projection does not.
+    * Answering `false` costs a remount of exactly this node; answering `true` when it is not true
+    * leaves a `<p>` standing where a heading belongs.
     *
-    * No default: there are two kinds of adapter and both have a real answer. A default would
-    * be a guess in the only place where guessing is visible to the reader.
+    * No default: there are two kinds of adapter and both have a real answer. A default would be a
+    * guess in the only place where guessing is visible to the reader.
     */
   def accepts(component: AbstractComponent, node: N, profile: RenderProfile): Boolean
 
@@ -226,8 +225,8 @@ object NodeView:
   /** Leitet einen Adapter aus der semantischen Beschreibung ab.
     *
     * Der Weg fuer alles, was sich als Tag mit Attributen oder als Textlauf darstellen laesst --
-    * also fuer nahezu jeden Dokumentknoten. Dass SSR und Browser dieselbe Beschreibung
-    * benutzen, ist damit keine Absprache, sondern dieselbe Zeile Code.
+    * also fuer nahezu jeden Dokumentknoten. Dass SSR und Browser dieselbe Beschreibung benutzen,
+    * ist damit keine Absprache, sondern dieselbe Zeile Code.
     */
   def semantic[N <: EditorNode](semantics: HtmlSemantics[N]): NodeView[N] =
     new NodeView[N]:
@@ -284,7 +283,7 @@ final class ViewSupport private (val views: Vector[NodeView[?]]):
   private[ui] def create(node: EditorNode, profile: RenderProfile): AbstractComponent =
     viewFor(node) match
       case Some(view) => build(view, node, profile)
-      case None =>
+      case None       =>
         throw EditorContractViolation(
           s"Keine NodeView fuer `${node.id.value}` (${node.getClass.getSimpleName}) registriert."
         )
@@ -302,9 +301,12 @@ final class ViewSupport private (val views: Vector[NodeView[?]]):
       node: EditorNode,
       profile: RenderProfile
   ): AbstractComponent =
-    view.nodeType.project(node).map(view.create(_, profile)).getOrElse(
-      throw EditorContractViolation(s"Der Adapter weist `${node.id.value}` zurueck.")
-    )
+    view.nodeType
+      .project(node)
+      .map(view.create(_, profile))
+      .getOrElse(
+        throw EditorContractViolation(s"Der Adapter weist `${node.id.value}` zurueck.")
+      )
 
   private def refresh[N <: EditorNode](
       view: NodeView[N],

@@ -4,9 +4,9 @@ import ember.editor.core.*
 
 /** Where a link points, and what it is called.
   *
-  * Together rather than as two parameters because they belong to the same decision: a dialog
-  * that asks for an address usually asks for a title in the same breath, and `SetLink` takes
-  * one payload.
+  * Together rather than as two parameters because they belong to the same decision: a dialog that
+  * asks for an address usually asks for a title in the same breath, and `SetLink` takes one
+  * payload.
   */
 final case class LinkTarget(url: LinkUrl, title: Option[String] = None)
 
@@ -15,20 +15,20 @@ final case class LinkTarget(url: LinkUrl, title: Option[String] = None)
   * ==A container, not a mark==
   *
   * §8.2 is explicit: "Links sind Inline-Container, keine Text-Mark." The difference is not
-  * taxonomy. A mark has no children and no data beyond its identity; a link has both -- it
-  * wraps a stretch of content and carries a target. Modelling it as a mark would mean putting
-  * a URL into a `MarkSet`, which §8.2 rules out in the same breath by requiring marks to be
-  * "typisierte, normalisierte Werte" rather than payload carriers.
+  * taxonomy. A mark has no children and no data beyond its identity; a link has both -- it wraps a
+  * stretch of content and carries a target. Modelling it as a mark would mean putting a URL into a
+  * `MarkSet`, which §8.2 rules out in the same breath by requiring marks to be "typisierte,
+  * normalisierte Werte" rather than payload carriers.
   *
-  * It also means formatting and linking compose without either knowing about the other: bold
-  * inside a link is a mark on a run inside the link node, and neither rule had to be told.
+  * It also means formatting and linking compose without either knowing about the other: bold inside
+  * a link is a mark on a run inside the link node, and neither rule had to be told.
   *
   * ==No link inside a link==
   *
-  * §8.2: "Ein Link enthaelt keine anderen Links." A nested anchor is not expressible in HTML --
-  * the parser closes the outer one -- and in Markdown it is not writable at all. [[Links]]
-  * unwraps one rather than rejecting the document, because the way it appears is a move or a
-  * paste, not an author's intent.
+  * §8.2: "Ein Link enthaelt keine anderen Links." A nested anchor is not expressible in HTML -- the
+  * parser closes the outer one -- and in Markdown it is not writable at all. [[Links]] unwraps one
+  * rather than rejecting the document, because the way it appears is a move or a paste, not an
+  * author's intent.
   *
   * ==Why the URL is a [[LinkUrl]]==
   *

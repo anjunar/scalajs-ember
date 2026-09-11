@@ -112,20 +112,28 @@ lazy val forbiddenArtifacts = Seq("scalajs-ui", "scalajs-lexical")
 
 // Pakete, die kein Modul unterhalb der UI-Schicht importieren darf.
 lazy val forbiddenJfxImports =
-  Seq("org.scalajs.dom", "ui.core", "ui.forms", "ui.controls", "ui.viewport", "ui.router",
-      "ui.json", "ui.bridge")
+  Seq(
+    "org.scalajs.dom",
+    "ui.core",
+    "ui.forms",
+    "ui.controls",
+    "ui.viewport",
+    "ui.router",
+    "ui.json",
+    "ui.bridge"
+  )
 
 /** Der Grenz-Lint fuer ein Modul.
   *
   * @param allowedProjects
-  *   Projekt-IDs dieses Builds, von denen das Modul abhaengen darf. Alles andere ist ein Fehler
-  *   -- eine Allowlist, weil §6 den Modulgraphen abschliessend aufzaehlt.
+  *   Projekt-IDs dieses Builds, von denen das Modul abhaengen darf. Alles andere ist ein Fehler --
+  *   eine Allowlist, weil §6 den Modulgraphen abschliessend aufzaehlt.
   * @param forbiddenImports
-  *   Paketpraefixe, die nicht importiert werden duerfen. Enthaelt bewusst auch Pakete, die es
-  *   noch gar nicht gibt: die Regel soll stehen, bevor jemand dagegen verstossen kann.
+  *   Paketpraefixe, die nicht importiert werden duerfen. Enthaelt bewusst auch Pakete, die es noch
+  *   gar nicht gibt: die Regel soll stehen, bevor jemand dagegen verstossen kann.
   * @param allowedModules
-  *   Artefakte, die trotz Blocklist erlaubt sind. Bislang genau eines: `scalajs-ui-core` in
-  *   den drei Modulen, die UI kennen duerfen.
+  *   Artefakte, die trotz Blocklist erlaubt sind. Bislang genau eines: `scalajs-ui-core` in den
+  *   drei Modulen, die UI kennen duerfen.
   */
 def boundarySettings(
     allowedProjects: Seq[String],
@@ -178,7 +186,12 @@ lazy val emberCore = Project(id = "scalajs-ember-core", base = file("ember-core"
     boundarySettings(
       allowedProjects = Seq.empty,
       forbiddenImports = forbiddenJfxImports ++ forbiddenUpwardImports ++
-        Seq("ember.editor.richtext", "ember.editor.html", "ember.editor.markdown", "ember.editor.json"),
+        Seq(
+          "ember.editor.richtext",
+          "ember.editor.html",
+          "ember.editor.markdown",
+          "ember.editor.json"
+        ),
       forbiddenModules = forbiddenArtifacts :+ "scalajs-dom"
     )
   )
@@ -205,7 +218,6 @@ lazy val emberRichText =
       )
     )
 
-
 // §6: List/ListItem, Ein-/Ausruecken, Listennormalisierung. Haengt am Rich-Text-Profil, weil
 // ein ListItem Blockinhalte enthaelt (§8.2) und der haeufigste davon ein Absatz ist.
 lazy val emberList =
@@ -229,7 +241,6 @@ lazy val emberList =
       )
     )
 
-
 // §6: Image/Media-Referenzen, Atom-Semantik, validierte Quellen und Masse. Haengt allein am
 // Kern -- ein Bild ist ein Inline-Atom ohne Kinder und braucht kein Textprofil.
 lazy val emberImage =
@@ -248,12 +259,15 @@ lazy val emberImage =
       boundarySettings(
         allowedProjects = Seq("scalajs-ember-core"),
         forbiddenImports = forbiddenJfxImports ++ forbiddenUpwardImports ++
-          Seq("ember.editor.richtext", "ember.editor.html", "ember.editor.markdown",
-              "ember.editor.json"),
+          Seq(
+            "ember.editor.richtext",
+            "ember.editor.html",
+            "ember.editor.markdown",
+            "ember.editor.json"
+          ),
         forbiddenModules = forbiddenArtifacts :+ "scalajs-dom"
       )
     )
-
 
 // §6: CodeBlock, Sprache als Metadatum, Code-Editing. Auf dem Rich-Text-Profil, weil ein
 // Codeblock aus einem Absatz entsteht und wieder zu einem wird.
@@ -278,7 +292,6 @@ lazy val emberCode =
       )
     )
 
-
 // §6: LinkNode, Link-Commands und Link-URL-Policy. Wie `list` auf dem Rich-Text-Profil, weil
 // ein Link Inline-Inhalte enthaelt (§8.2) -- Textlaeufe, spaeter auch Inline-Atome.
 lazy val emberLink =
@@ -301,7 +314,6 @@ lazy val emberLink =
         forbiddenModules = forbiddenArtifacts :+ "scalajs-dom"
       )
     )
-
 
 // §6: Scala-Syntaxparser, Writer, SourceMap und typisierte AST-Adapter-SPI. Haengt allein am
 // Kern, und das ist die Aussage: der Parser baut einen Syntaxbaum, kein Dokument. Welcher
@@ -337,13 +349,18 @@ lazy val emberMarkdown =
       boundarySettings(
         allowedProjects = Seq("scalajs-ember-core"),
         forbiddenImports = forbiddenJfxImports ++ forbiddenUpwardImports ++
-          Seq("ember.editor.richtext", "ember.editor.list", "ember.editor.link",
-              "ember.editor.code", "ember.editor.image", "ember.editor.html",
-              "ember.editor.json"),
+          Seq(
+            "ember.editor.richtext",
+            "ember.editor.list",
+            "ember.editor.link",
+            "ember.editor.code",
+            "ember.editor.image",
+            "ember.editor.html",
+            "ember.editor.json"
+          ),
         forbiddenModules = forbiddenArtifacts :+ "scalajs-dom"
       )
     )
-
 
 // §6: Input, SelectionPort, Composition, Mutationen, Fokus und Hydration-Aktivierung.
 // P20 baut davon die Hydration; Eingabe und Selection sind P21 bis P23.
@@ -366,17 +383,19 @@ lazy val emberBrowser =
     .settings(publishSettings)
     .settings(
       boundarySettings(
-        allowedProjects = Seq("scalajs-ember-core", "scalajs-ember-rich-text",
-          "scalajs-ember-html", "scalajs-ember-ui"),
+        allowedProjects = Seq(
+          "scalajs-ember-core",
+          "scalajs-ember-rich-text",
+          "scalajs-ember-html",
+          "scalajs-ember-ui"
+        ),
         // Der Browser ist hier der Sinn der Sache, die Projektion ebenfalls. Verboten bleiben
         // `forms` und `ui` -- die liegen darueber (§6).
-        forbiddenImports =
-          forbiddenUpwardImports.filterNot(name =>
-            name == "ember.editor.ui" || name == "ember.editor.browser"),
+        forbiddenImports = forbiddenUpwardImports
+          .filterNot(name => name == "ember.editor.ui" || name == "ember.editor.browser"),
         allowedModules = Seq("scalajs-ui-core")
       )
     )
-
 
 // §6: Die konkrete Verdrahtung der Features an die Browsereingabe. P22.
 //
@@ -387,8 +406,16 @@ lazy val emberBrowser =
 lazy val emberBrowserSupport =
   Project(id = "scalajs-ember-browser-support", base = file("ember-browser-support"))
     .enablePlugins(ScalaJSPlugin)
-    .dependsOn(emberCore, emberRichText, emberList, emberLink, emberCode, emberHistory,
-      emberUi, emberBrowser)
+    .dependsOn(
+      emberCore,
+      emberRichText,
+      emberList,
+      emberLink,
+      emberCode,
+      emberHistory,
+      emberUi,
+      emberBrowser
+    )
     .settings(
       name        := "scalajs-ember-browser-support",
       moduleName  := "scalajs-ember-browser-support",
@@ -412,8 +439,8 @@ lazy val emberBrowserSupport =
           "scalajs-ember-ui",
           "scalajs-ember-browser"
         ),
-        forbiddenImports = forbiddenUpwardImports.filterNot(name =>
-          name == "ember.editor.ui" || name == "ember.editor.browser"),
+        forbiddenImports = forbiddenUpwardImports
+          .filterNot(name => name == "ember.editor.ui" || name == "ember.editor.browser"),
         allowedModules = Seq("scalajs-ui-core")
       )
     )
@@ -438,18 +465,21 @@ lazy val emberForms =
     .settings(publishSettings)
     .settings(
       boundarySettings(
-        allowedProjects = Seq("scalajs-ember-core", "scalajs-ember-markdown",
-          "scalajs-ember-json", "scalajs-ember-html", "scalajs-ember-ui",
-          "scalajs-ember-browser"),
+        allowedProjects = Seq(
+          "scalajs-ember-core",
+          "scalajs-ember-markdown",
+          "scalajs-ember-json",
+          "scalajs-ember-html",
+          "scalajs-ember-ui",
+          "scalajs-ember-browser"
+        ),
         // `ui` und `browser` fehlen hier mit Absicht: ein Formularfeld traegt eine Vorschau
         // (eine DocumentView) und aktiviert sie per Hydration (P20). `ui` bleibt verboten.
-        forbiddenImports =
-          forbiddenUpwardImports.filterNot(name =>
-            name == "ember.editor.ui" || name == "ember.editor.browser"),
+        forbiddenImports = forbiddenUpwardImports
+          .filterNot(name => name == "ember.editor.ui" || name == "ember.editor.browser"),
         allowedModules = Seq("scalajs-ui-core")
       )
     )
-
 
 // §6: Wire-ADT, Node-Codecs, Schema-/Dokumentversionen, Validierung. Haengt nur am Kern --
 // Persistenz ist keine Frage des Renderers, und ein Server, der Dokumente speichert, soll
@@ -475,7 +505,6 @@ lazy val emberJson =
       )
     )
 
-
 // §6: Undo/Redo, Gruppierung, Limits, History-Commands. Haengt nur am Kern -- §14 fuehrt das
 // Modul als "headless und optional", und eine Anwendung ohne Undo linkt es nicht mit.
 lazy val emberHistory =
@@ -498,7 +527,6 @@ lazy val emberHistory =
         forbiddenModules = forbiddenArtifacts :+ "scalajs-dom"
       )
     )
-
 
 // Zunaechst nur die Semantik-SPI. Parser und Importregeln folgen mit P24; §19.1 haelt fest,
 // dass `HtmlFragment` dabei keine eigene Update-/Diff-Laufzeit bekommt -- es ist eine
@@ -556,8 +584,18 @@ lazy val emberUi =
 lazy val emberStandard =
   Project(id = "scalajs-ember-standard", base = file("ember-standard"))
     .enablePlugins(ScalaJSPlugin)
-    .dependsOn(emberCore, emberRichText, emberList, emberLink, emberCode, emberImage,
-      emberMarkdown, emberJson, emberHtml, emberUi)
+    .dependsOn(
+      emberCore,
+      emberRichText,
+      emberList,
+      emberLink,
+      emberCode,
+      emberImage,
+      emberMarkdown,
+      emberJson,
+      emberHtml,
+      emberUi
+    )
     .settings(
       name        := "scalajs-ember-standard",
       moduleName  := "scalajs-ember-standard",
@@ -599,8 +637,17 @@ lazy val emberStandard =
 lazy val emberIntegration =
   Project(id = "scalajs-ember-integration", base = file("ember-integration"))
     .enablePlugins(ScalaJSPlugin)
-    .dependsOn(emberCore, emberRichText, emberMarkdown, emberHtml, emberUi, emberBrowser,
-      emberBrowserSupport, emberForms, emberStandard)
+    .dependsOn(
+      emberCore,
+      emberRichText,
+      emberMarkdown,
+      emberHtml,
+      emberUi,
+      emberBrowser,
+      emberBrowserSupport,
+      emberForms,
+      emberStandard
+    )
     .settings(
       name                            := "scalajs-ember-integration",
       moduleName                      := "scalajs-ember-integration",
@@ -623,19 +670,29 @@ lazy val emberIntegration =
     // Nachbar-Repo und jedes UI-Modul ausser dem Kern.
     .settings(
       boundarySettings(
-        allowedProjects =
-          Seq("scalajs-ember-core", "scalajs-ember-rich-text", "scalajs-ember-markdown",
-              "scalajs-ember-html", "scalajs-ember-ui", "scalajs-ember-browser",
-              "scalajs-ember-browser-support", "scalajs-ember-forms", "scalajs-ember-standard",
-              "scalajs-ember-list", "scalajs-ember-link", "scalajs-ember-code",
-              "scalajs-ember-history", "scalajs-ember-image"),
+        allowedProjects = Seq(
+          "scalajs-ember-core",
+          "scalajs-ember-rich-text",
+          "scalajs-ember-markdown",
+          "scalajs-ember-html",
+          "scalajs-ember-ui",
+          "scalajs-ember-browser",
+          "scalajs-ember-browser-support",
+          "scalajs-ember-forms",
+          "scalajs-ember-standard",
+          "scalajs-ember-list",
+          "scalajs-ember-link",
+          "scalajs-ember-code",
+          "scalajs-ember-history",
+          "scalajs-ember-image"
+        ),
         // Wie bei `standard` fehlt `ember.editor.ui` mit Absicht: der Harness haengt an der
         // Projektion, das ist seit P09 sein Zweck. Seit P19b faehrt er ausserdem das
         // Formularfeld -- der Harness liegt ueber allen Modulen, nicht unter ihnen.
-        forbiddenImports =
-          forbiddenUpwardImports.filterNot(name =>
-            name == "ember.editor.ui" || name == "ember.editor.forms" ||
-              name == "ember.editor.browser"),
+        forbiddenImports = forbiddenUpwardImports.filterNot(name =>
+          name == "ember.editor.ui" || name == "ember.editor.forms" ||
+            name == "ember.editor.browser"
+        ),
         allowedModules = Seq("scalajs-ui-core")
       )
     )
@@ -649,8 +706,21 @@ lazy val emberIntegration =
 lazy val emberDemo =
   Project(id = "scalajs-ember-demo", base = file("ember-demo"))
     .enablePlugins(ScalaJSPlugin)
-    .dependsOn(emberCore, emberRichText, emberList, emberLink, emberCode, emberImage, emberJson,
-      emberHistory, emberHtml, emberUi, emberBrowser, emberBrowserSupport, emberStandard)
+    .dependsOn(
+      emberCore,
+      emberRichText,
+      emberList,
+      emberLink,
+      emberCode,
+      emberImage,
+      emberJson,
+      emberHistory,
+      emberHtml,
+      emberUi,
+      emberBrowser,
+      emberBrowserSupport,
+      emberStandard
+    )
     .settings(
       name                            := "scalajs-ember-demo",
       moduleName                      := "scalajs-ember-demo",
@@ -671,23 +741,47 @@ lazy val emberDemo =
     // Der Browser ist hier der Sinn der Sache, und die Demo liegt ueber allen Modulen.
     .settings(
       boundarySettings(
-        allowedProjects =
-          Seq("scalajs-ember-core", "scalajs-ember-rich-text", "scalajs-ember-list",
-              "scalajs-ember-link", "scalajs-ember-code", "scalajs-ember-image",
-              "scalajs-ember-json", "scalajs-ember-history", "scalajs-ember-html",
-              "scalajs-ember-ui", "scalajs-ember-browser", "scalajs-ember-browser-support",
-              "scalajs-ember-standard"),
-        forbiddenImports = forbiddenUpwardImports.filterNot(name =>
-          name == "ember.editor.ui" || name == "ember.editor.browser"),
+        allowedProjects = Seq(
+          "scalajs-ember-core",
+          "scalajs-ember-rich-text",
+          "scalajs-ember-list",
+          "scalajs-ember-link",
+          "scalajs-ember-code",
+          "scalajs-ember-image",
+          "scalajs-ember-json",
+          "scalajs-ember-history",
+          "scalajs-ember-html",
+          "scalajs-ember-ui",
+          "scalajs-ember-browser",
+          "scalajs-ember-browser-support",
+          "scalajs-ember-standard"
+        ),
+        forbiddenImports = forbiddenUpwardImports
+          .filterNot(name => name == "ember.editor.ui" || name == "ember.editor.browser"),
         allowedModules = Seq("scalajs-ui-core")
       )
     )
 
 lazy val root = Project(id = "scalajs-ember-root", base = file("."))
-  .aggregate(emberCore, emberRichText, emberList, emberLink, emberCode, emberImage,
-    emberMarkdown, emberJson, emberHistory, emberHtml, emberUi, emberBrowser,
-    emberBrowserSupport, emberForms, emberStandard,
-    emberIntegration, emberDemo)
+  .aggregate(
+    emberCore,
+    emberRichText,
+    emberList,
+    emberLink,
+    emberCode,
+    emberImage,
+    emberMarkdown,
+    emberJson,
+    emberHistory,
+    emberHtml,
+    emberUi,
+    emberBrowser,
+    emberBrowserSupport,
+    emberForms,
+    emberStandard,
+    emberIntegration,
+    emberDemo
+  )
   .settings(
     name           := "scalajs-ember",
     publish / skip := true

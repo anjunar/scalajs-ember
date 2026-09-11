@@ -13,20 +13,20 @@ import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
   *
   * ==Was sie beweisen soll==
   *
-  * Dass die Ember-Engine und die UI-Runtime im '''selben, echt gelinkten''' Bundle
-  * zusammenarbeiten -- in einem richtigen Browser, nicht gegen einen Stub. §24 haelt fest, warum
-  * das noetig ist: "Viele npm-Core-Tests verwenden einen Stub; jsdom liefert keine belastbare
+  * Dass die Ember-Engine und die UI-Runtime im '''selben, echt gelinkten''' Bundle zusammenarbeiten
+  * -- in einem richtigen Browser, nicht gegen einen Stub. §24 haelt fest, warum das noetig ist:
+  * "Viele npm-Core-Tests verwenden einen Stub; jsdom liefert keine belastbare
   * IME-/Selection-Engine. Der neue Browser-Harness muss den tatsaechlich gelinkten Scala-Editor
   * ausfuehren."
   *
   * ==Was sie ausdruecklich nicht ist==
   *
   * '''Keine Projektion.''' Diese App rendert nach jedem Commit stumpf neu: alle Bloecke weg, alle
-  * Bloecke wieder hin. Das ist genau das Verfahren, das die keyed `DocumentView` aus P09
-  * ersetzt. Sie steht seit P09 daneben -- [[ProjectionFixtures]] faehrt sie, und der
-  * Unterschied ist der Nachweis: dort schreibt ein Textedit einen einzigen
-  * `characterData`-Eintrag. Hier bleibt es beim naiven Verfahren, weil der Nachweis dieser
-  * App ein anderer ist -- dass die volle Kette ueberhaupt traegt.
+  * Bloecke wieder hin. Das ist genau das Verfahren, das die keyed `DocumentView` aus P09 ersetzt.
+  * Sie steht seit P09 daneben -- [[ProjectionFixtures]] faehrt sie, und der Unterschied ist der
+  * Nachweis: dort schreibt ein Textedit einen einzigen `characterData`-Eintrag. Hier bleibt es beim
+  * naiven Verfahren, weil der Nachweis dieser App ein anderer ist -- dass die volle Kette
+  * ueberhaupt traegt.
   *
   * '''Keine Bridge-API.''' Die `@JSExport`-Methoden nehmen Strings, weil ein Testtreiber in
   * JavaScript nichts anderes hat. Die produktive Fassade aus §23 arbeitet mit opaken Handles und

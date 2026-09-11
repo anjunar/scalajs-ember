@@ -58,9 +58,9 @@ enum SelectionReading:
 
   /** It is inside something the editor renders but does not own (§15.2).
     *
-    * A native control inside an atom view, today. The document does have a position for the atom
-    * -- [[DomPositionMap.toPoint]] gives the boundary in its parent -- but a caret that went into
-    * a textarea is that textarea's caret, and importing it would overwrite the document selection
+    * A native control inside an atom view, today. The document does have a position for the atom --
+    * [[DomPositionMap.toPoint]] gives the boundary in its parent -- but a caret that went into a
+    * textarea is that textarea's caret, and importing it would overwrite the document selection
     * every time someone clicked a widget.
     */
   case Foreign(owner: NodeId)
@@ -80,16 +80,16 @@ enum WriteIntent:
   /** Write regardless of focus -- a deliberate "select this" from a command.
     *
     * This port never '''calls''' focus; that decision is [[FocusController]]'s. But placing a
-    * selection inside an editable host moves the focus there anyway in Chromium, and a browser
-    * test found it. So `Explicit` is not "write without touching focus" -- it is "write, and
-    * accept that the engine may follow". Which is why it is not the default.
+    * selection inside an editable host moves the focus there anyway in Chromium, and a browser test
+    * found it. So `Explicit` is not "write without touching focus" -- it is "write, and accept that
+    * the engine may follow". Which is why it is not the default.
     */
   case Explicit
 
 /** The rule for whether a selection may be written, as a function of what the caller knows.
   *
-  * Separated from the port because it is the part worth testing without a browser: the port
-  * around it is DOM plumbing, and this is the policy §11 and §22 state.
+  * Separated from the port because it is the part worth testing without a browser: the port around
+  * it is DOM plumbing, and this is the policy §11 and §22 state.
   */
 object SelectionWriteGate:
 
@@ -113,19 +113,19 @@ object SelectionWriteGate:
   * ==The two directions are not symmetric==
   *
   * Reading is nearly free and always allowed: `selectionchange` reports where the user went, and
-  * §11 lets arrow navigation run natively and imports the result. Writing is the dangerous half.
-  * It can move a caret out from under someone, steal focus, and -- worst -- trigger the very
-  * event that made it happen. So every write passes [[SelectionWriteGate]] first, and every write
-  * records what it wrote.
+  * §11 lets arrow navigation run natively and imports the result. Writing is the dangerous half. It
+  * can move a caret out from under someone, steal focus, and -- worst -- trigger the very event
+  * that made it happen. So every write passes [[SelectionWriteGate]] first, and every write records
+  * what it wrote.
   *
   * ==How the loop is broken==
   *
   * §15.2: "eigene Selection-Schreibvorgaenge anhand Revision und tatsaechlichem Wert erkennen."
   * Both halves matter. A synchronous flag does not work, because `selectionchange` is delivered
-  * asynchronously, after the flag is long reset. A revision alone does not work either, because
-  * the user can move the caret without the revision changing. So the port remembers the four DOM
-  * values it last wrote together with the revision it wrote them for, and an event carrying
-  * exactly those is its own echo.
+  * asynchronously, after the flag is long reset. A revision alone does not work either, because the
+  * user can move the caret without the revision changing. So the port remembers the four DOM values
+  * it last wrote together with the revision it wrote them for, and an event carrying exactly those
+  * is its own echo.
   *
   * ==What it does not do==
   *
@@ -141,10 +141,10 @@ final class SelectionPort private (
 ):
 
   private var lastWrite: Option[WrittenSelection] = None
-  private var listeners = Vector.empty[(Long, Option[Selection] => Unit)]
-  private var nextHandle = 0L
+  private var listeners                           = Vector.empty[(Long, Option[Selection] => Unit)]
+  private var nextHandle                          = 0L
   private var nativeListener: js.Function1[dom.Event, Unit] = null
-  private var disposedFlag = false
+  private var disposedFlag                                  = false
 
   def isDisposed: Boolean = disposedFlag
 
@@ -155,7 +155,7 @@ final class SelectionPort private (
   /** The native selection as a model selection, or why it is not one. */
   def read(): SelectionReading =
     scope.selection match
-      case None => SelectionReading.Absent
+      case None         => SelectionReading.Absent
       case Some(native) =>
         val anchor = Option(native.anchorNode)
         val focus  = Option(native.focusNode)
@@ -179,8 +179,7 @@ final class SelectionPort private (
                 .orElse(positions.atomAround(focusNode, document))
 
               if foreign.isDefined then SelectionReading.Foreign(foreign.get)
-              else
-                mapBoth(anchorNode, native.anchorOffset, focusNode, native.focusOffset, document)
+              else mapBoth(anchorNode, native.anchorOffset, focusNode, native.focusOffset, document)
           case _ => SelectionReading.Absent
 
   private def mapBoth(
@@ -209,7 +208,7 @@ final class SelectionPort private (
     val reading = read()
     reading match
       case SelectionReading.Mapped(selection) if session.selection.contains(selection) => reading
-      case SelectionReading.Mapped(selection) =>
+      case SelectionReading.Mapped(selection)                                          =>
         session.update(SelectionPort.importMeta)(_.select(selection): Unit) match
           case Right(_) => announce(Some(selection))
           case Left(_)  =>
@@ -240,9 +239,9 @@ final class SelectionPort private (
       scope.capability
     ) match
       case Some(reason) => SelectionWrite.Skipped(reason)
-      case None =>
+      case None         =>
         selection match
-          case None                     => SelectionWrite.Skipped(SkipReason.NoSelection)
+          case None                        => SelectionWrite.Skipped(SkipReason.NoSelection)
           case Some(range: RangeSelection) => writePoints(range.anchor, range.focus)
           case Some(nodes: NodeSelection)  => writeNodes(nodes)
           case Some(_)                     =>
@@ -254,13 +253,14 @@ final class SelectionPort private (
   private def writePoints(anchor: Point, focus: Point): SelectionWrite =
     val document = session.document
     (positions.toDom(anchor, document), positions.toDom(focus, document)) match
-      case (Left(problem), _) => SelectionWrite.Failed(problem)
-      case (_, Left(problem)) => SelectionWrite.Failed(problem)
+      case (Left(problem), _)                => SelectionWrite.Failed(problem)
+      case (_, Left(problem))                => SelectionWrite.Failed(problem)
       case (Right(anchorAt), Right(focusAt)) =>
         scope.selection match
-          case None => SelectionWrite.Skipped(SkipReason.Unsupported)
+          case None         => SelectionWrite.Skipped(SkipReason.Unsupported)
           case Some(native) =>
-            if matches(native, anchorAt, focusAt) then SelectionWrite.Skipped(SkipReason.AlreadyThere)
+            if matches(native, anchorAt, focusAt) then
+              SelectionWrite.Skipped(SkipReason.AlreadyThere)
             else
               // `collapse` then `extend`, not two ranges: this is the pair that keeps anchor and
               // focus apart, so a backward selection stays backward and the next arrow key moves
@@ -282,12 +282,12 @@ final class SelectionPort private (
     *
     * §11 keeps `NodeSelection` as its own kind because it '''is''' one -- several selected images
     * are not a text range. The browser has no such concept, so what it gets is the range from
-    * before the first node to after the last, in document order. Reading it back gives a range,
-    * not the node set; the model keeps the node set, and that asymmetry is the honest one.
+    * before the first node to after the last, in document order. Reading it back gives a range, not
+    * the node set; the model keeps the node set, and that asymmetry is the honest one.
     */
   private def writeNodes(selection: NodeSelection): SelectionWrite =
     val document = session.document
-    val bounds = selection.nodes.toVector.flatMap { id =>
+    val bounds   = selection.nodes.toVector.flatMap { id =>
       document.parentOf(id).flatMap { parent =>
         document.node(parent) match
           case Some(element: ElementNode) =>
@@ -336,10 +336,10 @@ final class SelectionPort private (
     (scope.selection, lastWrite) match
       case (Some(native), Some(written)) =>
         written.revision == session.state.revision &&
-          Option(native.anchorNode).exists(_ eq written.anchorNode) &&
-          native.anchorOffset == written.anchorOffset &&
-          Option(native.focusNode).exists(_ eq written.focusNode) &&
-          native.focusOffset == written.focusOffset
+        Option(native.anchorNode).exists(_ eq written.anchorNode) &&
+        native.anchorOffset == written.anchorOffset &&
+        Option(native.focusNode).exists(_ eq written.focusNode) &&
+        native.focusOffset == written.focusOffset
       case _ => false
 
   /** Notified after a native selection was imported into the session. */

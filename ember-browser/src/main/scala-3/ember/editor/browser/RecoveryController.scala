@@ -26,8 +26,8 @@ enum RecoveryOutcome:
   case Exhausted(problems: Vector[HydrationProblem])
 
   def render: String = this match
-    case Clean                     => "Die Ansicht stimmt mit dem Dokument ueberein."
-    case Repaired(nodes, attempt)  =>
+    case Clean                    => "Die Ansicht stimmt mit dem Dokument ueberein."
+    case Repaired(nodes, attempt) =>
       s"Ansicht in Versuch $attempt neu aufgebaut: ${nodes.map(_.value).mkString(", ")}"
     case Exhausted(problems) =>
       problems.map(_.render).mkString("Die Ansicht laesst sich nicht reparieren: ", "; ", "")
@@ -36,13 +36,13 @@ enum RecoveryOutcome:
   *
   * ==What is being repaired==
   *
-  * The '''view''', never the document. §15.4: "Der Controller prueft den betroffenen
-  * Besitzbereich und importiert entweder ein zulaessiges Fragment oder laesst UI diesen Bereich
-  * aus dem gueltigen State neu aufbauen." Importing is [[NativeInputReader]]'s job and happens
-  * first; this is the other branch, for what cannot be read back as a document change.
+  * The '''view''', never the document. §15.4: "Der Controller prueft den betroffenen Besitzbereich
+  * und importiert entweder ein zulaessiges Fragment oder laesst UI diesen Bereich aus dem gueltigen
+  * State neu aufbauen." Importing is [[NativeInputReader]]'s job and happens first; this is the
+  * other branch, for what cannot be read back as a document change.
   *
-  * The document is the authority here by assumption -- whatever the browser or an extension did
-  * to the DOM was not a document change, so the document is still right and the DOM is not.
+  * The document is the authority here by assumption -- whatever the browser or an extension did to
+  * the DOM was not a document change, so the document is still right and the DOM is not.
   *
   * ==Why the comparison is the hydration check==
   *
@@ -54,8 +54,8 @@ enum RecoveryOutcome:
   *
   * §15.4: "Reparatur hat einen begrenzten Wiederholungsversuch... keine Endlosschleife aus
   * Observer→Render→Observer." A rebuild is itself a mutation; the observer sees it; if the repair
-  * does not hold, repairing again produces the same records and the same failure, faster each
-  * time. One retry, then the text and a message.
+  * does not hold, repairing again produces the same records and the same failure, faster each time.
+  * One retry, then the text and a message.
   */
 final class RecoveryController(
     session: EditorSession,
@@ -77,20 +77,21 @@ final class RecoveryController(
     // An editor without semantics has nothing to compare against. Reporting every node as
     // "keine HtmlSemantics registriert" would turn a missing description into a broken view.
     if semantics.entries.isEmpty then Vector.empty
-    else positions.hostOf(session.document.rootId) match
-      case Right(root) =>
-        EditorHydration
-          .check(root, session.document, semantics, RenderProfile.Editor)
-          // A node with a custom `NodeView` has no `HtmlSemantics` by design -- §15.1 keeps
-          // adapters for atoms "deren Inneres kein Textbereich ist", and their markup is the
-          // adapter's business, not the document's. Reading that as damage would put every editor
-          // with an atom into permanent recovery, which a browser test duly did.
-          //
-          // Hydration reports it, and rightly: there a node it cannot describe is a node it may
-          // not claim. Here it is a node this check has nothing to say about.
-          .filterNot(_.isInstanceOf[HydrationProblem.NoSemantics])
-      // Not projected at all is not a repairable mismatch -- there is nothing to compare.
-      case Left(_) => Vector.empty
+    else
+      positions.hostOf(session.document.rootId) match
+        case Right(root) =>
+          EditorHydration
+            .check(root, session.document, semantics, RenderProfile.Editor)
+            // A node with a custom `NodeView` has no `HtmlSemantics` by design -- §15.1 keeps
+            // adapters for atoms "deren Inneres kein Textbereich ist", and their markup is the
+            // adapter's business, not the document's. Reading that as damage would put every editor
+            // with an atom into permanent recovery, which a browser test duly did.
+            //
+            // Hydration reports it, and rightly: there a node it cannot describe is a node it may
+            // not claim. Here it is a node this check has nothing to say about.
+            .filterNot(_.isInstanceOf[HydrationProblem.NoSemantics])
+        // Not projected at all is not a repairable mismatch -- there is nothing to compare.
+        case Left(_) => Vector.empty
 
   /** Rebuilds what does not match, once more than it has already tried. */
   def repair(): RecoveryOutcome =

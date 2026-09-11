@@ -14,9 +14,9 @@ import org.scalatest.matchers.should.Matchers
   *
   * ==What is not==
   *
-  * Everything that needs an engine: whether a keystroke actually produces a `beforeinput`,
-  * whether it is cancelable, whether preventing it really stops the DOM change, and what a
-  * browser does when nobody prevents anything. `editing.spec.mjs` and `native-input.spec.mjs`.
+  * Everything that needs an engine: whether a keystroke actually produces a `beforeinput`, whether
+  * it is cancelable, whether preventing it really stops the DOM change, and what a browser does
+  * when nobody prevents anything. `editing.spec.mjs` and `native-input.spec.mjs`.
   */
 final class InputPipelineSpec extends AnyFlatSpec with Matchers {
 
@@ -179,8 +179,8 @@ final class InputPipelineSpec extends AnyFlatSpec with Matchers {
     // §11: UTF-16 is the offset measure, and an offset inside a pair addresses half a codepoint.
     // The splice would produce two broken strings, and every position in the run would then fail
     // `Point.validateIn`.
-    val grinning = "😀"  // U+1F600
-    val thinking = "🤔"  // U+1F914, shares no unit with it
+    val grinning = "😀" // U+1F600
+    val thinking = "🤔" // U+1F914, shares no unit with it
 
     val splice = NativeInputReader.delta(s"a${grinning}b", s"a${thinking}b").value
     splice.start shouldBe 1
@@ -214,7 +214,7 @@ final class InputPipelineSpec extends AnyFlatSpec with Matchers {
 
     cases.foreach { (before, after) =>
       NativeInputReader.delta(before, after) match
-        case None => before shouldBe after
+        case None         => before shouldBe after
         case Some(splice) =>
           val applied =
             before.take(splice.start) + splice.inserted +

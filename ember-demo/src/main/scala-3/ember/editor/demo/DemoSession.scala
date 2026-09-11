@@ -25,10 +25,10 @@ import ember.editor.standard.{ImageJsonSupport, ImageSupport, MarkdownSupports}
   *
   * ==Why it all stands here==
   *
-  * An application assembles the modules itself: core, profile, persistence, semantics,
-  * projection and adapters. §6 says as much -- `standard` is an '''optional''' integration
-  * module, and whoever needs only JSON links neither UI nor HTML. This file is the one place
-  * in the demo where all six modules appear; the rest knows only what it uses.
+  * An application assembles the modules itself: core, profile, persistence, semantics, projection
+  * and adapters. §6 says as much -- `standard` is an '''optional''' integration module, and whoever
+  * needs only JSON links neither UI nor HTML. This file is the one place in the demo where all six
+  * modules appear; the rest knows only what it uses.
   */
 final class DemoSession:
 
@@ -36,9 +36,9 @@ final class DemoSession:
 
   /** Which sources this demo accepts (§20).
     *
-    * The default profile, unchanged: https and relative paths, nothing else. The demo's own
-    * picture is a relative path -- exactly the case `allowRelative` covers -- and a `data:` URL
-    * would be more convenient and is refused, because it is not a lasting MediaReference.
+    * The default profile, unchanged: https and relative paths, nothing else. The demo's own picture
+    * is a relative path -- exactly the case `allowRelative` covers -- and a `data:` URL would be
+    * more convenient and is refused, because it is not a lasting MediaReference.
     */
   private val media: MediaUrlPolicy = MediaUrlPolicy.default
 
@@ -55,11 +55,9 @@ final class DemoSession:
   val compositions: CompositionHolder = new CompositionHolder
 
   private object CompositionGateExtension extends Extension:
-    val id: ExtensionId = ExtensionId("ember.demo.composition-gate")
+    val id: ExtensionId                             = ExtensionId("ember.demo.composition-gate")
     override def contribute: ExtensionContributions =
-      ExtensionContributions(preCommitRules =
-        Vector(BrowserInputController.busyRule(compositions))
-      )
+      ExtensionContributions(preCommitRules = Vector(BrowserInputController.busyRule(compositions)))
 
   private val resolved: ResolvedExtensions =
     ExtensionResolver.resolve(
@@ -80,8 +78,8 @@ final class DemoSession:
   /** The codec for the paragraph, which no module supplies.
     *
     * §6 puts `json` beside the node modules, not above them, so a paragraph codec is an
-    * application's business until P18 moves it into the integration module. Until then it is
-    * what it is -- a line of application code. Everything else comes from the modules:
+    * application's business until P18 moves it into the integration module. Until then it is what
+    * it is -- a line of application code. Everything else comes from the modules:
     * [[ImageJsonSupport.support]] brings the core codecs and the one for pictures.
     */
   private val paragraphCodec: NodeJsonCodec[ParagraphNode] = new NodeJsonCodec[ParagraphNode]:
@@ -104,8 +102,8 @@ final class DemoSession:
   /** Every standard adapter: rich text, lists, links, code and images. */
   val views: ViewSupport = ImageSupport.views
 
-  /** Die Beschreibung, gegen die §15.4s Reparatur die Ansicht misst -- dieselbe, aus der
-    * `views` abgeleitet ist.
+  /** Die Beschreibung, gegen die §15.4s Reparatur die Ansicht misst -- dieselbe, aus der `views`
+    * abgeleitet ist.
     */
   val semanticsForRepair: HtmlSupport = ImageSupport.everything
 
@@ -128,9 +126,9 @@ final class DemoSession:
 
   /** A document with content instead of an empty paragraph -- there should be something to see.
     *
-    * The last paragraph carries a picture, so the inline atom is visible without a click: it
-    * sits '''between''' two text runs, not next to the paragraph, and the tree panel shows
-    * exactly that (§20).
+    * The last paragraph carries a picture, so the inline atom is visible without a click: it sits
+    * '''between''' two text runs, not next to the paragraph, and the tree panel shows exactly that
+    * (§20).
     */
   private def startingDocument: Document =
     val paragraphs = Vector(
@@ -180,24 +178,24 @@ final class DemoSession:
     */
   def perform(command: DemoCommand): Boolean =
     val outcome = command match
-      case DemoCommand.Undo         => return handled(history.undo())
-      case DemoCommand.Redo         => return handled(history.redo())
-      case DemoCommand.Mark(mark)   => session.dispatch(RichText.ToggleMark, mark)
+      case DemoCommand.Undo           => return handled(history.undo())
+      case DemoCommand.Redo           => return handled(history.redo())
+      case DemoCommand.Mark(mark)     => session.dispatch(RichText.ToggleMark, mark)
       case DemoCommand.Heading(level) => session.dispatch(RichText.SetHeading, level)
-      case DemoCommand.Quote        => session.dispatch(RichText.Quote)
-      case DemoCommand.Unquote      => session.dispatch(RichText.Unquote)
-      case DemoCommand.HardBreak    => session.dispatch(RichText.InsertBreak, BreakKind.Hard)
-      case DemoCommand.Rule         => session.dispatch(RichText.InsertThematicBreak)
-      case DemoCommand.Bullets      => session.dispatch(ListCommands.ToggleList, ListKind.Unordered)
-      case DemoCommand.Numbers      => session.dispatch(ListCommands.ToggleList, ListKind.Ordered)
-      case DemoCommand.Indent       => session.dispatch(ListCommands.Indent)
-      case DemoCommand.Outdent      => session.dispatch(ListCommands.Outdent)
-      case DemoCommand.Unlink       => session.dispatch(LinkCommands.RemoveLink)
+      case DemoCommand.Quote          => session.dispatch(RichText.Quote)
+      case DemoCommand.Unquote        => session.dispatch(RichText.Unquote)
+      case DemoCommand.HardBreak      => session.dispatch(RichText.InsertBreak, BreakKind.Hard)
+      case DemoCommand.Rule           => session.dispatch(RichText.InsertThematicBreak)
+      case DemoCommand.Bullets   => session.dispatch(ListCommands.ToggleList, ListKind.Unordered)
+      case DemoCommand.Numbers   => session.dispatch(ListCommands.ToggleList, ListKind.Ordered)
+      case DemoCommand.Indent    => session.dispatch(ListCommands.Indent)
+      case DemoCommand.Outdent   => session.dispatch(ListCommands.Outdent)
+      case DemoCommand.Unlink    => session.dispatch(LinkCommands.RemoveLink)
       case DemoCommand.Link(url) => return linkRunAtCaret(url)
       case DemoCommand.Code => session.dispatch(CodeCommands.ToggleCodeBlock, CodeInfo.of("scala"))
       case DemoCommand.Image(url, alt) => return insertImage(url, alt)
       case DemoCommand.Describe(alt)   => return changeImage(_.copy(alt = alt))
-      case DemoCommand.Resize(width) =>
+      case DemoCommand.Resize(width)   =>
         return changeImage(_.copy(width = PositivePixels.parse(width), height = None))
 
     outcome match
@@ -210,14 +208,14 @@ final class DemoSession:
     *
     * ==Warum die Demo den Bereich selbst setzt==
     *
-    * `SetLink` braucht eine Auswahl -- es gibt nichts zu umschliessen, wenn nichts ausgewaehlt
-    * ist. Seit P21 gaebe es eine DOM-Auswahl zu lesen, aber ein Klick auf "Link" kommt typisch
-    * bei einem Caret, nicht bei einem markierten Bereich. Die Demo waehlt deshalb im Modell aus,
-    * und zwar den ganzen Lauf am Caret: vorhersagbar, erklaerbar
-    * und ohne so zu tun, als koennte man hier schon mit der Maus markieren.
+    * `SetLink` braucht eine Auswahl -- es gibt nichts zu umschliessen, wenn nichts ausgewaehlt ist.
+    * Seit P21 gaebe es eine DOM-Auswahl zu lesen, aber ein Klick auf "Link" kommt typisch bei einem
+    * Caret, nicht bei einem markierten Bereich. Die Demo waehlt deshalb im Modell aus, und zwar den
+    * ganzen Lauf am Caret: vorhersagbar, erklaerbar und ohne so zu tun, als koennte man hier schon
+    * mit der Maus markieren.
     *
-    * Auswahl und Command laufen in einer Transaktion. Zwei waeren zwei History-Stufen,
-    * und ein Undo nach dem Verlinken naehme dann nur die Auswahl zurueck.
+    * Auswahl und Command laufen in einer Transaktion. Zwei waeren zwei History-Stufen, und ein Undo
+    * nach dem Verlinken naehme dann nur die Auswahl zurueck.
     */
   private def linkRunAtCaret(url: String): Boolean =
     // Die Policy ist die einzige Tuer zu einer `LinkUrl` -- eine unsichere Adresse kommt gar
@@ -227,8 +225,10 @@ final class DemoSession:
         lastError = Some(error.render)
         false
       case Right(value) =>
-        caret.map(_._1).flatMap(id => session.document.node(id).collect { case run: TextNode => run }) match
-          case None => false
+        caret
+          .map(_._1)
+          .flatMap(id => session.document.node(id).collect { case run: TextNode => run }) match
+          case None      => false
           case Some(run) =>
             handled(
               session
@@ -247,9 +247,9 @@ final class DemoSession:
   /** Inserts a picture at the caret (P16).
     *
     * The policy is the only door to a [[MediaUrl]], exactly as it is for links: a source the
-    * profile refuses never reaches the command, and there is no second path that could let one
-    * past (§20). The demo has no picker and no upload -- §20 puts both in an application
-    * service, and what the command takes is a finished address.
+    * profile refuses never reaches the command, and there is no second path that could let one past
+    * (§20). The demo has no picker and no upload -- §20 puts both in an application service, and
+    * what the command takes is a finished address.
     */
   private def insertImage(url: String, alt: String): Boolean =
     media.parse(url) match
@@ -269,13 +269,12 @@ final class DemoSession:
     * ==Why the demo picks the selection itself==
     *
     * An atom has no text position inside it, so a caret cannot stand '''in''' a picture; what a
-    * selection can do is name it (§11). Naming it with the mouse is the `SelectionPort` from
-    * P21, so the demo does in the model what a click will later do in the DOM, and takes the
-    * neighbour of the caret -- predictable, and without pretending one could already point at
-    * it.
+    * selection can do is name it (§11). Naming it with the mouse is the `SelectionPort` from P21,
+    * so the demo does in the model what a click will later do in the DOM, and takes the neighbour
+    * of the caret -- predictable, and without pretending one could already point at it.
     *
-    * Selection, change and the caret afterwards run in '''one''' transaction. Three would be
-    * three history steps, and an undo would then only take back the selection.
+    * Selection, change and the caret afterwards run in '''one''' transaction. Three would be three
+    * history steps, and an undo would then only take back the selection.
     */
   private def changeImage(change: ImageNode => ImageNode): Boolean =
     (caret, imageNextToCaret) match
@@ -294,19 +293,19 @@ final class DemoSession:
   /** The picture directly after the caret's run, or directly before it. */
   private def imageNextToCaret: Option[ImageNode] =
     for
-      (run, _)  <- caret
-      parent    <- session.document.parentOf(run)
-      index     <- session.document.indexOfChild(run)
-      siblings   = session.document.childrenOf(parent)
-      image     <- Vector(index + 1, index - 1)
-                     .flatMap(siblings.lift)
-                     .flatMap(session.document.node)
-                     .collectFirst { case image: ImageNode => image }
+      (run, _) <- caret
+      parent   <- session.document.parentOf(run)
+      index    <- session.document.indexOfChild(run)
+      siblings = session.document.childrenOf(parent)
+      image <- Vector(index + 1, index - 1)
+        .flatMap(siblings.lift)
+        .flatMap(session.document.node)
+        .collectFirst { case image: ImageNode => image }
     yield image
 
   private def handled(outcome: Either[UpdateError, Boolean]): Boolean = outcome match
     case Right(changed) => changed
-    case Left(failure) =>
+    case Left(failure)  =>
       lastError = Some(failure.render)
       false
 
@@ -317,9 +316,9 @@ final class DemoSession:
 
   /** The node the model caret sits in, and its offset.
     *
-    * '''This is still not a DOM selection.''' The caret is a model value (§11); translating it
-    * into a real browser selection is the `SelectionPort` from P21. Until then the demo shows
-    * what the model knows and claims nothing beyond it.
+    * '''This is still not a DOM selection.''' The caret is a model value (§11); translating it into
+    * a real browser selection is the `SelectionPort` from P21. Until then the demo shows what the
+    * model knows and claims nothing beyond it.
     */
   def caret: Option[(NodeId, Int)] =
     session.selection
@@ -351,11 +350,10 @@ final class DemoSession:
 
   /** The same state as Markdown (P18).
     *
-    * '''AllowLossy''', and that is the interesting part: a panel that showed an error
-    * instead of a document whenever something has no Markdown spelling would be useless. §18.2
-    * makes the choice explicit, and a viewer legitimately chooses to see what Markdown can
-    * carry -- the demo prints what it could not underneath, so the loss is visible rather than
-    * silent.
+    * '''AllowLossy''', and that is the interesting part: a panel that showed an error instead of a
+    * document whenever something has no Markdown spelling would be useless. §18.2 makes the choice
+    * explicit, and a viewer legitimately chooses to see what Markdown can carry -- the demo prints
+    * what it could not underneath, so the loss is visible rather than silent.
     */
   def markdown: String =
     MarkdownCodec.encode(session.document, markdownRules, LossPolicy.AllowLossy) match
@@ -372,9 +370,9 @@ final class DemoSession:
 
   /** The same state as delivered HTML (P09, content profile).
     *
-    * Through the same path as the surface on the left -- `DocumentView` takes any cursor, here
-    * an `SsrCursor`. That both produce the same output is therefore not an agreement between
-    * two implementations.
+    * Through the same path as the surface on the left -- `DocumentView` takes any cursor, here an
+    * `SsrCursor`. That both produce the same output is therefore not an agreement between two
+    * implementations.
     */
   def html: String =
     DocumentView.renderToHtml(session.document, views, RenderProfile.Content)
@@ -385,8 +383,8 @@ final class DemoSession:
 
 /** What the demo's buttons can trigger. No dispatch API -- commands are values (§12).
   *
-  * Typing, Enter, Backspace and the two indent commands used to be in here, because the page had
-  * a hand-written `keydown` bridge. Since P22 the real input pipeline runs them, and a second
+  * Typing, Enter, Backspace and the two indent commands used to be in here, because the page had a
+  * hand-written `keydown` bridge. Since P22 the real input pipeline runs them, and a second
   * spelling of the same thing would only be something to keep in sync.
   */
 enum DemoCommand:

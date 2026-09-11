@@ -7,13 +7,13 @@ import org.scalatest.matchers.should.Matchers
   *
   * ==Why this suite exists next to the conformance suite==
   *
-  * [[CommonMarkConformanceSpec]] measures a number. It says how much of the specification the parser
-  * reproduces, and it catches a regression anywhere -- but when it fails it says "336 instead
-  * of 337", and finding out what broke means reading a diff of the whole suite.
+  * [[CommonMarkConformanceSpec]] measures a number. It says how much of the specification the
+  * parser reproduces, and it catches a regression anywhere -- but when it fails it says "336
+  * instead of 337", and finding out what broke means reading a diff of the whole suite.
   *
-  * This one names the cases P17 asks for and asserts the '''structure''' rather than rendered
-  * HTML. When it fails it says which construct, and it says so about the tree the rest of the
-  * editor will actually consume.
+  * This one names the cases P17 asks for and asserts the '''structure''' rather than rendered HTML.
+  * When it fails it says which construct, and it says so about the tree the rest of the editor will
+  * actually consume.
   */
 final class MarkdownBlockSpec extends AnyFlatSpec with Matchers {
 
@@ -25,20 +25,20 @@ final class MarkdownBlockSpec extends AnyFlatSpec with Matchers {
   /** The tree as one indented line per block -- the shape, without the noise of ids and spans. */
   private def outline(source: String): String =
     def describe(block: MarkdownBlock): String = block match
-      case _: MarkdownDocument                        => "document"
+      case _: MarkdownDocument                    => "document"
       case MarkdownBlock.Paragraph(_, _, inlines) => s"""paragraph "${flatten(inlines)}""""
       case MarkdownBlock.Heading(_, _, level, style, inlines) =>
         s"""h$level ${style.toString.toLowerCase} "${flatten(inlines)}""""
       case MarkdownBlock.CodeBlock(_, _, literal, None) => s"""code indented "${escape(literal)}""""
       case MarkdownBlock.CodeBlock(_, _, literal, Some(fence)) =>
         s"""code ${fence.char}${fence.length} info="${fence.info}" "${escape(literal)}""""
-      case MarkdownBlock.HtmlBlock(_, _, literal) => s"""html "${escape(literal)}""""
-      case MarkdownBlock.ThematicBreak(_, _)      => "break"
-      case MarkdownBlock.BlockQuote(_, _, _)      => "quote"
+      case MarkdownBlock.HtmlBlock(_, _, literal)           => s"""html "${escape(literal)}""""
+      case MarkdownBlock.ThematicBreak(_, _)                => "break"
+      case MarkdownBlock.BlockQuote(_, _, _)                => "quote"
       case MarkdownBlock.MarkdownList(_, _, kind, tight, _) =>
         val shape = kind match
-          case ListKind.Bullet(marker)             => s"bullet '$marker'"
-          case ListKind.Ordered(start, delimiter)  => s"ordered $start'$delimiter'"
+          case ListKind.Bullet(marker)            => s"bullet '$marker'"
+          case ListKind.Ordered(start, delimiter) => s"ordered $start'$delimiter'"
         s"list $shape ${if tight then "tight" else "loose"}"
       case MarkdownBlock.ListItem(_, _, _) => "item"
 
@@ -51,18 +51,18 @@ final class MarkdownBlockSpec extends AnyFlatSpec with Matchers {
 
   /** Inline content as one line. Structure gets brackets; a soft break stays a `\n`.
     *
-    * This suite is about '''blocks''', so inline structure is shown only far enough to see that
-    * it is there. `MarkdownInlineSpec` is where it gets looked at properly.
+    * This suite is about '''blocks''', so inline structure is shown only far enough to see that it
+    * is there. `MarkdownInlineSpec` is where it gets looked at properly.
     */
   private def flatten(inlines: Vector[MarkdownInline]): String =
     escape(inlines.map {
-      case MarkdownInline.Text(_, _, value)  => value
-      case MarkdownInline.Code(_, _, value)  => s"`$value`"
-      case MarkdownInline.SoftBreak(_, _)    => "\n"
-      case MarkdownInline.HardBreak(_, _)    => "\\\\n"
-      case MarkdownInline.HtmlInline(_, _, v) => v
-      case MarkdownInline.Emphasis(_, _, kids) => s"<em>${flatten(kids)}</em>"
-      case MarkdownInline.Strong(_, _, kids)   => s"<strong>${flatten(kids)}</strong>"
+      case MarkdownInline.Text(_, _, value)            => value
+      case MarkdownInline.Code(_, _, value)            => s"`$value`"
+      case MarkdownInline.SoftBreak(_, _)              => "\n"
+      case MarkdownInline.HardBreak(_, _)              => "\\\\n"
+      case MarkdownInline.HtmlInline(_, _, v)          => v
+      case MarkdownInline.Emphasis(_, _, kids)         => s"<em>${flatten(kids)}</em>"
+      case MarkdownInline.Strong(_, _, kids)           => s"<strong>${flatten(kids)}</strong>"
       case MarkdownInline.Link(_, _, target, _, kids)  => s"<a:$target>${flatten(kids)}</a>"
       case MarkdownInline.Image(_, _, target, _, kids) => s"<img:$target>${flatten(kids)}</img>"
     }.mkString)
@@ -512,8 +512,8 @@ final class MarkdownBlockSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "give the span of a block by its id" in {
-    val result   = Markdown.parseSyntax("# Titel\n").getOrElse(fail("nicht parsebar"))
-    val heading  = result.document.children.head
+    val result  = Markdown.parseSyntax("# Titel\n").getOrElse(fail("nicht parsebar"))
+    val heading = result.document.children.head
 
     result.sourceMap.spanOf(heading.id) shouldBe Some(heading.span)
   }
@@ -533,10 +533,10 @@ final class MarkdownBlockSpec extends AnyFlatSpec with Matchers {
 
   /** Generous everywhere. Each test below tightens exactly the one bound it is about.
     *
-    * Sharing one tight profile does not work, and the way it fails is instructive: the bounds
-    * are checked in a fixed order, so a small `maxSourceChars` fires before the parser ever
-    * gets deep enough to reach `maxDepth`, and the test then proves the wrong thing while
-    * still being green about it.
+    * Sharing one tight profile does not work, and the way it fails is instructive: the bounds are
+    * checked in a fixed order, so a small `maxSourceChars` fires before the parser ever gets deep
+    * enough to reach `maxDepth`, and the test then proves the wrong thing while still being green
+    * about it.
     */
   private val roomy = ParseLimits(
     maxSourceChars = 1_000_000,
@@ -571,8 +571,7 @@ final class MarkdownBlockSpec extends AnyFlatSpec with Matchers {
   it should "hold against an input that would overflow the default limit" in {
     // 50 000 Zitatebenen sind 100 kB und ein Baum, der jeden Stack sprengt. Mit Grenze ist es
     // ein Fehlerwert.
-    Markdown.parseSyntax("> " * 50_000 + "tief\n") should matchPattern {
-      case Left(_: ParseError) =>
+    Markdown.parseSyntax("> " * 50_000 + "tief\n") should matchPattern { case Left(_: ParseError) =>
     }
   }
 

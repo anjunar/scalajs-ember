@@ -38,7 +38,7 @@ final class DocumentJsonSpec extends AnyFlatSpec with Matchers {
 
   private def encoded(document: Document = sample()): String =
     DocumentJson.encodeToString(document, support) match
-      case Right(text) => text
+      case Right(text)  => text
       case Left(errors) => fail(errors.map(_.render).mkString("; "))
 
   private def decode(
@@ -114,7 +114,7 @@ final class DocumentJsonSpec extends AnyFlatSpec with Matchers {
   // ---------------------------------------------------------------------------------------
 
   "Marks" should "survive a roundtrip" in {
-    val marked = TextNode(NodeId("t0"), "Hallo", MarkSet.of(Highlight("gelb"), Marker))
+    val marked   = TextNode(NodeId("t0"), "Hallo", MarkSet.of(Highlight("gelb"), Marker))
     val original = sample(first = marked)
 
     val restored = decoded(encoded(original)).document
@@ -174,7 +174,8 @@ final class DocumentJsonSpec extends AnyFlatSpec with Matchers {
   }
 
   "A wrong type" should "be reported with its path" in {
-    val text = encoded().replace("\"nodes\":[", "\"nodes\":{\"a\":[")
+    val text = encoded()
+      .replace("\"nodes\":[", "\"nodes\":{\"a\":[")
       .replace("}]}", "}]}}")
 
     inside(failure(text)) { case Vector(error: DecodeError.TypeMismatch) =>
@@ -250,10 +251,14 @@ final class DocumentJsonSpec extends AnyFlatSpec with Matchers {
   it should "report every node error at once" in {
     // Wer einen fremden Payload debuggt, will nicht zwanzig Laeufe fuer zwanzig Tippfehler.
     val text = encoded()
-      .replace("\"type\":\"ember.core.text/1\",\"codecVersion\":1,\"text\":\"Hallo\"",
-        "\"type\":\"fremd.a/1\",\"codecVersion\":1")
-      .replace("\"type\":\"ember.core.text/1\",\"codecVersion\":1,\"text\":\"Welt\"",
-        "\"type\":\"fremd.b/1\",\"codecVersion\":1")
+      .replace(
+        "\"type\":\"ember.core.text/1\",\"codecVersion\":1,\"text\":\"Hallo\"",
+        "\"type\":\"fremd.a/1\",\"codecVersion\":1"
+      )
+      .replace(
+        "\"type\":\"ember.core.text/1\",\"codecVersion\":1,\"text\":\"Welt\"",
+        "\"type\":\"fremd.b/1\",\"codecVersion\":1"
+      )
 
     failure(text) should have length 2
   }
@@ -340,28 +345,32 @@ final class DocumentJsonSpec extends AnyFlatSpec with Matchers {
     text should include("\"formatVersion\":1")
     text should include("\"type\":\"test.block/1\",\"codecVersion\":2")
 
-    DocumentJson.decodeString(text, schema, versioned, DecodeConfig())
+    DocumentJson
+      .decodeString(text, schema, versioned, DecodeConfig())
       .map(_.document) shouldBe Right(document)
   }
 
   it should "let a codec read an older payload" in {
     val versioned = JsonSupport.of(CoreJsonSupport.root, CoreJsonSupport.text, TestCodecs.blockV2)
-    val old = encoded()
+    val old       = encoded()
       .replace("\"codecVersion\":1,\"label\"", "\"codecVersion\":1,\"caption\"")
 
     val result = DocumentJson.decodeString(old, schema, versioned, DecodeConfig())
 
     inside(result) { case Right(DecodeResult(document, _)) =>
-      document.node(NodeId("b0")) shouldBe Some(BlockNode(NodeId("b0"),
-        Vector(NodeId("t0"), NodeId("t1")), "Abschnitt"))
+      document.node(NodeId("b0")) shouldBe Some(
+        BlockNode(NodeId("b0"), Vector(NodeId("t0"), NodeId("t1")), "Abschnitt")
+      )
     }
   }
 
   it should "refuse a newer payload" in {
     // Ein neuerer Stand kann Felder tragen, deren Bedeutung dieser Codec nicht kennt. Ihn als
     // alten zu lesen waere stiller Datenverlust.
-    val text = encoded().replace("\"type\":\"test.block/1\",\"codecVersion\":1",
-      "\"type\":\"test.block/1\",\"codecVersion\":7")
+    val text = encoded().replace(
+      "\"type\":\"test.block/1\",\"codecVersion\":1",
+      "\"type\":\"test.block/1\",\"codecVersion\":7"
+    )
 
     inside(failure(text)) { case Vector(error: DecodeError.UnsupportedCodecVersion) =>
       error.found shouldBe 7

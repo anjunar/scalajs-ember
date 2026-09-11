@@ -19,8 +19,8 @@ import org.scalatest.matchers.should.Matchers
   * proves that '''this''' encoder writes what the test author expected; a round trip proves the
   * encoder and the decoder agree, which is the property a stored document actually depends on.
   *
-  * The payload is asserted in exactly the places where its shape is a decision -- an omitted
-  * field, a refused value -- and nowhere else.
+  * The payload is asserted in exactly the places where its shape is a decision -- an omitted field,
+  * a refused value -- and nowhere else.
   */
 final class StandardJsonRoundTripSpec extends AnyFlatSpec with Matchers {
 
@@ -156,7 +156,10 @@ final class StandardJsonRoundTripSpec extends AnyFlatSpec with Matchers {
   // Dekodieren ist so streng wie der Command
   // ---------------------------------------------------------------------------------------
 
-  private def decodeWith(source: String, replace: (String, String)): Either[Vector[DecodeError], DecodeResult] =
+  private def decodeWith(
+      source: String,
+      replace: (String, String)
+  ): Either[Vector[DecodeError], DecodeResult] =
     val text = written(fromMarkdown(source)).replace(replace._1, replace._2)
     DocumentJson.decodeString(text, schema, support)
 

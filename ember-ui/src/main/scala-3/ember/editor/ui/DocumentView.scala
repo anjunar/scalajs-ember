@@ -16,23 +16,23 @@ import ui.core.render.{Cursor, SsrCursor}
   *
   * ==Derselbe Weg fuer SSR und Browser==
   *
-  * [[mount]] nimmt einen beliebigen `Cursor`. Mit einem `DomCursor` entsteht die
-  * Editierflaeche, mit einem `SsrCursor` die serverseitige Ausgabe -- aus derselben
-  * [[HtmlSemantics]] und demselben Code. Dass beide dasselbe liefern, ist damit keine
-  * Absprache zwischen zwei Implementierungen, sondern eine Tautologie.
+  * [[mount]] nimmt einen beliebigen `Cursor`. Mit einem `DomCursor` entsteht die Editierflaeche,
+  * mit einem `SsrCursor` die serverseitige Ausgabe -- aus derselben [[HtmlSemantics]] und demselben
+  * Code. Dass beide dasselbe liefern, ist damit keine Absprache zwischen zwei Implementierungen,
+  * sondern eine Tautologie.
   */
 final class DocumentView private (
     session: EditorSession,
     projection: DocumentProjection
 ):
 
-  private var listeners     = Vector.empty[(Long, Revision => Unit)]
-  private var nextHandle    = 0L
-  private var commits       = Subscription.cancelled
-  private var disposedFlag  = false
+  private var listeners    = Vector.empty[(Long, Revision => Unit)]
+  private var nextHandle   = 0L
+  private var commits      = Subscription.cancelled
+  private var disposedFlag = false
 
   private var rootComponent: AbstractComponent = null
-  private var shown: Revision = Revision.initial
+  private var shown: Revision                  = Revision.initial
 
   /** Die Wurzelkomponente der Ansicht. */
   def root: AbstractComponent = rootComponent
@@ -43,7 +43,6 @@ final class DocumentView private (
     * Registrierung nach dem Mount hat nichts verpasst, weil hier steht, was zu sehen ist.
     */
   def projectedRevision: Revision = shown
-
 
   /** Die Komponente zu einer Knoten-ID. Fuer Tests und spaeter fuer den SelectionPort (P21). */
   def componentFor(nodeId: NodeId): Option[AbstractComponent] = projection.componentFor(nodeId)
@@ -67,9 +66,9 @@ final class DocumentView private (
   /** Rebuilds one text run's DOM from the current document (§15.4).
     *
     * For a caller that has found the browser leaving extra nodes in a run's wrapper. It is not a
-    * repair of the '''document''' -- that has to be right already -- but of the view, and it is
-    * the only way back to §15.1's "one stable wrapper with one text child" once something else
-    * has written there.
+    * repair of the '''document''' -- that has to be right already -- but of the view, and it is the
+    * only way back to §15.1's "one stable wrapper with one text child" once something else has
+    * written there.
     */
   def resetRun(nodeId: NodeId): Boolean =
     (projection.componentFor(nodeId), session.document.node(nodeId)) match
@@ -124,11 +123,11 @@ object DocumentView:
   /** Haengt eine Sitzung an einen Cursor. */
   /** Haengt eine Sitzung an einen Cursor.
     *
-    * `parent` ist die Komponente, der die Ansicht gehoert. Ohne Angabe ist die Wurzel der
-    * Ansicht selbst eine Wurzel -- richtig fuer eine Editierflaeche, die den Baum allein
-    * ausmacht, und fuer SSR. Steht sie dagegen in einer groesseren Anwendung, gehoert sie
-    * deren Komponente: dann raeumt ein `Runtime.unmount` dort auch die Ansicht ab, und
-    * [[DocumentView.dispose]] bleibt trotzdem gefahrlos.
+    * `parent` ist die Komponente, der die Ansicht gehoert. Ohne Angabe ist die Wurzel der Ansicht
+    * selbst eine Wurzel -- richtig fuer eine Editierflaeche, die den Baum allein ausmacht, und fuer
+    * SSR. Steht sie dagegen in einer groesseren Anwendung, gehoert sie deren Komponente: dann
+    * raeumt ein `Runtime.unmount` dort auch die Ansicht ab, und [[DocumentView.dispose]] bleibt
+    * trotzdem gefahrlos.
     */
   def mount(
       session: EditorSession,
@@ -143,16 +142,16 @@ object DocumentView:
 
   /** Rendert ein Dokument einmalig als HTML -- ohne Browser, ohne Sitzung.
     *
-    * §9: "SSR rendert ein Document ohne lokale Selection, History oder Fokus." Genau deshalb
-    * nimmt diese Methode ein [[Document]] und keine Sitzung: was hier entstehen soll, ist das
-    * Dokument, nicht der Zustand einer Bearbeitung.
+    * §9: "SSR rendert ein Document ohne lokale Selection, History oder Fokus." Genau deshalb nimmt
+    * diese Methode ein [[Document]] und keine Sitzung: was hier entstehen soll, ist das Dokument,
+    * nicht der Zustand einer Bearbeitung.
     *
     * Voreingestellt ist [[RenderProfile.Content]] -- die ausgelieferte Fassung traegt keine
     * Editor-Metadaten (§19.1).
     *
-    * Die Gruppenanker der UI-Runtime (`<!--ui:KeyedChildren:start-->`) stehen in beiden
-    * Profilen. Das ist Absicht: P20 braucht sie zum Hydrieren, und ein Kommentarknoten ist im
-    * ausgelieferten Dokument weder sichtbar noch semantisch.
+    * Die Gruppenanker der UI-Runtime (`<!--ui:KeyedChildren:start-->`) stehen in beiden Profilen.
+    * Das ist Absicht: P20 braucht sie zum Hydrieren, und ein Kommentarknoten ist im ausgelieferten
+    * Dokument weder sichtbar noch semantisch.
     */
   def renderToHtml(
       document: Document,

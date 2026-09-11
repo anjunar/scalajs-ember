@@ -24,8 +24,8 @@ import ember.editor.core.*
   * Markup.
   *
   * @param typeId
-  *   die '''urspruengliche''' Wire-ID. Sie wird beim Kodieren wieder geschrieben -- ein
-  *   Roundtrip durch einen Editor ohne das betreffende Feature-Modul aendert am Payload nichts.
+  *   die '''urspruengliche''' Wire-ID. Sie wird beim Kodieren wieder geschrieben -- ein Roundtrip
+  *   durch einen Editor ohne das betreffende Feature-Modul aendert am Payload nichts.
   */
 final case class UnsupportedNode(
     id: NodeId,
@@ -57,8 +57,8 @@ object UnsupportedNode extends ElementNodeType[UnsupportedNode]:
   /** Der Textfallback aus dem Payload.
     *
     * Ein `text`-Feld, wenn es eines gibt, sonst leer. Bewusst keine Rekursion durch den ganzen
-    * Payload: was ein fremdes Feature als Text meint, weiss dieses Modul nicht, und geratener
-    * Text ist schlechter als keiner.
+    * Payload: was ein fremdes Feature als Text meint, weiss dieses Modul nicht, und geratener Text
+    * ist schlechter als keiner.
     */
   private[json] def fallbackOf(payload: JsonValue.Obj): String =
     payload.get("text") match
@@ -102,8 +102,7 @@ object CoreJsonSupport:
     ): Either[EncodeError, Vector[(String, JsonValue)]] =
       val base = Vector("text" -> JsonValue.Str(node.text))
       if node.marks.isEmpty then Right(base)
-      else
-        encodeMarks(node, context).map(marks => base :+ ("marks" -> JsonValue.Arr(marks)))
+      else encodeMarks(node, context).map(marks => base :+ ("marks" -> JsonValue.Arr(marks)))
 
     private def encodeMarks(
         node: TextNode,
@@ -132,8 +131,12 @@ object CoreJsonSupport:
       if value.length <= context.limits.maxTextChars then Right(())
       else
         Left(
-          DecodeError.LimitExceeded("maxTextChars", context.limits.maxTextChars, value.length,
-            context.path.field("text"))
+          DecodeError.LimitExceeded(
+            "maxTextChars",
+            context.limits.maxTextChars,
+            value.length,
+            context.path.field("text")
+          )
         )
 
     private def decodeMarks(
@@ -143,7 +146,7 @@ object CoreJsonSupport:
       val at = context.path.field("marks")
       payload.get("marks") match
         case None | Some(JsonValue.Null) => Right(MarkSet.empty)
-        case Some(value) =>
+        case Some(value)                 =>
           value
             .asArray(at)
             .flatMap { entries =>

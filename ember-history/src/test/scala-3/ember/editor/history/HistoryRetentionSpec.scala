@@ -8,12 +8,12 @@ import org.scalatest.matchers.should.Matchers
   *
   * ==Was ein Test hier belegen kann und was nicht==
   *
-  * §14 verlangt Benchmarks, die "die Freigabe alter Snapshots nach Trimmen/Dispose" pruefen.
-  * Eine Heapmessung ist unter Scala.js nicht zu haben, und eine erfundene waere schlechter als
-  * keine. Was pruefbar ist, ist das '''Beobachtbare''': dass eine getrimmte Stufe verschwunden
-  * ist, dass die Schaetzung mitfaellt, und dass nach einem Reset kein Snapshot mehr referenziert
-  * wird. Ob die Engine den Speicher dann tatsaechlich freigibt, ist ihre Sache -- referenziert
-  * wird er von hier aus nicht mehr.
+  * §14 verlangt Benchmarks, die "die Freigabe alter Snapshots nach Trimmen/Dispose" pruefen. Eine
+  * Heapmessung ist unter Scala.js nicht zu haben, und eine erfundene waere schlechter als keine.
+  * Was pruefbar ist, ist das '''Beobachtbare''': dass eine getrimmte Stufe verschwunden ist, dass
+  * die Schaetzung mitfaellt, und dass nach einem Reset kein Snapshot mehr referenziert wird. Ob die
+  * Engine den Speicher dann tatsaechlich freigibt, ist ihre Sache -- referenziert wird er von hier
+  * aus nicht mehr.
   */
 final class HistoryRetentionSpec extends AnyFlatSpec with Matchers {
 

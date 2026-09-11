@@ -12,10 +12,10 @@ import org.scalatest.matchers.should.Matchers
 
 /** Markdown to document and back (P18).
   *
-  * The suite that actually exercises §18.1's path: `source → syntax → nodes` with no HTML and
-  * no DOM in between. `MarkdownRoundTripSpec` in `ember-markdown` measures the syntax half over
-  * the whole corpus; this one is about what arrives in the '''document''', because that is what
-  * the editor edits.
+  * The suite that actually exercises §18.1's path: `source → syntax → nodes` with no HTML and no
+  * DOM in between. `MarkdownRoundTripSpec` in `ember-markdown` measures the syntax half over the
+  * whole corpus; this one is about what arrives in the '''document''', because that is what the
+  * editor edits.
   */
 final class MarkdownDocumentSpec extends AnyFlatSpec with Matchers {
 
@@ -49,27 +49,29 @@ final class MarkdownDocumentSpec extends AnyFlatSpec with Matchers {
     val document = decode(source).document
 
     def describe(node: EditorNode): String = node match
-      case _: RootNode           => "root"
-      case _: ParagraphNode      => "p"
-      case value: HeadingNode    => s"h${value.level.level}"
-      case _: QuoteNode          => "quote"
-      case _: ThematicBreakNode  => "break"
-      case value: BreakNode      => s"br(${value.kind.toString.toLowerCase})"
-      case value: ListNode =>
+      case _: RootNode          => "root"
+      case _: ParagraphNode     => "p"
+      case value: HeadingNode   => s"h${value.level.level}"
+      case _: QuoteNode         => "quote"
+      case _: ThematicBreakNode => "break"
+      case value: BreakNode     => s"br(${value.kind.toString.toLowerCase})"
+      case value: ListNode      =>
         val kind = if value.kind == DocumentListKind.Ordered then s"ol${value.start}" else "ul"
         s"$kind ${if value.tight then "tight" else "loose"}"
-      case _: ListItemNode       => "li"
-      case value: LinkNode       => s"a(${value.target.url.value})"
-      case value: CodeBlockNode  => s"code(${value.info.render})"
-      case value: ImageNode      => s"img(${value.src.value},${value.alt})"
-      case value: TextNode =>
+      case _: ListItemNode      => "li"
+      case value: LinkNode      => s"a(${value.target.url.value})"
+      case value: CodeBlockNode => s"code(${value.info.render})"
+      case value: ImageNode     => s"img(${value.src.value},${value.alt})"
+      case value: TextNode      =>
         val marks = value.marks.markIds.map(_.value.split('.').last.split('/').head).sorted
-        s""""${value.text.replace("\n", "\\n")}"${if marks.isEmpty then "" else marks.mkString("[", ",", "]")}"""
+        s""""${value.text.replace("\n", "\\n")}"${
+            if marks.isEmpty then "" else marks.mkString("[", ",", "]")
+          }"""
       case other => other.getClass.getSimpleName
 
     def walk(id: NodeId, depth: Int): Vector[String] =
       document.node(id) match
-        case None => Vector.empty
+        case None       => Vector.empty
         case Some(node) =>
           val children = node match
             case element: ElementNode => element.children.flatMap(walk(_, depth + 1))
@@ -95,17 +97,20 @@ final class MarkdownDocumentSpec extends AnyFlatSpec with Matchers {
       shapeOf(again) shouldBe shapeOf(first)
     }
 
-  /** A document without ids -- what a round trip has to preserve (§18.2: IDs gehoeren nicht
-    * zur Aequivalenz).
+  /** A document without ids -- what a round trip has to preserve (§18.2: IDs gehoeren nicht zur
+    * Aequivalenz).
     */
   private def shapeOf(document: Document): String =
     def walk(id: NodeId): String =
       document.node(id) match
-        case None => ""
+        case None       => ""
         case Some(node) =>
           val body = node match
             case value: TextNode =>
-              s""""${value.text}"${value.marks.markIds.map(_.value).sorted.mkString("[", ",", "]")}"""
+              s""""${value.text}"${value.marks.markIds
+                  .map(_.value)
+                  .sorted
+                  .mkString("[", ",", "]")}"""
             case value: HeadingNode   => s"h${value.level.level}"
             case value: LinkNode      => s"a(${value.target.url.value},${value.target.title})"
             case value: ImageNode     => s"img(${value.src.value},${value.alt},${value.title})"
@@ -291,7 +296,7 @@ final class MarkdownDocumentSpec extends AnyFlatSpec with Matchers {
 
   it should "pass once the application allows http" in {
     val allowing = MarkdownSupports.everything(links, MediaUrlPolicy.allowingHttp)
-    val result = MarkdownCodec
+    val result   = MarkdownCodec
       .decode(
         "![alt](http://example.com/b.png)\n",
         schema,
@@ -301,7 +306,9 @@ final class MarkdownDocumentSpec extends AnyFlatSpec with Matchers {
       )
       .getOrElse(fail("nicht dekodierbar"))
 
-    result.document.inDocumentOrder.collectFirst { case value: ImageNode => value } should not be empty
+    result.document.inDocumentOrder.collectFirst { case value: ImageNode =>
+      value
+    } should not be empty
   }
 
   "Raw HTML" should "arrive as visible text" in {
@@ -418,7 +425,8 @@ final class MarkdownDocumentSpec extends AnyFlatSpec with Matchers {
     val source = "# Titel\n\nEin Absatz.\n"
     val result = decode(source)
 
-    val heading = result.document.inDocumentOrder.collectFirst { case value: HeadingNode => value }
+    val heading = result.document.inDocumentOrder
+      .collectFirst { case value: HeadingNode => value }
       .getOrElse(fail("keine Ueberschrift"))
 
     val span = result.sourceMap.spanOf(heading.id).getOrElse(fail("keine Spanne"))
@@ -443,7 +451,8 @@ final class MarkdownDocumentSpec extends AnyFlatSpec with Matchers {
     val source = "> Ein Zitat.\n"
     val result = decode(source)
 
-    val run = result.document.inDocumentOrder.collectFirst { case value: TextNode => value }
+    val run = result.document.inDocumentOrder
+      .collectFirst { case value: TextNode => value }
       .getOrElse(fail("kein Lauf"))
 
     val span = result.sourceMap.spanOf(run.id).getOrElse(fail("keine Spanne"))

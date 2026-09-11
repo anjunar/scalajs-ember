@@ -6,23 +6,22 @@ import ember.editor.core.*
   *
   * ==Warum abgeleitet und nicht gemeldet==
   *
-  * Ein Editor koennte jeden Command mit "das war Tippen" oder "das war Backspace" beschriften.
-  * Er tut es hier nicht, und zwar aus einem konkreten Grund: die Beschriftung waere eine zweite
+  * Ein Editor koennte jeden Command mit "das war Tippen" oder "das war Backspace" beschriften. Er
+  * tut es hier nicht, und zwar aus einem konkreten Grund: die Beschriftung waere eine zweite
   * Wahrheit neben dem, was tatsaechlich passiert ist, und beide liefen auseinander, sobald ein
-  * Command etwas anderes tut als sein Name sagt. Was wirklich geschehen ist, steht im
-  * [[ChangeSet]] -- ein Splice, ein Knoten, ein Bereich --, und der Caret davor sagt, aus
-  * welcher Richtung.
+  * Command etwas anderes tut als sein Name sagt. Was wirklich geschehen ist, steht im [[ChangeSet]]
+  * -- ein Splice, ein Knoten, ein Bereich --, und der Caret davor sagt, aus welcher Richtung.
   *
-  * [[HistoryPolicy]] bleibt die ausdrueckliche Ausnahme: sie traegt Wissen, das im ChangeSet
-  * nicht steht.
+  * [[HistoryPolicy]] bleibt die ausdrueckliche Ausnahme: sie traegt Wissen, das im ChangeSet nicht
+  * steht.
   *
   * ==Backspace und Delete sind wirklich nicht dasselbe==
   *
   * Am Ergebnis sind sie ununterscheidbar: bei Caret 5 loescht Backspace `[4,5)` und laesst den
-  * Caret auf 4; bei Caret 4 loescht Delete `[4,5)` und laesst ihn auf 4. Gleicher Splice,
-  * gleiche Endposition. Der Unterschied steht ausschliesslich im Caret '''davor''' -- und
-  * genau deshalb liest [[classify]] ihn und nicht die Auswahl danach. §14 verlangt, dass beide
-  * getrennte Gruppen bilden; ohne diesen Blick zurueck waere die Regel nicht erfuellbar.
+  * Caret auf 4; bei Caret 4 loescht Delete `[4,5)` und laesst ihn auf 4. Gleicher Splice, gleiche
+  * Endposition. Der Unterschied steht ausschliesslich im Caret '''davor''' -- und genau deshalb
+  * liest [[classify]] ihn und nicht die Auswahl danach. §14 verlangt, dass beide getrennte Gruppen
+  * bilden; ohne diesen Blick zurueck waere die Regel nicht erfuellbar.
   */
 object HistoryGrouping:
 
@@ -76,9 +75,9 @@ object HistoryGrouping:
 
   /** Darf `next` in die offene Gruppe `previous` hineinlaufen?
     *
-    * Alle vier Bedingungen aus §14, in der Reihenfolge, in der sie dort stehen: dieselbe Art
-    * am selben Knoten, gleiche Mark-Konfiguration, innerhalb des Zeitfensters, und der Caret
-    * genau dort, wo die Gruppe aufgehoert hat.
+    * Alle vier Bedingungen aus §14, in der Reihenfolge, in der sie dort stehen: dieselbe Art am
+    * selben Knoten, gleiche Mark-Konfiguration, innerhalb des Zeitfensters, und der Caret genau
+    * dort, wo die Gruppe aufgehoert hat.
     */
   def mergeable(
       previous: HistoryEntry,

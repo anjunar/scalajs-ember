@@ -35,15 +35,15 @@ object CodeBindings:
   * ==Order matters, and it is stated here rather than discovered==
   *
   * [[InputBindings]] and [[KeyboardBindings]] both resolve first match wins. Where two modules
-  * answer the same thing, the one listed earlier decides -- so the list below is a design
-  * decision, not a convenience.
+  * answer the same thing, the one listed earlier decides -- so the list below is a design decision,
+  * not a convenience.
   *
   * Code comes before rich text for Tab-free shortcuts that overlap (`Ctrl+Shift+E` for a block
   * versus `Ctrl+E` for inline code -- different shortcuts, listed near each other on purpose so
   * that the next person who adds one sees the neighbourhood).
   *
-  * History comes first among the input bindings: `historyUndo` must never fall through to
-  * anything else, because the thing it would fall through to is the browser's own undo stack.
+  * History comes first among the input bindings: `historyUndo` must never fall through to anything
+  * else, because the thing it would fall through to is the browser's own undo stack.
   */
 object EditorBindings:
 
@@ -58,9 +58,9 @@ object EditorBindings:
 
   /** Tab and Shift+Tab for code '''and''' lists, in that order.
     *
-    * Both bind the same key, and both commands report `Pass` where they are not responsible, so
-    * the controller tries them in turn. Code first: inside a code block a Tab indents the line,
-    * and a list item inside one would be the stranger case.
+    * Both bind the same key, and both commands report `Pass` where they are not responsible, so the
+    * controller tries them in turn. Code first: inside a code block a Tab indents the line, and a
+    * list item inside one would be the stranger case.
     *
     * Only together with [[TabPolicy.IndentsUntilEscape]] (§22).
     */

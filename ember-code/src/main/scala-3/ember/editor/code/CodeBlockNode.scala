@@ -4,10 +4,10 @@ import ember.editor.core.*
 
 /** The name of a language, as it appears in a fence's info string.
   *
-  * Validated rather than free text: it becomes a class name in HTML and the first word of a
-  * fence in Markdown, and neither survives whitespace. A backtick is refused as well --
-  * CommonMark forbids one in the info string of a backtick fence, and a value that cannot be
-  * written back is not a value this document may hold.
+  * Validated rather than free text: it becomes a class name in HTML and the first word of a fence
+  * in Markdown, and neither survives whitespace. A backtick is refused as well -- CommonMark
+  * forbids one in the info string of a backtick fence, and a value that cannot be written back is
+  * not a value this document may hold.
   */
 opaque type CodeLanguage = String
 
@@ -40,9 +40,9 @@ object CodeLanguage:
   *      ^^^^^ language   ^^^^^^^^^^^^^^ meta
   * }}}
   *
-  * Keeping them apart lets [[CodeSupport]] write `language-scala` without inventing a parser,
-  * and lets P18 write the info string back unchanged. Keeping them together as one string would
-  * force every consumer to split it again, each in its own slightly different way.
+  * Keeping them apart lets [[CodeSupport]] write `language-scala` without inventing a parser, and
+  * lets P18 write the info string back unchanged. Keeping them together as one string would force
+  * every consumer to split it again, each in its own slightly different way.
   */
 final case class CodeInfo(language: Option[CodeLanguage] = None, meta: Option[String] = None):
 
@@ -59,8 +59,8 @@ object CodeInfo:
   /** Reads an info string: first word is the language, the rest is meta.
     *
     * Never fails. An info string that names no valid language is not an error -- it is an info
-    * string without a language, and the text is kept as meta so that a round trip does not lose
-    * it (§18.2: "Inhalt einschliesslich innerer Leerzeilen erhalten").
+    * string without a language, and the text is kept as meta so that a round trip does not lose it
+    * (§18.2: "Inhalt einschliesslich innerer Leerzeilen erhalten").
     */
   def parse(info: String): CodeInfo =
     val trimmed = info.trim
@@ -80,13 +80,13 @@ object CodeInfo:
   * §8.2: "CodeBlock erlaubt Text mit Zeilenumbruechen, aber keine beliebigen Rich-Text-Kinder."
   * Exactly one [[TextNode]], whose text may contain newlines, and no marks on it.
   *
-  * The single run is not an accident of implementation. A code block's content is '''one
-  * string''' -- that is what a fence writes, what a compiler reads and what an author copies.
-  * Several runs would need a merge rule of their own, and would leave a door open for marks
-  * that this node type exists to keep shut.
+  * The single run is not an accident of implementation. A code block's content is '''one string'''
+  * -- that is what a fence writes, what a compiler reads and what an author copies. Several runs
+  * would need a merge rule of their own, and would leave a door open for marks that this node type
+  * exists to keep shut.
   *
-  * [[CodeNormalization]] collapses whatever ends up inside into that one run rather than
-  * rejecting the document: content pasted into a code block should become code, not an error.
+  * [[CodeNormalization]] collapses whatever ends up inside into that one run rather than rejecting
+  * the document: content pasted into a code block should become code, not an error.
   *
   * ==What it does not have==
   *
@@ -94,8 +94,8 @@ object CodeInfo:
   * Produktionsabhaengigkeit." The language is a '''metadatum''' -- it says what the text is, not
   * how it looks. Highlighting is a rendering concern, and the risk line says why it has to stay
   * one: "Sichtbares Highlighting darf spaeter keine persistente Mark-Zerlegung jeder Codezeile
-  * erzwingen." A document whose every token became a marked run would be unreadable as a
-  * document and unwritable as a fence.
+  * erzwingen." A document whose every token became a marked run would be unreadable as a document
+  * and unwritable as a fence.
   */
 final case class CodeBlockNode(
     id: NodeId,

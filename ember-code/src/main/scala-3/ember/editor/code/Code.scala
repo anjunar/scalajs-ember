@@ -5,8 +5,8 @@ import ember.editor.richtext.*
 
 /** Keeping a code block's content to one plain run.
   *
-  * §8.2: "CodeBlock erlaubt Text mit Zeilenumbruechen, aber keine beliebigen Rich-Text-Kinder."
-  * One rule enforces the whole sentence.
+  * §8.2: "CodeBlock erlaubt Text mit Zeilenumbruechen, aber keine beliebigen Rich-Text-Kinder." One
+  * rule enforces the whole sentence.
   */
 private[code] object CodeNormalization:
 
@@ -21,8 +21,8 @@ private[code] object CodeNormalization:
     * ==Why it collapses rather than rejects==
     *
     * Content moved into a code block should '''become''' code. Rejecting would fail the whole
-    * transaction over a paste; dropping would lose text. Taking the text and leaving the
-    * structure behind is what the author meant by dropping it in there.
+    * transaction over a paste; dropping would lose text. Taking the text and leaving the structure
+    * behind is what the author meant by dropping it in there.
     *
     * ==What it does not do==
     *
@@ -64,12 +64,11 @@ private[code] object CodeNormalization:
     *
     * ==Why this is its own rule, on the run==
     *
-    * Because a mark change touches the '''run''', not the block. §3.4 is explicit that an
-    * ancestor merely on the path of a change is not a transform candidate --
-    * `ChangeSet.touchedAncestors` exists to keep it out -- so a rule bound to the code block
-    * would never be asked. That is now the third time the same shape has come up, after the text
-    * run merge in P12 and the adjacent lists in P13: '''the rule belongs on the node that
-    * changes, not on the one that owns it.'''
+    * Because a mark change touches the '''run''', not the block. §3.4 is explicit that an ancestor
+    * merely on the path of a change is not a transform candidate -- `ChangeSet.touchedAncestors`
+    * exists to keep it out -- so a rule bound to the code block would never be asked. That is now
+    * the third time the same shape has come up, after the text run merge in P12 and the adjacent
+    * lists in P13: '''the rule belongs on the node that changes, not on the one that owns it.'''
     */
   val runInCodeIsPlain: Transform[TextNode] = new Transform[TextNode]:
     val name           = "code.run-in-code-is-plain"
@@ -87,10 +86,10 @@ private[code] object CodeNormalization:
 
   /** The text of everything inside, in order.
     *
-    * '''Runs join without a separator, blocks with a newline.''' Two runs next to each other
-    * were one line -- a formatting split, a paste of inline content -- and putting a newline
-    * between them would invent a line break the author never typed. Two paragraphs dropped in
-    * were two lines, and running them together would lose one.
+    * '''Runs join without a separator, blocks with a newline.''' Two runs next to each other were
+    * one line -- a formatting split, a paste of inline content -- and putting a newline between
+    * them would invent a line break the author never typed. Two paragraphs dropped in were two
+    * lines, and running them together would lose one.
     */
   private def collapsed(document: DocumentRead, node: CodeBlockNode): String =
     node.children.foldLeft("") { (text, child) =>
@@ -119,10 +118,10 @@ private[code] object CodeNormalization:
   * ==What it deliberately does not contribute==
   *
   * A highlighter. P15's acceptance: "Kein Syntax-Highlighter und kein CodeMirror als
-  * Produktionsabhaengigkeit." What this module guarantees is the thing a highlighter would need
-  * and the thing Markdown fences need -- the content, verbatim, including its blank lines. A
-  * later `ember-code-highlighting` (§6) can colour it in a view without touching the document,
-  * which is exactly what the risk line demands.
+  * Produktionsabhaengigkeit." What this module guarantees is the thing a highlighter would need and
+  * the thing Markdown fences need -- the content, verbatim, including its blank lines. A later
+  * `ember-code-highlighting` (§6) can colour it in a view without touching the document, which is
+  * exactly what the risk line demands.
   */
 final class CodeExtension private (generator: NodeIdGenerator) extends Extension:
 

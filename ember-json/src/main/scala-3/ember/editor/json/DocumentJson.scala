@@ -15,8 +15,8 @@ final case class DecodeResult(document: Document, diagnostics: Vector[DecodeDiag
 /** Einstellungen fuer das Dekodieren.
   *
   * @param schemaVersion
-  *   die Version, die diese Anwendung versteht. Ein aelterer Payload wird ueber
-  *   [[migrations]] darauf gehoben.
+  *   die Version, die diese Anwendung versteht. Ein aelterer Payload wird ueber [[migrations]]
+  *   darauf gehoben.
   * @param unknownNodes
   *   was mit unbekannten Knotenarten geschieht. Voreinstellung [[UnknownNodePolicy.Strict]] --
   *   §19.2 verlangt eine ausdrueckliche Wahl fuer alles andere.
@@ -51,17 +51,17 @@ final case class DecodeConfig(
   * ==Warum die Knoten ein Array sind==
   *
   * Ein Objekt, das nach ID schluesselt, waere kompakter. Es waere aber auch blind gegenueber dem
-  * Fehler, auf den es hier am meisten ankommt: `js.JSON.parse` fasst doppelte Schluessel
-  * zusammen, eine doppelte Knoten-ID verschwaende also spurlos, und das Dokument saehe gueltig
-  * aus. Als Array bleibt sie sichtbar und wird zu [[DecodeError.DuplicateNodeId]].
+  * Fehler, auf den es hier am meisten ankommt: `js.JSON.parse` fasst doppelte Schluessel zusammen,
+  * eine doppelte Knoten-ID verschwaende also spurlos, und das Dokument saehe gueltig aus. Als Array
+  * bleibt sie sichtbar und wird zu [[DecodeError.DuplicateNodeId]].
   *
   * ==Was hier nicht noch einmal geprueft wird==
   *
   * Referenzielle Integritaet, Zyklen, mehrfache Eltern, Erreichbarkeit und Schemakonformitaet
-  * pruefen nicht diese Datei, sondern [[Document.build]]. Ein zweiter Validator waere eine
-  * zweite Wahrheit ueber dieselbe Frage -- und die beiden liefen frueher oder spaeter
-  * auseinander. Was hier geprueft wird, ist alles, was der Kern gar nicht sehen kann: Typen,
-  * Zahlenbereiche, Limits, doppelte IDs im Payload, Versionen.
+  * pruefen nicht diese Datei, sondern [[Document.build]]. Ein zweiter Validator waere eine zweite
+  * Wahrheit ueber dieselbe Frage -- und die beiden liefen frueher oder spaeter auseinander. Was
+  * hier geprueft wird, ist alles, was der Kern gar nicht sehen kann: Typen, Zahlenbereiche, Limits,
+  * doppelte IDs im Payload, Versionen.
   */
 object DocumentJson:
 
@@ -87,7 +87,7 @@ object DocumentJson:
       support: JsonSupport,
       schemaVersion: Int = 1
   ): Either[Vector[EncodeError], JsonValue.Obj] =
-    val at = DiagnosticPath.field("nodes")
+    val at      = DiagnosticPath.field("nodes")
     val written = document.inDocumentOrder.zipWithIndex.map { (node, index) =>
       encodeNode(node, support, at.index(index).node(node.id.value))
     }.toVector
@@ -176,14 +176,14 @@ object DocumentJson:
 
   private def checkFormat(envelope: JsonValue.Obj): Either[DecodeError, Unit] =
     for
-      name <- envelope.string("format", DiagnosticPath.Root)
-      _    <- Either.cond(name == formatName, (), DecodeError.UnknownFormat(name))
+      name    <- envelope.string("format", DiagnosticPath.Root)
+      _       <- Either.cond(name == formatName, (), DecodeError.UnknownFormat(name))
       version <- envelope.int("formatVersion", DiagnosticPath.Root)
-      _ <- Either.cond(
-             version == formatVersion,
-             (),
-             DecodeError.UnsupportedFormatVersion(version, formatVersion)
-           )
+      _       <- Either.cond(
+        version == formatVersion,
+        (),
+        DecodeError.UnsupportedFormatVersion(version, formatVersion)
+      )
     yield ()
 
   private def migrate(
@@ -201,7 +201,8 @@ object DocumentJson:
         NodeId
           .parse(value)
           .toRight(
-            DecodeError.InvalidValue(s"Keine gueltige NodeId: `$value`", DiagnosticPath.field("root"))
+            DecodeError
+              .InvalidValue(s"Keine gueltige NodeId: `$value`", DiagnosticPath.field("root"))
           )
       )
 
@@ -243,17 +244,16 @@ object DocumentJson:
     for
       payload <- item.asObject(at)
       idValue <- payload.string("id", at)
-      id <- NodeId
-              .parse(idValue)
-              .toRight(DecodeError.InvalidValue(s"Keine gueltige NodeId: `$idValue`", at.field("id")))
+      id      <- NodeId
+        .parse(idValue)
+        .toRight(DecodeError.InvalidValue(s"Keine gueltige NodeId: `$idValue`", at.field("id")))
       here = at.node(id.value)
       typeValue <- payload.string("type", here)
-      typeId <- NodeTypeId
-                  .parse(typeValue)
-                  .toRight(
-                    DecodeError.InvalidValue(s"Keine gueltige NodeTypeId: `$typeValue`",
-                      here.field("type"))
-                  )
+      typeId    <- NodeTypeId
+        .parse(typeValue)
+        .toRight(
+          DecodeError.InvalidValue(s"Keine gueltige NodeTypeId: `$typeValue`", here.field("type"))
+        )
       codecVersion <- payload.int("codecVersion", here)
       children     <- readChildren(payload, here, config)
     yield Entry(
@@ -272,12 +272,13 @@ object DocumentJson:
   ): Either[DecodeError, Vector[NodeId]] =
     payload.get("children") match
       case None | Some(JsonValue.Null) => Right(Vector.empty)
-      case Some(value) =>
+      case Some(value)                 =>
         val here = at.field("children")
         value.asArray(here).flatMap { items =>
           if items.length > config.limits.maxChildren then
             Left(
-              DecodeError.LimitExceeded("maxChildren", config.limits.maxChildren, items.length, here)
+              DecodeError
+                .LimitExceeded("maxChildren", config.limits.maxChildren, items.length, here)
             )
           else
             first(items.zipWithIndex) { (item, index) =>
@@ -302,7 +303,7 @@ object DocumentJson:
       support: JsonSupport,
       config: DecodeConfig
   ): Either[Vector[DecodeError], DecodeResult] =
-    val built = entries.map(entry => entry -> buildNode(entry, schema, support, config))
+    val built    = entries.map(entry => entry -> buildNode(entry, schema, support, config))
     val failures = built.collect { case (_, Left(error)) => error }
 
     // Alle Knotenfehler auf einmal. Wer einen fremden Payload debuggt, will nicht zwanzig Laeufe
@@ -310,14 +311,13 @@ object DocumentJson:
     // dabei ohnehin nicht (Abnahme P10).
     if failures.nonEmpty then Left(failures)
     else
-      val nodes = built.collect { case (_, Right(node)) => node }
-      val diagnostics = built.collect {
-        case (entry, Right(_: UnsupportedNode)) =>
-          DecodeDiagnostic(
-            s"Die Knotenart `${entry.typeId.value}` ist unbekannt und wurde als UnsupportedNode " +
-              "erhalten. Sie ist nicht bearbeitbar (§19.2).",
-            entry.at
-          )
+      val nodes       = built.collect { case (_, Right(node)) => node }
+      val diagnostics = built.collect { case (entry, Right(_: UnsupportedNode)) =>
+        DecodeDiagnostic(
+          s"Die Knotenart `${entry.typeId.value}` ist unbekannt und wurde als UnsupportedNode " +
+            "erhalten. Sie ist nicht bearbeitbar (§19.2).",
+          entry.at
+        )
       }
 
       val effective =
@@ -327,7 +327,7 @@ object DocumentJson:
 
       Document.build(effective, rootId, nodes) match
         case Left(violations) => Left(Vector(DecodeError.InvalidDocument(violations)))
-        case Right(document) =>
+        case Right(document)  =>
           checkDepth(document, config.limits)
             .map(_ => DecodeResult(document, diagnostics))
             .left
@@ -361,12 +361,18 @@ object DocumentJson:
           // der Anwendung. Ihn unter `Preserve` zu verstecken hiesse, ein Dokument als fremd
           // auszugeben, das dieser Editor sehr wohl versteht -- und es damit unbearbeitbar zu
           // machen.
-          case None => Left(DecodeError.NoCodec(entry.typeId.value, entry.at))
+          case None        => Left(DecodeError.NoCodec(entry.typeId.value, entry.at))
           case Some(codec) =>
             for
-              _ <- checkCodecVersion(entry, codec)
-              node <- support.decode(codec, entry.id, entry.payload, entry.codecVersion,
-                        config.limits, entry.at)
+              _    <- checkCodecVersion(entry, codec)
+              node <- support.decode(
+                codec,
+                entry.id,
+                entry.payload,
+                entry.codecVersion,
+                config.limits,
+                entry.at
+              )
               placed <- attachChildren(node, entry, descriptor)
             yield placed
 
@@ -380,8 +386,12 @@ object DocumentJson:
     if entry.codecVersion <= codec.codecVersion then Right(())
     else
       Left(
-        DecodeError.UnsupportedCodecVersion(entry.typeId.value, entry.codecVersion,
-          codec.codecVersion, entry.at)
+        DecodeError.UnsupportedCodecVersion(
+          entry.typeId.value,
+          entry.codecVersion,
+          codec.codecVersion,
+          entry.at
+        )
       )
 
   private def attachChildren(
@@ -391,7 +401,7 @@ object DocumentJson:
   ): Either[DecodeError, EditorNode] =
     (node, descriptor) match
       case (_, _) if entry.children.isEmpty && !node.isInstanceOf[ElementNode] => Right(node)
-      case (element: ElementNode, elementType: ElementNodeType[?]) =>
+      case (element: ElementNode, elementType: ElementNodeType[?])             =>
         Right(withChildren(elementType, element, entry.children))
       case (_: ElementNode, _) =>
         Left(
@@ -428,13 +438,15 @@ object DocumentJson:
       if level.isEmpty then Right(())
       else if depth > limits.maxDocumentDepth then
         Left(
-          DecodeError.LimitExceeded("maxDocumentDepth", limits.maxDocumentDepth, depth,
-            DiagnosticPath.Root)
+          DecodeError
+            .LimitExceeded("maxDocumentDepth", limits.maxDocumentDepth, depth, DiagnosticPath.Root)
         )
       else
         walk(
           level.flatMap(id =>
-            document.node(id).collect { case element: ElementNode => element.children }
+            document
+              .node(id)
+              .collect { case element: ElementNode => element.children }
               .getOrElse(Vector.empty)
           ),
           depth + 1
@@ -446,8 +458,8 @@ object DocumentJson:
   private def first[A, B](items: Vector[A])(
       step: A => Either[DecodeError, B]
   ): Either[DecodeError, Vector[B]] =
-    val built = Vector.newBuilder[B]
-    val iterator = items.iterator
+    val built                        = Vector.newBuilder[B]
+    val iterator                     = items.iterator
     var failure: Option[DecodeError] = None
     while iterator.hasNext && failure.isEmpty do
       step(iterator.next()) match

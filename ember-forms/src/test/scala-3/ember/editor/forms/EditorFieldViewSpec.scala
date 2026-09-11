@@ -18,8 +18,8 @@ import org.scalatest.matchers.should.Matchers
   * textarea there, named, labelled, holding the source, and '''not''' disabled.
   *
   * It cannot answer whether a browser submits it, whether the value survives an HTML parser, or
-  * whether a leading newline makes it through the parser's textarea rule. Those need a real
-  * engine and belong to the browser gate.
+  * whether a leading newline makes it through the parser's textarea rule. Those need a real engine
+  * and belong to the browser gate.
   */
 final class EditorFieldViewSpec extends AnyFlatSpec with Matchers {
 
@@ -33,22 +33,24 @@ final class EditorFieldViewSpec extends AnyFlatSpec with Matchers {
       case RenderProfile.Content => Vector.empty
       case RenderProfile.Editor  => Vector(HtmlAttribute.editor("node", id.value))
 
-  /** A minimal HTML adapter for the local block type -- `ember-standard` is not on this
-    * module's classpath, and §6 says it should not be.
+  /** A minimal HTML adapter for the local block type -- `ember-standard` is not on this module's
+    * classpath, and §6 says it should not be.
     */
   private val views: ViewSupport =
     ViewSupport.semantic(
       HtmlSupport.of(
         new HtmlSemantics[RootNode]:
-          val nodeType: NodeType[RootNode] = RootNode
+          val nodeType: NodeType[RootNode]                               = RootNode
           def shapeOf(node: RootNode, profile: RenderProfile): HtmlShape =
-            HtmlShape.Element("article", identityOf(node.id, profile)),
+            HtmlShape.Element("article", identityOf(node.id, profile))
+        ,
         new HtmlSemantics[Box]:
-          val nodeType: NodeType[Box] = Box
+          val nodeType: NodeType[Box]                               = Box
           def shapeOf(node: Box, profile: RenderProfile): HtmlShape =
-            HtmlShape.Element("p", identityOf(node.id, profile)),
+            HtmlShape.Element("p", identityOf(node.id, profile))
+        ,
         new HtmlSemantics[TextNode]:
-          val nodeType: NodeType[TextNode] = TextNode
+          val nodeType: NodeType[TextNode]                               = TextNode
           def shapeOf(node: TextNode, profile: RenderProfile): HtmlShape =
             HtmlShape.TextRun("span", node.text, identityOf(node.id, profile), Vector.empty)
       )

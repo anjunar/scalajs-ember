@@ -11,10 +11,10 @@ import ember.editor.list.{ListCommands, ListKind}
   * ausdruecklich aktiviertes Verhalten mit erreichbarer Ausstiegsmoeglichkeit. Keine permanente
   * Keyboard-Falle."
   *
-  * So [[keyboard]] does '''not''' bind Tab. An application that wants list indentation on Tab
-  * takes [[tabIndentation]] as well '''and''' sets [[TabPolicy.IndentsUntilEscape]] on the
-  * controller -- the policy is what provides the exit, and binding the key without it would build
-  * exactly the trap §22 forbids.
+  * So [[keyboard]] does '''not''' bind Tab. An application that wants list indentation on Tab takes
+  * [[tabIndentation]] as well '''and''' sets [[TabPolicy.IndentsUntilEscape]] on the controller --
+  * the policy is what provides the exit, and binding the key without it would build exactly the
+  * trap §22 forbids.
   *
   * The escape is `Escape` and then `Tab`. It is the convention other editors already use, which
   * matters more here than elegance: a keyboard user who is stuck tries what worked elsewhere.

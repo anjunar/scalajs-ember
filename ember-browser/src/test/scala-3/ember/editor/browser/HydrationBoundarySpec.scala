@@ -8,13 +8,13 @@ import org.scalatest.matchers.should.Matchers
   *
   * ==What is here and what is in the browser gate==
   *
-  * §17 has two kinds of statement. Some are about a live DOM -- does a capture read the typed
-  * value rather than the attribute, does a failed claim leave the fallback standing, is a second
+  * §17 has two kinds of statement. Some are about a live DOM -- does a capture read the typed value
+  * rather than the attribute, does a failed claim leave the fallback standing, is a second
   * activation a no-op. Those need an engine and live in `editor-hydration.spec.mjs`.
   *
   * The rest are decisions: given what was captured and what succeeded, may the editor become
-  * editable, and may it write a selection. Those are a function of their inputs, and a function
-  * is better tested as one than through a browser.
+  * editable, and may it write a selection. Those are a function of their inputs, and a function is
+  * better tested as one than through a browser.
   *
   * The split is the same one `EditorFieldSpec` makes for §16, and for the same reason: a rule
   * tested through one of its renderings is a rule tested once.

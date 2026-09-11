@@ -18,8 +18,8 @@ import ember.editor.core.*
   *
   * Marks (§8.2), Heading, Quote und Breaks, die Bereichsformatierung, das Zustandsfeld
   * [[TypingMarks]] und die Textlauf-Normalisierung. Sie gehoeren zusammen: ohne Normalisierung
-  * fragmentiert jedes Entformatieren, ohne `TypingMarks` gaebe es kein Format am leeren Caret,
-  * und ohne beides waere die Bereichsformatierung eine halbe API.
+  * fragmentiert jedes Entformatieren, ohne `TypingMarks` gaebe es kein Format am leeren Caret, und
+  * ohne beides waere die Bereichsformatierung eine halbe API.
   *
   * @param generator
   *   Quelle neuer Knoten-IDs. Injiziert, damit Tests deterministische IDs bekommen (§8.3).

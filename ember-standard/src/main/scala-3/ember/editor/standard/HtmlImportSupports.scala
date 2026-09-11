@@ -12,9 +12,9 @@ import ember.editor.richtext.*
   *
   * ==Why the profile lives here and not in `ember-html`==
   *
-  * Because a paragraph is a rich-text idea. §6 keeps the HTML module free of node types, and it
-  * is the same separation that keeps the export side honest: `ember-html` knows what a tag is,
-  * the profile knows what a document is, and the two meet in this module.
+  * Because a paragraph is a rich-text idea. §6 keeps the HTML module free of node types, and it is
+  * the same separation that keeps the export side honest: `ember-html` knows what a tag is, the
+  * profile knows what a document is, and the two meet in this module.
   */
 object ParagraphHtmlImport:
 
@@ -25,9 +25,36 @@ object ParagraphHtmlImport:
     * names is honest about what it is.
     */
   private val blockTags = Set(
-    "p", "div", "h1", "h2", "h3", "h4", "h5", "h6", "blockquote", "pre",
-    "ul", "ol", "li", "table", "tr", "td", "th", "section", "article", "header",
-    "footer", "aside", "nav", "main", "figure", "figcaption", "dl", "dt", "dd", "hr"
+    "p",
+    "div",
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "h5",
+    "h6",
+    "blockquote",
+    "pre",
+    "ul",
+    "ol",
+    "li",
+    "table",
+    "tr",
+    "td",
+    "th",
+    "section",
+    "article",
+    "header",
+    "footer",
+    "aside",
+    "nav",
+    "main",
+    "figure",
+    "figcaption",
+    "dl",
+    "dt",
+    "dd",
+    "hr"
   )
 
   private def holdsBlocks(element: HtmlFragment.Element): Boolean =
@@ -78,8 +105,12 @@ object ParagraphHtmlImport:
 object RichTextHtmlImport:
 
   private val levels = Map(
-    "h1" -> HeadingLevel.H1, "h2" -> HeadingLevel.H2, "h3" -> HeadingLevel.H3,
-    "h4" -> HeadingLevel.H4, "h5" -> HeadingLevel.H5, "h6" -> HeadingLevel.H6
+    "h1" -> HeadingLevel.H1,
+    "h2" -> HeadingLevel.H2,
+    "h3" -> HeadingLevel.H3,
+    "h4" -> HeadingLevel.H4,
+    "h5" -> HeadingLevel.H5,
+    "h6" -> HeadingLevel.H6
   )
 
   val heading: HtmlImportRule = new HtmlImportRule:
@@ -102,26 +133,27 @@ object RichTextHtmlImport:
 
   /** A `<br>` is a hard break: the author asked for it (§8.2). */
   val lineBreak: HtmlImportRule = new HtmlImportRule:
-    val name = "html.br"
+    val name                                            = "html.br"
     def handles(element: HtmlFragment.Element): Boolean = element.tag == "br"
     def decide(element: HtmlFragment.Element, scope: HtmlImportScope): HtmlImportDecision =
       HtmlImportDecision.Leaf(BreakNode(scope.nextId(), BreakKind.Hard))
 
   val thematicBreak: HtmlImportRule = new HtmlImportRule:
-    val name = "html.hr"
+    val name                                            = "html.hr"
     def handles(element: HtmlFragment.Element): Boolean = element.tag == "hr"
     def decide(element: HtmlFragment.Element, scope: HtmlImportScope): HtmlImportDecision =
       HtmlImportDecision.Leaf(ThematicBreakNode(scope.nextId()))
 
   /** The marks, with every spelling that occurs.
     *
-    * `<b>` and `<strong>` mean the same to a document even though they do not to HTML, and a
-    * paste that kept only one of them would lose half the bold text on the web. `<del>` and
-    * `<ins>` are the semantic pair for strike-through; Word emits `<s>`, browsers `<strike>`.
+    * `<b>` and `<strong>` mean the same to a document even though they do not to HTML, and a paste
+    * that kept only one of them would lose half the bold text on the web. `<del>` and `<ins>` are
+    * the semantic pair for strike-through; Word emits `<s>`, browsers `<strike>`.
     */
   val marks: Vector[HtmlImportRule] = Vector(
     HtmlImportRule.mark("html.strong", Set("b", "strong"), StandardMarks.Strong),
-    HtmlImportRule.mark("html.emphasis", Set("i", "em", "cite", "var", "dfn"), StandardMarks.Emphasis),
+    HtmlImportRule
+      .mark("html.emphasis", Set("i", "em", "cite", "var", "dfn"), StandardMarks.Emphasis),
     HtmlImportRule.mark("html.underline", Set("u", "ins"), StandardMarks.Underline),
     HtmlImportRule.mark("html.strike", Set("s", "strike", "del"), StandardMarks.Strike),
     InlineCodeRule
@@ -129,9 +161,9 @@ object RichTextHtmlImport:
 
   /** `<code>` is a mark -- except inside a `<pre>`.
     *
-    * There it is the wrapper every highlighter writes, and it means nothing of its own; marking
-    * the whole block as inline code would be a second, contradictory statement about the same
-    * text. The distinction needs the context, which is why [[HtmlImportScope.insideTag]] exists.
+    * There it is the wrapper every highlighter writes, and it means nothing of its own; marking the
+    * whole block as inline code would be a second, contradictory statement about the same text. The
+    * distinction needs the context, which is why [[HtmlImportScope.insideTag]] exists.
     */
   object InlineCodeRule extends HtmlImportRule:
     val name = "html.inline-code"
@@ -156,7 +188,7 @@ object ListHtmlImport:
       element.tag == "ul" || element.tag == "ol"
 
     def decide(element: HtmlFragment.Element, scope: HtmlImportScope): HtmlImportDecision =
-      val kind  = if element.tag == "ol" then ListKind.Ordered else ListKind.Unordered
+      val kind = if element.tag == "ol" then ListKind.Ordered else ListKind.Unordered
       // `start` is the one numeric attribute a list carries, and losing it renumbers a pasted
       // list from one.
       val start = element.attributes
@@ -285,7 +317,10 @@ object ImageHtmlImport:
           else HtmlImportDecision.Leaf(TextNode(scope.nextId(), alt))
 
     private def pixels(element: HtmlFragment.Element, name: String): Option[PositivePixels] =
-      element.attributes.find(_.name == name).flatMap(a => a.value.toIntOption).flatMap(PositivePixels.parse)
+      element.attributes
+        .find(_.name == name)
+        .flatMap(a => a.value.toIntOption)
+        .flatMap(PositivePixels.parse)
 
   def rules(policy: MediaUrlPolicy): Vector[HtmlImportRule] = Vector(image(policy))
 
@@ -301,9 +336,9 @@ object StandardHtmlImport:
 
   /** Everything this repository can read.
     *
-    * The policies come from the caller for the reason §19.1 gives: an imported URL goes through
-    * the same policy a typed one does, and a library that shipped its own would be a way around
-    * the application's.
+    * The policies come from the caller for the reason §19.1 gives: an imported URL goes through the
+    * same policy a typed one does, and a library that shipped its own would be a way around the
+    * application's.
     */
   def everything(links: LinkUrlPolicy, media: MediaUrlPolicy): HtmlImportSupport =
     HtmlImportSupport.of(

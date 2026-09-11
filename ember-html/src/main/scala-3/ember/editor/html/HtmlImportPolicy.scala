@@ -10,8 +10,8 @@ package ember.editor.html
   * table is gone -- the text is there, the structure is not, and only a message makes the
   * difference visible.
   *
-  * The same shape as `ParseDiagnostic` in the Markdown module, deliberately. Two formats, one
-  * idea of what a loss report is.
+  * The same shape as `ParseDiagnostic` in the Markdown module, deliberately. Two formats, one idea
+  * of what a loss report is.
   */
 final case class HtmlDiagnostic(kind: HtmlLoss, detail: String):
   def render: String = s"${kind.render}: $detail"
@@ -90,9 +90,9 @@ final case class HtmlImportPolicy(
 
   /** Reads one raw attribute, or says why not.
     *
-    * `Left` carries the reason so the caller can report it; an attribute that is simply not part
-    * of the document format is not worth a message on its own, and [[HtmlImportPolicy.Silent]]
-    * marks those.
+    * `Left` carries the reason so the caller can report it; an attribute that is simply not part of
+    * the document format is not worth a message on its own, and [[HtmlImportPolicy.Silent]] marks
+    * those.
     */
   def attribute(name: String, value: String): Either[String, HtmlAttribute] =
     if name.startsWith("on") && name.length > 2 then Left("Eventattribut")
@@ -107,14 +107,13 @@ final case class HtmlImportPolicy(
       if value.split(' ').exists(_.startsWith("language-")) then
         HtmlAttribute.parse(name, value).toRight(HtmlImportPolicy.Silent)
       else Left(HtmlImportPolicy.Silent)
-    else
-      HtmlAttribute.parse(name, value).toRight(HtmlImportPolicy.Silent)
+    else HtmlAttribute.parse(name, value).toRight(HtmlImportPolicy.Silent)
 
   /** A URL as the format leaves it: entity-decoded, trimmed, control characters removed.
     *
     * §19.1: "URLs werden nach Entities-/Whitespace-Normalisierung durch die jeweilige
-    * Link-/Media-Policy geprueft." The normalisation is the part that has to happen first,
-    * because `java script:` and `java&#9;script:` are the oldest way past a scheme check.
+    * Link-/Media-Policy geprueft." The normalisation is the part that has to happen first, because
+    * `java script:` and `java&#9;script:` are the oldest way past a scheme check.
     */
   def normaliseUrl(raw: String): String =
     val out = new StringBuilder(raw.length)
@@ -124,8 +123,8 @@ final case class HtmlImportPolicy(
   /** Whether a URL is refused whatever the feature policy says.
     *
     * A baseline, not the decision. The link and media policies are stricter and know more; this
-    * catches the schemes that are wrong in every profile, so that a rule which forgets to ask
-    * still cannot import a `javascript:` href.
+    * catches the schemes that are wrong in every profile, so that a rule which forgets to ask still
+    * cannot import a `javascript:` href.
     */
   def refusesUrl(url: String): Boolean =
     val scheme = url.takeWhile(_ != ':').toLowerCase
@@ -140,10 +139,37 @@ object HtmlImportPolicy:
 
   /** Discarded with their content (§19.1). */
   val unsafeTags: Set[String] = Set(
-    "script", "style", "iframe", "frame", "frameset", "object", "embed", "applet",
-    "noscript", "noembed", "template", "link", "meta", "base", "title", "head",
-    "svg", "math", "canvas", "audio", "video", "source", "track", "form", "input",
-    "button", "select", "option", "textarea", "label", "fieldset"
+    "script",
+    "style",
+    "iframe",
+    "frame",
+    "frameset",
+    "object",
+    "embed",
+    "applet",
+    "noscript",
+    "noembed",
+    "template",
+    "link",
+    "meta",
+    "base",
+    "title",
+    "head",
+    "svg",
+    "math",
+    "canvas",
+    "audio",
+    "video",
+    "source",
+    "track",
+    "form",
+    "input",
+    "button",
+    "select",
+    "option",
+    "textarea",
+    "label",
+    "fieldset"
   )
 
   /** Schemes no document format accepts. */

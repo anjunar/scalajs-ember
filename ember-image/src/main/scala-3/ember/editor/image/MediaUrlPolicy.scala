@@ -20,9 +20,9 @@ object MediaUrl:
 
 /** The application's own identifier for a stored file.
   *
-  * Optional, and deliberately opaque to this module: what it means -- a database key, a hash, an
-  * S3 object name -- is the application's business (§20, "Uploads sind ein Anwendungsservice").
-  * What matters here is that it is a stable name and not a file, a handle or an object URL.
+  * Optional, and deliberately opaque to this module: what it means -- a database key, a hash, an S3
+  * object name -- is the application's business (§20, "Uploads sind ein Anwendungsservice"). What
+  * matters here is that it is a stable name and not a file, a handle or an object URL.
   */
 opaque type MediaId = String
 
@@ -43,14 +43,14 @@ object MediaId:
 /** Where a picture comes from.
   *
   * §20 gives it two halves and both earn their place: the `src` is what a browser loads, the
-  * [[MediaId]] is what the application knows about the file behind it. A document that carries
-  * only the URL cannot be migrated when the storage moves; one that carries only the id cannot
-  * be rendered by anything that does not know the application.
+  * [[MediaId]] is what the application knows about the file behind it. A document that carries only
+  * the URL cannot be migrated when the storage moves; one that carries only the id cannot be
+  * rendered by anything that does not know the application.
   *
-  * '''What is not in here''': file data, an `ObjectURL`, an upload handle, a progress value.
-  * §20 is explicit -- "Lokale Object-URL-Previews werden freigegeben und niemals serialisiert",
-  * and P16's acceptance repeats it: "Keine Dateidaten oder Object-URL im Document." Those live
-  * in the effect state of whoever is uploading, and they die with it.
+  * '''What is not in here''': file data, an `ObjectURL`, an upload handle, a progress value. §20 is
+  * explicit -- "Lokale Object-URL-Previews werden freigegeben und niemals serialisiert", and P16's
+  * acceptance repeats it: "Keine Dateidaten oder Object-URL im Document." Those live in the effect
+  * state of whoever is uploading, and they die with it.
   */
 final case class MediaReference(src: MediaUrl, mediaId: Option[MediaId] = None)
 
@@ -82,23 +82,23 @@ object MediaError:
   * ==Why this is not the link policy==
   *
   * §20 and P14's risk line insist on the separation: "Links und Media haben unterschiedliche
-  * Policies." The reason is concrete. A link is something the reader chooses to follow; an image
-  * is something the page loads on its own, from a host the author named, into the reader's
-  * browser, with the reader's IP address attached. So the defaults differ:
+  * Policies." The reason is concrete. A link is something the reader chooses to follow; an image is
+  * something the page loads on its own, from a host the author named, into the reader's browser,
+  * with the reader's IP address attached. So the defaults differ:
   *
   *   - '''`https` only.''' §20: "Die Default-Policy erlaubt sichere absolute HTTPS-Quellen sowie
   *     eindeutige relative/interne Pfade. HTTP kann die Anwendung explizit erlauben." A picture
   *     loaded over `http` into an `https` page is mixed content that browsers block anyway.
   *   - '''No `mailto:` or `tel:`.''' They are perfectly good links and not pictures at all.
-  *   - '''An optional host allowlist.''' §20 names it as "separate, deterministische
-  *     Konfiguration" -- an editor may accept links anywhere and images only from its own CDN.
+  *   - '''An optional host allowlist.''' §20 names it as "separate, deterministische Konfiguration"
+  *     -- an editor may accept links anywhere and images only from its own CDN.
   *
   * ==What no policy does==
   *
-  * Fetch anything. §20: "keine externe URL wird vom Parser oder SSR-Server automatisch
-  * abgerufen." Checking a source is a decision about a string; whether the picture exists is a
-  * question for the browser that eventually renders it, and asking it here would turn every
-  * decode into a network call.
+  * Fetch anything. §20: "keine externe URL wird vom Parser oder SSR-Server automatisch abgerufen."
+  * Checking a source is a decision about a string; whether the picture exists is a question for the
+  * browser that eventually renders it, and asking it here would turn every decode into a network
+  * call.
   *
   * @param hosts
   *   `None` accepts any host. A set accepts exactly those, compared lower case.
@@ -119,13 +119,13 @@ final case class MediaUrlPolicy(
       UrlNormalisation.schemeOf(value) match
         case Some(scheme) if !schemes.contains(scheme) =>
           Left(MediaError.ForbiddenScheme(scheme, at))
-        case Some(_) => checkHost(value, at)
+        case Some(_)               => checkHost(value, at)
         case None if allowRelative => Right(MediaUrl.trusted(value))
         case None                  => Left(MediaError.ForbiddenScheme("(relativ)", at))
 
   private def checkHost(value: String, at: DiagnosticPath): Either[MediaError, MediaUrl] =
     hosts match
-      case None => Right(MediaUrl.trusted(value))
+      case None          => Right(MediaUrl.trusted(value))
       case Some(allowed) =>
         UrlNormalisation.hostOf(value) match
           case Some(host) if allowed.map(_.toLowerCase).contains(host) =>
@@ -154,8 +154,8 @@ object MediaUrlPolicy:
   *
   * ==Why this exists twice==
   *
-  * `ember-link` has the same code. §6 puts both modules on the core and nothing else, so there
-  * is no shared place to put it -- and inventing a `url-utils` module for one predicate and two
+  * `ember-link` has the same code. §6 puts both modules on the core and nothing else, so there is
+  * no shared place to put it -- and inventing a `url-utils` module for one predicate and two
   * functions would be worse than the duplication. The two are kept in step by their tests, which
   * cover the same attacks.
   */
@@ -168,9 +168,9 @@ private[image] object UrlNormalisation:
     * ==Why `isWhitespace` is not enough==
     *
     * Java's `Character.isWhitespace` deliberately excludes the non-breaking space (U+00A0), and
-    * `isControl` covers only the Cc block -- so a zero-width space (U+200B), a word joiner
-    * (U+2060) or a byte-order mark (U+FEFF) sail straight through. All of them are ignored by
-    * browsers inside a URL, which is precisely what makes them useful for hiding a scheme:
+    * `isControl` covers only the Cc block -- so a zero-width space (U+200B), a word joiner (U+2060)
+    * or a byte-order mark (U+FEFF) sail straight through. All of them are ignored by browsers
+    * inside a URL, which is precisely what makes them useful for hiding a scheme:
     *
     * {{{
     * "java​script:alert(1)"   zero-width space
@@ -182,10 +182,10 @@ private[image] object UrlNormalisation:
     character.isWhitespace || character.isControl ||
       character == '\u00a0' ||                            // no-break space
       character == '\u1680' ||                            // ogham space mark
-      (character >= '\u2000' && character <= '\u200f') ||  // en quad .. right-to-left mark
-      (character >= '\u2028' && character <= '\u202f') ||  // line separator .. narrow nbsp
-      (character >= '\u205f' && character <= '\u2064') ||  // medium math space .. invisible plus
-      (character >= '\u2066' && character <= '\u206f') ||  // bidi isolates and overrides
+      (character >= '\u2000' && character <= '\u200f') || // en quad .. right-to-left mark
+      (character >= '\u2028' && character <= '\u202f') || // line separator .. narrow nbsp
+      (character >= '\u205f' && character <= '\u2064') || // medium math space .. invisible plus
+      (character >= '\u2066' && character <= '\u206f') || // bidi isolates and overrides
       character == '\u3000' ||                            // ideographic space
       character == '\ufeff'                               // byte order mark
 
@@ -233,8 +233,9 @@ private[image] object UrlNormalisation:
     if afterScheme < 0 then None
     else
       val rest      = value.drop(afterScheme + 3)
-      val authority = rest.takeWhile(character => character != '/' && character != '?' && character != '#')
-      val host      = authority.dropWhile(_ != '@').drop(1) match
+      val authority =
+        rest.takeWhile(character => character != '/' && character != '?' && character != '#')
+      val host = authority.dropWhile(_ != '@').drop(1) match
         case ""    => authority
         case after => after
       Some(host.takeWhile(_ != ':').toLowerCase).filter(_.nonEmpty)

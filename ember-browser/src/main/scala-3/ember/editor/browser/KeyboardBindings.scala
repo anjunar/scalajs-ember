@@ -23,16 +23,15 @@ object Shortcut:
 
   /** Either physical key sets [[Shortcut.primary]].
     *
-    * The obvious implementation asks the platform -- `Cmd` on a Mac, `Ctrl` elsewhere -- and it
-    * was the first one here. A browser test took it apart: Playwright's WebKit build on Windows
-    * reports a Macintosh user agent, so `Ctrl+Z` matched nothing and the editor had no undo.
+    * The obvious implementation asks the platform -- `Cmd` on a Mac, `Ctrl` elsewhere -- and it was
+    * the first one here. A browser test took it apart: Playwright's WebKit build on Windows reports
+    * a Macintosh user agent, so `Ctrl+Z` matched nothing and the editor had no undo.
     * `navigator.platform` is deprecated and `userAgentData` is not everywhere, and both would have
     * been wrong in the same way.
     *
     * Accepting both costs one thing: on macOS `Ctrl+B` now toggles bold, where the system would
-    * otherwise move the caret back one character. That is a rarely used emacs binding inside a
-    * text field. The alternative was a shortcut table that silently does nothing on an entire
-    * engine.
+    * otherwise move the caret back one character. That is a rarely used emacs binding inside a text
+    * field. The alternative was a shortcut table that silently does nothing on an entire engine.
     */
   def of(event: dom.KeyboardEvent): Shortcut =
     Shortcut(
@@ -44,8 +43,8 @@ object Shortcut:
 
   /** Letters are compared in lower case; named keys keep their spelling.
     *
-    * `Ctrl+Shift+Z` arrives with `key == "Z"`, and a table written in lower case would miss it.
-    * The shift state is carried separately, where a binding can actually read it.
+    * `Ctrl+Shift+Z` arrives with `key == "Z"`, and a table written in lower case would miss it. The
+    * shift state is carried separately, where a binding can actually read it.
     */
   def normalise(key: String): String = if key.length == 1 then key.toLowerCase else key
 
@@ -56,13 +55,17 @@ type KeyBinding = PartialFunction[Shortcut, EditorSession => Either[UpdateError,
 final class KeyboardBindings private (val bindings: Vector[KeyBinding]):
 
   /** Every binding for this combination, in order. See [[InputBindings.resolveAll]]. */
-  def resolveAll(shortcut: Shortcut): Vector[EditorSession => Either[UpdateError, DispatchOutcome]] =
+  def resolveAll(
+      shortcut: Shortcut
+  ): Vector[EditorSession => Either[UpdateError, DispatchOutcome]] =
     bindings.collect { case binding if binding.isDefinedAt(shortcut) => binding(shortcut) }
 
   def resolve(shortcut: Shortcut): Option[EditorSession => Either[UpdateError, DispatchOutcome]] =
     resolveAll(shortcut).headOption
 
-  def ++(other: KeyboardBindings): KeyboardBindings = new KeyboardBindings(bindings ++ other.bindings)
+  def ++(other: KeyboardBindings): KeyboardBindings = new KeyboardBindings(
+    bindings ++ other.bindings
+  )
 
 object KeyboardBindings:
 
@@ -72,12 +75,12 @@ object KeyboardBindings:
 
 /** What `Tab` does in this editor.
   *
-  * §22 is unusually specific, and for a good reason -- this is the one key that can lock a
-  * keyboard user inside a control:
+  * §22 is unusually specific, and for a good reason -- this is the one key that can lock a keyboard
+  * user inside a control:
   *
-  * > Tab verlaesst die normale Editierflaeche. Listeneinrueckung oder Code-Tab ist ein
-  * > ausdruecklich aktiviertes Verhalten mit erreichbarer Ausstiegsmoeglichkeit. Keine permanente
-  * > Keyboard-Falle.
+  * > Tab verlaesst die normale Editierflaeche. Listeneinrueckung oder Code-Tab ist ein >
+  * ausdruecklich aktiviertes Verhalten mit erreichbarer Ausstiegsmoeglichkeit. Keine permanente >
+  * Keyboard-Falle.
   */
 enum TabPolicy:
 
@@ -86,16 +89,16 @@ enum TabPolicy:
 
   /** `Tab` indents -- but `Escape` first, then `Tab`, always leaves.
     *
-    * The escape hatch is the part §22 requires, and it is deliberately the convention users
-    * already know from other editors rather than a new one.
+    * The escape hatch is the part §22 requires, and it is deliberately the convention users already
+    * know from other editors rather than a new one.
     */
   case IndentsUntilEscape
 
 /** Which keydowns the keyboard layer looks at at all.
   *
   * §15.2: "Text generell ueber Input-Pipeline." A key without a modifier that produces a single
-  * character is typing, and typing goes through `beforeinput` -- where dictation, autocorrect and
-  * a mobile keyboard also arrive, none of which a keydown ever sees.
+  * character is typing, and typing goes through `beforeinput` -- where dictation, autocorrect and a
+  * mobile keyboard also arrive, none of which a keydown ever sees.
   */
 object KeyboardRule:
 
@@ -112,8 +115,8 @@ object KeyboardRule:
 
 /** Whether `Tab` may be taken over right now.
   *
-  * Pure, because it is a rule and not an event handler: a policy, plus whether `Escape` was the
-  * key pressed just before.
+  * Pure, because it is a rule and not an event handler: a policy, plus whether `Escape` was the key
+  * pressed just before.
   */
 object TabRule:
 
@@ -122,7 +125,7 @@ object TabRule:
 
   def handlesTab(policy: TabPolicy, escapeArmed: Boolean): Boolean =
     policy match
-      case TabPolicy.LeavesEditor      => false
+      case TabPolicy.LeavesEditor       => false
       case TabPolicy.IndentsUntilEscape => !escapeArmed
 
   /** Whether pressing this key arms the escape hatch. */

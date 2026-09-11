@@ -82,9 +82,12 @@ final class ListEditingSpec extends AnyFlatSpec with Matchers {
 
     f.outline shouldBe Vector(
       "ul",
-      "  li", "    \"Eins\"",
-      "  li", "    \"Zwei\"",
-      "  li", "    \"Drei\""
+      "  li",
+      "    \"Eins\"",
+      "  li",
+      "    \"Zwei\"",
+      "  li",
+      "    \"Drei\""
     )
   }
 
@@ -110,9 +113,13 @@ final class ListEditingSpec extends AnyFlatSpec with Matchers {
 
     f.outline shouldBe Vector(
       "ul",
-      "  li", "    \"Eins\"",
-      "    ul", "      li", "        \"Zwei\"",
-      "  li", "    \"Drei\""
+      "  li",
+      "    \"Eins\"",
+      "    ul",
+      "      li",
+      "        \"Zwei\"",
+      "  li",
+      "    \"Drei\""
     )
   }
 
@@ -138,10 +145,13 @@ final class ListEditingSpec extends AnyFlatSpec with Matchers {
 
     f.outline shouldBe Vector(
       "ul",
-      "  li", "    \"Eins\"",
+      "  li",
+      "    \"Eins\"",
       "    ul",
-      "      li", "        \"Zwei\"",
-      "      li", "        \"Drei\""
+      "      li",
+      "        \"Zwei\"",
+      "      li",
+      "        \"Drei\""
     )
   }
 
@@ -163,9 +173,12 @@ final class ListEditingSpec extends AnyFlatSpec with Matchers {
 
     f.outline shouldBe Vector(
       "ul",
-      "  li", "    \"Eins\"",
-      "  li", "    \"Zwei\"",
-      "  li", "    \"Drei\""
+      "  li",
+      "    \"Eins\"",
+      "  li",
+      "    \"Zwei\"",
+      "  li",
+      "    \"Drei\""
     )
   }
 
@@ -176,9 +189,13 @@ final class ListEditingSpec extends AnyFlatSpec with Matchers {
     f.outdent(): Unit
 
     f.outline shouldBe Vector(
-      "ul", "  li", "    \"Eins\"",
+      "ul",
+      "  li",
+      "    \"Eins\"",
       "\"Zwei\"",
-      "ul", "  li", "    \"Drei\""
+      "ul",
+      "  li",
+      "    \"Drei\""
     )
   }
 
@@ -215,10 +232,14 @@ final class ListEditingSpec extends AnyFlatSpec with Matchers {
 
     f.outline shouldBe Vector(
       "ul",
-      "  li", "    \"Eins\"",
-      "  li", "    \"Zwei\"",
-      "  li", "    \"\"",
-      "  li", "    \"Drei\""
+      "  li",
+      "    \"Eins\"",
+      "  li",
+      "    \"Zwei\"",
+      "  li",
+      "    \"\"",
+      "  li",
+      "    \"Drei\""
     )
   }
 
@@ -251,9 +272,12 @@ final class ListEditingSpec extends AnyFlatSpec with Matchers {
 
     f.outline shouldBe Vector(
       "ul",
-      "  li", "    \"Eins\"",
-      "  li", "    \"Zwei\"",
-      "  li", "    \"Drei\"",
+      "  li",
+      "    \"Eins\"",
+      "  li",
+      "    \"Zwei\"",
+      "  li",
+      "    \"Drei\"",
       "\"\""
     )
   }
@@ -269,10 +293,15 @@ final class ListEditingSpec extends AnyFlatSpec with Matchers {
 
     f.outline shouldBe Vector(
       "ul",
-      "  li", "    \"Eins\"",
-      "    ul", "      li", "        \"Zwei\"",
-      "  li", "    \"\"",
-      "  li", "    \"Drei\""
+      "  li",
+      "    \"Eins\"",
+      "    ul",
+      "      li",
+      "        \"Zwei\"",
+      "  li",
+      "    \"\"",
+      "  li",
+      "    \"Drei\""
     )
   }
 
@@ -302,9 +331,12 @@ final class ListEditingSpec extends AnyFlatSpec with Matchers {
 
     f.outline shouldBe Vector(
       "ul",
-      "  li", "    \"Eins\"",
-      "  li", "    \"Zwei\"",
-      "  li", "    \"Drei\""
+      "  li",
+      "    \"Eins\"",
+      "  li",
+      "    \"Zwei\"",
+      "  li",
+      "    \"Drei\""
     )
   }
 
@@ -342,9 +374,8 @@ final class ListEditingSpec extends AnyFlatSpec with Matchers {
 
   "An item with two paragraphs" should "keep both when indented" in {
     // §8.2: "ein ListItem Blockinhalte" -- plural, and this is why.
-    val f = threeItems
-    val item = f.document
-      .inDocumentOrder
+    val f    = threeItems
+    val item = f.document.inDocumentOrder
       .collectFirst { case value: ListItemNode if f.textOf(value.id) == "Zwei" => value }
       .getOrElse(fail("kein Item"))
     // Ein Teilbaum wird als Ganzes eingefuegt (§10): ein Absatz mit Kindreferenz auf einen noch
@@ -365,9 +396,8 @@ final class ListEditingSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "take both out again" in {
-    val f = threeItems
-    val item = f.document
-      .inDocumentOrder
+    val f    = threeItems
+    val item = f.document.inDocumentOrder
       .collectFirst { case value: ListItemNode if f.textOf(value.id) == "Zwei" => value }
       .getOrElse(fail("kein Item"))
     // Ein Teilbaum wird als Ganzes eingefuegt (§10): ein Absatz mit Kindreferenz auf einen noch

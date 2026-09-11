@@ -14,22 +14,22 @@ import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
   *
   * ==Was hier geprueft wird und was nicht==
   *
-  * `ProjectionSpec` deckt die Projektion headless gegen einen `SsrCursor` ab -- Index,
-  * Reihenfolge, Renderprofile, Instanzerhalt auf Komponentenebene. Das ist die Mehrheit der
-  * Aussagen, und sie braucht keinen Browser.
+  * `ProjectionSpec` deckt die Projektion headless gegen einen `SsrCursor` ab -- Index, Reihenfolge,
+  * Renderprofile, Instanzerhalt auf Komponentenebene. Das ist die Mehrheit der Aussagen, und sie
+  * braucht keinen Browser.
   *
   * Zwei Zusicherungen aus §15.1 lassen sich dort aber grundsaetzlich nicht belegen:
   *
   *   1. '''DOM-Identitaet.''' Dass ein Textedit denselben `Text`-Knoten behaelt und ein Move
-  *      dasselbe `Element` bewegt statt es neu zu bauen, ist ein `===`-Vergleich auf
-  *      DOM-Objekten. Fuer den Editor haengt daran alles -- ein neu erzeugter Textknoten nimmt
-  *      Caret, Selection und eine laufende IME-Eingabe mit ins Grab.
-  *   1. '''Der Umfang der Schreibzugriffe.''' "Unveraenderte Nodes werden nicht erneut
-  *      komponiert" ist eine Aussage ueber das, was '''nicht''' passiert. Nur ein
-  *      `MutationObserver` sieht das; ein gleicher Ausgabestring beweist es nicht.
+  *      dasselbe `Element` bewegt statt es neu zu bauen, ist ein `===`-Vergleich auf DOM-Objekten.
+  *      Fuer den Editor haengt daran alles -- ein neu erzeugter Textknoten nimmt Caret, Selection
+  *      und eine laufende IME-Eingabe mit ins Grab.
+  *   1. '''Der Umfang der Schreibzugriffe.''' "Unveraenderte Nodes werden nicht erneut komponiert"
+  *      ist eine Aussage ueber das, was '''nicht''' passiert. Nur ein `MutationObserver` sieht das;
+  *      ein gleicher Ausgabestring beweist es nicht.
   *
-  * Dazu kommt die Abnahme "Gleiches initiales Rendering in SSR und Browser" -- vergleichbar
-  * erst, wenn beide Seiten wirklich existieren.
+  * Dazu kommt die Abnahme "Gleiches initiales Rendering in SSR und Browser" -- vergleichbar erst,
+  * wenn beide Seiten wirklich existieren.
   *
   * ==Das Dokument==
   *
@@ -59,7 +59,7 @@ object ProjectionFixtures:
   @JSExport
   def mount(container: dom.Element): Unit =
     val generator = NodeIdGenerator.sequential("g")
-    val resolved = ExtensionResolver.resolve(Vector(RichText(generator))) match
+    val resolved  = ExtensionResolver.resolve(Vector(RichText(generator))) match
       case Right(value) => value
       case Left(errors) => throw new IllegalStateException(errors.map(_.render).mkString("; "))
 
@@ -165,9 +165,9 @@ object ProjectionFixtures:
 
   /** Inserts a run that carries a mark, so it will not merge with its neighbour.
     *
-    * Since P12 adjacent runs with equal marks grow back together (§8.2). A test about ordering
-    * or about DOM identity needs two runs that stay two -- and a difference in marks is the
-    * honest way to get them, not a special case in the normalisation.
+    * Since P12 adjacent runs with equal marks grow back together (§8.2). A test about ordering or
+    * about DOM identity needs two runs that stay two -- and a difference in marks is the honest way
+    * to get them, not a special case in the normalisation.
     */
   @JSExport
   def insertMarked(parentId: String, index: Int, nodeId: String, text: String): Boolean =
@@ -191,7 +191,7 @@ object ProjectionFixtures:
 
   private def edit(body: Transaction => Unit): Boolean =
     session.update(body) match
-      case Right(_) => true
+      case Right(_)    => true
       case Left(error) =>
         lastError = error.render
         false

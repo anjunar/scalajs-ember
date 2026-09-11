@@ -37,12 +37,12 @@ enum PositionProblem:
   *
   * ==Why a table and not a count==
   *
-  * §11 names the problem and the remedy in one sentence: "Bei DOM-Elementoffsets zaehlen
-  * DOM-Kinder einschliesslich Renderhilfen anders als Dokumentkinder; die explizite
-  * Mapping-Tabelle loest dies auf." The DOM below a container holds things the document has no
-  * word for -- the runtime's keyed-group comment anchors, the inner `<code>` of a code block, a
-  * placeholder `<br>`. Counting DOM children and calling the result a child offset is wrong by a
-  * different amount for every node.
+  * §11 names the problem and the remedy in one sentence: "Bei DOM-Elementoffsets zaehlen DOM-Kinder
+  * einschliesslich Renderhilfen anders als Dokumentkinder; die explizite Mapping-Tabelle loest dies
+  * auf." The DOM below a container holds things the document has no word for -- the runtime's
+  * keyed-group comment anchors, the inner `<code>` of a code block, a placeholder `<br>`. Counting
+  * DOM children and calling the result a child offset is wrong by a different amount for every
+  * node.
   *
   * So nothing here counts DOM children. Every offset is derived from where the hosts of the
   * document's own children actually are, and every lookup goes through the projection -- the one
@@ -63,12 +63,12 @@ final class DomPositionMap(view: DocumentView, scope: BrowserScope):
 
   /** Where a model point sits in the DOM.
     *
-    * | Punkt | DOM-Position |
-    * | --- | --- |
-    * | `Text(run, o)` | der Textknoten des Laufs, Offset `o` -- beide messen UTF-16 (§11) |
-    * | `Children(p, i)`, `i < n` | im Inhaltselement von `p`, vor dem Host des `i`-ten Kindes |
-    * | `Children(p, n)` | ebenda, hinter dem Host des letzten Kindes |
-    * | `Children(p, 0)`, `p` leer | ebenda, Offset 0 -- kein Dokumentkind steht davor |
+    * | Punkt                      | DOM-Position                                                      |
+    * |:---------------------------|:------------------------------------------------------------------|
+    * | `Text(run, o)`             | der Textknoten des Laufs, Offset `o` -- beide messen UTF-16 (§11) |
+    * | `Children(p, i)`, `i < n`  | im Inhaltselement von `p`, vor dem Host des `i`-ten Kindes        |
+    * | `Children(p, n)`           | ebenda, hinter dem Host des letzten Kindes                        |
+    * | `Children(p, 0)`, `p` leer | ebenda, Offset 0 -- kein Dokumentkind steht davor                 |
     */
   def toDom(point: Point, document: DocumentRead): Either[PositionProblem, DomPosition] =
     point match
@@ -85,8 +85,8 @@ final class DomPositionMap(view: DocumentView, scope: BrowserScope):
 
       case Point.Children(id, offset, _) =>
         document.node(id) match
-          case None              => Left(PositionProblem.NoSuchNode(id))
-          case Some(_: AtomNode) => Left(PositionProblem.InsideAtom(id))
+          case None                       => Left(PositionProblem.NoSuchNode(id))
+          case Some(_: AtomNode)          => Left(PositionProblem.InsideAtom(id))
           case Some(element: ElementNode) =>
             contentElementOf(id).flatMap { container =>
               val children = element.children
@@ -155,12 +155,12 @@ final class DomPositionMap(view: DocumentView, scope: BrowserScope):
     *
     * ==Why downwards==
     *
-    * Walking up and asking "is this element a node host?" needs a DOM-to-node index, and that
-    * index would be a second ownership list -- what §15.1 rules out for the projection, and no
-    * better here. Descending asks only what the DOM already answers: `Node.contains`. Each step
-    * takes the one child whose host contains the target; when none does, the target belongs to
-    * the node reached, because it sits in that node's own markup. A mark chain, an inner tag and
-    * a group anchor are exactly that.
+    * Walking up and asking "is this element a node host?" needs a DOM-to-node index, and that index
+    * would be a second ownership list -- what §15.1 rules out for the projection, and no better
+    * here. Descending asks only what the DOM already answers: `Node.contains`. Each step takes the
+    * one child whose host contains the target; when none does, the target belongs to the node
+    * reached, because it sits in that node's own markup. A mark chain, an inner tag and a group
+    * anchor are exactly that.
     */
   def nodeAt(target: dom.Node, document: DocumentRead): Option[NodeId] =
     if !scope.contains(target) then None
@@ -197,13 +197,13 @@ final class DomPositionMap(view: DocumentView, scope: BrowserScope):
   /** The host element of a projected node. */
   def hostOf(id: NodeId): Either[PositionProblem, dom.Element] =
     view.componentFor(id) match
-      case None => Left(PositionProblem.NotProjected(id))
+      case None            => Left(PositionProblem.NotProjected(id))
       case Some(component) =>
         if !component.isBound then Left(PositionProblem.NotProjected(id))
         else
-            DomNodes.option(component.host).flatMap(DomKinds.asElement) match
-              case Some(element) => Right(element)
-              case None          => Left(PositionProblem.NotProjected(id))
+          DomNodes.option(component.host).flatMap(DomKinds.asElement) match
+            case Some(element) => Right(element)
+            case None          => Left(PositionProblem.NotProjected(id))
 
   // -----------------------------------------------------------------------------------------
   // Die Stellen, an denen die Renderhilfen auffallen
@@ -241,8 +241,8 @@ final class DomPositionMap(view: DocumentView, scope: BrowserScope):
 
   /** Turns a DOM child offset into a document child offset.
     *
-    * Counts the document children whose hosts sit before the DOM offset. Group anchors, inner
-    * tags and placeholders are not counted, because they are not children -- which is the whole
+    * Counts the document children whose hosts sit before the DOM offset. Group anchors, inner tags
+    * and placeholders are not counted, because they are not children -- which is the whole
     * difference §11 warns about.
     */
   private def documentOffsetIn(element: ElementNode, container: dom.Node, domOffset: Int): Int =
@@ -259,7 +259,7 @@ final class DomPositionMap(view: DocumentView, scope: BrowserScope):
     document.parentOf(id) match
       // An atom at the root has no boundary to fall back to. A valid document cannot have one --
       // the root is an ElementNode -- and reporting it beats inventing a point.
-      case None => Left(PositionProblem.InsideAtom(id))
+      case None           => Left(PositionProblem.InsideAtom(id))
       case Some(parentId) =>
         val index = childrenOf(parentId, document).indexOf(id)
         if index < 0 then Left(PositionProblem.InsideAtom(id))

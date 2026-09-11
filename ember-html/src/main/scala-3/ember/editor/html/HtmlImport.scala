@@ -26,17 +26,17 @@ final case class ImportedHtml(document: Document, diagnostics: Vector[HtmlDiagno
   *
   * HTML has no rule that says text must sit in a block, and pasted HTML routinely does not: a
   * sentence at the top level, an `<em>` with nothing around it, a `<p>` inside a `<span>`. A
-  * document has exactly those rules. So the import is not a translation but a '''repair''', and
-  * the repair has to be predictable.
+  * document has exactly those rules. So the import is not a translation but a '''repair''', and the
+  * repair has to be predictable.
   *
   * Two passes, one for each context:
   *
   *   - '''Blocks.''' Anything inline is collected and, when the next block arrives or the input
   *     ends, wrapped in a paragraph the profile supplies. Whitespace-only text between blocks is
   *     not content and is dropped -- that is the indentation of the page it came from.
-  *   - '''Inline.''' Text becomes runs carrying whatever marks are open. A block that turns up
-  *     here is unwrapped rather than nested, with a diagnosis: `<span><p>x</p></span>` is a real
-  *     shape and its meaning is "x", not "a paragraph inside a word".
+  *   - '''Inline.''' Text becomes runs carrying whatever marks are open. A block that turns up here
+  *     is unwrapped rather than nested, with a diagnosis: `<span><p>x</p></span>` is a real shape
+  *     and its meaning is "x", not "a paragraph inside a word".
   *
   * ==Why it never touches a DOM==
   *
@@ -56,7 +56,7 @@ object HtmlImport:
       policy: HtmlImportPolicy = HtmlImportPolicy.default
   ): Either[HtmlImportError, ImportedHtml] =
     HtmlFragmentParser.parse(html, policy) match
-      case Left(error) => Left(HtmlImportError.Parse(error))
+      case Left(error)   => Left(HtmlImportError.Parse(error))
       case Right(parsed) =>
         val run = new Run(schema, support, generator, rootId, policy, parsed.diagnostics)
         run.build(parsed.fragments)
@@ -75,14 +75,14 @@ object HtmlImport:
     private val used        = mutable.Set(rootId)
     private val diagnostics = mutable.ArrayBuffer.from(parseDiagnostics)
     private val open        = mutable.ArrayBuffer.empty[String]
-    private val scope       = new HtmlImportScope(schema, policy, generator, used, diagnostics, open)
+    private val scope = new HtmlImportScope(schema, policy, generator, used, diagnostics, open)
 
     def build(fragments: Vector[HtmlFragment]): Either[HtmlImportError, ImportedHtml] =
       val blocks = importBlocks(fragments, Whitespace.Collapse)
       val root   = support.profile.root(blocks, rootId)
 
       Document.build(schema, rootId, nodes.values.toVector :+ root) match
-        case Right(document) => Right(ImportedHtml(document, diagnostics.toVector))
+        case Right(document)  => Right(ImportedHtml(document, diagnostics.toVector))
         case Left(violations) => Left(HtmlImportError.Invalid(violations))
 
     // ---------------------------------------------------------------------------------------
@@ -124,7 +124,10 @@ object HtmlImport:
             // A mark with nothing around it -- `<em>x</em>` at the top level. Its content is
             // inline, so it joins the paragraph being collected.
             case HtmlImportDecision.Marked(mark) =>
-              pending ++= within(element, importInline(element.children, MarkSet.of(mark), whitespace))
+              pending ++= within(
+                element,
+                importInline(element.children, MarkSet.of(mark), whitespace)
+              )
 
             case HtmlImportDecision.Unwrap =>
               val inner = within(element, importBlocks(element.children, whitespace))
@@ -177,7 +180,10 @@ object HtmlImport:
         case element: HtmlFragment.Element =>
           decide(element) match
             case HtmlImportDecision.Marked(mark) =>
-              within(element, importInline(element.children, marks.union(MarkSet.of(mark)), whitespace))
+              within(
+                element,
+                importInline(element.children, marks.union(MarkSet.of(mark)), whitespace)
+              )
 
             case HtmlImportDecision.Leaf(node) => Vector(emit(node))
 
@@ -218,9 +224,9 @@ object HtmlImport:
     /** Grows adjacent runs with the same marks back together (§8.2).
       *
       * An imported document is canonical or it is not, and nothing will make it so afterwards: the
-      * normalisation transform runs on '''changed''' nodes, and a document that has just been
-      * built has none. So the two runs that a line break between two tags produces -- "Absatz" and
-      * " " -- are joined here, where the information that they are adjacent still exists.
+      * normalisation transform runs on '''changed''' nodes, and a document that has just been built
+      * has none. So the two runs that a line break between two tags produces -- "Absatz" and " " --
+      * are joined here, where the information that they are adjacent still exists.
       */
     private def merged(ids: Vector[NodeId]): Vector[NodeId] =
       val out = mutable.ArrayBuffer.empty[NodeId]

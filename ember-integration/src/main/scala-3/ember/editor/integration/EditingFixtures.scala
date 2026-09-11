@@ -35,16 +35,16 @@ object EditingFixtures:
 
   private val rootId = NodeId("root")
 
-  private var session: EditorSession            = null
-  private var view: DocumentView                = null
-  private var port: SelectionPort               = null
+  private var session: EditorSession             = null
+  private var view: DocumentView                 = null
+  private var port: SelectionPort                = null
   private var controller: BrowserInputController = null
-  private var host: dom.Element                 = null
-  private var outcomes                          = Vector.empty[String]
-  private var compositions                      = Vector.empty[String]
-  private var history: History                  = null
-  private var recoveryOf: RecoveryController    = null
-  private val holder                            = new CompositionHolder
+  private var host: dom.Element                  = null
+  private var outcomes                           = Vector.empty[String]
+  private var compositions                       = Vector.empty[String]
+  private var history: History                   = null
+  private var recoveryOf: RecoveryController     = null
+  private val holder                             = new CompositionHolder
 
   // Das Atom traegt eine echte Textarea. P22s Testliste nennt "native Controls in Atoms", und
   // §15.2 verlangt die Ownership-Pruefung vor jeder Eingabeverarbeitung -- ohne ein Feld im
@@ -70,7 +70,7 @@ object EditingFixtures:
     // moment §15.3 allows -- "vor Commit". The session exists before the controller does, so the
     // rule asks through a holder.
     val gate = new Extension:
-      val id: ExtensionId = ExtensionId("ember.it.composition-gate")
+      val id: ExtensionId                             = ExtensionId("ember.it.composition-gate")
       override def contribute: ExtensionContributions =
         ExtensionContributions(preCommitRules = Vector(BrowserInputController.busyRule(holder)))
 
@@ -196,7 +196,10 @@ object EditingFixtures:
       case Some(range: RangeSelection) =>
         session.document.node(range.focus.owner) match
           case Some(run: TextNode) =>
-            run.marks.marks.map(_.markId.value.split('.').last.takeWhile(_ != '/')).sorted.mkString(",")
+            run.marks.marks
+              .map(_.markId.value.split('.').last.takeWhile(_ != '/'))
+              .sorted
+              .mkString(",")
           case _ => ""
       case _ => ""
 
@@ -235,7 +238,12 @@ object EditingFixtures:
   def setRange(anchorNode: String, anchorOffset: Int, focusNode: String, focusOffset: Int): String =
     place(anchorOffset, focusOffset, anchorNode, focusNode)
 
-  private def place(anchorOffset: Int, focusOffset: Int, anchorNode: String, focusNode: String): String =
+  private def place(
+      anchorOffset: Int,
+      focusOffset: Int,
+      anchorNode: String,
+      focusNode: String
+  ): String =
     val selection = RangeSelection(
       Point.textBefore(NodeId(anchorNode), anchorOffset),
       Point.textBefore(NodeId(focusNode), focusOffset)
@@ -251,8 +259,8 @@ object EditingFixtures:
   /** A caret at the child boundary right behind the atom. */
   @JSExport
   def setCaretAfterAtom(): String =
-    val parent = NodeId("p1")
-    val index  = session.document.childrenOf(parent).indexOf(NodeId("a0")) + 1
+    val parent    = NodeId("p1")
+    val index     = session.document.childrenOf(parent).indexOf(NodeId("a0")) + 1
     val selection = RangeSelection.caret(Point.childrenBefore(parent, index))
     session.update(_.select(selection): Unit) match
       case Left(error) => s"rejected:${error.render}"
@@ -312,8 +320,7 @@ object EditingFixtures:
     val intent = DeferredIntent(
       label,
       None,
-      (target, _) =>
-        target.update(_.spliceText(NodeId("t0"), 0, 0, label): Unit).map(_ => ())
+      (target, _) => target.update(_.spliceText(NodeId("t0"), 0, 0, label): Unit).map(_ => ())
     )
     controller.offer(intent) match
       case Left(busy)     => s"busy:${busy.session}"
@@ -322,7 +329,7 @@ object EditingFixtures:
   /** Offers one that wants to land at a bookmark taken now. */
   @JSExport
   def offerBookmarked(label: String, node: String, offset: Int): String =
-    val mark = Bookmark(Point.textBefore(NodeId(node), offset), session.state.revision)
+    val mark   = Bookmark(Point.textBefore(NodeId(node), offset), session.state.revision)
     val intent = DeferredIntent(
       label,
       Some(mark),
@@ -353,7 +360,7 @@ object EditingFixtures:
     case IntentOutcome.Expired(label)     => s"expired:$label"
 
   private def render(event: CompositionEvent): String = event match
-    case CompositionEvent.Started(id, _)        => s"start:$id"
+    case CompositionEvent.Started(id, _)         => s"start:$id"
     case CompositionEvent.Finished(id, released) =>
       s"end:$id${released.map(o => "/" + render(o)).mkString}"
     case CompositionEvent.Discarded(id, reason, dropped) =>

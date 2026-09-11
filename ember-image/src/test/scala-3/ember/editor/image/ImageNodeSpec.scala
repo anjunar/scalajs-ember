@@ -12,8 +12,8 @@ final class ImageNodeSpec extends AnyFlatSpec with Matchers {
   private def source(url: String = "https://example.com/bild.png"): MediaReference =
     MediaReference(policy.unsafe(url))
 
-  /** `root > p0 > t0`, with images installed. A local block type stands in for a paragraph --
-    * §6 puts `image` on the core alone, so the rich-text profile is not available here.
+  /** `root > p0 > t0`, with images installed. A local block type stands in for a paragraph -- §6
+    * puts `image` on the core alone, so the rich-text profile is not available here.
     */
   private final class Fixture(text: String = "Hallo Welt"):
     val generator: NodeIdGenerator = NodeIdGenerator.sequential("n")
@@ -256,9 +256,9 @@ final class ImageNodeSpec extends AnyFlatSpec with Matchers {
 
 /** A block type standing in for a paragraph.
   *
-  * `ember-image` depends on the core alone (§6), so the rich-text profile is not on its
-  * classpath. Using a local type is not a workaround -- it is the check that an image needs
-  * nothing from that profile.
+  * `ember-image` depends on the core alone (§6), so the rich-text profile is not on its classpath.
+  * Using a local type is not a workaround -- it is the check that an image needs nothing from that
+  * profile.
   */
 private final case class BlockNode(id: NodeId, children: Vector[NodeId]) extends ElementNode
 
@@ -269,7 +269,7 @@ private object BlockNode extends ElementNodeType[BlockNode]:
     case block: BlockNode => Some(block)
     case _                => None
 
-  def rekey(node: BlockNode, id: NodeId): BlockNode        = node.copy(id = id)
+  def rekey(node: BlockNode, id: NodeId): BlockNode                      = node.copy(id = id)
   def withChildren(node: BlockNode, children: Vector[NodeId]): BlockNode =
     node.copy(children = children)
 

@@ -22,22 +22,22 @@ enum HtmlToken:
   *
   * ==What this is not==
   *
-  * §19.1 is explicit: the importer "beansprucht keine vollstaendige HTML5-Tree-Construction". It
-  * is not a browser. It does not implement the insertion modes, the foster parenting, the
-  * adoption agency algorithm or the fifteen-odd special cases for tables.
+  * §19.1 is explicit: the importer "beansprucht keine vollstaendige HTML5-Tree-Construction". It is
+  * not a browser. It does not implement the insertion modes, the foster parenting, the adoption
+  * agency algorithm or the fifteen-odd special cases for tables.
   *
-  * What it is: a scanner for the fragment shapes that clipboards actually produce, written so
-  * that "Tokenisierung, Entities, verschachtelte erlaubte Tags, Void-Elemente und Fehlformungen
-  * werden einzeln implementiert" is literally true -- each of those is a separate, separately
-  * tested piece.
+  * What it is: a scanner for the fragment shapes that clipboards actually produce, written so that
+  * "Tokenisierung, Entities, verschachtelte erlaubte Tags, Void-Elemente und Fehlformungen werden
+  * einzeln implementiert" is literally true -- each of those is a separate, separately tested
+  * piece.
   *
   * ==Why not `innerHTML` and then read the DOM==
   *
   * §19.1 forbids it twice, and the second time by name: "Niemals Inhalte erst in den lebenden DOM
   * einsetzen und anschliessend bereinigen." Assigning `innerHTML` runs `<img onerror>`, fetches
-  * URLs and executes whatever a paste brought with it -- sanitising afterwards is sanitising a
-  * page that has already done the damage. And it would not work on a server at all, where §19.1
-  * requires the same result.
+  * URLs and executes whatever a paste brought with it -- sanitising afterwards is sanitising a page
+  * that has already done the damage. And it would not work on a server at all, where §19.1 requires
+  * the same result.
   */
 object HtmlTokenizer:
 
@@ -118,7 +118,7 @@ object HtmlTokenizer:
         tokens += HtmlToken.Comment(html.substring(start + 4, end))
         end + 3
     else
-      val end = html.indexOf('>', start)
+      val end  = html.indexOf('>', start)
       val body = if end < 0 then html.substring(start + 2) else html.substring(start + 2, end)
       tokens += HtmlToken.Doctype(body)
       if end < 0 then html.length else end + 1
@@ -202,7 +202,8 @@ object HtmlTokenizer:
         val quote = html.charAt(cursor)
         if quote == '"' || quote == '\'' then
           val end   = html.indexOf(quote.toInt, cursor + 1)
-          val value = if end < 0 then html.substring(cursor + 1) else html.substring(cursor + 1, end)
+          val value =
+            if end < 0 then html.substring(cursor + 1) else html.substring(cursor + 1, end)
           (if end < 0 then html.length else end + 1, name, HtmlEntities.decode(value, entities))
         else
           val from = cursor

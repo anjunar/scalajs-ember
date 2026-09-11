@@ -25,13 +25,16 @@ final class HistorySpec extends AnyFlatSpec with Matchers {
   "Undo" should "restore document and selection in one commit" in {
     // §14: "Undo/Redo stellt Inhalt und Selection in einem Commit mit neuer Revision wieder
     // her." In *einem* -- sonst saehe ein Beobachter dazwischen einen Stand, den es nie gab.
-    val f = fixture()
+    val f    = fixture()
     var seen = Vector.empty[(String, Option[Int])]
 
     f.typeChar("X")
     f.session.onCommit(commit =>
       seen = seen :+ ((
-        commit.current.document.node(f.text).collect { case run: TextNode => run.text }.getOrElse(""),
+        commit.current.document
+          .node(f.text)
+          .collect { case run: TextNode => run.text }
+          .getOrElse(""),
         commit.current.selection
           .collect { case range: RangeSelection => range.focus }
           .collect { case Point.Text(_, offset, _) => offset }

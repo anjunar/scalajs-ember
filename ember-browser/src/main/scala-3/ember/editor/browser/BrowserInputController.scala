@@ -66,17 +66,16 @@ enum InputOutcome:
 
   /** A `keydown` that is plainly text, and therefore not the keyboard layer's business.
     *
-    * §15.2: "Text generell ueber Input-Pipeline." A letter without a modifier is never a
-    * shortcut, and the controller does not even consult its table for one -- so this is not a
-    * decision and is not reported to observers.
+    * §15.2: "Text generell ueber Input-Pipeline." A letter without a modifier is never a shortcut,
+    * and the controller does not even consult its table for one -- so this is not a decision and is
+    * not reported to observers.
     */
   case NotAShortcut(key: String)
 
   /** Whether the caller must call `preventDefault`.
     *
-    * The rule P22 names, in one place: "Event-Ownership und erfolgreiche Modelluebernahme
-    * '''oder bewusste Ablehnung''' bestimmen preventDefault, nicht die blosse Existenz eines
-    * Handlers."
+    * The rule P22 names, in one place: "Event-Ownership und erfolgreiche Modelluebernahme '''oder
+    * bewusste Ablehnung''' bestimmen preventDefault, nicht die blosse Existenz eines Handlers."
     */
   def preventsDefault: Boolean = this match
     case TakenOver(_)  => true
@@ -85,8 +84,8 @@ enum InputOutcome:
 
   /** Whether this is worth telling an observer about.
     *
-    * A keystroke the controller never looked at is not news. Reporting one per character would
-    * bury the outcomes that matter -- a refusal, a failed import -- under the typing.
+    * A keystroke the controller never looked at is not news. Reporting one per character would bury
+    * the outcomes that matter -- a refusal, a failed import -- under the typing.
     */
   def isNotable: Boolean = this match
     case NotAShortcut(_) => false
@@ -95,8 +94,8 @@ enum InputOutcome:
 /** What happened to a native input session (§15.3).
   *
   * Reported rather than acted on, because the two things that care live above this module: the
-  * history, which makes one undo group of a composition (§14), and the application, which may
-  * want to say that something is being typed.
+  * history, which makes one undo group of a composition (§14), and the application, which may want
+  * to say that something is being typed.
   */
 enum CompositionEvent:
   case Started(session: Long, region: ProtectedRegion)
@@ -107,21 +106,21 @@ enum CompositionEvent:
   *
   * ==What it never does==
   *
-  * It does not write to the document DOM, and it does not call `execCommand`. P22's acceptance
-  * says so -- "keine direkte Feature-DOM-Manipulation oder execCommand" -- and the reason is
-  * §15.1: the projection owns the DOM. Every change here becomes a command, the command becomes
-  * a transaction, the transaction becomes a commit, and UI does the writing.
+  * It does not write to the document DOM, and it does not call `execCommand`. P22's acceptance says
+  * so -- "keine direkte Feature-DOM-Manipulation oder execCommand" -- and the reason is §15.1: the
+  * projection owns the DOM. Every change here becomes a command, the command becomes a transaction,
+  * the transaction becomes a commit, and UI does the writing.
   *
   * ==The three routes in, and why there are three==
   *
-  *   - '''`beforeinput`, cancelable.''' The good case. The intent is known before anything
-  *     happens, a command runs, and the native action is prevented.
-  *   - '''`input`.''' What is left when `beforeinput` was not cancelable or never came. The DOM
-  *     is already ahead; [[NativeInputReader]] brings the model to it. §15.2: "IME, Autokorrektur,
+  *   - '''`beforeinput`, cancelable.''' The good case. The intent is known before anything happens,
+  *     a command runs, and the native action is prevented.
+  *   - '''`input`.''' What is left when `beforeinput` was not cancelable or never came. The DOM is
+  *     already ahead; [[NativeInputReader]] brings the model to it. §15.2: "IME, Autokorrektur,
   *     Spracherkennung und Browserfunktionen sind nicht vollstaendig durch `keydown` steuerbar."
-  *   - '''`keydown`.''' Shortcuts and structural keys only. Text never comes through here --
-  *     §15.2: "Text generell ueber Input-Pipeline" -- because a `keydown` table cannot see
-  *     dictation, autocorrect or a mobile keyboard.
+  *   - '''`keydown`.''' Shortcuts and structural keys only. Text never comes through here -- §15.2:
+  *     "Text generell ueber Input-Pipeline" -- because a `keydown` table cannot see dictation,
+  *     autocorrect or a mobile keyboard.
   *
   * ==Exactly once==
   *
@@ -145,14 +144,14 @@ final class BrowserInputController private (
     initialMode: EditorMode
 ):
 
-  private var currentState: ControllerState = ControllerState.Detached
-  private var currentMode: EditorMode       = initialMode
-  private val operations                    = new InputOperationLog()
-  private var escapeArmed                   = false
-  private var observers                     = Vector.empty[(Long, InputOutcome => Unit)]
-  private var compositionObservers          = Vector.empty[(Long, CompositionEvent => Unit)]
+  private var currentState: ControllerState       = ControllerState.Detached
+  private var currentMode: EditorMode             = initialMode
+  private val operations                          = new InputOperationLog()
+  private var escapeArmed                         = false
+  private var observers                           = Vector.empty[(Long, InputOutcome => Unit)]
+  private var compositionObservers                = Vector.empty[(Long, CompositionEvent => Unit)]
   private var current: Option[CompositionSession] = None
-  private var nextHandle                    = 0L
+  private var nextHandle                          = 0L
 
   private var beforeInputListener: js.Function1[dom.Event, Unit] = null
   private var inputListener: js.Function1[dom.Event, Unit]       = null
@@ -193,13 +192,13 @@ final class BrowserInputController private (
       val host = scope.host
 
       beforeInputListener = event => dispatchEvent(event, handleBeforeInput)
-      inputListener       = event => dispatchEvent(event, handleInput)
-      keyDownListener     = event => dispatchEvent(event, handleKeyDown)
-      compositionStart    = _ => onCompositionStart()
-      compositionEnd      = _ => onCompositionEnd()
+      inputListener = event => dispatchEvent(event, handleInput)
+      keyDownListener = event => dispatchEvent(event, handleKeyDown)
+      compositionStart = _ => onCompositionStart()
+      compositionEnd = _ => onCompositionEnd()
       // §15.3: "Blur erfasst noch offene native Aenderung." Focus leaving is not a reason to
       // throw a half-typed word away -- it is a reason to take it.
-      focusOut            = _ => if current.isDefined then onCompositionEnd()
+      focusOut = _ => if current.isDefined then onCompositionEnd()
 
       host.addEventListener("beforeinput", beforeInputListener)
       host.addEventListener("input", inputListener)
@@ -215,10 +214,12 @@ final class BrowserInputController private (
   def dispose(): Unit =
     if currentState != ControllerState.Disposed then
       val host = scope.host
-      if beforeInputListener != null then host.removeEventListener("beforeinput", beforeInputListener)
+      if beforeInputListener != null then
+        host.removeEventListener("beforeinput", beforeInputListener)
       if inputListener != null then host.removeEventListener("input", inputListener)
       if keyDownListener != null then host.removeEventListener("keydown", keyDownListener)
-      if compositionStart != null then host.removeEventListener("compositionstart", compositionStart)
+      if compositionStart != null then
+        host.removeEventListener("compositionstart", compositionStart)
       if compositionEnd != null then host.removeEventListener("compositionend", compositionEnd)
       if focusOut != null then host.removeEventListener("focusout", focusOut)
       // §15.3: "Dispose raeumt auf und meldet ggf. nicht abgeschlossene Eingabe an den Host."
@@ -246,7 +247,10 @@ final class BrowserInputController private (
     */
   private def applyEditingAttributes(): Unit =
     val host = scope.host
-    host.setAttribute("contenteditable", if currentMode == EditorMode.Editable then "true" else "false")
+    host.setAttribute(
+      "contenteditable",
+      if currentMode == EditorMode.Editable then "true" else "false"
+    )
     host.setAttribute("role", "textbox")
     host.setAttribute("aria-multiline", "true")
     // `tabindex` in '''both''' modes, and a browser test is why. `contenteditable="false"` takes
@@ -260,9 +264,9 @@ final class BrowserInputController private (
 
   /** Reports what the controller did with each event.
     *
-    * Not only for tests. §15.4 asks for a "verstaendliche Statusmeldung" when recovery starts,
-    * and §16 for a visible refusal when a format boundary rejects an edit -- both need to know
-    * that something was refused, and the controller is the only place that knows.
+    * Not only for tests. §15.4 asks for a "verstaendliche Statusmeldung" when recovery starts, and
+    * §16 for a visible refusal when a format boundary rejects an edit -- both need to know that
+    * something was refused, and the controller is the only place that knows.
     */
   def onOutcome(listener: InputOutcome => Unit): Subscription =
     if currentState == ControllerState.Disposed then Subscription.cancelled
@@ -294,7 +298,7 @@ final class BrowserInputController private (
     else
       val input     = event.asInstanceOf[dom.InputEvent]
       val inputType = input.inputType.toString
-      val intent = BeforeInputAdapter.intentOf(
+      val intent    = BeforeInputAdapter.intentOf(
         inputType,
         Option(input.data).filter(_ != null),
         transferTextOf(input)
@@ -303,8 +307,7 @@ final class BrowserInputController private (
       if currentMode == EditorMode.ReadOnly then
         // A refusal, not an omission. Letting it through would have the browser edit a document
         // that said no -- P22's risk list calls that out by name.
-        if intent.editsDocument then
-          InputOutcome.Refused(intent, "Der Editor ist readonly.")
+        if intent.editsDocument then InputOutcome.Refused(intent, "Der Editor ist readonly.")
         else InputOutcome.LeftNative(intent)
       // A non-cancelable event has already decided. Running the command now would apply it twice:
       // once through the model and once through the browser.
@@ -348,9 +351,9 @@ final class BrowserInputController private (
     * @param hint
     *   a run to look at before asking the selection. Blur is why it exists: WebKit drops the
     *   document selection when focus leaves, so the reader had nothing to anchor on and a
-    *   half-composed word was lost -- exactly the case §15.3 wants kept ("Blur erfasst noch
-    *   offene native Aenderung"). The composition knows where it started; the selection may not
-    *   be there any more.
+    *   half-composed word was lost -- exactly the case §15.3 wants kept ("Blur erfasst noch offene
+    *   native Aenderung"). The composition knows where it started; the selection may not be there
+    *   any more.
     */
   private def importNative(meta: TransactionMeta, hint: Option[NodeId] = None): InputOutcome =
     readNative(hint) match
@@ -438,7 +441,7 @@ final class BrowserInputController private (
       else
         escapeArmed = TabRule.arms(shortcut.key)
 
-        val named     = InputIntent.Unknown(shortcut.key)
+        val named      = InputIntent.Unknown(shortcut.key)
         val candidates = keyboard.resolveAll(shortcut)
 
         if candidates.isEmpty then InputOutcome.LeftNative(named)
@@ -470,12 +473,13 @@ final class BrowserInputController private (
     */
   def offer(intent: DeferredIntent): Either[CompositionBusy, IntentOutcome] =
     current match
-      case None => Right(DeferredIntentQueue.runNow(session, intent))
+      case None       => Right(DeferredIntentQueue.runNow(session, intent))
       case Some(open) =>
         val busy = CompositionBusy(open.id, DiagnosticPath.Root)
         busyPolicy match
           case BusyPolicy.Reject => Left(busy)
-          case BusyPolicy.Defer  => queue.offer(intent, busy).map(_ => IntentOutcome.Applied(intent.label))
+          case BusyPolicy.Defer  =>
+            queue.offer(intent, busy).map(_ => IntentOutcome.Applied(intent.label))
 
   /** Notified when a composition begins, ends or is thrown away.
     *
@@ -499,7 +503,8 @@ final class BrowserInputController private (
 
   private def onCompositionStart(): Unit =
     if currentState == ControllerState.Ready then
-      val open = CompositionSession.start(session.document, session.selection, session.state.revision)
+      val open =
+        CompositionSession.start(session.document, session.selection, session.state.revision)
       current = Some(open)
       currentState = ControllerState.Composing
 
@@ -523,7 +528,7 @@ final class BrowserInputController private (
     */
   private def onCompositionEnd(): Unit =
     current match
-      case None => ()
+      case None       => ()
       case Some(open) =>
         guard.release()
         current = None
@@ -573,7 +578,7 @@ final class BrowserInputController private (
   private def run(
       candidates: Vector[EditorSession => Either[UpdateError, DispatchOutcome]]
   ): Outcome =
-    var index  = 0
+    var index           = 0
     var result: Outcome = Outcome.Passed
     while index < candidates.length && result == Outcome.Passed do
       candidates(index)(session) match
@@ -681,8 +686,8 @@ object BrowserInputController:
 /** What the pre-commit rule asks, once the controller exists.
   *
   * A session is built before its controller -- the controller needs the view, the view needs the
-  * session. The rule has to be in place from the first commit, so it asks through this rather
-  * than holding a controller it could not have been given.
+  * session. The rule has to be in place from the first commit, so it asks through this rather than
+  * holding a controller it could not have been given.
   */
 final class CompositionHolder:
 

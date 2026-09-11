@@ -23,8 +23,8 @@ object BeforeInputAdapter:
     * @param data
     *   the event's `data`, when it carried text.
     * @param transferText
-    *   `dataTransfer.getData("text/plain")`, when there was one. Paste and drop carry their
-    *   payload there rather than in `data`.
+    *   `dataTransfer.getData("text/plain")`, when there was one. Paste and drop carry their payload
+    *   there rather than in `data`.
     */
   def intentOf(
       inputType: String,
@@ -47,8 +47,8 @@ object BeforeInputAdapter:
       case "insertFromComposition" | "insertCompositionText" =>
         InputIntent.InsertText(data.getOrElse(""))
 
-      case "insertParagraph"       => InputIntent.InsertParagraph
-      case "insertLineBreak"       => InputIntent.InsertLineBreak
+      case "insertParagraph" => InputIntent.InsertParagraph
+      case "insertLineBreak" => InputIntent.InsertLineBreak
 
       // -----------------------------------------------------------------------------------
       // Loeschen
@@ -97,8 +97,8 @@ object BeforeInputAdapter:
 
   /** Whether an `inputType` describes something that is about to change the document.
     *
-    * Used before the ownership and readonly checks, so that a readonly editor can refuse -- with
-    * a `preventDefault` -- exactly the events that would otherwise edit its DOM, and leave
-    * everything else alone.
+    * Used before the ownership and readonly checks, so that a readonly editor can refuse -- with a
+    * `preventDefault` -- exactly the events that would otherwise edit its DOM, and leave everything
+    * else alone.
     */
   def editsDocument(inputType: String): Boolean = intentOf(inputType).editsDocument

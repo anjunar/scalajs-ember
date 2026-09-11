@@ -90,14 +90,14 @@ object TextEditing:
 
   /** Types text whose marks differ from the run at the caret.
     *
-    * The text cannot go into that run -- a run has one [[MarkSet]] for all of its text (§8.2).
-    * So the run is cut at the caret and a new one goes between the halves. Typing bold in the
-    * middle of plain text is exactly this, and it is the reason `TypingMarks` can produce a
-    * format at a caret that carries no text yet.
+    * The text cannot go into that run -- a run has one [[MarkSet]] for all of its text (§8.2). So
+    * the run is cut at the caret and a new one goes between the halves. Typing bold in the middle
+    * of plain text is exactly this, and it is the reason `TypingMarks` can produce a format at a
+    * caret that carries no text yet.
     *
-    * If the caret sits at either end, there is nothing to cut and the new run simply goes before
-    * or after. [[TextRunNormalization]] merges it back if it turns out to match its neighbour --
-    * which is what happens when the user toggles a format on and off again without typing.
+    * If the caret sits at either end, there is nothing to cut and the new run simply goes before or
+    * after. [[TextRunNormalization]] merges it back if it turns out to match its neighbour -- which
+    * is what happens when the user toggles a format on and off again without typing.
     */
   private def insertMarkedRun(
       scope: TransformScope,
@@ -225,7 +225,7 @@ object TextEditing:
       case Some(range) if atomBefore(scope.document, range.focus).isDefined =>
         val (parent, atom, index) = atomBefore(scope.document, range.focus).get
         removeAtom(scope, parent, atom, index)
-      case Some(range)                       =>
+      case Some(range) =>
         val document = scope.document
         textPositionOf(document, range.focus) match
           case None => Right(())
@@ -275,7 +275,7 @@ object TextEditing:
       case Some(range) if atomAfter(scope.document, range.focus).isDefined =>
         val (parent, atom, index) = atomAfter(scope.document, range.focus).get
         removeAtom(scope, parent, atom, index)
-      case Some(range)                       =>
+      case Some(range) =>
         val document = scope.document
         textPositionOf(document, range.focus) match
           case None => Right(())
@@ -460,16 +460,16 @@ object TextEditing:
     *
     * ==Why this is needed at all==
     *
-    * [[textPositionOf]] resolves a point to a position in a '''text run''', and an atom is not
-    * one. Without this, a Backspace behind a picture reaches past it and deletes the last
-    * character of the run in front of it -- the picture stays, and something else disappears. A
-    * browser test of the demo found exactly that.
+    * [[textPositionOf]] resolves a point to a position in a '''text run''', and an atom is not one.
+    * Without this, a Backspace behind a picture reaches past it and deletes the last character of
+    * the run in front of it -- the picture stays, and something else disappears. A browser test of
+    * the demo found exactly that.
     *
     * §22 states the requirement: "Atomare Medien sind per Tastatur erreichbar und loeschbar."
     *
-    * Two shapes of caret mean "right behind the atom": the child boundary after it, and the
-    * start of the text run that follows it. Both occur -- the first from a click on the
-    * boundary, the second from ordinary arrow navigation, which lands in text.
+    * Two shapes of caret mean "right behind the atom": the child boundary after it, and the start
+    * of the text run that follows it. Both occur -- the first from a click on the boundary, the
+    * second from ordinary arrow navigation, which lands in text.
     */
   private def atomBefore(document: DocumentRead, point: Point): Option[(NodeId, NodeId, Int)] =
     neighbours(document, point).flatMap { (parent, children, index) =>
@@ -490,8 +490,8 @@ object TextEditing:
 
   /** The caret as a position between siblings: the parent, its children, and the index.
     *
-    * A text point only counts at the very start or the very end of its run. In the middle of a
-    * run there is no neighbour to speak of -- the character next to the caret is text.
+    * A text point only counts at the very start or the very end of its run. In the middle of a run
+    * there is no neighbour to speak of -- the character next to the caret is text.
     */
   private def neighbours(
       document: DocumentRead,
@@ -514,9 +514,9 @@ object TextEditing:
   /** Removes an atom and leaves the caret where it stood.
     *
     * The caret goes to the end of the text before it, or the start of the text after it, and only
-    * falls back to the child boundary when there is neither. A boundary is a valid caret, but it
-    * is not one a person can see -- and after deleting a picture between two words the caret
-    * belongs between those words.
+    * falls back to the child boundary when there is neither. A boundary is a valid caret, but it is
+    * not one a person can see -- and after deleting a picture between two words the caret belongs
+    * between those words.
     */
   private def removeAtom(
       scope: TransformScope,
@@ -576,7 +576,10 @@ object TextEditing:
     * Without this, Backspace on a selected picture does nothing at all: [[currentRange]] sees no
     * range and every delete path returns early.
     */
-  private def deleteNodes(scope: TransformScope, selection: NodeSelection): Either[UpdateError, Unit] =
+  private def deleteNodes(
+      scope: TransformScope,
+      selection: NodeSelection
+  ): Either[UpdateError, Unit] =
     val document = scope.document
     val ordered  = selection.normalized(document).nodes.toVector
 
@@ -589,7 +592,9 @@ object TextEditing:
     )
 
     ordered
-      .foldLeft[Either[UpdateError, Unit]](Right(()))((carry, id) => carry.flatMap(_ => scope.remove(id)))
+      .foldLeft[Either[UpdateError, Unit]](Right(()))((carry, id) =>
+        carry.flatMap(_ => scope.remove(id))
+      )
       .flatMap(_ =>
         seams.foldLeft[Either[UpdateError, Unit]](Right(())) { (carry, seam) =>
           carry.flatMap(_ => healSeam(scope, seam._1, seam._2))

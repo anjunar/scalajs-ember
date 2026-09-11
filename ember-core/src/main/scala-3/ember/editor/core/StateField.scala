@@ -19,9 +19,9 @@ enum DocumentChangePolicy:
 
 /** What a history restore does with a field's value.
   *
-  * Deliberately a decision of the field, not of the history: only the field knows whether its
-  * value follows from the document -- and a history that guessed would guess wrong for exactly
-  * the fields where it matters.
+  * Deliberately a decision of the field, not of the history: only the field knows whether its value
+  * follows from the document -- and a history that guessed would guess wrong for exactly the fields
+  * where it matters.
   */
 enum HistoryRestorePolicy:
 
@@ -33,10 +33,9 @@ enum HistoryRestorePolicy:
 
 /** A field together with a value of its own type.
   *
-  * The typed way to carry "this field had this value" across a module boundary. The history
-  * holds a `Vector[FieldValue[?]]` in each snapshot; without this pair it would hold `Any` and
-  * cast on the way out -- which is the public `Map[String, Any]` that §8.1 rules out, only with
-  * extra steps.
+  * The typed way to carry "this field had this value" across a module boundary. The history holds a
+  * `Vector[FieldValue[?]]` in each snapshot; without this pair it would hold `Any` and cast on the
+  * way out -- which is the public `Map[String, Any]` that §8.1 rules out, only with extra steps.
   */
 final class FieldValue[A] private (val field: StateField[A], val value: A):
 
@@ -93,8 +92,8 @@ trait StateField[A]:
     * nothing to restore -- a derived form value is recomputed from the document that comes back
     * anyway. `TypingMarks` (P12) is the case the sentence was written for: §11 requires that
     * "Undo/Redo darf die fuer die naechste Eingabe wirksamen Marks nicht zufaellig aus der
-    * DOM-Darstellung ableiten", and a field that is not restored would leave exactly that guess
-    * as the only option.
+    * DOM-Darstellung ableiten", and a field that is not restored would leave exactly that guess as
+    * the only option.
     *
     * Declaring it costs the history one captured value per snapshot, so the default is not to.
     */
@@ -129,8 +128,8 @@ final class StateFields private (private val values: Map[StateField[?], Any]):
 
   /** Captures the fields that declare [[HistoryRestorePolicy.Restore]].
     *
-    * The cast is the same unavoidable one as in [[StateFields.initial]] and just as harmless:
-    * the value stored under a field has, by construction, that field's type.
+    * The cast is the same unavoidable one as in [[StateFields.initial]] and just as harmless: the
+    * value stored under a field has, by construction, that field's type.
     */
   def captureForHistory: Vector[FieldValue[?]] =
     values.iterator

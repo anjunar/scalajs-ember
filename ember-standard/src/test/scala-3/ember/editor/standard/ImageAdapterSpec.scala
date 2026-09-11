@@ -18,7 +18,7 @@ final class ImageAdapterSpec extends AnyFlatSpec with Matchers {
 
   private def open(image: ImageNode): EditorSession =
     val generator = NodeIdGenerator.sequential("g")
-    val resolved = ExtensionResolver
+    val resolved  = ExtensionResolver
       .resolve(Vector(RichText(generator), ImageExtension(generator, policy)))
       .getOrElse(fail("Extensions nicht aufloesbar"))
 
@@ -185,7 +185,7 @@ final class ImageAdapterSpec extends AnyFlatSpec with Matchers {
 
   private def decodeWith(src: String): Either[Vector[DecodeError], DecodeResult] =
     val editor = open(picture())
-    val text = DocumentJson
+    val text   = DocumentJson
       .encodeToString(editor.document, support)
       .getOrElse(fail("nicht kodierbar"))
       .replace("https://example.com/bild.png", src)
@@ -211,7 +211,7 @@ final class ImageAdapterSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "decode it once the application allows http" in {
-    val editor = open(picture())
+    val editor   = open(picture())
     val allowing = ImageJsonSupport.support(MediaUrlPolicy.allowingHttp) ++
       JsonSupport.of(paragraphCodec)
 
@@ -228,7 +228,7 @@ final class ImageAdapterSpec extends AnyFlatSpec with Matchers {
     // §19.2 verlangt die Pruefung von Zahlenbereichen. Ein stilles Wegwerfen erzeugte ein
     // Dokument, das vom Payload abweicht, ohne es zu sagen.
     val editor = open(picture(width = Some(640)))
-    val text = DocumentJson
+    val text   = DocumentJson
       .encodeToString(editor.document, support)
       .getOrElse(fail("nicht kodierbar"))
       .replace("\"width\":640", "\"width\":0")
@@ -239,7 +239,7 @@ final class ImageAdapterSpec extends AnyFlatSpec with Matchers {
 
   it should "not decode a fractional size" in {
     val editor = open(picture(width = Some(640)))
-    val text = DocumentJson
+    val text   = DocumentJson
       .encodeToString(editor.document, support)
       .getOrElse(fail("nicht kodierbar"))
       .replace("\"width\":640", "\"width\":1.5")

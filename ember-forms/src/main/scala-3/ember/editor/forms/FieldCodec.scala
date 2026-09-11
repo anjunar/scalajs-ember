@@ -10,14 +10,14 @@ import ember.editor.core.*
   * daher ausdruecklich `MarkdownField(profile)` oder `JsonDocumentField(schema)`."
   *
   * There is no default and no automatic fallback. A field that quietly switched formats when a
-  * document outgrew the first one would produce a form value whose meaning depends on the
-  * content -- and a server has no way to tell which it got.
+  * document outgrew the first one would produce a form value whose meaning depends on the content
+  * -- and a server has no way to tell which it got.
   *
   * ==Why encoding can fail==
   *
-  * Because the format boundary is real. A Markdown field cannot carry an underlined run, and
-  * §16 asks for that to be decided '''before''' the commit rather than reported afterwards:
-  * "Ein `ToggleUnderline` in einem Strict-CommonMark-Feld kann daher keinen kanonischen Zustand
+  * Because the format boundary is real. A Markdown field cannot carry an underlined run, and §16
+  * asks for that to be decided '''before''' the commit rather than reported afterwards: "Ein
+  * `ToggleUnderline` in einem Strict-CommonMark-Feld kann daher keinen kanonischen Zustand
   * erzeugen, dessen Formwert veraltet bleibt."
   *
   * [[EditorField]] is what makes that happen -- it is a [[StateField]] whose reducer runs this
@@ -39,14 +39,14 @@ trait FieldCodec:
     *
     * Takes the schema and the root id rather than capturing them, and that is not a detail: a
     * document built against a *different* `Schema` instance is a foreign document, and
-    * `Transaction.restore` refuses it. The only schema that can be right is the session's, and
-    * only the caller has it.
+    * `Transaction.restore` refuses it. The only schema that can be right is the session's, and only
+    * the caller has it.
     */
   def decode(source: String, schema: Schema, rootId: NodeId): Either[EditorError, Document]
 
   /** What an empty field holds. Not `""` for every format: an empty JSON field is not an empty
-    * string, it is an empty document's payload -- and a server that receives `""` cannot tell
-    * an empty document from a missing field.
+    * string, it is an empty document's payload -- and a server that receives `""` cannot tell an
+    * empty document from a missing field.
     */
   def emptyValue(schema: Schema, rootId: NodeId): String
 
@@ -57,8 +57,8 @@ object FieldError:
 
   /** The document cannot be written in this field's format.
     *
-    * Carries the diagnostics rather than a message, because §16 asks for a lossy conversion to
-    * be an '''explicit''' choice with a diagnosis, not a yes-or-no.
+    * Carries the diagnostics rather than a message, because §16 asks for a lossy conversion to be
+    * an '''explicit''' choice with a diagnosis, not a yes-or-no.
     */
   final case class NotRepresentable(codec: String, reasons: Vector[String]) extends FieldError:
     def message: String =

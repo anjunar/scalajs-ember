@@ -15,13 +15,13 @@ import org.scalatest.matchers.should.Matchers
   * ==Why this is a suite of its own==
   *
   * Because the other two ask "does it read the fragment correctly" and this one asks "can it be
-  * made to do something it should not". Those are different questions and they fail differently:
-  * a parsing bug produces wrong text, a sanitising bug produces a working attack, and only the
-  * second one is worth a suite whose every case is an attempt.
+  * made to do something it should not". Those are different questions and they fail differently: a
+  * parsing bug produces wrong text, a sanitising bug produces a working attack, and only the second
+  * one is worth a suite whose every case is an attempt.
   *
-  * §19.1 gives the list, and every test below is one line of it: "script/style/aktive Embeds
-  * werden verworfen, Eventattribute und beliebige CSS-Strings nicht uebernommen, unbekannte
-  * harmlose Wrapper werden mit erhaltenem Text aufgeloest. URLs werden nach
+  * §19.1 gives the list, and every test below is one line of it: "script/style/aktive Embeds werden
+  * verworfen, Eventattribute und beliebige CSS-Strings nicht uebernommen, unbekannte harmlose
+  * Wrapper werden mit erhaltenem Text aufgeloest. URLs werden nach
   * Entities-/Whitespace-Normalisierung durch die jeweilige Link-/Media-Policy geprueft."
   */
 final class HtmlSecuritySpec extends AnyFlatSpec with Matchers {
@@ -61,7 +61,7 @@ final class HtmlSecuritySpec extends AnyFlatSpec with Matchers {
       case Left(error)   => fail(error.render)
 
   private def collect(fragment: HtmlFragment): Vector[String] = fragment match
-    case HtmlFragment.Text(_) => Vector.empty
+    case HtmlFragment.Text(_)                          => Vector.empty
     case HtmlFragment.Element(_, attributes, children) =>
       attributes.map(a => s"${a.name}=${a.value}") ++ children.flatMap(collect)
 
@@ -70,14 +70,17 @@ final class HtmlSecuritySpec extends AnyFlatSpec with Matchers {
     result.document.inDocumentOrder.collect { case run: TextNode => run.text }.mkString
 
   private def links(html: String): Vector[String] =
-    imported(html).document.inDocumentOrder.collect { case link: LinkNode => link.url.value }.toVector
+    imported(html).document.inDocumentOrder.collect { case link: LinkNode =>
+      link.url.value
+    }.toVector
 
   private def images(html: String): Vector[String] =
-    imported(html).document.inDocumentOrder
-      .collect { case image: ImageNode => image.source.src.value }
-      .toVector
+    imported(html).document.inDocumentOrder.collect { case image: ImageNode =>
+      image.source.src.value
+    }.toVector
 
-  private def losses(html: String): String = imported(html).diagnostics.map(_.render).mkString(" | ")
+  private def losses(html: String): String =
+    imported(html).diagnostics.map(_.render).mkString(" | ")
 
   // ---------------------------------------------------------------------------------------
   // Script, Style, aktive Embeds
@@ -116,7 +119,9 @@ final class HtmlSecuritySpec extends AnyFlatSpec with Matchers {
 
   "A form" should "not bring its controls" in {
     // Not an attack by itself, but a pasted form is a paste of someone else's endpoint.
-    text("""<form action="http://x.test"><input value="x"><button>go</button></form><p>a</p>""") shouldBe
+    text(
+      """<form action="http://x.test"><input value="x"><button>go</button></form><p>a</p>"""
+    ) shouldBe
       "a"
   }
 

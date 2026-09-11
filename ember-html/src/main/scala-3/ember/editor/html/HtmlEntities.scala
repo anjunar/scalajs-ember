@@ -4,19 +4,19 @@ package ember.editor.html
   *
   * ==Why this is not shared with the Markdown module==
   *
-  * `ember-markdown` has the same table for the same reason, and the duplication is deliberate.
-  * §7 puts the two format modules side by side: neither may import the other, so a shared table
-  * would have to live in the core -- and §6 keeps the core free of format concerns ("er kennt
-  * keines der Module, die auf ihm aufbauen -- auch nicht die Formatmodule").
+  * `ember-markdown` has the same table for the same reason, and the duplication is deliberate. §7
+  * puts the two format modules side by side: neither may import the other, so a shared table would
+  * have to live in the core -- and §6 keeps the core free of format concerns ("er kennt keines der
+  * Module, die auf ihm aufbauen -- auch nicht die Formatmodule").
   *
   * Duplicated data with a stated reason beats an architectural inversion. The two tables are also
-  * not obliged to agree: CommonMark defers to the WHATWG list, and an HTML importer answers to
-  * what clipboards actually produce.
+  * not obliged to agree: CommonMark defers to the WHATWG list, and an HTML importer answers to what
+  * clipboards actually produce.
   *
   * ==Why a subset==
   *
-  * The WHATWG list has 2231 names, most of which no editor document has ever contained. Shipping
-  * it would put roughly 150 kB of table into every bundle for `&angmsdaa;` and friends.
+  * The WHATWG list has 2231 names, most of which no editor document has ever contained. Shipping it
+  * would put roughly 150 kB of table into every bundle for `&angmsdaa;` and friends.
   *
   * [[HtmlEntities.common]] is the five XML names, the Latin-1 supplement -- which is what makes
   * German, French and Scandinavian text survive a paste -- and the punctuation Word and browsers
@@ -52,65 +52,217 @@ object HtmlEntities:
 
   /** The Latin-1 supplement, U+00A0 to U+00FF, by its HTML names. */
   private val latin1 = Map(
-    "nbsp" -> " ", "iexcl" -> "¡", "cent" -> "¢", "pound" -> "£", "curren" -> "¤",
-    "yen" -> "¥", "brvbar" -> "¦", "sect" -> "§", "uml" -> "¨", "copy" -> "©",
-    "ordf" -> "ª", "laquo" -> "«", "not" -> "¬", "shy" -> "­", "reg" -> "®",
-    "macr" -> "¯", "deg" -> "°", "plusmn" -> "±", "sup2" -> "²", "sup3" -> "³",
-    "acute" -> "´", "micro" -> "µ", "para" -> "¶", "middot" -> "·", "cedil" -> "¸",
-    "sup1" -> "¹", "ordm" -> "º", "raquo" -> "»", "frac14" -> "¼", "frac12" -> "½",
-    "frac34" -> "¾", "iquest" -> "¿",
-    "Agrave" -> "À", "Aacute" -> "Á", "Acirc" -> "Â", "Atilde" -> "Ã", "Auml" -> "Ä",
-    "Aring" -> "Å", "AElig" -> "Æ", "Ccedil" -> "Ç", "Egrave" -> "È", "Eacute" -> "É",
-    "Ecirc" -> "Ê", "Euml" -> "Ë", "Igrave" -> "Ì", "Iacute" -> "Í", "Icirc" -> "Î",
-    "Iuml" -> "Ï", "ETH" -> "Ð", "Ntilde" -> "Ñ", "Ograve" -> "Ò", "Oacute" -> "Ó",
-    "Ocirc" -> "Ô", "Otilde" -> "Õ", "Ouml" -> "Ö", "times" -> "×", "Oslash" -> "Ø",
-    "Ugrave" -> "Ù", "Uacute" -> "Ú", "Ucirc" -> "Û", "Uuml" -> "Ü", "Yacute" -> "Ý",
-    "THORN" -> "Þ", "szlig" -> "ß",
-    "agrave" -> "à", "aacute" -> "á", "acirc" -> "â", "atilde" -> "ã", "auml" -> "ä",
-    "aring" -> "å", "aelig" -> "æ", "ccedil" -> "ç", "egrave" -> "è", "eacute" -> "é",
-    "ecirc" -> "ê", "euml" -> "ë", "igrave" -> "ì", "iacute" -> "í", "icirc" -> "î",
-    "iuml" -> "ï", "eth" -> "ð", "ntilde" -> "ñ", "ograve" -> "ò", "oacute" -> "ó",
-    "ocirc" -> "ô", "otilde" -> "õ", "ouml" -> "ö", "divide" -> "÷", "oslash" -> "ø",
-    "ugrave" -> "ù", "uacute" -> "ú", "ucirc" -> "û", "uuml" -> "ü", "yacute" -> "ý",
-    "thorn" -> "þ", "yuml" -> "ÿ"
+    "nbsp"   -> " ",
+    "iexcl"  -> "¡",
+    "cent"   -> "¢",
+    "pound"  -> "£",
+    "curren" -> "¤",
+    "yen"    -> "¥",
+    "brvbar" -> "¦",
+    "sect"   -> "§",
+    "uml"    -> "¨",
+    "copy"   -> "©",
+    "ordf"   -> "ª",
+    "laquo"  -> "«",
+    "not"    -> "¬",
+    "shy"    -> "­",
+    "reg"    -> "®",
+    "macr"   -> "¯",
+    "deg"    -> "°",
+    "plusmn" -> "±",
+    "sup2"   -> "²",
+    "sup3"   -> "³",
+    "acute"  -> "´",
+    "micro"  -> "µ",
+    "para"   -> "¶",
+    "middot" -> "·",
+    "cedil"  -> "¸",
+    "sup1"   -> "¹",
+    "ordm"   -> "º",
+    "raquo"  -> "»",
+    "frac14" -> "¼",
+    "frac12" -> "½",
+    "frac34" -> "¾",
+    "iquest" -> "¿",
+    "Agrave" -> "À",
+    "Aacute" -> "Á",
+    "Acirc"  -> "Â",
+    "Atilde" -> "Ã",
+    "Auml"   -> "Ä",
+    "Aring"  -> "Å",
+    "AElig"  -> "Æ",
+    "Ccedil" -> "Ç",
+    "Egrave" -> "È",
+    "Eacute" -> "É",
+    "Ecirc"  -> "Ê",
+    "Euml"   -> "Ë",
+    "Igrave" -> "Ì",
+    "Iacute" -> "Í",
+    "Icirc"  -> "Î",
+    "Iuml"   -> "Ï",
+    "ETH"    -> "Ð",
+    "Ntilde" -> "Ñ",
+    "Ograve" -> "Ò",
+    "Oacute" -> "Ó",
+    "Ocirc"  -> "Ô",
+    "Otilde" -> "Õ",
+    "Ouml"   -> "Ö",
+    "times"  -> "×",
+    "Oslash" -> "Ø",
+    "Ugrave" -> "Ù",
+    "Uacute" -> "Ú",
+    "Ucirc"  -> "Û",
+    "Uuml"   -> "Ü",
+    "Yacute" -> "Ý",
+    "THORN"  -> "Þ",
+    "szlig"  -> "ß",
+    "agrave" -> "à",
+    "aacute" -> "á",
+    "acirc"  -> "â",
+    "atilde" -> "ã",
+    "auml"   -> "ä",
+    "aring"  -> "å",
+    "aelig"  -> "æ",
+    "ccedil" -> "ç",
+    "egrave" -> "è",
+    "eacute" -> "é",
+    "ecirc"  -> "ê",
+    "euml"   -> "ë",
+    "igrave" -> "ì",
+    "iacute" -> "í",
+    "icirc"  -> "î",
+    "iuml"   -> "ï",
+    "eth"    -> "ð",
+    "ntilde" -> "ñ",
+    "ograve" -> "ò",
+    "oacute" -> "ó",
+    "ocirc"  -> "ô",
+    "otilde" -> "õ",
+    "ouml"   -> "ö",
+    "divide" -> "÷",
+    "oslash" -> "ø",
+    "ugrave" -> "ù",
+    "uacute" -> "ú",
+    "ucirc"  -> "û",
+    "uuml"   -> "ü",
+    "yacute" -> "ý",
+    "thorn"  -> "þ",
+    "yuml"   -> "ÿ"
   )
 
   /** What a word processor and a browser put on the clipboard.
     *
     * Every one of these has been seen in pasted prose. The dashes and the quotation marks are the
-    * ones that matter most -- a paste that turns an em dash into `&mdash;` is a paste nobody
-    * trusts again.
+    * ones that matter most -- a paste that turns an em dash into `&mdash;` is a paste nobody trusts
+    * again.
     */
   private val punctuation = Map(
-    "ensp" -> " ", "emsp" -> " ", "thinsp" -> " ",
-    "zwnj" -> "‌", "zwj" -> "‍", "lrm" -> "‎", "rlm" -> "‏",
-    "ndash" -> "–", "mdash" -> "—",
-    "lsquo" -> "‘", "rsquo" -> "’", "sbquo" -> "‚",
-    "ldquo" -> "“", "rdquo" -> "”", "bdquo" -> "„",
-    "dagger" -> "†", "Dagger" -> "‡", "bull" -> "•", "hellip" -> "…",
-    "permil" -> "‰", "prime" -> "′", "Prime" -> "″",
-    "lsaquo" -> "‹", "rsaquo" -> "›", "oline" -> "‾", "frasl" -> "⁄",
-    "euro" -> "€", "trade" -> "™",
-    "larr" -> "←", "uarr" -> "↑", "rarr" -> "→", "darr" -> "↓", "harr" -> "↔",
-    "minus" -> "−", "lowast" -> "∗", "radic" -> "√", "infin" -> "∞",
-    "ne" -> "≠", "le" -> "≤", "ge" -> "≥",
-    "loz" -> "◊", "spades" -> "♠", "clubs" -> "♣", "hearts" -> "♥", "diams" -> "♦",
-    "OElig" -> "Œ", "oelig" -> "œ", "Scaron" -> "Š", "scaron" -> "š", "Yuml" -> "Ÿ",
-    "fnof" -> "ƒ", "circ" -> "ˆ", "tilde" -> "˜"
+    "ensp"   -> " ",
+    "emsp"   -> " ",
+    "thinsp" -> " ",
+    "zwnj"   -> "‌",
+    "zwj"    -> "‍",
+    "lrm"    -> "‎",
+    "rlm"    -> "‏",
+    "ndash"  -> "–",
+    "mdash"  -> "—",
+    "lsquo"  -> "‘",
+    "rsquo"  -> "’",
+    "sbquo"  -> "‚",
+    "ldquo"  -> "“",
+    "rdquo"  -> "”",
+    "bdquo"  -> "„",
+    "dagger" -> "†",
+    "Dagger" -> "‡",
+    "bull"   -> "•",
+    "hellip" -> "…",
+    "permil" -> "‰",
+    "prime"  -> "′",
+    "Prime"  -> "″",
+    "lsaquo" -> "‹",
+    "rsaquo" -> "›",
+    "oline"  -> "‾",
+    "frasl"  -> "⁄",
+    "euro"   -> "€",
+    "trade"  -> "™",
+    "larr"   -> "←",
+    "uarr"   -> "↑",
+    "rarr"   -> "→",
+    "darr"   -> "↓",
+    "harr"   -> "↔",
+    "minus"  -> "−",
+    "lowast" -> "∗",
+    "radic"  -> "√",
+    "infin"  -> "∞",
+    "ne"     -> "≠",
+    "le"     -> "≤",
+    "ge"     -> "≥",
+    "loz"    -> "◊",
+    "spades" -> "♠",
+    "clubs"  -> "♣",
+    "hearts" -> "♥",
+    "diams"  -> "♦",
+    "OElig"  -> "Œ",
+    "oelig"  -> "œ",
+    "Scaron" -> "Š",
+    "scaron" -> "š",
+    "Yuml"   -> "Ÿ",
+    "fnof"   -> "ƒ",
+    "circ"   -> "ˆ",
+    "tilde"  -> "˜"
   )
 
   /** Greek letters. Word emits them for mathematics, and losing them loses the meaning. */
   private val greek = Map(
-    "Alpha" -> "Α", "Beta" -> "Β", "Gamma" -> "Γ", "Delta" -> "Δ", "Epsilon" -> "Ε",
-    "Zeta" -> "Ζ", "Eta" -> "Η", "Theta" -> "Θ", "Iota" -> "Ι", "Kappa" -> "Κ",
-    "Lambda" -> "Λ", "Mu" -> "Μ", "Nu" -> "Ν", "Xi" -> "Ξ", "Omicron" -> "Ο",
-    "Pi" -> "Π", "Rho" -> "Ρ", "Sigma" -> "Σ", "Tau" -> "Τ", "Upsilon" -> "Υ",
-    "Phi" -> "Φ", "Chi" -> "Χ", "Psi" -> "Ψ", "Omega" -> "Ω",
-    "alpha" -> "α", "beta" -> "β", "gamma" -> "γ", "delta" -> "δ", "epsilon" -> "ε",
-    "zeta" -> "ζ", "eta" -> "η", "theta" -> "θ", "iota" -> "ι", "kappa" -> "κ",
-    "lambda" -> "λ", "mu" -> "μ", "nu" -> "ν", "xi" -> "ξ", "omicron" -> "ο",
-    "pi" -> "π", "rho" -> "ρ", "sigmaf" -> "ς", "sigma" -> "σ", "tau" -> "τ",
-    "upsilon" -> "υ", "phi" -> "φ", "chi" -> "χ", "psi" -> "ψ", "omega" -> "ω"
+    "Alpha"   -> "Α",
+    "Beta"    -> "Β",
+    "Gamma"   -> "Γ",
+    "Delta"   -> "Δ",
+    "Epsilon" -> "Ε",
+    "Zeta"    -> "Ζ",
+    "Eta"     -> "Η",
+    "Theta"   -> "Θ",
+    "Iota"    -> "Ι",
+    "Kappa"   -> "Κ",
+    "Lambda"  -> "Λ",
+    "Mu"      -> "Μ",
+    "Nu"      -> "Ν",
+    "Xi"      -> "Ξ",
+    "Omicron" -> "Ο",
+    "Pi"      -> "Π",
+    "Rho"     -> "Ρ",
+    "Sigma"   -> "Σ",
+    "Tau"     -> "Τ",
+    "Upsilon" -> "Υ",
+    "Phi"     -> "Φ",
+    "Chi"     -> "Χ",
+    "Psi"     -> "Ψ",
+    "Omega"   -> "Ω",
+    "alpha"   -> "α",
+    "beta"    -> "β",
+    "gamma"   -> "γ",
+    "delta"   -> "δ",
+    "epsilon" -> "ε",
+    "zeta"    -> "ζ",
+    "eta"     -> "η",
+    "theta"   -> "θ",
+    "iota"    -> "ι",
+    "kappa"   -> "κ",
+    "lambda"  -> "λ",
+    "mu"      -> "μ",
+    "nu"      -> "ν",
+    "xi"      -> "ξ",
+    "omicron" -> "ο",
+    "pi"      -> "π",
+    "rho"     -> "ρ",
+    "sigmaf"  -> "ς",
+    "sigma"   -> "σ",
+    "tau"     -> "τ",
+    "upsilon" -> "υ",
+    "phi"     -> "φ",
+    "chi"     -> "χ",
+    "psi"     -> "ψ",
+    "omega"   -> "ω"
   )
 
   /** The default: XML, Latin-1, punctuation and Greek. */
@@ -118,9 +270,9 @@ object HtmlEntities:
 
   /** Resolves a numeric reference, decimal or hexadecimal.
     *
-    * Follows the HTML specification's replacement rules rather than rejecting: a null character
-    * and a lone surrogate become U+FFFD, and an out-of-range code point does too. Pasted HTML is
-    * full of these, and a paste that fails on one is a paste that fails.
+    * Follows the HTML specification's replacement rules rather than rejecting: a null character and
+    * a lone surrogate become U+FFFD, and an out-of-range code point does too. Pasted HTML is full
+    * of these, and a paste that fails on one is a paste that fails.
     */
   def numeric(digits: String, hexadecimal: Boolean): Option[String] =
     val radix = if hexadecimal then 16 else 10

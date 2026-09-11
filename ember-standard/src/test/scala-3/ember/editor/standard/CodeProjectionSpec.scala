@@ -16,7 +16,7 @@ final class CodeProjectionSpec extends AnyFlatSpec with Matchers {
 
   private def open(text: String = "val x = 1"): EditorSession =
     val generator = NodeIdGenerator.sequential("g")
-    val resolved = ExtensionResolver
+    val resolved  = ExtensionResolver
       .resolve(Vector(RichText(generator), CodeExtension(generator)))
       .getOrElse(fail("Extensions nicht aufloesbar"))
 
@@ -98,9 +98,9 @@ final class CodeProjectionSpec extends AnyFlatSpec with Matchers {
     html(editor) should include("language-scala")
     html(editor) should not include "highlight"
 
-    editor.document.inDocumentOrder
-      .collectFirst { case code: CodeBlockNode => code.info.meta }
-      .flatten shouldBe Some("{highlight=3-5}")
+    editor.document.inDocumentOrder.collectFirst { case code: CodeBlockNode =>
+      code.info.meta
+    }.flatten shouldBe Some("{highlight=3-5}")
   }
 
   it should "keep newlines and blank lines in the output" in {

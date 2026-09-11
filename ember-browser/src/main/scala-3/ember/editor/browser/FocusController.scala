@@ -46,10 +46,10 @@ final case class SelectionBookmark(anchor: Bookmark, focus: Bookmark, hadFocus: 
 
   /** Brings the bookmark forward to the document the mapping ends at.
     *
-    * Uses [[Bookmark.resolveOrFallback]] -- the variant that accepts the replacement boundary.
-    * Its own documentation names this case: "Fuer Aufrufer, denen eine ungefaehre Stelle genuegt
-    * -- etwa das Wiederherstellen des Fokus nach einem Dialog (§22)." An insertion may not do
-    * that; putting a caret back may.
+    * Uses [[Bookmark.resolveOrFallback]] -- the variant that accepts the replacement boundary. Its
+    * own documentation names this case: "Fuer Aufrufer, denen eine ungefaehre Stelle genuegt --
+    * etwa das Wiederherstellen des Fokus nach einem Dialog (§22)." An insertion may not do that;
+    * putting a caret back may.
     */
   def resolve(mapping: RevisionMapping): Either[ExpiredBookmark, RangeSelection] =
     for
@@ -70,9 +70,9 @@ object SelectionBookmark:
 /** When focus may be moved, as a rule rather than as a sequence of calls.
   *
   * The interesting half is negative, and it is the one §22 spends its sentence on: a background
-  * update must not take the focus, and neither must a dialog that was never given it. Getting
-  * this wrong is not a visual glitch -- it moves the keyboard away from wherever someone was
-  * actually typing.
+  * update must not take the focus, and neither must a dialog that was never given it. Getting this
+  * wrong is not a visual glitch -- it moves the keyboard away from wherever someone was actually
+  * typing.
   */
 object FocusPolicy:
 
@@ -82,8 +82,8 @@ object FocusPolicy:
       focusWithin: Boolean,
       focusable: Boolean
   ): Boolean =
-    if focusWithin then false          // already here; moving it again would only scroll
-    else if !focusable then false      // §22: focusability is a separate decision from editability
+    if focusWithin then false     // already here; moving it again would only scroll
+    else if !focusable then false // §22: focusability is a separate decision from editability
     else
       intent match
         case FocusIntent.SelectionOnly => false
@@ -92,8 +92,8 @@ object FocusPolicy:
 
   /** Which write intent a restore implies.
     *
-    * A restore that is allowed to take the focus writes the selection whether or not the focus
-    * has arrived yet; one that is not may only write into a host that is already focused.
+    * A restore that is allowed to take the focus writes the selection whether or not the focus has
+    * arrived yet; one that is not may only write into a host that is already focused.
     */
   def writeIntent(takesFocus: Boolean): WriteIntent =
     if takesFocus then WriteIntent.Explicit else WriteIntent.FollowFocus
@@ -103,9 +103,9 @@ object FocusPolicy:
   * ==Why this is not part of the port==
   *
   * Because "put the selection back without taking the focus" has to be sayable. A toolbar that
-  * formats the selected text needs exactly that: the selection survives, the focus goes back to
-  * the text, and neither implies the other. Folding focus into [[SelectionPort.write]] would make
-  * every write a focus decision, and the port would then have to guess which one.
+  * formats the selected text needs exactly that: the selection survives, the focus goes back to the
+  * text, and neither implies the other. Folding focus into [[SelectionPort.write]] would make every
+  * write a focus decision, and the port would then have to guess which one.
   *
   * ==What it observes==
   *
@@ -122,9 +122,9 @@ final class FocusController private (
 
   private var focusIn: js.Function1[dom.Event, Unit]  = null
   private var focusOut: js.Function1[dom.Event, Unit] = null
-  private var listeners = Vector.empty[(Long, Boolean => Unit)]
-  private var nextHandle = 0L
-  private var disposedFlag = false
+  private var listeners                               = Vector.empty[(Long, Boolean => Unit)]
+  private var nextHandle                              = 0L
+  private var disposedFlag                            = false
 
   def scope: BrowserScope = port.scope
 
@@ -147,14 +147,13 @@ final class FocusController private (
 
   /** Puts a remembered selection back, and the focus with it if the rule allows.
     *
-    * The order matters: focus first, then the selection. A host that takes focus with no
-    * selection in it gets one from the browser -- usually the start of its content -- and writing
-    * afterwards replaces that. Writing first and focusing after would show the browser's guess
-    * for one frame.
+    * The order matters: focus first, then the selection. A host that takes focus with no selection
+    * in it gets one from the browser -- usually the start of its content -- and writing afterwards
+    * replaces that. Writing first and focusing after would show the browser's guess for one frame.
     */
   def restore(bookmark: SelectionBookmark, intent: FocusIntent): RestoreOutcome =
     session.mappingSince(bookmark.revision).flatMap(bookmark.resolve) match
-      case Left(expired) => RestoreOutcome.Expired(expired)
+      case Left(expired)    => RestoreOutcome.Expired(expired)
       case Right(selection) =>
         val takesFocus =
           FocusPolicy.mayTakeFocus(intent, bookmark.hadFocus, focusWithin, scope.focusable)
@@ -174,7 +173,7 @@ final class FocusController private (
   def attach(): Unit =
     if !disposedFlag && focusIn == null then
       val entering: js.Function1[dom.Event, Unit] = _ => announce(true)
-      val leaving: js.Function1[dom.Event, Unit] = _ =>
+      val leaving: js.Function1[dom.Event, Unit]  = _ =>
         // `focusout` fires before the new element is active, so asking now would always say
         // "gone". One turn later the document knows where the focus actually went -- and it may
         // well be another element inside the same host.

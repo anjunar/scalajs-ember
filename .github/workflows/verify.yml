@@ -9,11 +9,9 @@ jobs:
   scala:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      # Der Kern und rich-text sind headless. Sie brauchen weder Browser noch das Nachbar-Repo
-      # -- dieser Job muss deshalb auch dann gruen sein, wenn scalajs-ui gerade nicht
-      # auscheckbar waere.
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@v5
+      # Der Kern und rich-text sind headless und unabhaengig vom scalajs-ui-Repository.
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '21'
@@ -27,22 +25,16 @@ jobs:
   browser:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      # Die Integrationsanwendung haengt als Quell-Abhaengigkeit an scalajs-ui. Ohne das
-      # Nachbar-Repo laesst sie sich nicht linken -- deshalb ein eigener Job, damit ein
-      # Problem dort nicht die headless Gates mitreisst.
-      - name: Nachbar-Repo auschecken
-        uses: actions/checkout@v4
-        with:
-          repository: anjunar/scalajs-ui
-          path: ../scalajs-ui
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@v5
+      # Die Integrationsanwendung verwendet das veroeffentlichte scalajs-ui-core-Artefakt.
+      # Ein Checkout des frueher benoetigten Nachbar-Repos ist deshalb nicht erforderlich.
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '21'
           cache: sbt
       - uses: sbt/setup-sbt@v1
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: '22'
       - name: Anwendung linken

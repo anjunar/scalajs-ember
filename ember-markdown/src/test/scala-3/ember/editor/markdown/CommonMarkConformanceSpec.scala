@@ -7,24 +7,24 @@ import org.scalatest.matchers.should.Matchers
   *
   * ==What this suite can claim and what it cannot==
   *
-  * P17s risk line is blunt: "Keine behauptete vollstaendige CommonMark-Konformitaet aus
-  * einfachen Happy-Path-Tests." So this suite claims nothing. It measures three things, and
-  * each is a different kind of statement:
+  * P17s risk line is blunt: "Keine behauptete vollstaendige CommonMark-Konformitaet aus einfachen
+  * Happy-Path-Tests." So this suite claims nothing. It measures three things, and each is a
+  * different kind of statement:
   *
-  *   1. '''Robustness.''' All 652 examples parse, within the default limits, without an
-  *      exception. That is a real property and it holds today.
-  *   2. '''Well-formed spans.''' Every span of every parse lies inside its parent's and inside
-  *      the source. §18.2 asks for source maps; a source map with a span pointing outside its
-  *      block is worse than none.
-  *   3. '''Coverage, as a number.''' How many examples the parser reproduces byte for byte.
-  *      That number is the "tatsaechlich getestete Teilmenge" of §18.1 -- and because it is
-  *      asserted exactly and not as a lower bound, neither a regression nor an improvement can
-  *      pass unnoticed.
+  *   1. '''Robustness.''' All 652 examples parse, within the default limits, without an exception.
+  *      That is a real property and it holds today.
+  *   2. '''Well-formed spans.''' Every span of every parse lies inside its parent's and inside the
+  *      source. §18.2 asks for source maps; a source map with a span pointing outside its block is
+  *      worse than none.
+  *   3. '''Coverage, as a number.''' How many examples the parser reproduces byte for byte. That
+  *      number is the "tatsaechlich getestete Teilmenge" of §18.1 -- and because it is asserted
+  *      exactly and not as a lower bound, neither a regression nor an improvement can pass
+  *      unnoticed.
   *
-  * After P18 the number is 651 of 652, and the one that is left is not an accident: it uses
-  * named character references the default [[EntityTable]] deliberately does not carry. Swapping
-  * in a fuller table is one line of application code; shipping 2231 names in every browser
-  * bundle is not something a library should decide for its users.
+  * After P18 the number is 651 of 652, and the one that is left is not an accident: it uses named
+  * character references the default [[EntityTable]] deliberately does not carry. Swapping in a
+  * fuller table is one line of application code; shipping 2231 names in every browser bundle is not
+  * something a library should decide for its users.
   */
 final class CommonMarkConformanceSpec extends AnyFlatSpec with Matchers {
 
@@ -46,11 +46,13 @@ final class CommonMarkConformanceSpec extends AnyFlatSpec with Matchers {
   private def outcomeOf(example: SpecExample): Outcome =
     try
       Markdown.parseSyntax(example.markdown) match
-        case Left(error) => Outcome.Refused(error)
+        case Left(error)   => Outcome.Refused(error)
         case Right(result) =>
           val rendered = ConformanceHtml.render(result.document)
           if rendered == example.html then Outcome.Matches else Outcome.Differs(rendered)
-    catch case failure: Throwable => Outcome.Threw(s"${failure.getClass.getName}: ${failure.getMessage}")
+    catch
+      case failure: Throwable =>
+        Outcome.Threw(s"${failure.getClass.getName}: ${failure.getMessage}")
 
   // ---------------------------------------------------------------------------------------
   // Die Suite selbst
@@ -106,10 +108,12 @@ final class CommonMarkConformanceSpec extends AnyFlatSpec with Matchers {
             Option.when(span.start < 0 || span.end > source.length)(
               s"#${example.number}: ${span.render} liegt ausserhalb von 0..${source.length}"
             ),
-            Option.when(span.end < span.start)(s"#${example.number}: ${span.render} laeuft rueckwaerts"),
-            parent.filterNot(_.containsSpan(span)).map(outer =>
-              s"#${example.number}: ${span.render} liegt nicht in ${outer.render}"
-            )
+            Option.when(span.end < span.start)(
+              s"#${example.number}: ${span.render} laeuft rueckwaerts"
+            ),
+            parent
+              .filterNot(_.containsSpan(span))
+              .map(outer => s"#${example.number}: ${span.render} liegt nicht in ${outer.render}")
           ).flatten
 
           here ++ block.children.flatMap(check(_, Some(span)))

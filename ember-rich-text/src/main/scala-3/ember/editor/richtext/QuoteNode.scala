@@ -6,13 +6,13 @@ import ember.editor.core.*
   *
   * ==The difference from a paragraph, and why it matters here==
   *
-  * §8.2 states the schema rule: "ein Paragraph enthaelt Inline-Inhalte, eine Liste ListItems,
-  * ein ListItem Blockinhalte." A quote belongs to the third kind -- it wraps whole blocks, so a
-  * quote can contain several paragraphs, and later a list or a nested quote.
+  * §8.2 states the schema rule: "ein Paragraph enthaelt Inline-Inhalte, eine Liste ListItems, ein
+  * ListItem Blockinhalte." A quote belongs to the third kind -- it wraps whole blocks, so a quote
+  * can contain several paragraphs, and later a list or a nested quote.
   *
-  * That single fact decides how quoting works: it is not a property one sets on a paragraph, it
-  * is a container one puts paragraphs into. `Unquote` takes them back out again, which is why
-  * both commands move children rather than replacing a node.
+  * That single fact decides how quoting works: it is not a property one sets on a paragraph, it is
+  * a container one puts paragraphs into. `Unquote` takes them back out again, which is why both
+  * commands move children rather than replacing a node.
   */
 final case class QuoteNode(id: NodeId, children: Vector[NodeId]) extends ElementNode
 

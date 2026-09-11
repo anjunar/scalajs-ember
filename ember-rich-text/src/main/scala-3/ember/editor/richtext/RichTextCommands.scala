@@ -7,14 +7,14 @@ import ember.editor.core.*
   * ==What they have in common==
   *
   * Every one of them works on the *block containing the caret*, not on the caret's run. Finding
-  * that block is the only shared piece of work, and it is the reason this file exists as
-  * something other than four unrelated functions.
+  * that block is the only shared piece of work, and it is the reason this file exists as something
+  * other than four unrelated functions.
   *
   * ==What they deliberately do not do==
   *
   * They do not touch the DOM, and they do not decide how a heading looks. A command changes the
-  * document; what an `h2` renders as is `ember-standard`'s answer, and it is a different answer
-  * for SSR, for the editor and for Markdown.
+  * document; what an `h2` renders as is `ember-standard`'s answer, and it is a different answer for
+  * SSR, for the editor and for Markdown.
   */
 object BlockFormatting:
 
@@ -22,32 +22,32 @@ object BlockFormatting:
     *
     * ==Why replace and not rekey==
     *
-    * The block keeps its ID and its children; only its type changes. `Operation.Replace` is
-    * exactly that operation -- "Ersetzt den Inhalt eines Knotens unter Beibehaltung von
-    * Identitaet und Kindern" -- so points inside the block survive untouched. Removing the old
-    * block and inserting a new one would move every child and invalidate every bookmark in it.
+    * The block keeps its ID and its children; only its type changes. `Operation.Replace` is exactly
+    * that operation -- "Ersetzt den Inhalt eines Knotens unter Beibehaltung von Identitaet und
+    * Kindern" -- so points inside the block survive untouched. Removing the old block and inserting
+    * a new one would move every child and invalidate every bookmark in it.
     */
   def setHeading(
       scope: TransformScope,
       level: Option[HeadingLevel]
   ): Either[UpdateError, Unit] =
     blockAtCaret(scope) match
-      case None => Right(())
+      case None        => Right(())
       case Some(block) =>
         (scope.document.node(block), level) match
           case (Some(heading: HeadingNode), Some(wanted)) if heading.level == wanted => Right(())
-          case (Some(element: ElementNode), Some(wanted)) =>
+          case (Some(element: ElementNode), Some(wanted))                            =>
             scope.replace(block, HeadingNode(block, element.children, wanted))
-          case (Some(_: ParagraphNode), None) => Right(())
+          case (Some(_: ParagraphNode), None)     => Right(())
           case (Some(element: ElementNode), None) =>
             scope.replace(block, ParagraphNode(block, element.children))
           case _ => Right(())
 
   /** Wraps the block at the caret in a quote.
     *
-    * A quote holds blocks (§8.2), so this inserts a container and moves the block into it --
-    * it does not change the block's type. Quoting an already quoted block nests it, which is
-    * what every editor does and what Markdown writes as `>>`.
+    * A quote holds blocks (§8.2), so this inserts a container and moves the block into it -- it
+    * does not change the block's type. Quoting an already quoted block nests it, which is what
+    * every editor does and what Markdown writes as `>>`.
     */
   def quote(
       scope: TransformScope,
@@ -58,7 +58,7 @@ object BlockFormatting:
       container <- scope.document.parentOf(block)
       index     <- scope.document.indexOfChild(block)
     yield (block, container, index)) match
-      case None => Right(())
+      case None                            => Right(())
       case Some((block, container, index)) =>
         val quoteId = generator.nextFor(scope.document)
         for
@@ -80,7 +80,7 @@ object BlockFormatting:
       container <- scope.document.parentOf(quoteId)
       index     <- scope.document.indexOfChild(quoteId)
     yield (block, quoteId, container, index)) match
-      case None => Right(())
+      case None                                     => Right(())
       case Some((block, quoteId, container, index)) =>
         for
           _ <- scope.move(block, container, index)
@@ -95,8 +95,8 @@ object BlockFormatting:
   /** Inserts a break at the caret, splitting the run around it.
     *
     * The caret lands *after* the break, on the second half -- that is where the next character
-    * belongs. A break at the very end of a run leaves no second half, so one is created: a
-    * caret has to stand somewhere, and a child position after an atom is not a text position.
+    * belongs. A break at the very end of a run leaves no second half, so one is created: a caret
+    * has to stand somewhere, and a child position after an atom is not a text position.
     */
   def insertBreak(
       scope: TransformScope,
@@ -109,7 +109,7 @@ object BlockFormatting:
       block          <- scope.document.parentOf(node)
       index          <- scope.document.indexOfChild(node)
     yield (node, offset, block, index)) match
-      case None => Right(())
+      case None                               => Right(())
       case Some((node, offset, block, index)) =>
         val run     = textOf(scope.document, node)
         val breakId = generator.nextFor(scope.document)
@@ -133,11 +133,12 @@ object BlockFormatting:
       block: NodeId,
       index: Int
   ): Either[UpdateError, Unit] =
-    scope.document.childrenOf(block).lift(index).flatMap(id =>
-      scope.document.node(id).collect { case run: TextNode => run }
-    ) match
+    scope.document
+      .childrenOf(block)
+      .lift(index)
+      .flatMap(id => scope.document.node(id).collect { case run: TextNode => run }) match
       case Some(run) => scope.select(RangeSelection.caret(Point.textBefore(run.id, 0)))
-      case None =>
+      case None      =>
         val created = generator.nextFor(scope.document)
         for
           _ <- scope.insert(block, index, TextNode(created, ""))
@@ -146,10 +147,9 @@ object BlockFormatting:
 
   /** Inserts a thematic break as a sibling of the block at the caret.
     *
-    * Block level, so it goes next to the block and not into it (see [[ThematicBreakNode]]). It
-    * is inserted *after* the current block, and the caret stays where it was: the rule is a
-    * divider between what was written and what comes next, and the author is still writing the
-    * first part.
+    * Block level, so it goes next to the block and not into it (see [[ThematicBreakNode]]). It is
+    * inserted *after* the current block, and the caret stays where it was: the rule is a divider
+    * between what was written and what comes next, and the author is still writing the first part.
     */
   def insertThematicBreak(
       scope: TransformScope,
@@ -160,7 +160,7 @@ object BlockFormatting:
       container <- scope.document.parentOf(block)
       index     <- scope.document.indexOfChild(block)
     yield (container, index)) match
-      case None => Right(())
+      case None                     => Right(())
       case Some((container, index)) =>
         scope.insert(container, index + 1, ThematicBreakNode(generator.nextFor(scope.document)))
 
@@ -170,12 +170,12 @@ object BlockFormatting:
 
   /** The block the caret is in: the parent of the run it stands on.
     *
-    * A caret on a child position is its own owner's business -- that happens in an empty block,
-    * and then the block *is* the owner.
+    * A caret on a child position is its own owner's business -- that happens in an empty block, and
+    * then the block *is* the owner.
     */
   private[richtext] def blockAtCaret(scope: TransformScope): Option[NodeId] =
     caretOf(scope).flatMap {
-      case Point.Text(node, _, _)     => scope.document.parentOf(node)
+      case Point.Text(node, _, _)       => scope.document.parentOf(node)
       case Point.Children(parent, _, _) => Some(parent)
     }
 

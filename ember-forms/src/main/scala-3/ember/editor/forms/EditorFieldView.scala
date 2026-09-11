@@ -22,23 +22,22 @@ import ui.core.render.Cursor
   * sichtbar, benannt, fokussierbar und normal submitbar", and after activation there remains
   * "'''genau ein''' erfolgreiches benanntes Formularfeld". Both halves constrain this component:
   *
-  *   - The '''same''' textarea serves both modes. It is hidden in the rich mode, never
-  *     `disabled` -- a disabled control submits nothing, and then the form would have no value
-  *     at all.
+  *   - The '''same''' textarea serves both modes. It is hidden in the rich mode, never `disabled`
+  *     -- a disabled control submits nothing, and then the form would have no value at all.
   *   - The preview carries no form name. §16: "Der Editor-Host hat keinen konkurrierenden
   *     Formularnamen."
   *
   * ==Without JavaScript==
   *
   * Rendered server-side, this is a labelled textarea holding the source, inside a form the
-  * application built. It submits, the server answers, and §16 leaves preview and validation to
-  * the normal POST/Redirect/GET. Nothing here invents an endpoint.
+  * application built. It submits, the server answers, and §16 leaves preview and validation to the
+  * normal POST/Redirect/GET. Nothing here invents an endpoint.
   *
   * ==Cost, stated rather than hidden==
   *
-  * §16: "Formatadapter koennen unveraenderte Blockausgaben cachen; das Materialisieren/Zuweisen
-  * des vollstaendigen Formularstrings kostet dennoch mindestens dessen Laenge. Diese Kosten
-  * werden getrennt von Core-/Projection-Lokalitaet gemessen und nicht als O(1) dargestellt."
+  * §16: "Formatadapter koennen unveraenderte Blockausgaben cachen; das Materialisieren/Zuweisen des
+  * vollstaendigen Formularstrings kostet dennoch mindestens dessen Laenge. Diese Kosten werden
+  * getrennt von Core-/Projection-Lokalitaet gemessen und nicht als O(1) dargestellt."
   *
   * So: a keystroke touches a handful of components in the projection (P09 measures that), and
   * '''also''' re-encodes the whole document into a string. The second cost is linear in the
@@ -65,8 +64,8 @@ final class EditorFieldView(
   /** Whether the local claim came through. A rebuild sets it to `false` (§17.3). */
   private var claimed = true
 
-  private var sourceImported = false
-  private var lastFailure: Option[String] = None
+  private var sourceImported                                 = false
+  private var lastFailure: Option[String]                    = None
   private var boundary: HydrationBoundary[HydrationSnapshot] = null
 
   /** The textarea, once composed. For a caller that drives focus or selection. */
@@ -129,9 +128,9 @@ final class EditorFieldView(
 
   /** Reads the fallback before anything claims it.
     *
-    * §17.2 puts this '''before the first claim''': the live `value`, the selection and the
-    * focus, not the attribute. A user who typed before the script ran changed `value`; the
-    * attribute still holds what the server sent, and reading it would discard their input.
+    * §17.2 puts this '''before the first claim''': the live `value`, the selection and the focus,
+    * not the attribute. A user who typed before the script ran changed `value`; the attribute still
+    * holds what the server sent, and reading it would discard their input.
     *
     * It reads the '''textarea''', although the boundary hands over the preview host. That is
     * deliberate, and it is why the fallback sits outside: the thing worth rescuing must not be
@@ -195,7 +194,7 @@ final class EditorFieldView(
       case Some(value) =>
         binding.enterSource() match
           case Left(error) => Left(error)
-          case Right(_) =>
+          case Right(_)    =>
             setDraft(value.sourceValue)
             binding.applyDraft() match
               case Right(_) =>
@@ -210,9 +209,9 @@ final class EditorFieldView(
 
   /** Hides the textarea, because the rich view has taken over.
     *
-    * §16 puts this after activation, and the order is the whole no-JavaScript contract:
-    * "Die Textarea ist ohne JavaScript sichtbar, benannt, fokussierbar und normal submitbar",
-    * and only "nach erfolgreicher Aktivierung ... wird sie fuer die Rich-Ansicht verborgen".
+    * §16 puts this after activation, and the order is the whole no-JavaScript contract: "Die
+    * Textarea ist ohne JavaScript sichtbar, benannt, fokussierbar und normal submitbar", and only
+    * "nach erfolgreicher Aktivierung ... wird sie fuer die Rich-Ansicht verborgen".
     *
     * So a server-rendered field shows its textarea. Hiding it at render time would mean a page
     * without JavaScript had a form nobody could fill in -- which a browser test found, and a
@@ -234,9 +233,9 @@ final class EditorFieldView(
 
   /** Sets the draft programmatically, textarea included.
     *
-    * The difference to [[EditorFormBinding.editDraft]] matters: that one changes the model, and
-    * the textarea would keep the old string. The next [[captureDraft]] would then read the old
-    * string back and quietly undo the change -- which is exactly what a browser test found.
+    * The difference to [[EditorFormBinding.editDraft]] matters: that one changes the model, and the
+    * textarea would keep the old string. The next [[captureDraft]] would then read the old string
+    * back and quietly undo the change -- which is exactly what a browser test found.
     */
   def setDraft(text: String, selection: Option[SourceSelection] = None): Unit =
     binding.editDraft(text, selection)

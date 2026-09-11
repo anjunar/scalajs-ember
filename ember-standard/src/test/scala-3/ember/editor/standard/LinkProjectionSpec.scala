@@ -17,7 +17,7 @@ final class LinkProjectionSpec extends AnyFlatSpec with Matchers {
 
   private def open(): EditorSession =
     val generator = NodeIdGenerator.sequential("g")
-    val resolved = ExtensionResolver
+    val resolved  = ExtensionResolver
       .resolve(Vector(RichText(generator), LinkExtension(generator, policy)))
       .getOrElse(fail("Extensions nicht aufloesbar"))
 

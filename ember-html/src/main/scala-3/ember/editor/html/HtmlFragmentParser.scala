@@ -4,9 +4,8 @@ import scala.collection.mutable
 
 /** Why a fragment could not be read at all.
   *
-  * The same shape the Markdown module uses for the same situation, and for the same reason: a
-  * limit is not a diagnosis. A diagnosis says what was lost from a result; this says there is no
-  * result.
+  * The same shape the Markdown module uses for the same situation, and for the same reason: a limit
+  * is not a diagnosis. A diagnosis says what was lost from a result; this says there is no result.
   */
 enum HtmlParseError:
 
@@ -26,8 +25,8 @@ final case class HtmlParseResult(
   *
   * ==Sanitising happens here, not afterwards==
   *
-  * §19.1 describes `HtmlFragment` as carrying "typisierte zulaessige Attribute" -- so a fragment
-  * is already the safe form, and there is no moment at which an unsafe one exists. That is not a
+  * §19.1 describes `HtmlFragment` as carrying "typisierte zulaessige Attribute" -- so a fragment is
+  * already the safe form, and there is no moment at which an unsafe one exists. That is not a
   * convenience: a two-step design ("parse everything, clean it later") has a window in which the
   * dangerous version is a value that something else could read, and every such window has
   * eventually been walked through.
@@ -41,10 +40,10 @@ final case class HtmlParseResult(
   *   1. '''Void elements never get children.''' `<br>`, `<img>`, `<hr>` -- written with a slash,
   *      without one, closed or not. All four spellings occur and all four mean the same.
   *   1. '''A close tag that matches something open closes through to it.''' `<b><i>x</b>` closes
-  *      the `<i>` too. A browser reopens the `<i>` afterwards (the adoption agency algorithm);
-  *      this does not, and the difference is one formatting boundary in a rare shape.
-  *   1. '''A close tag that matches nothing open is ignored.''' `</div>` at the start of a
-  *      fragment copied from the middle of a page. Treating it as text would paste `</div>`.
+  *      the `<i>` too. A browser reopens the `<i>` afterwards (the adoption agency algorithm); this
+  *      does not, and the difference is one formatting boundary in a rare shape.
+  *   1. '''A close tag that matches nothing open is ignored.''' `</div>` at the start of a fragment
+  *      copied from the middle of a page. Treating it as text would paste `</div>`.
   *   1. '''Some tags close their own kind.''' `<p>` closes an open `<p>`, `<li>` an open `<li>`.
   *      Word emits unclosed `<p>` and `<li>` constantly.
   *
@@ -54,8 +53,22 @@ final case class HtmlParseResult(
 object HtmlFragmentParser:
 
   /** Elements that cannot contain anything. */
-  val voidTags: Set[String] = Set("area", "base", "br", "col", "embed", "hr", "img", "input",
-    "link", "meta", "param", "source", "track", "wbr")
+  val voidTags: Set[String] = Set(
+    "area",
+    "base",
+    "br",
+    "col",
+    "embed",
+    "hr",
+    "img",
+    "input",
+    "link",
+    "meta",
+    "param",
+    "source",
+    "track",
+    "wbr"
+  )
 
   /** Which tags an open tag implicitly closes.
     *
@@ -63,17 +76,26 @@ object HtmlFragmentParser:
     * tree construction, and §19.1 declines that claim.
     */
   private val closes: Map[String, Set[String]] = Map(
-    "p"  -> Set("p"),
-    "li" -> Set("li"),
-    "dt" -> Set("dt", "dd"),
-    "dd" -> Set("dt", "dd"),
-    "tr" -> Set("tr", "td", "th"),
-    "td" -> Set("td", "th"),
-    "th" -> Set("td", "th"),
-    "h1" -> Set("p"), "h2" -> Set("p"), "h3" -> Set("p"),
-    "h4" -> Set("p"), "h5" -> Set("p"), "h6" -> Set("p"),
-    "ul" -> Set("p"), "ol" -> Set("p"), "blockquote" -> Set("p"), "pre" -> Set("p"),
-    "div" -> Set("p"), "table" -> Set("p"), "hr" -> Set("p")
+    "p"          -> Set("p"),
+    "li"         -> Set("li"),
+    "dt"         -> Set("dt", "dd"),
+    "dd"         -> Set("dt", "dd"),
+    "tr"         -> Set("tr", "td", "th"),
+    "td"         -> Set("td", "th"),
+    "th"         -> Set("td", "th"),
+    "h1"         -> Set("p"),
+    "h2"         -> Set("p"),
+    "h3"         -> Set("p"),
+    "h4"         -> Set("p"),
+    "h5"         -> Set("p"),
+    "h6"         -> Set("p"),
+    "ul"         -> Set("p"),
+    "ol"         -> Set("p"),
+    "blockquote" -> Set("p"),
+    "pre"        -> Set("p"),
+    "div"        -> Set("p"),
+    "table"      -> Set("p"),
+    "hr"         -> Set("p")
   )
 
   def parse(
@@ -81,16 +103,18 @@ object HtmlFragmentParser:
       policy: HtmlImportPolicy = HtmlImportPolicy.default
   ): Either[HtmlParseError, HtmlParseResult] =
     if html.length > policy.limits.maxSourceChars then
-      Left(HtmlParseError.LimitExceeded("maxSourceChars", policy.limits.maxSourceChars, html.length))
+      Left(
+        HtmlParseError.LimitExceeded("maxSourceChars", policy.limits.maxSourceChars, html.length)
+      )
     else build(HtmlTokenizer.tokenize(html, policy.entities), policy)
 
   def build(
       tokens: Vector[HtmlToken],
       policy: HtmlImportPolicy
   ): Either[HtmlParseError, HtmlParseResult] =
-    val roots       = mutable.ArrayBuffer.empty[HtmlFragment]
-    val diagnostics = mutable.ArrayBuffer.empty[HtmlDiagnostic]
-    var nodes       = 0
+    val roots                            = mutable.ArrayBuffer.empty[HtmlFragment]
+    val diagnostics                      = mutable.ArrayBuffer.empty[HtmlDiagnostic]
+    var nodes                            = 0
     var overflow: Option[HtmlParseError] = None
 
     /** One element being built. `kept = false` means it and its children are being discarded. */
@@ -126,7 +150,7 @@ object HtmlFragmentParser:
       raw.flatMap { (name, value) =>
         policy.attribute(name, value) match
           case Right(attribute) => Some(attribute)
-          case Left(reason) =>
+          case Left(reason)     =>
             if reason != HtmlImportPolicy.Silent then
               diagnostics += HtmlDiagnostic(HtmlLoss.DroppedAttribute, s"<$tag $name>: $reason")
             None
@@ -140,7 +164,8 @@ object HtmlFragmentParser:
 
           case HtmlToken.Open(tag, raw, selfClosing) =>
             closes.get(tag).foreach { implied =>
-              if stack.nonEmpty && implied.contains(stack.last.tag) then closeThrough(stack.last.tag)
+              if stack.nonEmpty && implied.contains(stack.last.tag) then
+                closeThrough(stack.last.tag)
             }
 
             val kept = !policy.drops(tag)

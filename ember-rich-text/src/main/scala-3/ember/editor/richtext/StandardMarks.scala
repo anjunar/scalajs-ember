@@ -5,20 +5,20 @@ import ember.editor.core.*
 /** The built-in text marks of the rich-text profile.
   *
   * §8.2 names exactly these five: "Built-ins: Strong, Emphasis, Underline, Strike, InlineCode."
-  * They are case objects, not strings -- a mark's identity is its type, and its `MarkId` is a
-  * wire name, not a dispatch key (§8.1).
+  * They are case objects, not strings -- a mark's identity is its type, and its `MarkId` is a wire
+  * name, not a dispatch key (§8.1).
   *
   * ==Why they carry no data==
   *
   * [[TextMark]] allows payload -- a language tag, a comment reference. None of these five needs
   * any: "strong" is not strong *in some way*. §8.2 rules out arbitrary CSS strings as a document
-  * format, and a payload-free mark is the shortest way to make that impossible rather than
-  * merely discouraged.
+  * format, and a payload-free mark is the shortest way to make that impossible rather than merely
+  * discouraged.
   *
   * ==Links are not here==
   *
-  * §8.2: "Links sind Inline-Container, keine Text-Mark." A link has children and a target; a
-  * mark has neither. P14 builds it as a node.
+  * §8.2: "Links sind Inline-Container, keine Text-Mark." A link has children and a target; a mark
+  * has neither. P14 builds it as a node.
   */
 object StandardMarks:
 
@@ -55,11 +55,11 @@ object StandardMarks:
     *
     * ==Why InlineCode is exclusive==
     *
-    * Not for taste. `InlineCode` says "this text is not prose, render it verbatim", and every
-    * other mark says something about prose. Markdown has no way to write bold inside a code
-    * span -- backticks make their content literal, asterisks included -- so a run carrying both
-    * would be a document that §18 cannot export without loss. Deciding it here, once, is
-    * cheaper than a lossy diagnostic in every writer.
+    * Not for taste. `InlineCode` says "this text is not prose, render it verbatim", and every other
+    * mark says something about prose. Markdown has no way to write bold inside a code span --
+    * backticks make their content literal, asterisks included -- so a run carrying both would be a
+    * document that §18 cannot export without loss. Deciding it here, once, is cheaper than a lossy
+    * diagnostic in every writer.
     *
     * The rule works in both directions: code displaces the others, and any other mark displaces
     * code. Neither wins by being applied second.

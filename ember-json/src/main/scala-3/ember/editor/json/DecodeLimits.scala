@@ -4,22 +4,21 @@ import ember.editor.core.*
 
 /** Obergrenzen fuer das Dekodieren fremder Payloads.
   *
-  * §19.2: "Decode prueft Typen, Zahlenbereiche, Limits, doppelte IDs, referenzielle Integritaet
-  * und Schema, bevor eine Session oder View entsteht."
+  * §19.2: "Decode prueft Typen, Zahlenbereiche, Limits, doppelte IDs, referenzielle Integritaet und
+  * Schema, bevor eine Session oder View entsteht."
   *
   * ==Warum ueberhaupt Grenzen==
   *
   * Ein Dokument kommt aus dem Netz, aus der Zwischenablage oder aus einem Formularfeld. Ohne
-  * Grenzen entscheidet der Absender, wie viel Speicher und Rechenzeit der Empfaenger aufwendet
-  * -- und zwar bevor irgendeine fachliche Pruefung greift. Die Werte hier sind bewusst
-  * grosszuegig fuer echte Dokumente und knapp gegenueber dem, was ein Angreifer schickt.
+  * Grenzen entscheidet der Absender, wie viel Speicher und Rechenzeit der Empfaenger aufwendet --
+  * und zwar bevor irgendeine fachliche Pruefung greift. Die Werte hier sind bewusst grosszuegig
+  * fuer echte Dokumente und knapp gegenueber dem, was ein Angreifer schickt.
   *
-  * Sie sind ein Wert, keine Konstante: eine Anwendung, die 200 000 Knoten braucht, setzt sie
-  * hoch und weiss dann, dass sie es getan hat.
+  * Sie sind ein Wert, keine Konstante: eine Anwendung, die 200 000 Knoten braucht, setzt sie hoch
+  * und weiss dann, dass sie es getan hat.
   *
   * @param maxSourceChars
-  *   Laenge des Quelltexts. Wird '''vor''' dem Parsen geprueft -- danach steht der Speicher
-  *   schon.
+  *   Laenge des Quelltexts. Wird '''vor''' dem Parsen geprueft -- danach steht der Speicher schon.
   * @param maxJsonDepth
   *   Schachtelungstiefe des JSON-Werts. Schuetzt die Konvertierung, die rekursiv laeuft.
   * @param maxArrayLength
@@ -53,8 +52,8 @@ object DecodeLimits:
 
 /** Was mit einem Knoten geschieht, dessen Typ das Schema nicht kennt.
   *
-  * §19.2 laesst genau zwei Moeglichkeiten zu, und die zweite muss ausdruecklich gewaehlt
-  * werden: "Unbekannte Daten werden nur mit expliziter Policy erhalten."
+  * §19.2 laesst genau zwei Moeglichkeiten zu, und die zweite muss ausdruecklich gewaehlt werden:
+  * "Unbekannte Daten werden nur mit expliziter Policy erhalten."
   */
 enum UnknownNodePolicy:
 
@@ -63,23 +62,22 @@ enum UnknownNodePolicy:
 
   /** Als [[UnsupportedNode]] erhalten.
     *
-    * Der Payload ueberlebt einen Roundtrip unveraendert. Er wird '''nicht''' interpretiert:
-    * kein Code, kein HTML, kein automatisch deserialisiertes Objekt -- nur der begrenzte
-    * JSON-Wert und ein Textfallback (§19.2).
+    * Der Payload ueberlebt einen Roundtrip unveraendert. Er wird '''nicht''' interpretiert: kein
+    * Code, kein HTML, kein automatisch deserialisiertes Objekt -- nur der begrenzte JSON-Wert und
+    * ein Textfallback (§19.2).
     */
   case Preserve
 
 /** Ein Hinweis, der das Dekodieren nicht verhindert hat.
   *
   * Getrennt von [[DecodeError]], weil der Unterschied fuer den Aufrufer zaehlt: ein Fehler
-  * bedeutet, dass kein Dokument entstanden ist, eine Diagnose, dass eines entstand und etwas
-  * daran bemerkenswert ist.
+  * bedeutet, dass kein Dokument entstanden ist, eine Diagnose, dass eines entstand und etwas daran
+  * bemerkenswert ist.
   */
 final case class DecodeDiagnostic(message: String, path: DiagnosticPath):
   def render: String = s"${path.render}: $message"
 
-/** Ein Fehlschlag beim Dekodieren. Geschlossen -- die Faelle sind eine Eigenschaft des
-  * Formats.
+/** Ein Fehlschlag beim Dekodieren. Geschlossen -- die Faelle sind eine Eigenschaft des Formats.
   */
 sealed trait DecodeError extends EditorError
 
@@ -146,9 +144,9 @@ object DecodeError:
 
   /** Das dekodierte Dokument verletzt die Invarianten aus §8.2.
     *
-    * Der eigentliche Befund steht in [[violations]] -- referenzielle Integritaet, Zyklen,
-    * mehrfache Eltern und Schemakonformitaet prueft der Kern, nicht dieses Modul. Ein zweiter
-    * Validator hier waere eine zweite Wahrheit ueber dieselbe Frage.
+    * Der eigentliche Befund steht in [[violations]] -- referenzielle Integritaet, Zyklen, mehrfache
+    * Eltern und Schemakonformitaet prueft der Kern, nicht dieses Modul. Ein zweiter Validator hier
+    * waere eine zweite Wahrheit ueber dieselbe Frage.
     */
   final case class InvalidDocument(violations: Vector[Violation]) extends DecodeError:
     def message: String =

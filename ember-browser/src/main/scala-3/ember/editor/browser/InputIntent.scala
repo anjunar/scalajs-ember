@@ -34,19 +34,19 @@ enum TransferKind:
   *
   * ==Why a separate vocabulary==
   *
-  * Because `inputType` is a string from a specification that is still a Working Draft (§15.2),
-  * and because the same intent arrives by several routes: `insertText` from typing,
-  * `insertReplacementText` from autocorrect, `insertFromPaste` from the clipboard. Handling
-  * strings at the call site would spread the specification's spelling through the editor and make
-  * every route a separate case.
+  * Because `inputType` is a string from a specification that is still a Working Draft (§15.2), and
+  * because the same intent arrives by several routes: `insertText` from typing,
+  * `insertReplacementText` from autocorrect, `insertFromPaste` from the clipboard. Handling strings
+  * at the call site would spread the specification's spelling through the editor and make every
+  * route a separate case.
   *
   * ==Why it is not a command==
   *
-  * A command belongs to a feature module. §7 forbids `ember-browser` from importing one, and it
-  * is the right rule: a profile without lists has no meaning for `insertUnorderedList`, and one
+  * A command belongs to a feature module. §7 forbids `ember-browser` from importing one, and it is
+  * the right rule: a profile without lists has no meaning for `insertUnorderedList`, and one
   * without bold has none for `formatBold`. The intent says what happened; an [[InputBindings]]
-  * decides whether this editor has an answer. No binding means no take-over, which means the
-  * event stays native -- exactly what §15.2 asks for.
+  * decides whether this editor has an answer. No binding means no take-over, which means the event
+  * stays native -- exactly what §15.2 asks for.
   */
 enum InputIntent:
 
@@ -77,9 +77,9 @@ enum InputIntent:
 
   /** Whether acting on this would change the document.
     *
-    * The question a readonly editor asks. §22: "Readonly-Policy verhindert auch
-    * programmgesteuerte User-Editing-Commands" -- and refusing has to be '''deliberate''', with a
-    * `preventDefault`, or the browser edits the DOM behind a model that said no.
+    * The question a readonly editor asks. §22: "Readonly-Policy verhindert auch programmgesteuerte
+    * User-Editing-Commands" -- and refusing has to be '''deliberate''', with a `preventDefault`, or
+    * the browser edits the DOM behind a model that said no.
     */
   def editsDocument: Boolean = this match
     case Unknown(_) => false
@@ -88,11 +88,12 @@ enum InputIntent:
 /** Maps browser intents to dispatches on a session.
   *
   * A partial function, and that is the whole design: where it is not defined, this editor has no
-  * answer for that intent, and the controller leaves the event native instead of swallowing it.
-  * An editor without lists is not an editor that breaks on `insertUnorderedList`; it is one that
-  * lets the browser do whatever it would have done and imports the result.
+  * answer for that intent, and the controller leaves the event native instead of swallowing it. An
+  * editor without lists is not an editor that breaks on `insertUnorderedList`; it is one that lets
+  * the browser do whatever it would have done and imports the result.
   */
-type InputBinding = PartialFunction[InputIntent, EditorSession => Either[UpdateError, DispatchOutcome]]
+type InputBinding =
+  PartialFunction[InputIntent, EditorSession => Either[UpdateError, DispatchOutcome]]
 
 /** The bindings an editor has, in order.
   *
@@ -106,15 +107,17 @@ final class InputBindings private (val bindings: Vector[InputBinding]):
   /** Every binding that answers this intent, in order.
     *
     * All of them, not the first: a binding whose command reports `Pass` has '''not''' taken the
-    * intent, and the next one must get its turn. §12 says that about commands -- "Nicht
-    * zustaendig. Der naechste Handler kommt dran" -- and a binding layer that stopped at the
-    * first match would break the rule one level up.
+    * intent, and the next one must get its turn. §12 says that about commands -- "Nicht zustaendig.
+    * Der naechste Handler kommt dran" -- and a binding layer that stopped at the first match would
+    * break the rule one level up.
     *
     * The case that showed it: Tab indents a code line or a list item, and those are two different
     * commands. Stopping at the first would mean Tab in a list leaves the editor, because the code
     * command passed and nobody looked further.
     */
-  def resolveAll(intent: InputIntent): Vector[EditorSession => Either[UpdateError, DispatchOutcome]] =
+  def resolveAll(
+      intent: InputIntent
+  ): Vector[EditorSession => Either[UpdateError, DispatchOutcome]] =
     bindings.collect { case binding if binding.isDefinedAt(intent) => binding(intent) }
 
   def resolve(intent: InputIntent): Option[EditorSession => Either[UpdateError, DispatchOutcome]] =

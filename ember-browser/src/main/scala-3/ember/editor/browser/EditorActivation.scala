@@ -4,12 +4,12 @@ import ember.editor.core.*
 
 /** What the editor may do after hydration, and why it may not do it yet.
   *
-  * §17 step 6: "Nach lokal vollstaendig erfolgreichem Claim '''und''' aeusserem
-  * Hydration-Abschluss werden Controller und `contenteditable` aktiviert."
+  * §17 step 6: "Nach lokal vollstaendig erfolgreichem Claim '''und''' aeusserem Hydration-Abschluss
+  * werden Controller und `contenteditable` aktiviert."
   *
-  * Two conditions, not one. A boundary can claim its own subtree successfully while the page
-  * around it is still hydrating, and activating then would put a live editor next to markup that
-  * is still being adopted.
+  * Two conditions, not one. A boundary can claim its own subtree successfully while the page around
+  * it is still hydrating, and activating then would put a live editor next to markup that is still
+  * being adopted.
   */
 enum ActivationState:
 
@@ -20,8 +20,8 @@ enum ActivationState:
     *
     * The two reasons are different and both matter:
     *
-    *   - a composition is running, or the field was already focused and one '''might''' be
-    *     (§17.2, §17.6);
+    *   - a composition is running, or the field was already focused and one '''might''' be (§17.2,
+    *     §17.6);
     *   - the source was edited before the script ran and has not been imported yet (§17.4).
     */
   case Deferred(reason: DeferralReason)
@@ -69,8 +69,8 @@ enum DeferralReason:
   *
   * So this is pure, and the object that owns the lifecycle calls it whenever something moves.
   * "Wiederholtes Enhancement" is then idempotent by construction (§17's deviation table asks for
-  * exactly that): asking twice with the same inputs gives the same answer, and the caller acts
-  * only on a change.
+  * exactly that): asking twice with the same inputs gives the same answer, and the caller acts only
+  * on a change.
   */
 object EditorActivation:
 
@@ -81,8 +81,8 @@ object EditorActivation:
     * @param snapshot
     *   what was captured before the first claim, if this field had a source control.
     * @param servedSource
-    *   what the server rendered into the textarea. Compared against the snapshot to see whether
-    *   the user got there first.
+    *   what the server rendered into the textarea. Compared against the snapshot to see whether the
+    *   user got there first.
     * @param sourceImported
     *   whether a differing source has since been parsed and projected (§17.4).
     */
@@ -109,8 +109,8 @@ object EditorActivation:
     * uebersetzte Selection mit entsprechender Richtung in die Rich-Ansicht uebernommen werden.
     * Ansonsten keine Fokus-/Selection-Schreibaktion."
     *
-    * The negative half is the one that costs something to get wrong: an editor that focuses
-    * itself on load steals focus from wherever the user actually was.
+    * The negative half is the one that costs something to get wrong: an editor that focuses itself
+    * on load steals focus from wherever the user actually was.
     */
   def mayRestoreSelection(snapshot: Option[HydrationSnapshot]): Boolean =
     snapshot.exists(_.focused)

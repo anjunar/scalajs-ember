@@ -87,9 +87,9 @@ object TestCodecs:
 
   /** Ein Codec in Version 2, der Version 1 weiterhin liest.
     *
-    * In Version 1 hiess das Feld `caption`, seit Version 2 `label`. Damit laesst sich pruefen,
-    * dass die Codec-Version tatsaechlich beim Codec ankommt -- und dass sie nichts mit der
-    * Formatversion zu tun hat (§19.2).
+    * In Version 1 hiess das Feld `caption`, seit Version 2 `label`. Damit laesst sich pruefen, dass
+    * die Codec-Version tatsaechlich beim Codec ankommt -- und dass sie nichts mit der Formatversion
+    * zu tun hat (§19.2).
     */
   val blockV2: NodeJsonCodec[BlockNode] = new NodeJsonCodec[BlockNode]:
     val nodeType: NodeType[BlockNode] = BlockNode

@@ -13,28 +13,28 @@ import scala.util.matching.Regex
   *
   * The rules worth naming, because they are the ones nobody derives correctly from scratch:
   *
-  *   - '''Flanking.''' Whether a run of `*` or `_` can open or close depends on the characters
-  *     on both sides being whitespace, punctuation or neither. `_` is stricter than `*`, which
-  *     is what stops `snake_case_words` from becoming emphasis.
-  *   - '''The rule of three.''' When a closer can also open (or an opener can also close), a
-  *     pair whose lengths sum to a multiple of three is refused. Without it `*foo**bar**baz*`
-  *     nests wrongly.
-  *   - '''`openersBottom`.''' Fourteen separate lower bounds, indexed by delimiter character,
-  *     by whether the closer can also open, and by the opener length modulo three. This is what
-  *     keeps a pathological run of delimiters linear instead of quadratic -- P18's risk line
-  *     names "langsame Delimiterfaelle" and this is the answer to it.
+  *   - '''Flanking.''' Whether a run of `*` or `_` can open or close depends on the characters on
+  *     both sides being whitespace, punctuation or neither. `_` is stricter than `*`, which is what
+  *     stops `snake_case_words` from becoming emphasis.
+  *   - '''The rule of three.''' When a closer can also open (or an opener can also close), a pair
+  *     whose lengths sum to a multiple of three is refused. Without it `*foo**bar**baz*` nests
+  *     wrongly.
+  *   - '''`openersBottom`.''' Fourteen separate lower bounds, indexed by delimiter character, by
+  *     whether the closer can also open, and by the opener length modulo three. This is what keeps
+  *     a pathological run of delimiters linear instead of quadratic -- P18's risk line names
+  *     "langsame Delimiterfaelle" and this is the answer to it.
   *   - '''Links deactivate outer link openers.''' A link may not contain a link, and the check
   *     happens when the inner one closes, not when the outer one opens.
   *
   * ==What this port does differently==
   *
   *   - '''Offsets.''' Every inline node carries a [[SourceSpan]], which the reference does not
-  *     track at all below the block level. §18.2 asks for source maps, and P19b's source view
-  *     needs them down to the delimiter.
-  *   - '''No smart punctuation.''' The reference has an option that turns quotes into curly
-  *     quotes and `--` into dashes. It is off here and there is no switch: §18.2 asks for a
-  *     round trip that preserves semantics, and rewriting the author's punctuation is a change
-  *     of content, not of formatting.
+  *     track at all below the block level. §18.2 asks for source maps, and P19b's source view needs
+  *     them down to the delimiter.
+  *   - '''No smart punctuation.''' The reference has an option that turns quotes into curly quotes
+  *     and `--` into dashes. It is off here and there is no switch: §18.2 asks for a round trip
+  *     that preserves semantics, and rewriting the author's punctuation is a change of content, not
+  *     of formatting.
   *   - '''A named entity subset.''' See [[EntityTable]].
   *   - '''A step budget.''' Shared with the block parser through [[ParseLimits]].
   */
@@ -61,8 +61,8 @@ private[markdown] final class InlineParser(
   /** Parses one block's inline content.
     *
     * `content` is the block's accumulated text; `offsetOf` maps a position inside it back to an
-    * absolute source offset. The two differ because block parsing strips markers -- the `> ` of
-    * a quote, the indentation of a list item -- so the content is not a slice of the source.
+    * absolute source offset. The two differ because block parsing strips markers -- the `> ` of a
+    * quote, the indentation of a list item -- so the content is not a slice of the source.
     */
   def parse(content: String, offsetOf: Int => Int): Vector[MarkdownInline] =
     subject = content
@@ -141,17 +141,17 @@ private[markdown] final class InlineParser(
     if c == -1 then false
     else
       val startPos = pos
-      val handled = c.toChar match
-        case '\n'       => parseNewline()
-        case '\\'       => parseBackslash()
-        case '`'        => parseBackticks()
-        case '*' | '_'  => handleDelimiter(c.toChar)
-        case '['        => parseOpenBracket()
-        case '!'        => parseBang()
-        case ']'        => parseCloseBracket()
-        case '<'        => parseAutolink() || parseHtmlTag()
-        case '&'        => parseEntity()
-        case _          => parseString()
+      val handled  = c.toChar match
+        case '\n'      => parseNewline()
+        case '\\'      => parseBackslash()
+        case '`'       => parseBackticks()
+        case '*' | '_' => handleDelimiter(c.toChar)
+        case '['       => parseOpenBracket()
+        case '!'       => parseBang()
+        case ']'       => parseCloseBracket()
+        case '<'       => parseAutolink() || parseHtmlTag()
+        case '&'       => parseEntity()
+        case _         => parseString()
 
       if !handled then
         pos += 1
@@ -181,7 +181,9 @@ private[markdown] final class InlineParser(
         isHard
       case _ => false
 
-    append(new InlineSlot(if hard then SlotKind.HardBreak else SlotKind.SoftBreak, start, pos)): Unit
+    append(
+      new InlineSlot(if hard then SlotKind.HardBreak else SlotKind.SoftBreak, start, pos)
+    ): Unit
     // Fuehrenden Leerraum der naechsten Zeile schlucken.
     matchAt(InitialSpaces): Unit
     true
@@ -204,7 +206,7 @@ private[markdown] final class InlineParser(
   private def parseBackticks(): Boolean =
     val start = pos
     matchAt(TicksHere) match
-      case None => false
+      case None        => false
       case Some(ticks) =>
         val afterOpen = pos
         var found     = false
@@ -276,7 +278,7 @@ private[markdown] final class InlineParser(
   private def parseEntity(): Boolean =
     val start = pos
     matchAt(EntityHere) match
-      case None => false
+      case None        => false
       case Some(found) =>
         decodeEntity(found, profile.entities) match
           case Some(value) =>
@@ -321,8 +323,10 @@ private[markdown] final class InlineParser(
 
       val (canOpen, canClose) =
         if char == '_' then
-          (leftFlanking && (!rightFlanking || beforeIsPunctuation),
-           rightFlanking && (!leftFlanking || afterIsPunctuation))
+          (
+            leftFlanking && (!rightFlanking || beforeIsPunctuation),
+            rightFlanking && (!leftFlanking || afterIsPunctuation)
+          )
         else (leftFlanking, rightFlanking)
 
       pos = startPos
@@ -330,7 +334,7 @@ private[markdown] final class InlineParser(
 
   private def handleDelimiter(char: Char): Boolean =
     scanDelimiters(char) match
-      case None => false
+      case None                             => false
       case Some((count, canOpen, canClose)) =>
         val startPos = pos
         pos += count
@@ -348,7 +352,7 @@ private[markdown] final class InlineParser(
             next = null
           )
           delimiters match
-            case null            => ()
+            case null                => ()
             case previous: Delimiter => previous.next = entry
           delimiters = entry
 
@@ -356,18 +360,18 @@ private[markdown] final class InlineParser(
 
   private def removeDelimiter(entry: Delimiter): Unit =
     entry.previous match
-      case null                 => ()
-      case before: Delimiter    => before.next = entry.next
+      case null              => ()
+      case before: Delimiter => before.next = entry.next
     entry.next match
-      case null              => delimiters = entry.previous
-      case after: Delimiter  => after.previous = entry.previous
+      case null             => delimiters = entry.previous
+      case after: Delimiter => after.previous = entry.previous
 
   /** Pairs openers with closers and wraps what lies between them.
     *
-    * `openersBottom` is the part that is easy to leave out and expensive to leave out: without
-    * it, a run like `*a *b *c *d …` re-scans the whole stack for every closer. With it, each
-    * of the fourteen classes remembers how far back it is worth looking, and the scan stays
-    * linear. P18's risk line calls this "langsame Delimiterfaelle".
+    * `openersBottom` is the part that is easy to leave out and expensive to leave out: without it,
+    * a run like `*a *b *c *d …` re-scans the whole stack for every closer. With it, each of the
+    * fourteen classes remembers how far back it is worth looking, and the scan stays linear. P18's
+    * risk line calls this "langsame Delimiterfaelle".
     */
   private def processEmphasis(stackBottom: Delimiter | Null): Unit =
     val openersBottom = Array.fill[Delimiter | Null](14)(stackBottom)
@@ -397,7 +401,7 @@ private[markdown] final class InlineParser(
           // nicht -- wenn eine der beiden Seiten auch die andere Rolle spielen koennte.
           val oddMatch =
             (current.canOpen || candidate.canClose) &&
-              current.originalCount % 3 != 0 &&
+              current.originalCount                             % 3 != 0 &&
               (candidate.originalCount + current.originalCount) % 3 == 0
 
           if candidate.char == current.char && candidate.canOpen && !oddMatch then
@@ -408,8 +412,8 @@ private[markdown] final class InlineParser(
 
         if !openerFound then closer = current.next
         else
-          val open  = opener.asInstanceOf[Delimiter]
-          val used  = if current.count >= 2 && open.count >= 2 then 2 else 1
+          val open = opener.asInstanceOf[Delimiter]
+          val used = if current.count >= 2 && open.count >= 2 then 2 else 1
 
           open.count -= used
           current.count -= used
@@ -444,18 +448,20 @@ private[markdown] final class InlineParser(
     *
     * ==Why this has to search recursively==
     *
-    * Because a delimiter can outlive the move that put its text inside a link. When a `]`
-    * closes, the reference moves everything after the opener '''into''' the new link node and
-    * only then runs `processEmphasis` over the delimiters that were pushed since -- their text
-    * nodes are now children of the link. A linked list does not care: `unlink` and `insertAfter`
-    * work wherever a node sits.
+    * Because a delimiter can outlive the move that put its text inside a link. When a `]` closes,
+    * the reference moves everything after the opener '''into''' the new link node and only then
+    * runs `processEmphasis` over the delimiters that were pushed since -- their text nodes are now
+    * children of the link. A linked list does not care: `unlink` and `insertAfter` work wherever a
+    * node sits.
     *
-    * A flat buffer does care, and getting this wrong is not a crash. It is `[*a*](/url)`
-    * silently losing its emphasis, which is exactly the shape of bug a conformance count finds
-    * and a hand-written test does not.
+    * A flat buffer does care, and getting this wrong is not a crash. It is `[*a*](/url)` silently
+    * losing its emphasis, which is exactly the shape of bug a conformance count finds and a
+    * hand-written test does not.
     */
   private def locate(text: PendingText): Option[(mutable.ArrayBuffer[InlineSlot], Int)] =
-    def search(buffer: mutable.ArrayBuffer[InlineSlot]): Option[(mutable.ArrayBuffer[InlineSlot], Int)] =
+    def search(
+        buffer: mutable.ArrayBuffer[InlineSlot]
+    ): Option[(mutable.ArrayBuffer[InlineSlot], Int)] =
       val index = buffer.indexWhere(slot => (slot.text eq text) && !slot.removed)
       if index >= 0 then Some((buffer, index))
       else buffer.iterator.map(slot => search(slot.children)).collectFirst { case Some(hit) => hit }
@@ -508,9 +514,10 @@ private[markdown] final class InlineParser(
 
   private def addBracket(node: PendingText, index: Int, isImage: Boolean): Unit =
     brackets match
-      case null              => ()
-      case open: Bracket     => open.bracketAfter = true
-    brackets = new Bracket(node, brackets, delimiters, index, isImage, active = true, bracketAfter = false)
+      case null          => ()
+      case open: Bracket => open.bracketAfter = true
+    brackets =
+      new Bracket(node, brackets, delimiters, index, isImage, active = true, bracketAfter = false)
 
   private def removeBracket(): Unit =
     brackets = brackets.asInstanceOf[Bracket].previous
@@ -530,7 +537,7 @@ private[markdown] final class InlineParser(
         removeBracket()
         true
       case opener: Bracket =>
-        val savedPos = pos
+        val savedPos                      = pos
         var target: Option[LinkReference] = None
 
         // Inline: `](/url "Titel")`
@@ -541,7 +548,7 @@ private[markdown] final class InlineParser(
             case Some(destination) =>
               spnl(): Unit
               val beforeTitle = pos
-              val title =
+              val title       =
                 if beforeTitle > 0 && isWhitespaceChar(subject.charAt(beforeTitle - 1)) then
                   parseLinkTitle()
                 else None
@@ -556,7 +563,7 @@ private[markdown] final class InlineParser(
         if target.isEmpty then
           val beforeLabel = pos
           val consumed    = parseLinkLabel()
-          val label =
+          val label       =
             if consumed > 2 then Some(subject.substring(beforeLabel, beforeLabel + consumed))
             else if !opener.bracketAfter then
               Some(subject.substring(opener.index - 1, bracketStart + 1))
@@ -609,7 +616,7 @@ private[markdown] final class InlineParser(
       case Some(found) =>
         Some(normaliseUri(unescapeString(found.substring(1, found.length - 1), profile.entities)))
       case None if peek() == '<'.toInt => None
-      case None =>
+      case None                        =>
         val savedPos   = pos
         var openParens = 0
         var running    = true
@@ -641,7 +648,7 @@ private[markdown] final class InlineParser(
   private def parseLinkLabel(): Int =
     matchAt(LinkLabel) match
       case Some(found) if found.length <= 1001 => found.length
-      case Some(found) =>
+      case Some(found)                         =>
         pos -= found.length
         0
       case None => 0
@@ -689,7 +696,7 @@ private[markdown] final class InlineParser(
     spnl(): Unit
     val destination = parseLinkDestination() match
       case Some(found) => found
-      case None =>
+      case None        =>
         pos = startPos
         return 0
 
@@ -723,12 +730,12 @@ private[markdown] final class InlineParser(
 private[markdown] object InlineParser:
 
   // Die Muster der Vorlage. Wie im Blockparser unveraendert uebernommen und einzeln geprueft.
-  val Main: Regex          = raw"""[^\n`\[\]\\!<&*_'"]+""".r
-  val TicksHere: Regex     = raw"""`+""".r
-  val EntityHere: Regex    = raw"""(?i)&(?:#x[a-f0-9]{1,6}|#[0-9]{1,7}|[a-z][a-z0-9]{1,31});""".r
-  val FinalSpaces: Regex   = raw""" *$$""".r
-  val InitialSpaces: Regex = raw"""^ *""".r
-  val SpaceNewline: Regex  = raw""" *(?:\n *)?""".r
+  val Main: Regex             = raw"""[^\n`\[\]\\!<&*_'"]+""".r
+  val TicksHere: Regex        = raw"""`+""".r
+  val EntityHere: Regex       = raw"""(?i)&(?:#x[a-f0-9]{1,6}|#[0-9]{1,7}|[a-z][a-z0-9]{1,31});""".r
+  val FinalSpaces: Regex      = raw""" *$$""".r
+  val InitialSpaces: Regex    = raw"""^ *""".r
+  val SpaceNewline: Regex     = raw""" *(?:\n *)?""".r
   val SpaceAtEndOfLine: Regex = raw""" *(?:\n|$$)""".r
 
   val LinkTitle: Regex =
@@ -736,8 +743,8 @@ private[markdown] object InlineParser:
 
   val LinkDestinationBraces: Regex = raw"""(?:<(?:[^<>\n\\\x00]|\\.)*>)""".r
 
-  /** At most 1000 characters between the brackets, per the specification. `(?s)` because a
-    * label may span lines.
+  /** At most 1000 characters between the brackets, per the specification. `(?s)` because a label
+    * may span lines.
     */
   val LinkLabel: Regex = raw"""(?s)\[(?:[^\\\[\]]|\\.){0,1000}\]""".r
 
@@ -747,8 +754,8 @@ private[markdown] object InlineParser:
 
   val Autolink: Regex = raw"""(?i)<[A-Za-z][A-Za-z0-9.+-]{1,31}:[^<>\x00-\x20]*>""".r
 
-  private val TagName       = raw"""[A-Za-z][A-Za-z0-9-]*"""
-  private val AttributeName = raw"""[a-zA-Z_:][a-zA-Z0-9:._-]*"""
+  private val TagName        = raw"""[A-Za-z][A-Za-z0-9-]*"""
+  private val AttributeName  = raw"""[a-zA-Z_:][a-zA-Z0-9:._-]*"""
   private val AttributeValue =
     raw"""(?:[^"'=<>`\x00-\x20]+|'[^']*'|"[^"]*")"""
   private val Attribute =
@@ -776,9 +783,9 @@ private[markdown] object InlineParser:
   /** Unicode punctuation, as the flanking rules need it.
     *
     * ASCII punctuation plus the general categories the specification names. `Character.getType`
-    * gives them directly, which is shorter and more correct than the reference's regular
-    * expression -- that one enumerates ranges by hand because JavaScript had no property
-    * escapes when it was written.
+    * gives them directly, which is shorter and more correct than the reference's regular expression
+    * -- that one enumerates ranges by hand because JavaScript had no property escapes when it was
+    * written.
     */
   def isPunctuation(c: Char): Boolean =
     if c < 128 then !c.isLetterOrDigit && !c.isWhitespace && c > ' '
@@ -795,9 +802,9 @@ private[markdown] object InlineParser:
   /** Backslash escapes '''and''' character references.
     *
     * Both, because CommonMark resolves both in a link destination, a link title and a fenced
-    * block's info string -- those are not inline content and never reach the inline parser's
-    * own entity handling. `[link](foo%20b&auml;)` has to arrive as `foo%20b%C3%A4`, and it only
-    * does if the entity is decoded before the URI is normalised.
+    * block's info string -- those are not inline content and never reach the inline parser's own
+    * entity handling. `[link](foo%20b&auml;)` has to arrive as `foo%20b%C3%A4`, and it only does if
+    * the entity is decoded before the URI is normalised.
     */
   def unescapeString(text: String, entities: EntityTable): String =
     if text.indexOf('\\') < 0 && text.indexOf('&') < 0 then text
@@ -846,10 +853,10 @@ private[markdown] object InlineParser:
 
   /** Percent-encodes what a URL may not contain literally.
     *
-    * The reference calls out to `mdurl`. Reimplemented here rather than pulled in, for the
-    * reason §6 gives this module no dependencies at all -- and because the rule is short: leave
-    * an existing valid escape alone, leave the unreserved and reserved sets alone, encode the
-    * rest as UTF-8 bytes.
+    * The reference calls out to `mdurl`. Reimplemented here rather than pulled in, for the reason
+    * §6 gives this module no dependencies at all -- and because the rule is short: leave an
+    * existing valid escape alone, leave the unreserved and reserved sets alone, encode the rest as
+    * UTF-8 bytes.
     */
   def normaliseUri(uri: String): String =
     val out = new StringBuilder(uri.length)
@@ -882,8 +889,8 @@ private[markdown] object InlineParser:
     *
     * Unreserved plus reserved per RFC 3986, '''minus''' `[` and `]`. Those two are reserved for
     * IPv6 literals in the authority and are encoded anywhere else -- which is what makes
-    * `<https://example.com/?search=](uri)>` come out with `%5D` instead of a bracket that would
-    * end the link for the next reader of the source.
+    * `<https://example.com/?search=](uri)>` come out with `%5D` instead of a bracket that would end
+    * the link for the next reader of the source.
     */
   private val UriSafe: Set[Char] =
     (('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9')).toSet ++ "-_.~!*'();:@&=+$,/?#".toSet

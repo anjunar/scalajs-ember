@@ -6,12 +6,12 @@ package ember.editor.core
   *
   * §10 requires that transforms read only the draft and have no DOM or network side effects.
   * Documentation that merely claims as much would be weak -- this type makes it a matter of
-  * construction: there is no `setSelection` here, no `dispatch` and no field access, so a
-  * transform cannot quietly grow a normalisation into a selection change or a command cascade.
+  * construction: there is no `setSelection` here, no `dispatch` and no field access, so a transform
+  * cannot quietly grow a normalisation into a selection change or a command cascade.
   *
   * Command handlers get the same access. They may set the selection through the corresponding
-  * primitive, but trigger no further dispatch -- a command chain that extends itself is exactly
-  * the hidden reentrancy §10 rules out.
+  * primitive, but trigger no further dispatch -- a command chain that extends itself is exactly the
+  * hidden reentrancy §10 rules out.
   */
 final class TransformScope private[core] (private val transaction: Transaction):
 
@@ -49,8 +49,8 @@ final class TransformScope private[core] (private val transaction: Transaction):
 
   /** Was the Ausloeser over this Transaktion gesagt has (§14).
     *
-    * A Handler, dessen Verhalten von the Herkunft abhaengt -- History is the Case, for the
-    * it gebaut was --, braucht sie; raten can he sie not.
+    * A Handler, dessen Verhalten von the Herkunft abhaengt -- History is the Case, for the it
+    * gebaut was --, braucht sie; raten can he sie not.
     */
   def meta: TransactionMeta = transaction.meta
 
@@ -80,9 +80,8 @@ final class TransformScope private[core] (private val transaction: Transaction):
 
 /** Wann a Transform relativ to the anderen runs.
   *
-  * Within a Phase entscheiden Abhaengigkeitsordnung and then Registrierungsreihenfolge
-  * (§10). Drei Stufen genuegen; who more braucht, has vermutlich a Abhaengigkeit, the he besser
-  * deklariert.
+  * Within a Phase entscheiden Abhaengigkeitsordnung and then Registrierungsreihenfolge (§10). Drei
+  * Stufen genuegen; who more braucht, has vermutlich a Abhaengigkeit, the he besser deklariert.
   */
 enum TransformPhase:
 
@@ -99,17 +98,17 @@ enum TransformPhase:
   *
   * ==Wozu, and warum not in a Listener==
   *
-  * §3.2: Transforms stellen Invarianten her, '''before''' etwas sichtbar is -- statt a Kaskade
-  * from Listener-Updates auszuloesen, bei the each Zwischenstand short gilt. The Zusammenwachsen
+  * §3.2: Transforms stellen Invarianten her, '''before''' etwas sichtbar is -- statt a Kaskade from
+  * Listener-Updates auszuloesen, bei the each Zwischenstand short gilt. The Zusammenwachsen
   * getrennter Textlaeufe after the Entformatieren (§8.2, P12) is the Musterfall: it gehoert in
   * dieselbe Transaktion, not in a spaeteren DOM-Cleanup and not in a eigene Undo-Stufe.
   *
   * ==The Vertrag==
   *
-  *   - '''Idempotent.''' A zweiter Lauf on demselben Node aendert nothing more. Ohne the is
-  *     it no Fixpunkt, and the Arbeitsbudget schlaegt to.
-  *   - '''Nur the Entwurf.''' No DOM, no Netz, no Seiteneffekte -- the Kandidat can
-  *     unmittelbar then verworfen become.
+  *   - '''Idempotent.''' A zweiter Lauf on demselben Node aendert nothing more. Ohne the is it no
+  *     Fixpunkt, and the Arbeitsbudget schlaegt to.
+  *   - '''Nur the Entwurf.''' No DOM, no Netz, no Seiteneffekte -- the Kandidat can unmittelbar
+  *     then verworfen become.
   *   - '''Typisiert.''' Registriert against a [[NodeType]]; the Deskriptor liefert the Typzeugen,
   *     before [[transform]] runs.
   *
@@ -130,9 +129,9 @@ trait Transform[N <: EditorNode]:
 
 /** Wie viel Arbeit the Normalisierung hoechstens kosten darf.
   *
-  * §10: a Arbeitsbudget verhindert Endlosschleifen, is but '''no stilles Abschneiden'''. Is
-  * it erschoepft, scheitert the Transaktion with a Diagnose the beteiligten Transforms -- a
-  * halb normalisiertes Document to veroeffentlichen waere schlimmer als gar none.
+  * §10: a Arbeitsbudget verhindert Endlosschleifen, is but '''no stilles Abschneiden'''. Is it
+  * erschoepft, scheitert the Transaktion with a Diagnose the beteiligten Transforms -- a halb
+  * normalisiertes Document to veroeffentlichen waere schlimmer als gar none.
   *
   * @param maxRounds
   *   wie oft the Fixpunktschleife hoechstens durchlaeuft

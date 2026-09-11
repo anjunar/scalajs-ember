@@ -10,9 +10,9 @@ import org.scalatest.matchers.should.Matchers
   *
   * ==Why this suite is headless==
   *
-  * §16's HTML is a "Strukturillustration"; what it actually specifies is ownership, staleness
-  * and atomicity. Those are properties of the binding, not of a DOM, and testing them here
-  * means testing the rule rather than one rendering of it.
+  * §16's HTML is a "Strukturillustration"; what it actually specifies is ownership, staleness and
+  * atomicity. Those are properties of the binding, not of a DOM, and testing them here means
+  * testing the rule rather than one rendering of it.
   *
   * What a browser has to answer -- is the textarea named, focusable and submittable without
   * JavaScript -- is in the browser gate, where it belongs.
@@ -27,7 +27,8 @@ final class EditorFieldSpec extends AnyFlatSpec with Matchers {
 
   private val root = NodeId("root")
 
-  private val rules: MarkdownSupport = MarkdownSupport.of(TestRules.block, TestRules.text, TestRules.loud)
+  private val rules: MarkdownSupport =
+    MarkdownSupport.of(TestRules.block, TestRules.text, TestRules.loud)
 
   private def markdownField(loss: LossPolicy = LossPolicy.Strict): EditorField =
     EditorFields.markdown("body", rules, NodeIdGenerator.sequential("m"), loss = loss)
@@ -85,7 +86,9 @@ final class EditorFieldSpec extends AnyFlatSpec with Matchers {
     val session = open(field)
     val binding = bind(field, session)
 
-    session.update(_.replace(NodeId("t"), TextNode(NodeId("t"), "Geaendert")): Unit) should matchPattern { case Right(_) => }
+    session.update(
+      _.replace(NodeId("t"), TextNode(NodeId("t"), "Geaendert")): Unit
+    ) should matchPattern { case Right(_) => }
 
     binding.submitValue.trim shouldBe "Geaendert"
   }
@@ -470,7 +473,7 @@ final class EditorFieldSpec extends AnyFlatSpec with Matchers {
     val session = open(field, text = tricky)
     val binding = bind(field, session)
 
-    binding.submitValue should include("\\u0026" )
+    binding.submitValue should include("\\u0026")
   }
 
   it should "round-trip such text through a JSON draft" in {

@@ -8,19 +8,18 @@ import scala.collection.mutable
   *
   * ==No HTML in between==
   *
-  * P18's acceptance: "Kein HTML-/DOM-Zwischenschritt." The path is
-  * `source → syntax → nodes` and `nodes → syntax → source`, and neither direction touches an
-  * HTML string or a DOM. The middle step is [[MarkdownBlock]], which is an import value and not
-  * a second editor state (§18.1).
+  * P18's acceptance: "Kein HTML-/DOM-Zwischenschritt." The path is `source → syntax → nodes` and
+  * `nodes → syntax → source`, and neither direction touches an HTML string or a DOM. The middle
+  * step is [[MarkdownBlock]], which is an import value and not a second editor state (§18.1).
   *
   * ==What the two directions promise==
   *
   *   - `decode(encode(document)) ≃ normalize(document)` for what the profile supports.
   *   - `encode(decode(source)) == source` is '''not''' promised, and §18.2 says so outright.
   *
-  * IDs, selection and the original Markdown spelling are not part of that equivalence. A node
-  * keeps its identity through an edit, not through an export and a re-import -- decoding builds
-  * a fresh document, and it says so by taking a [[NodeIdGenerator]].
+  * IDs, selection and the original Markdown spelling are not part of that equivalence. A node keeps
+  * its identity through an edit, not through an export and a re-import -- decoding builds a fresh
+  * document, and it says so by taking a [[NodeIdGenerator]].
   */
 object MarkdownCodec:
 
@@ -31,9 +30,9 @@ object MarkdownCodec:
   /** Parses a source and turns it into a document.
     *
     * @param rootId
-    *   the id of the root node. Chosen by the caller because a document's root id is often
-    *   fixed by the application, and inventing one here would make two imports of the same
-    *   source differ in a way nothing else does.
+    *   the id of the root node. Chosen by the caller because a document's root id is often fixed by
+    *   the application, and inventing one here would make two imports of the same source differ in
+    *   a way nothing else does.
     */
   def decode(
       source: String,
@@ -46,7 +45,7 @@ object MarkdownCodec:
     support.duplicates match
       case Vector() =>
         Markdown.parseSyntax(source, profile) match
-          case Left(error) => Left(MarkdownError.Unparseable(error))
+          case Left(error)   => Left(MarkdownError.Unparseable(error))
           case Right(parsed) => decodeSyntax(parsed, schema, support, generator, rootId)
       case repeated => Left(MarkdownError.DuplicateRules(repeated))
 
@@ -65,11 +64,11 @@ object MarkdownCodec:
 
     decoder.failure match
       case Some(problem) => Left(problem)
-      case None =>
+      case None          =>
         val nodes = RootNode(rootId, children) +: sink.collected
         Document.build(schema, rootId, nodes) match
           case Left(violations) => Left(MarkdownError.InvalidDocument(violations))
-          case Right(document) =>
+          case Right(document)  =>
             Right(
               DecodedDocument(
                 document,
@@ -95,7 +94,7 @@ object MarkdownCodec:
   ): Either[MarkdownError, EncodedMarkdown] =
     support.duplicates match
       case repeated if repeated.nonEmpty => Left(MarkdownError.DuplicateRules(repeated))
-      case _ =>
+      case _                             =>
         val sink    = new SyntaxSink
         val encoder = new Encoder(support, document, sink)
 
@@ -103,7 +102,7 @@ object MarkdownCodec:
 
         encoder.failure match
           case Some(problem) => Left(problem)
-          case None =>
+          case None          =>
             val diagnostics = sink.diagnostics
             val losses      = diagnostics.filter(_.loss)
 
@@ -136,18 +135,18 @@ object MarkdownCodec:
 
       if failure.isDefined then None
       else
-        support.blocks.iterator.map(_.decode(value, children, sink)).collectFirst {
-          case Some(id) => id
+        support.blocks.iterator.map(_.decode(value, children, sink)).collectFirst { case Some(id) =>
+          id
         } match
           case Some(id) => Some(id)
-          case None =>
+          case None     =>
             failure = Some(MarkdownError.NoRule(describe(value), value.span))
             None
 
     private def inlineChildren(value: MarkdownBlock): Vector[NodeId] = value match
-      case MarkdownBlock.Paragraph(_, _, content)       => inlines(content, MarkSet.empty)
-      case MarkdownBlock.Heading(_, _, _, _, content)   => inlines(content, MarkSet.empty)
-      case _                                            => Vector.empty
+      case MarkdownBlock.Paragraph(_, _, content)     => inlines(content, MarkSet.empty)
+      case MarkdownBlock.Heading(_, _, _, _, content) => inlines(content, MarkSet.empty)
+      case _                                          => Vector.empty
 
     def inlines(from: Vector[MarkdownInline], marks: MarkSet): Vector[NodeId] =
       from.flatMap(value => if failure.isDefined then Vector.empty else oneInline(value, marks))
@@ -158,7 +157,7 @@ object MarkdownCodec:
       // erweiterten Menge weiter -- es entsteht '''kein''' Knoten dafuer (§8.2).
       support.marks.iterator.flatMap(rule => rule.markFor(value)).nextOption() match
         case Some(mark) => inlines(value.children, marks + mark)
-        case None =>
+        case None       =>
           val children = inlines(value.children, marks)
           if failure.isDefined then Vector.empty
           else
@@ -166,7 +165,7 @@ object MarkdownCodec:
               case Some(produced) => produced
             } match
               case Some(produced) => produced
-              case None =>
+              case None           =>
                 failure = Some(MarkdownError.NoRule(describe(value), value.span))
                 Vector.empty
 
@@ -191,7 +190,7 @@ object MarkdownCodec:
             .map(_.encode(node, children, sink))
             .collectFirst { case Some(produced) => produced } match
             case Some(produced) => Some(produced)
-            case None =>
+            case None           =>
               failure = Some(MarkdownError.NoNodeRule(node.id, node.getClass.getSimpleName))
               None
       }
@@ -199,8 +198,8 @@ object MarkdownCodec:
     /** Whether a node's children are blocks rather than inline content.
       *
       * Decided by asking the '''rules''', not by naming types: this module may not know that a
-      * `ParagraphNode` holds runs and a `QuoteNode` holds paragraphs. A child that some block
-      * rule claims is a block; everything else is inline content.
+      * `ParagraphNode` holds runs and a `QuoteNode` holds paragraphs. A child that some block rule
+      * claims is a block; everything else is inline content.
       */
     private def holdsBlocks(element: ElementNode): Boolean =
       element.children
@@ -244,8 +243,10 @@ object MarkdownCodec:
         .flatMap { mark =>
           support.marks.find(_.owns(mark)) match
             case Some(rule) => Some(rule -> mark)
-            case None =>
-              sink.lost(s"Fuer die Markierung `${mark.markId.value}` ist keine MarkdownRule registriert.")
+            case None       =>
+              sink.lost(
+                s"Fuer die Markierung `${mark.markId.value}` ist keine MarkdownRule registriert."
+              )
               None
         }
         .sortBy((rule, _) => rule.nesting)
@@ -253,7 +254,7 @@ object MarkdownCodec:
       ordered.foldRight(inner) { case ((rule, mark), wrapped) =>
         rule.inlineFor(mark, wrapped, sink) match
           case Some(value) => Vector(value)
-          case None =>
+          case None        =>
             sink.lost(s"Die Markierung `${mark.markId.value}` hat keine Markdown-Schreibweise.")
             wrapped
       }
@@ -270,11 +271,11 @@ object MarkdownCodec:
           .map(_.encode(node, children, sink))
           .collectFirst { case Some(produced) => produced } match
           case Some(produced) => produced
-          case None =>
+          case None           =>
             failure = Some(MarkdownError.NoNodeRule(node.id, node.getClass.getSimpleName))
             Vector.empty
 
-  private def describe(block: MarkdownBlock): String = block.getClass.getSimpleName
+  private def describe(block: MarkdownBlock): String   = block.getClass.getSimpleName
   private def describe(inline: MarkdownInline): String = inline.getClass.getSimpleName
 
 /** A document built from Markdown, with the two source maps §18.2 asks for. */

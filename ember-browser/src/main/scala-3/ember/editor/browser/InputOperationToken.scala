@@ -3,8 +3,8 @@ package ember.editor.browser
 /** One native operation, identified well enough to be processed exactly once.
   *
   * The `sequence` is what makes two consecutive backspaces two operations rather than one. An
-  * `inputType` alone would collapse them, and the second `input` event would then be taken for
-  * the echo of the first.
+  * `inputType` alone would collapse them, and the second `input` event would then be taken for the
+  * echo of the first.
   */
 final case class InputOperationToken(inputType: String, sequence: Long)
 
@@ -25,11 +25,11 @@ final case class InputOperationToken(inputType: String, sequence: Long)
   *
   * ==Why not a boolean==
   *
-  * Because events are not reliably paired. A `beforeinput` that is not cancelable is followed by
-  * an `input` that '''must''' be imported; a cancelable one that was handled is followed by an
-  * `input` that must be ignored. And a browser may fire several `beforeinput` events before one
-  * `input` (§15.2 names autocorrect as that case). A flag cannot tell those apart; a small log of
-  * claims can.
+  * Because events are not reliably paired. A `beforeinput` that is not cancelable is followed by an
+  * `input` that '''must''' be imported; a cancelable one that was handled is followed by an `input`
+  * that must be ignored. And a browser may fire several `beforeinput` events before one `input`
+  * (§15.2 names autocorrect as that case). A flag cannot tell those apart; a small log of claims
+  * can.
   *
   * The log is bounded. An unmatched claim -- a `beforeinput` whose `input` never came -- would
   * otherwise sit there and swallow the next real event of the same type.
@@ -48,8 +48,8 @@ final class InputOperationLog(limit: Int = InputOperationLog.DefaultLimit):
 
   /** Takes back the oldest claim for this type. `true` when there was one.
     *
-    * Oldest first, because events arrive in order: the `input` that follows belongs to the
-    * earliest `beforeinput` that has not been answered yet.
+    * Oldest first, because events arrive in order: the `input` that follows belongs to the earliest
+    * `beforeinput` that has not been answered yet.
     */
   def consume(inputType: String): Boolean =
     claims.indexWhere(_.inputType == inputType) match

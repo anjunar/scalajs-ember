@@ -64,20 +64,20 @@ final class HtmlImportSpec extends AnyFlatSpec with Matchers {
         if marks.isEmpty then s""""${run.text}""""
         else s"""${marks.mkString("+")}("${run.text}")"""
       case Some(node: ParagraphNode) => s"p[${children(document, node.children)}]"
-      case Some(node: HeadingNode)   => s"h${node.level.level}[${children(document, node.children)}]"
-      case Some(node: QuoteNode)     => s"quote[${children(document, node.children)}]"
-      case Some(node: ListNode) =>
+      case Some(node: HeadingNode) => s"h${node.level.level}[${children(document, node.children)}]"
+      case Some(node: QuoteNode)   => s"quote[${children(document, node.children)}]"
+      case Some(node: ListNode)    =>
         val kind = if node.kind == ListKind.Ordered then "ol" else "ul"
         s"$kind${if node.start != 1 then s"@${node.start}" else ""}[${children(document, node.children)}]"
-      case Some(node: ListItemNode)  => s"li[${children(document, node.children)}]"
-      case Some(node: LinkNode)      => s"a(${node.url.value})[${children(document, node.children)}]"
+      case Some(node: ListItemNode) => s"li[${children(document, node.children)}]"
+      case Some(node: LinkNode)     => s"a(${node.url.value})[${children(document, node.children)}]"
       case Some(node: CodeBlockNode) =>
         s"code(${node.info.render})[${children(document, node.children)}]"
-      case Some(node: ImageNode)     => s"img(${node.source.src.value},${node.alt})"
-      case Some(_: BreakNode)        => "br"
+      case Some(node: ImageNode)      => s"img(${node.source.src.value},${node.alt})"
+      case Some(_: BreakNode)         => "br"
       case Some(_: ThematicBreakNode) => "hr"
-      case Some(other)               => other.getClass.getSimpleName
-      case None                      => "?"
+      case Some(other)                => other.getClass.getSimpleName
+      case None                       => "?"
 
   private def children(document: DocumentRead, ids: Vector[NodeId]): String =
     ids.map(shape(document, _)).mkString(",")

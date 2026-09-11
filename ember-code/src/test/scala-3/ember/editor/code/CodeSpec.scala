@@ -233,7 +233,7 @@ final class CodeSpec extends AnyFlatSpec with Matchers {
 
   it should "strip marks" in {
     // Fetter Code ist nichts, was ein Fence schreiben kann.
-    val f = coded()
+    val f   = coded()
     val run = f.codeRun.getOrElse(fail("kein Lauf"))
 
     f.edit(_.replace(run.id, run.copy(marks = MarkSet.of(Strong))): Unit)
@@ -270,7 +270,7 @@ final class CodeSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "be a no-op once it is normal" in {
-    val f = coded()
+    val f      = coded()
     val before = f.session.state.documentRevision
 
     f.caretInCode(3)

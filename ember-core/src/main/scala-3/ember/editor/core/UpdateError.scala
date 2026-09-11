@@ -17,8 +17,8 @@ object UpdateError:
   /** Die Auswahl liesse sich im Ergebnis nicht darstellen. */
   /** Ein geaenderter Knoten wurde von seinem Deskriptor abgewiesen (§8.2).
     *
-    * Getrennt von [[InvalidSelection]], weil es etwas anderes beschreibt: dort passt eine
-    * Auswahl nicht zum Dokument, hier passt der Knoten nicht zu sich selbst.
+    * Getrennt von [[InvalidSelection]], weil es etwas anderes beschreibt: dort passt eine Auswahl
+    * nicht zum Dokument, hier passt der Knoten nicht zu sich selbst.
     */
   final case class InvalidDocument(violations: Vector[Violation]) extends UpdateError:
     def message: String =
@@ -46,9 +46,9 @@ object UpdateError:
     */
   /** Ein wiederhergestelltes Dokument gehoert zu einem anderen Schema.
     *
-    * §13: "Das Schema einer Session ist fest." Ein Dokument aus einer anders konfigurierten
-    * Sitzung einzusetzen waere kein Undo, sondern ein Schemawechsel unter der Hand -- der
-    * braucht Migration und eine neue Sitzung.
+    * §13: "Das Schema einer Session ist fest." Ein Dokument aus einer anders konfigurierten Sitzung
+    * einzusetzen waere kein Undo, sondern ein Schemawechsel unter der Hand -- der braucht Migration
+    * und eine neue Sitzung.
     */
   case object ForeignSchema extends UpdateError:
     def message: String =

@@ -13,21 +13,22 @@ import scala.jdk.CollectionConverters.*
   * Zwei Ebenen, unterschiedlich stark:
   *
   *   - `forbiddenModules` / `forbiddenProjects` ist die eigentliche Garantie. Was nicht auf dem
-  *     Classpath liegt, laesst sich auch voll qualifiziert nicht verwenden; der Compiler faengt
-  *     es dann von selbst. Diese Pruefung existiert, damit ein versehentlich hinzugefuegtes
-  *     `libraryDependencies +=` oder `dependsOn` sofort und mit klarer Meldung auffaellt,
-  *     statt erst durch einen spaeteren, unverstaendlichen Compilefehler.
-  *   - `scanImports` ist nur Diagnose-Komfort und faengt zusaetzlich modulinterne Grenzen
-  *     (z.B. `ember.editor.browser` in `ember-core`), die auf dem Classpath noch gar nicht
-  *     auftauchen koennen, weil das Zielmodul nicht existiert.
+  *     Classpath liegt, laesst sich auch voll qualifiziert nicht verwenden; der Compiler faengt es
+  *     dann von selbst. Diese Pruefung existiert, damit ein versehentlich hinzugefuegtes
+  *     `libraryDependencies +=` oder `dependsOn` sofort und mit klarer Meldung auffaellt, statt
+  *     erst durch einen spaeteren, unverstaendlichen Compilefehler.
+  *   - `scanImports` ist nur Diagnose-Komfort und faengt zusaetzlich modulinterne Grenzen (z.B.
+  *     `ember.editor.browser` in `ember-core`), die auf dem Classpath noch gar nicht auftauchen
+  *     koennen, weil das Zielmodul nicht existiert.
   *
-  * Die Regeln stehen bewusst im Build und nicht in einer externen Datei: sie gelten pro
-  * sbt-Projekt und gehoeren damit neben dessen Definition.
+  * Die Regeln stehen bewusst im Build und nicht in einer externen Datei: sie gelten pro sbt-Projekt
+  * und gehoeren damit neben dessen Definition.
   */
 object EditorBoundary {
 
   final case class ImportViolation(file: File, line: Int, statement: String, forbidden: String) {
-    def render: String = s"  ${file.getAbsolutePath}:$line  import $statement  (verboten: $forbidden)"
+    def render: String =
+      s"  ${file.getAbsolutePath}:$line  import $statement  (verboten: $forbidden)"
   }
 
   /** Sucht `import`-Anweisungen, deren Ziel unter einem verbotenen Paketpraefix liegt.
@@ -35,16 +36,19 @@ object EditorBoundary {
     * Gematcht wird auf Praefixgrenze, nicht auf Teilstring: `ui.core` trifft
     * `ui.core.render.TextNode` und `ui.core`, aber nicht `ember.ui.core` oder `ui.corex`.
     *
-    * Erwartet Quellverzeichnisse, nicht den `sources`-Task. Das hat zwei Gruende: der Lint
-    * haengt an `Compile / sources`, ihn von dort auch zu lesen waere ein Taskzyklus; und
-    * generierte Quellen gehoeren nicht in einen Lint ueber eingecheckten Code.
+    * Erwartet Quellverzeichnisse, nicht den `sources`-Task. Das hat zwei Gruende: der Lint haengt
+    * an `Compile / sources`, ihn von dort auch zu lesen waere ein Taskzyklus; und generierte
+    * Quellen gehoeren nicht in einen Lint ueber eingecheckten Code.
     */
-  def scanImports(sourceDirectories: Seq[File], forbiddenPrefixes: Seq[String]): Seq[ImportViolation] =
+  def scanImports(
+      sourceDirectories: Seq[File],
+      forbiddenPrefixes: Seq[String]
+  ): Seq[ImportViolation] =
     for {
-      source <- sourceDirectories.flatMap(scalaFilesUnder)
+      source           <- sourceDirectories.flatMap(scalaFilesUnder)
       (rawLine, index) <- readLines(source).zipWithIndex
-      statement <- importTarget(rawLine).toSeq
-      prefix <- forbiddenPrefixes
+      statement        <- importTarget(rawLine).toSeq
+      prefix           <- forbiddenPrefixes
       if statement == prefix || statement.startsWith(prefix + ".")
     } yield ImportViolation(source, index + 1, statement, prefix)
 
@@ -74,17 +78,17 @@ object EditorBoundary {
 
   /** Baut die Fehlermeldung, oder `None`, wenn die Grenze eingehalten ist.
     *
-    * Projektabhaengigkeiten werden gegen eine Allowlist geprueft, Artefakte gegen eine
-    * Blocklist. Das ist Absicht: welche *Module dieses Builds* ein Projekt haben darf, steht
-    * vollstaendig in Architektur §6 und ist abschliessend aufzaehlbar; welche *externen
-    * Artefakte* es nicht haben darf, ist es nicht.
+    * Projektabhaengigkeiten werden gegen eine Allowlist geprueft, Artefakte gegen eine Blocklist.
+    * Das ist Absicht: welche *Module dieses Builds* ein Projekt haben darf, steht vollstaendig in
+    * Architektur §6 und ist abschliessend aufzaehlbar; welche *externen Artefakte* es nicht haben
+    * darf, ist es nicht.
     *
-    * `allowedModules` ist die Ausnahme von der Blocklist, und sie hat genau einen Anlass:
-    * seit ui-core als Binaerartefakt eingebunden ist, faengt `scalajs-ui` als Blockeintrag
-    * auch das eine UI-Modul ein, das erlaubt ist. Die Alternative waere gewesen, den Eintrag
-    * fuer `ember-ui` ganz wegzulassen -- dann waere aber auch `scalajs-ui-forms` erlaubt, und
-    * §7 gibt der UI-Schicht ausdruecklich nur den Kern. Blocken und einzeln freigeben ist
-    * strenger als das, was die frueheren Quell-Abhaengigkeit strukturell hergab.
+    * `allowedModules` ist die Ausnahme von der Blocklist, und sie hat genau einen Anlass: seit
+    * ui-core als Binaerartefakt eingebunden ist, faengt `scalajs-ui` als Blockeintrag auch das eine
+    * UI-Modul ein, das erlaubt ist. Die Alternative waere gewesen, den Eintrag fuer `ember-ui` ganz
+    * wegzulassen -- dann waere aber auch `scalajs-ui-forms` erlaubt, und §7 gibt der UI-Schicht
+    * ausdruecklich nur den Kern. Blocken und einzeln freigeben ist strenger als das, was die
+    * frueheren Quell-Abhaengigkeit strukturell hergab.
     */
   def report(
       moduleName: String,
@@ -96,7 +100,7 @@ object EditorBoundary {
       allowedModules: Seq[String] = Seq.empty
   ): Option[String] = {
     val badProjects = projectDependencies.filterNot(allowedProjects.contains)
-    val badModules = resolvedModules.filter { module =>
+    val badModules  = resolvedModules.filter { module =>
       forbiddenModules.exists(module.contains) && !allowedModules.exists(module.contains)
     }
 

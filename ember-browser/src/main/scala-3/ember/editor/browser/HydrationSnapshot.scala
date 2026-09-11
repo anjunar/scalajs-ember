@@ -9,19 +9,19 @@ import org.scalajs.dom
   *
   * §17 step 2 is emphatic about the timing: "'''Vor dem ersten Claim''', der Werte ueberschreiben
   * koennte, erfasst die aeussere Form-Boundary die tatsaechliche `textarea.value`,
-  * `selectionStart`, `selectionEnd`, `selectionDirection` und Fokus. Attribute oder
-  * `defaultValue` reichen dafuer nicht."
+  * `selectionStart`, `selectionEnd`, `selectionDirection` und Fokus. Attribute oder `defaultValue`
+  * reichen dafuer nicht."
   *
-  * The distinction between `value` and `defaultValue` is the whole point. A user who typed into
-  * the textarea before the script ran changed `value`; the attribute still holds what the server
-  * sent. Reading the attribute would silently discard their input, and reading `value` '''after'''
-  * a claim would read what the claim wrote.
+  * The distinction between `value` and `defaultValue` is the whole point. A user who typed into the
+  * textarea before the script ran changed `value`; the attribute still holds what the server sent.
+  * Reading the attribute would silently discard their input, and reading `value` '''after''' a
+  * claim would read what the claim wrote.
   *
   * @param sourceValue
   *   the live `textarea.value`, not the attribute.
   * @param focused
-  *   whether the field had focus. §17 step 7: only then may a translated selection be written
-  *   into the rich view -- "Ansonsten keine Fokus-/Selection-Schreibaktion."
+  *   whether the field had focus. §17 step 7: only then may a translated selection be written into
+  *   the rich view -- "Ansonsten keine Fokus-/Selection-Schreibaktion."
   * @param composing
   *   whether an IME composition was in progress. Only ever `true` when a composition started
   *   '''after''' the listeners were attached; see [[HydrationSnapshot.unknownInputSession]].
@@ -52,9 +52,9 @@ object HydrationSnapshot:
 
   /** Reads the live state of a textarea.
     *
-    * Takes the element rather than looking it up: the boundary hands over the host it is about
-    * to bind, and looking one up by selector would be a second answer to a question the caller
-    * already has.
+    * Takes the element rather than looking it up: the boundary hands over the host it is about to
+    * bind, and looking one up by selector would be a second answer to a question the caller already
+    * has.
     */
   def of(textarea: dom.HTMLTextAreaElement): HydrationSnapshot =
     val focused = textarea.ownerDocument.activeElement eq textarea
@@ -80,9 +80,9 @@ object HydrationSnapshot:
     * nachtraeglich abfragen. Deshalb wird ein bereits fokussiertes Source-Feld konservativ erst
     * nach Blur oder einer ausdruecklichen Wechselaktion erweitert."
     *
-    * So focus alone is enough to defer. Not because focus means composing, but because a
-    * focused field is the only place a composition could already be running, and there is no
-    * way to ask. Guessing "no" would mean replacing text mid-composition.
+    * So focus alone is enough to defer. Not because focus means composing, but because a focused
+    * field is the only place a composition could already be running, and there is no way to ask.
+    * Guessing "no" would mean replacing text mid-composition.
     */
   def unknownInputSession(snapshot: HydrationSnapshot): Boolean =
     snapshot.focused || snapshot.composing
@@ -91,12 +91,12 @@ object HydrationSnapshot:
   *
   * The core already has the concept (§11), and a second enum for the same thing would need a
   * conversion at every use -- which is where the two would eventually disagree. What differs is
-  * only the vocabulary: the DOM says `"none"` where the core says `Collapsed`, and for a
-  * textarea selection the two mean the same thing.
+  * only the vocabulary: the DOM says `"none"` where the core says `Collapsed`, and for a textarea
+  * selection the two mean the same thing.
   *
   * §17 step 7 asks for the direction to survive into the rich view, and P20 names it in its test
-  * list. Dropping it would turn every restored selection forward, and the next arrow key would
-  * move the wrong end.
+  * list. Dropping it would turn every restored selection forward, and the next arrow key would move
+  * the wrong end.
   */
 object TextSelectionDirection:
 

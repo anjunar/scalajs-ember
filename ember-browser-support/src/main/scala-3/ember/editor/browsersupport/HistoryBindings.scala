@@ -8,13 +8,13 @@ import ember.editor.history.{History, HistoryCommands}
   *
   * §15.2 states the rule and the reason in one line:
   *
-  * > `historyUndo/Redo`: Eigene History-Commands, definierte Grenzen bei NativeInput. Native und
-  * > modellbasierte Undo-Stacks duerfen sich nicht widersprechen.
+  * > `historyUndo/Redo`: Eigene History-Commands, definierte Grenzen bei NativeInput. Native und >
+  * modellbasierte Undo-Stacks duerfen sich nicht widersprechen.
   *
-  * Two stacks over one document is the kind of bug that looks like data loss. The browser
-  * remembers DOM states the model never produced; the model remembers commits the browser never
-  * saw. Whichever answers `Ctrl+Z` first wins, and the other one is then wrong about everything
-  * that follows.
+  * Two stacks over one document is the kind of bug that looks like data loss. The browser remembers
+  * DOM states the model never produced; the model remembers commits the browser never saw.
+  * Whichever answers `Ctrl+Z` first wins, and the other one is then wrong about everything that
+  * follows.
   *
   * So the browser's stack is never used. `beforeinput[historyUndo]` is taken over -- which also
   * prevents the native undo -- and the shortcut is bound as well, because §15.2 warns that a
@@ -40,8 +40,8 @@ object HistoryBindings:
 
   /** `Ctrl/Cmd+Z` and both spellings of redo.
     *
-    * `Ctrl+Y` is the Windows spelling and `Ctrl/Cmd+Shift+Z` the one everywhere else. Binding
-    * both costs one line and saves a user from an editor that has no redo on their keyboard.
+    * `Ctrl+Y` is the Windows spelling and `Ctrl/Cmd+Shift+Z` the one everywhere else. Binding both
+    * costs one line and saves a user from an editor that has no redo on their keyboard.
     */
   val keyboard: KeyboardBindings =
     KeyboardBindings.of {
@@ -56,8 +56,8 @@ object HistoryBindings:
     *
     * §14 groups by what actually happened, and for typing that is right: the rules merge a run of
     * keystrokes into one step without anyone declaring it. A composition is the case where the
-    * rules cannot see the grouping -- an IME produces intermediate commits that look like
-    * unrelated edits, and the user pressed one key.
+    * rules cannot see the grouping -- an IME produces intermediate commits that look like unrelated
+    * edits, and the user pressed one key.
     *
     * §15.3 makes it a requirement rather than a nicety: "Eine Composition ergibt eine
     * History-Gruppe." The composition is also the reason independent changes are refused while it
@@ -69,13 +69,13 @@ object HistoryBindings:
     * composition began and ended; this turns that into a group. The same split as everywhere else
     * in this module.
     *
-    * A discarded composition closes the group too: a group left open would swallow everything
-    * typed afterwards.
+    * A discarded composition closes the group too: a group left open would swallow everything typed
+    * afterwards.
     */
   def groupCompositions(controller: BrowserInputController, history: History): Subscription =
     controller.onComposition {
       case CompositionEvent.Started(session, _) =>
         history.beginGroup(Some(s"Texteingabe $session"))
-      case CompositionEvent.Finished(_, _)      => history.endGroup()
-      case CompositionEvent.Discarded(_, _, _)  => history.endGroup()
+      case CompositionEvent.Finished(_, _)     => history.endGroup()
+      case CompositionEvent.Discarded(_, _, _) => history.endGroup()
     }

@@ -7,9 +7,9 @@ import org.scalatest.matchers.should.Matchers
 
 /** The rules that keep a list legal no matter who edited it (§8.2, P13 acceptance).
   *
-  * The editing suite drives the commands; this one drives the *document*. A foreign module, a
-  * paste or a later feature can move nodes anywhere, and the invariants have to hold anyway --
-  * which is why they are transforms and not care taken inside each command (§3.2).
+  * The editing suite drives the commands; this one drives the *document*. A foreign module, a paste
+  * or a later feature can move nodes anywhere, and the invariants have to hold anyway -- which is
+  * why they are transforms and not care taken inside each command (§3.2).
   */
 final class ListNormalizationSpec extends AnyFlatSpec with Matchers {
 
@@ -46,7 +46,7 @@ final class ListNormalizationSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "repair several of them" in {
-    val f = listOf("Eins")
+    val f    = listOf("Eins")
     val list = f.firstList.getOrElse(fail("keine Liste"))
 
     Vector("a", "b", "c").zipWithIndex.foreach { (name, index) =>
@@ -72,20 +72,21 @@ final class ListNormalizationSpec extends AnyFlatSpec with Matchers {
   "An empty item" should "get a paragraph to hold a caret" in {
     // Same reason as `BlockNeedsText` one level up: a caret needs a text position, and a child
     // position in an empty item is not one.
-    val f = listOf("Eins")
+    val f    = listOf("Eins")
     val list = f.firstList.getOrElse(fail("keine Liste"))
 
     f.edit(_.insert(list.id, 1, ListItemNode.empty(NodeId("leer"))): Unit)
 
     f.document.childrenOf(NodeId("leer")) should have length 1
-    f.node("leer").collect { case item: ListItemNode => item.children.head }
+    f.node("leer")
+      .collect { case item: ListItemNode => item.children.head }
       .flatMap(f.document.node) shouldBe a[Some[?]]
   }
 
   "An empty list" should "disappear" in {
     // What is left after the last item is outdented. Keeping it would leave an invisible
     // `<ul></ul>` and a bullet in every renderer that draws one.
-    val f = listOf("Eins")
+    val f    = listOf("Eins")
     val list = f.firstList.getOrElse(fail("keine Liste"))
 
     f.caretIn("Eins")
@@ -139,9 +140,13 @@ final class ListNormalizationSpec extends AnyFlatSpec with Matchers {
     f.bullets(): Unit
 
     f.outline shouldBe Vector(
-      "ul", "  li", "    \"Eins\"",
+      "ul",
+      "  li",
+      "    \"Eins\"",
       "\"Dazwischen\"",
-      "ul", "  li", "    \"Zwei\""
+      "ul",
+      "  li",
+      "    \"Zwei\""
     )
   }
 
@@ -166,7 +171,11 @@ final class ListNormalizationSpec extends AnyFlatSpec with Matchers {
     // Umbauten hat das Arbeitsbudget aus §10 erschoepft oder die Lesereihenfolge verdreht.
     f.outline shouldBe Vector(
       "\"Eins\"",
-      "ul", "  li", "    \"Zwei\"", "  li", "    \"Drei\""
+      "ul",
+      "  li",
+      "    \"Zwei\"",
+      "  li",
+      "    \"Drei\""
     )
   }
 
@@ -181,7 +190,7 @@ final class ListNormalizationSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "leave a valid document after every repair" in {
-    val f = listOf("Eins")
+    val f    = listOf("Eins")
     val list = f.firstList.getOrElse(fail("keine Liste"))
 
     f.edit(
@@ -206,7 +215,7 @@ final class ListNormalizationSpec extends AnyFlatSpec with Matchers {
   // ---------------------------------------------------------------------------------------
 
   "A start below one" should "be rejected" in {
-    val f = listOf("Eins")
+    val f    = listOf("Eins")
     val list = f.firstList.getOrElse(fail("keine Liste"))
 
     val outcome = f.session.update(_.replace(list.id, list.copy(start = 0)): Unit)
@@ -227,9 +236,13 @@ final class ListNormalizationSpec extends AnyFlatSpec with Matchers {
     f.outdent(): Unit
 
     f.outline shouldBe Vector(
-      "ol", "  li", "    \"Eins\"",
+      "ol",
+      "  li",
+      "    \"Eins\"",
       "\"Zwei\"",
-      "ol(3)", "  li", "    \"Drei\""
+      "ol(3)",
+      "  li",
+      "    \"Drei\""
     )
   }
 }

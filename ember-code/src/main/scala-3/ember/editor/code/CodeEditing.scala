@@ -24,8 +24,8 @@ object CodeEditing:
   /** What one press of the indent command inserts. Two spaces, and not a tab.
     *
     * A tab renders at whatever width the reader's viewer chooses, which is the one thing code
-    * indentation must not do. Two spaces is a choice, not a law -- but it has to be *a* choice,
-    * and one that round-trips through Markdown unchanged.
+    * indentation must not do. Two spaces is a choice, not a law -- but it has to be *a* choice, and
+    * one that round-trips through Markdown unchanged.
     */
   val indentUnit: String = "  "
 
@@ -40,7 +40,7 @@ object CodeEditing:
       info: CodeInfo
   ): CommandResult =
     blockAtCaret(scope) match
-      case None => CommandResult.Pass
+      case None        => CommandResult.Pass
       case Some(block) =>
         scope.document.node(block) match
           case Some(code: CodeBlockNode) =>
@@ -67,12 +67,12 @@ object CodeEditing:
     *
     * Because a newline inside a paragraph's run is a document no renderer shows correctly: HTML
     * collapses it to a space, and the content would silently change meaning on its way out. The
-    * alternative would be hard breaks (§8.2), which is defensible -- but lines of code are
-    * lines, and a reader who converts a listing back to prose expects paragraphs, not one
-    * paragraph pretending to be several.
+    * alternative would be hard breaks (§8.2), which is defensible -- but lines of code are lines,
+    * and a reader who converts a listing back to prose expects paragraphs, not one paragraph
+    * pretending to be several.
     *
-    * A block that holds one line converts to one paragraph, which is the common case and the
-    * exact inverse of turning that paragraph into code.
+    * A block that holds one line converts to one paragraph, which is the common case and the exact
+    * inverse of turning that paragraph into code.
     */
   private def toParagraphs(
       scope: TransformScope,
@@ -122,9 +122,9 @@ object CodeEditing:
     *
     * ==Except when it means "let me out"==
     *
-    * Pressing Enter on an empty last line leaves the block. That convention exists in every
-    * editor that has code blocks, and for a good reason: a code block is a container with no
-    * edge a caret can step over, so without it there is no way back out by typing.
+    * Pressing Enter on an empty last line leaves the block. That convention exists in every editor
+    * that has code blocks, and for a good reason: a code block is a container with no edge a caret
+    * can step over, so without it there is no way back out by typing.
     *
     * The trailing newline that led here is removed on the way -- it was the author's request to
     * leave, not part of their code.
@@ -134,7 +134,7 @@ object CodeEditing:
       generator: NodeIdGenerator
   ): CommandResult =
     caretInCode(scope) match
-      case None => CommandResult.Pass
+      case None                      => CommandResult.Pass
       case Some((code, run, offset)) =>
         val text = textOf(scope.document, run)
 
@@ -177,7 +177,7 @@ object CodeEditing:
   /** Adds one unit of indentation at the start of the caret's line. */
   def indentLine(scope: TransformScope): CommandResult =
     caretInCode(scope) match
-      case None => CommandResult.Pass
+      case None                   => CommandResult.Pass
       case Some((_, run, offset)) =>
         val start = lineStart(textOf(scope.document, run), offset)
         scope.spliceText(run, start, 0, indentUnit): Unit
@@ -186,13 +186,12 @@ object CodeEditing:
 
   /** Removes one unit of indentation, or as much of it as is there.
     *
-    * As much as is there, not all whitespace: a line indented by three spaces loses two, not
-    * three. Removing everything would make the command unable to undo a single press of its
-    * counterpart.
+    * As much as is there, not all whitespace: a line indented by three spaces loses two, not three.
+    * Removing everything would make the command unable to undo a single press of its counterpart.
     */
   def outdentLine(scope: TransformScope): CommandResult =
     caretInCode(scope) match
-      case None => CommandResult.Pass
+      case None                   => CommandResult.Pass
       case Some((_, run, offset)) =>
         val text  = textOf(scope.document, run)
         val start = lineStart(text, offset)
@@ -216,10 +215,10 @@ object CodeEditing:
   /** The code block, its run and the caret offset -- or `None` outside a code block. */
   private def caretInCode(scope: TransformScope): Option[(CodeBlockNode, NodeId, Int)] =
     for
-      point          <- caretOf(scope)
-      (run, offset)  <- textPositionOf(point)
-      block          <- scope.document.parentOf(run)
-      code           <- scope.document.node(block).collect { case value: CodeBlockNode => value }
+      point         <- caretOf(scope)
+      (run, offset) <- textPositionOf(point)
+      block         <- scope.document.parentOf(run)
+      code          <- scope.document.node(block).collect { case value: CodeBlockNode => value }
     yield (code, run, offset)
 
   private[code] def blockAtCaret(scope: TransformScope): Option[NodeId] =

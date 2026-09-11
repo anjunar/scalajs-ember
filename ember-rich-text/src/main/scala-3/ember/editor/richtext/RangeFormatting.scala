@@ -7,14 +7,14 @@ import ember.editor.core.*
   * ==Marks are node data, not a DOM command==
   *
   * §12, acceptance: "Formatierung wird durch Nodes/Marks bestimmt; kein Browser-execCommand."
-  * Everything here rewrites [[TextNode]]s through the primitive operations from §10. Nothing
-  * reads or writes a DOM; the projection finds out through the change set like every other edit.
+  * Everything here rewrites [[TextNode]]s through the primitive operations from §10. Nothing reads
+  * or writes a DOM; the projection finds out through the change set like every other edit.
   *
   * ==The shape of the work==
   *
-  * A range rarely lines up with run boundaries. `"Hallo Welt!"` with `"Welt"` selected is one
-  * run and three pieces, so the first thing to do is cut: split at the range's start, split at
-  * its end, and only then set marks on the runs in between. §8.2 spells out the result:
+  * A range rarely lines up with run boundaries. `"Hallo Welt!"` with `"Welt"` selected is one run
+  * and three pieces, so the first thing to do is cut: split at the range's start, split at its end,
+  * and only then set marks on the runs in between. §8.2 spells out the result:
   *
   * {{{
   * Ausgang:              Text("Hallo Welt!", {})
@@ -47,8 +47,8 @@ object RangeFormatting:
   ): Either[UpdateError, Unit] =
     scope.selection match
       case Some(range: RangeSelection) if range.isCollapsed => toggleAtCaret(scope, range, mark)
-      case Some(range: RangeSelection)                      => toggleRange(scope, generator, range, mark)
-      case _                                                => Right(())
+      case Some(range: RangeSelection) => toggleRange(scope, generator, range, mark)
+      case _                           => Right(())
 
   private def toggleAtCaret(
       scope: TransformScope,
@@ -70,11 +70,14 @@ object RangeFormatting:
   ): Either[UpdateError, Unit] =
     // Whether this adds or removes is decided *before* any splitting: afterwards the runs are
     // different nodes, and asking them would be asking about the result of our own work.
-    val covered = runsIn(scope.document, range)
+    val covered  = runsIn(scope.document, range)
     val removing = covered.nonEmpty && covered.forall(_.marks.contains(mark.markId))
 
-    applyToRange(scope, generator, range, marks =>
-      if removing then marks - mark.markId else StandardMarks.add(marks, mark)
+    applyToRange(
+      scope,
+      generator,
+      range,
+      marks => if removing then marks - mark.markId else StandardMarks.add(marks, mark)
     )
 
   /** Rewrites the marks of every run the range touches.
@@ -89,7 +92,7 @@ object RangeFormatting:
       rewrite: MarkSet => MarkSet
   ): Either[UpdateError, Unit] =
     boundsOf(scope.document, range) match
-      case None => Right(())
+      case None         => Right(())
       case Some(bounds) =>
         for
           // The end first: cutting invalidates every offset to its right, and the start is to
@@ -153,7 +156,7 @@ object RangeFormatting:
     for
       anchor <- textPointOf(range.anchor)
       focus  <- textPointOf(range.focus)
-      order = runOrder(document)
+      order        = runOrder(document)
       (start, end) =
         if precedes(order, anchor, focus) then (anchor, focus) else (focus, anchor)
     yield Bounds(start._1, start._2, end._1, end._2)
@@ -185,7 +188,7 @@ object RangeFormatting:
     */
   def runsIn(document: DocumentRead, range: RangeSelection): Vector[TextNode] =
     boundsOf(document, range) match
-      case None => Vector.empty
+      case None         => Vector.empty
       case Some(bounds) =>
         val order = runOrder(document)
         val from  = order.indexOf(bounds.startNode)
@@ -210,9 +213,9 @@ object RangeFormatting:
     *
     * ==Why it reads a state and not a draft==
     *
-    * Because a toolbar has one. `EditorState` is readable outside every update closure (§9),
-    * and asking for a running transaction would force every consumer to open one just to find
-    * out whether the bold button should look pressed.
+    * Because a toolbar has one. `EditorState` is readable outside every update closure (§9), and
+    * asking for a running transaction would force every consumer to open one just to find out
+    * whether the bold button should look pressed.
     *
     * At a collapsed caret the answer is [[TypingMarks]]', not the run's -- otherwise the button
     * would keep showing the old state after a toggle that has not been typed into yet.
@@ -224,8 +227,10 @@ object RangeFormatting:
       case Some(range: RangeSelection) =>
         runsIn(state.document, range) match
           case runs if runs.isEmpty => MarkSet.empty
-          case runs =>
-            runs.map(_.marks).reduce((left, right) =>
-              MarkSet.from(left.marks.filter(mark => right.contains(mark.markId)))
-            )
+          case runs                 =>
+            runs
+              .map(_.marks)
+              .reduce((left, right) =>
+                MarkSet.from(left.marks.filter(mark => right.contains(mark.markId)))
+              )
       case _ => MarkSet.empty

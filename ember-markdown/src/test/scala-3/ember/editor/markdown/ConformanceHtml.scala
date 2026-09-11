@@ -5,22 +5,22 @@ package ember.editor.markdown
   * ==Why this exists==
   *
   * The conformance suite states its expectation as HTML, so comparing against it needs an HTML
-  * renderer -- and this module has no such thing on purpose. §6 puts HTML in `ember-html`, and
-  * P18s writer writes Markdown.
+  * renderer -- and this module has no such thing on purpose. §6 puts HTML in `ember-html`, and P18s
+  * writer writes Markdown.
   *
-  * So this exists here, in the test scope, doing exactly one job: turning a syntax tree into
-  * the HTML the specification expects, so that the count of matching examples is a measurement
-  * and not an impression. §18.1 asks for that measurement.
+  * So this exists here, in the test scope, doing exactly one job: turning a syntax tree into the
+  * HTML the specification expects, so that the count of matching examples is a measurement and not
+  * an impression. §18.1 asks for that measurement.
   *
   * ==Why it is not in the main sources==
   *
-  * Because it would be a second HTML writer. A renderer that exists only to make a test
-  * comparable is a test fixture, and putting it in `src/main` would make it something an
-  * application could find and mistake for the real one.
+  * Because it would be a second HTML writer. A renderer that exists only to make a test comparable
+  * is a test fixture, and putting it in `src/main` would make it something an application could
+  * find and mistake for the real one.
   *
-  * The whitespace rules follow `lib/render/html.js` of commonmark.js: `cr` writes a newline
-  * unless the last thing written was one. Getting that wrong makes every comparison fail for a
-  * reason that has nothing to do with the parser.
+  * The whitespace rules follow `lib/render/html.js` of commonmark.js: `cr` writes a newline unless
+  * the last thing written was one. Getting that wrong makes every comparison fail for a reason that
+  * has nothing to do with the parser.
   */
 object ConformanceHtml:
 
@@ -53,7 +53,7 @@ object ConformanceHtml:
         out.newline()
 
       case MarkdownBlock.CodeBlock(_, _, literal, fence) =>
-        val language = fence.map(_.info).getOrElse("").split("\\s+").headOption.getOrElse("")
+        val language  = fence.map(_.info).getOrElse("").split("\\s+").headOption.getOrElse("")
         val attribute =
           if language.isEmpty then ""
           else
@@ -111,15 +111,15 @@ object ConformanceHtml:
 
   /** Inline content as HTML, following `lib/render/html.js`.
     *
-    * Not called `inline` -- that is a soft keyword in Scala 3 and the call sites stop
-    * compiling in a way that names everything except the cause.
+    * Not called `inline` -- that is a soft keyword in Scala 3 and the call sites stop compiling in
+    * a way that names everything except the cause.
     */
   private def inlineHtml(inlines: Vector[MarkdownInline]): String =
     inlines.map {
-      case MarkdownInline.Text(_, _, value)   => escape(value)
-      case MarkdownInline.Code(_, _, literal) => s"<code>${escape(literal)}</code>"
-      case MarkdownInline.SoftBreak(_, _)     => "\n"
-      case MarkdownInline.HardBreak(_, _)     => "<br />\n"
+      case MarkdownInline.Text(_, _, value)         => escape(value)
+      case MarkdownInline.Code(_, _, literal)       => s"<code>${escape(literal)}</code>"
+      case MarkdownInline.SoftBreak(_, _)           => "\n"
+      case MarkdownInline.HardBreak(_, _)           => "<br />\n"
       case MarkdownInline.HtmlInline(_, _, literal) => literal
       case MarkdownInline.Emphasis(_, _, kids)      => s"<em>${inlineHtml(kids)}</em>"
       case MarkdownInline.Strong(_, _, kids)        => s"<strong>${inlineHtml(kids)}</strong>"
@@ -150,7 +150,7 @@ object ConformanceHtml:
 
   /** The buffer, with the reference's `cr` semantics. */
   private final class Builder:
-    private val buffer = new StringBuilder
+    private val buffer         = new StringBuilder
     private var lastWasNewline = true
 
     def literal(text: String): Unit =

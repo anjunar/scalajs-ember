@@ -6,20 +6,19 @@ import ember.editor.core.*
   *
   * §14: Eintraege tragen "strukturell geteilte Document-Snapshots und Selection vor/nach der
   * Aenderung". Strukturell geteilt heisst: zwei Snapshots, zwischen denen ein Zeichen liegt,
-  * unterscheiden sich in genau einem Knoten und teilen alle uebrigen -- das ist keine Zusage
-  * dieses Moduls, sondern eine Eigenschaft von [[Document]] (§8.2).
+  * unterscheiden sich in genau einem Knoten und teilen alle uebrigen -- das ist keine Zusage dieses
+  * Moduls, sondern eine Eigenschaft von [[Document]] (§8.2).
   *
   * ==Warum ein paar Felder doch mitkommen==
   *
-  * §14: "StateFields deklarieren einen eigenen Restore-/Mapping-Vertrag." Die allermeisten
-  * folgen aus dem Dokument und werden mit ihm wieder richtig; `TypingMarks` (P12) tut es nicht,
-  * und §11 verbietet ausdruecklich, die fuer die naechste Eingabe wirksamen Marks nach einem
-  * Undo aus der Darstellung zu erraten. Aufgenommen wird deshalb genau das, was ein Feld ueber
+  * §14: "StateFields deklarieren einen eigenen Restore-/Mapping-Vertrag." Die allermeisten folgen
+  * aus dem Dokument und werden mit ihm wieder richtig; `TypingMarks` (P12) tut es nicht, und §11
+  * verbietet ausdruecklich, die fuer die naechste Eingabe wirksamen Marks nach einem Undo aus der
+  * Darstellung zu erraten. Aufgenommen wird deshalb genau das, was ein Feld ueber
   * [[HistoryRestorePolicy]] anmeldet -- typisiert als [[FieldValue]], nicht als `Any`.
   *
-  * '''Was hier nicht steht:''' ViewState, DOM, Uploads und die History selbst (§14). Deshalb
-  * steht die History auch nicht in [[EditorState]] -- sonst enthielte jeder Snapshot alle
-  * vorherigen.
+  * '''Was hier nicht steht:''' ViewState, DOM, Uploads und die History selbst (§14). Deshalb steht
+  * die History auch nicht in [[EditorState]] -- sonst enthielte jeder Snapshot alle vorherigen.
   */
 final case class HistorySnapshot(
     document: Document,
@@ -30,12 +29,12 @@ final case class HistorySnapshot(
 /** Eine Undo-Stufe: der Stand davor, der Stand danach.
   *
   * @param kind
-  *   was zuletzt in dieser Gruppe passiert ist. Entscheidet zusammen mit [[at]] und [[marks]],
-  *   ob die naechste Aenderung noch dazugehoert.
+  *   was zuletzt in dieser Gruppe passiert ist. Entscheidet zusammen mit [[at]] und [[marks]], ob
+  *   die naechste Aenderung noch dazugehoert.
   * @param marks
   *   die Markierungen des betroffenen Textlaufs. §14 laesst zusammenhaengendes Tippen nur "mit
-  *   gleicher Mark-Konfiguration" verschmelzen -- wer mitten im Wort fett einschaltet, hat
-  *   zwei Absichten gehabt und soll sie einzeln zuruecknehmen koennen.
+  *   gleicher Mark-Konfiguration" verschmelzen -- wer mitten im Wort fett einschaltet, hat zwei
+  *   Absichten gehabt und soll sie einzeln zuruecknehmen koennen.
   * @param estimatedBytes
   *   siehe [[HistoryEntry.estimate]]. Eine Schaetzung, keine Heapmessung.
   */
@@ -57,35 +56,34 @@ object HistoryEntry:
     *
     * §14 nennt es ausdruecklich ein "geschaetztes Retained-Byte-Budget" und warnt davor, es als
     * Heapgroesse darzustellen. Der Grund ist das Structural Sharing: `before` und `after` teilen
-    * fast alle Knoten, und `after` des einen Eintrags ist regelmaessig dasselbe Objekt wie
-    * `before` des naechsten. Die Summe der Dokumentgroessen waere deshalb um Groessenordnungen
-    * zu hoch.
+    * fast alle Knoten, und `after` des einen Eintrags ist regelmaessig dasselbe Objekt wie `before`
+    * des naechsten. Die Summe der Dokumentgroessen waere deshalb um Groessenordnungen zu hoch.
     *
-    * Gezaehlt wird stattdessen, was ein Eintrag '''zusaetzlich''' festhaelt: die Knoten, in
-    * denen sich die beiden Staende unterscheiden. Auch das ist nur eine Naeherung -- die JVM
-    * bzw. die JavaScript-Engine misst anders --, aber es waechst mit dem, womit der
-    * Speicherbedarf tatsaechlich waechst.
+    * Gezaehlt wird stattdessen, was ein Eintrag '''zusaetzlich''' festhaelt: die Knoten, in denen
+    * sich die beiden Staende unterscheiden. Auch das ist nur eine Naeherung -- die JVM bzw. die
+    * JavaScript-Engine misst anders --, aber es waechst mit dem, womit der Speicherbedarf
+    * tatsaechlich waechst.
     */
   def estimate(before: Document, after: Document): Int =
     val ids = before.ids.toSet ++ after.ids.toSet
     ids.foldLeft(0) { (total, id) =>
       (before.node(id), after.node(id)) match
         case (Some(left), Some(right)) if left == right => total
-        case (left, right) => total + cost(left) + cost(right)
+        case (left, right)                              => total + cost(left) + cost(right)
     }
 
   /** Grob, und bewusst grob: ein Objektkopf, plus das, was wirklich waechst. */
   private def cost(node: Option[EditorNode]): Int = node match
-    case None                    => 0
-    case Some(text: TextNode)    => 64 + 2 * text.text.length
+    case None                       => 0
+    case Some(text: TextNode)       => 64 + 2 * text.text.length
     case Some(element: ElementNode) => 64 + 8 * element.children.length
-    case Some(_)                 => 64
+    case Some(_)                    => 64
 
 /** Die Staende einer History. Ein Wert -- damit die Regeln ohne Sitzung pruefbar sind.
   *
   * @param open
-  *   ob die neueste Stufe noch verschmelzen darf. Ein Auswahlsprung schliesst sie (§14), ohne
-  *   sie zu entfernen.
+  *   ob die neueste Stufe noch verschmelzen darf. Ein Auswahlsprung schliesst sie (§14), ohne sie
+  *   zu entfernen.
   */
 final case class HistoryState(
     undo: Vector[HistoryEntry] = Vector.empty,
@@ -114,15 +112,14 @@ final case class HistoryState(
   /** Fuehrt die neueste Stufe fort. `before` bleibt, wie es war -- darum geht es. */
   def merge(entry: HistoryEntry, limits: HistoryLimits): HistoryState =
     undo.lastOption match
-      case None => push(entry, limits)
+      case None           => push(entry, limits)
       case Some(previous) =>
         val merged = previous.copy(
           after = entry.after,
           kind = entry.kind,
           marks = entry.marks,
           at = entry.at,
-          estimatedBytes =
-            HistoryEntry.estimate(previous.before.document, entry.after.document)
+          estimatedBytes = HistoryEntry.estimate(previous.before.document, entry.after.document)
         )
         HistoryState(undo.init :+ merged, Vector.empty, open = true).trimmed(limits)
 
@@ -140,14 +137,13 @@ final case class HistoryState(
 
   /** Haelt Anzahl und Byte-Budget ein.
     *
-    * Zuerst die Anzahl, dann das Budget, und beide von vorn -- die aelteste Stufe ist die, die
-    * am wenigsten fehlt.
+    * Zuerst die Anzahl, dann das Budget, und beide von vorn -- die aelteste Stufe ist die, die am
+    * wenigsten fehlt.
     *
-    * '''Die neueste Stufe bleibt immer.''' Ein einzelner Eintrag, der das Budget allein
-    * sprengt, kaeme sonst nie in die History, und der Benutzer koennte ausgerechnet seine
-    * letzte Aktion nicht zuruecknehmen. §14 nennt den Fall und verweist ihn woandershin: "ein
-    * riesiger einzelner Import ist separat zu behandeln" -- und ein Import setzt die History
-    * ohnehin zurueck.
+    * '''Die neueste Stufe bleibt immer.''' Ein einzelner Eintrag, der das Budget allein sprengt,
+    * kaeme sonst nie in die History, und der Benutzer koennte ausgerechnet seine letzte Aktion
+    * nicht zuruecknehmen. §14 nennt den Fall und verweist ihn woandershin: "ein riesiger einzelner
+    * Import ist separat zu behandeln" -- und ein Import setzt die History ohnehin zurueck.
     */
   private def trimmed(limits: HistoryLimits): HistoryState =
     var kept = if undo.length > limits.maxEntries then undo.takeRight(limits.maxEntries) else undo

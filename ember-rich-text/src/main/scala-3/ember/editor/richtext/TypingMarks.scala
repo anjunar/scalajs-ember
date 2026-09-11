@@ -17,8 +17,8 @@ enum TypingMarksValue:
     * The [[at]] point is not decoration. Without it the field could not tell "the caret moved
     * itself because I typed" from "the user clicked somewhere else" -- and §11 requires exactly
     * that distinction: "Ein expliziter Caretsprung oder Range-Wechsel setzt wieder auf
-    * kontextabhaengiges Inherit; blosses Mapping desselben Carets durch eigene Eingabe erhaelt
-    * die explizite Wahl."
+    * kontextabhaengiges Inherit; blosses Mapping desselben Carets durch eigene Eingabe erhaelt die
+    * explizite Wahl."
     */
   case Explicit(marks: MarkSet, at: Point)
 
@@ -26,9 +26,9 @@ enum TypingMarksValue:
   *
   * ==Why this is a state field and not a variable somewhere==
   *
-  * Because it has to survive a commit, take part in mapping, and come back with an undo. §9
-  * calls that a `StateField`; anything else would be a second kind of state next to the
-  * session, and §5 has only one.
+  * Because it has to survive a commit, take part in mapping, and come back with an undo. §9 calls
+  * that a `StateField`; anything else would be a second kind of state next to the session, and §5
+  * has only one.
   *
   * ==Why it is restored by history==
   *
@@ -39,9 +39,9 @@ enum TypingMarksValue:
   *
   * ==Why `Keep` and not `Reset` on document change==
   *
-  * `Reset` would clear the choice on the very next keystroke, which is the one it was made for.
-  * The decision belongs in [[reduce]], where the mapping is available and the field can tell a
-  * caret that moved by itself from one that was moved.
+  * `Reset` would clear the choice on the very next keystroke, which is the one it was made for. The
+  * decision belongs in [[reduce]], where the mapping is available and the field can tell a caret
+  * that moved by itself from one that was moved.
   */
 object TypingMarks extends StateField[TypingMarksValue]:
 
@@ -56,16 +56,16 @@ object TypingMarks extends StateField[TypingMarksValue]:
   /** Keeps an explicit choice exactly as long as the caret stayed where it was made.
     *
     * The stored point is mapped through the transaction's own mapping first. That is the whole
-    * trick: typing a character moves the caret from offset 4 to 5 *and* maps the stored point
-    * from 4 to 5, so the two still agree and the choice survives. Clicking somewhere else moves
-    * the caret without mapping anything, the two disagree, and the choice is gone.
+    * trick: typing a character moves the caret from offset 4 to 5 *and* maps the stored point from
+    * 4 to 5, so the two still agree and the choice survives. Clicking somewhere else moves the
+    * caret without mapping anything, the two disagree, and the choice is gone.
     */
   override def reduce(
       current: TypingMarksValue,
       candidate: CommitCandidate
   ): Either[EditorError, TypingMarksValue] =
     current match
-      case TypingMarksValue.Inherit => Right(TypingMarksValue.Inherit)
+      case TypingMarksValue.Inherit             => Right(TypingMarksValue.Inherit)
       case TypingMarksValue.Explicit(marks, at) =>
         val mapped = candidate.mapping.map(at).point
         caretOf(candidate.selection) match

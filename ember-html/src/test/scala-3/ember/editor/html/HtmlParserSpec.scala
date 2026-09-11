@@ -8,8 +8,8 @@ import org.scalatest.matchers.should.Matchers
   * ==What a passing suite here does and does not claim==
   *
   * It claims that the shapes clipboards produce are read the way §19.1's recovery rules say. It
-  * does '''not''' claim HTML5 tree construction -- §19.1 declines that in so many words, and a
-  * test that pretended otherwise would be the beginning of an obligation nobody signed.
+  * does '''not''' claim HTML5 tree construction -- §19.1 declines that in so many words, and a test
+  * that pretended otherwise would be the beginning of an obligation nobody signed.
   *
   * The security half is `HtmlSecuritySpec`; the mapping to document nodes is `HtmlImportSpec`.
   */
@@ -27,7 +27,7 @@ final class HtmlParserSpec extends AnyFlatSpec with Matchers {
 
   /** A fragment as `p[text]`, so a test reads like the markup it came from. */
   private def shape(fragment: HtmlFragment): String = fragment match
-    case HtmlFragment.Text(value) => s""""$value""""
+    case HtmlFragment.Text(value)                        => s""""$value""""
     case HtmlFragment.Element(tag, attributes, children) =>
       val shown = attributes.map(a => s"@${a.name}=${a.value}").mkString(" ")
       val head  = if shown.isEmpty then tag else s"$tag($shown)"

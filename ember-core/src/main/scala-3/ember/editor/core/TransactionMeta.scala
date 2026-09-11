@@ -25,13 +25,13 @@ enum Origin:
 
 /** Was eine Aenderung fuer die History bedeuten soll.
   *
-  * §14 fuehrt sie zusammen mit [[Origin]] als "typisierte Metadaten" auf. Der Kern wertet sie
-  * nicht aus -- er traegt sie, wie er [[TransactionMeta.label]] traegt. Ausgewertet wird sie in
+  * §14 fuehrt sie zusammen mit [[Origin]] als "typisierte Metadaten" auf. Der Kern wertet sie nicht
+  * aus -- er traegt sie, wie er [[TransactionMeta.label]] traegt. Ausgewertet wird sie in
   * `ember-history`, und ohne dieses Modul ist sie folgenlos.
   *
-  * Sie ist eine Ausnahme, kein Regelfall: fehlt sie, entscheiden die Gruppierungsregeln
-  * aus §14 anhand dessen, was tatsaechlich passiert ist. Wer sie setzt, weiss etwas, das sich
-  * am ChangeSet nicht ablesen laesst.
+  * Sie ist eine Ausnahme, kein Regelfall: fehlt sie, entscheiden die Gruppierungsregeln aus §14
+  * anhand dessen, was tatsaechlich passiert ist. Wer sie setzt, weiss etwas, das sich am ChangeSet
+  * nicht ablesen laesst.
   */
 enum HistoryPolicy:
 
@@ -47,9 +47,9 @@ enum HistoryPolicy:
 /** Was der Ausloeser einer Transaktion ueber sie sagt.
   *
   * Bewusst schmal, und jedes Feld hier steht in §14 als typisierte Metadatenangabe. Was der Kern
-  * damit tut, ist: es weiterreichen. Er entscheidet weder ueber History noch ueber Herkunft --
-  * er sorgt nur dafuer, dass die Angabe den Commit erreicht, statt aus Textdifferenzen erraten
-  * werden zu muessen.
+  * damit tut, ist: es weiterreichen. Er entscheidet weder ueber History noch ueber Herkunft -- er
+  * sorgt nur dafuer, dass die Angabe den Commit erreicht, statt aus Textdifferenzen erraten werden
+  * zu muessen.
   */
 final case class TransactionMeta(
     origin: Origin = Origin.User,

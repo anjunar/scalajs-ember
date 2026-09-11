@@ -4,21 +4,21 @@ package ember.editor.markdown
   *
   * ==What this is not==
   *
-  * It is not a document. §18.1: "Die Syntax-AST ist immutable und nur ein Import-/Exportwert,
-  * kein zweiter dauerhaft synchron gehaltener Editorzustand." Nothing here knows what a
-  * `ParagraphNode` is, and nothing here can be edited -- turning this into a document is a
-  * separate step, and the rules that do it live in the integration module (§6).
+  * It is not a document. §18.1: "Die Syntax-AST ist immutable und nur ein Import-/Exportwert, kein
+  * zweiter dauerhaft synchron gehaltener Editorzustand." Nothing here knows what a `ParagraphNode`
+  * is, and nothing here can be edited -- turning this into a document is a separate step, and the
+  * rules that do it live in the integration module (§6).
   *
   * That separation is the reason this module depends on the core alone. A parser that produced
-  * `ParagraphNode` directly would have to know the rich-text profile, and an application with
-  * its own block types could not reuse it.
+  * `ParagraphNode` directly would have to know the rich-text profile, and an application with its
+  * own block types could not reuse it.
   *
   * ==Inline content==
   *
-  * A paragraph and a heading hold [[MarkdownInline]] values, not a string. Under a profile
-  * whose [[Conformance]] is [[Conformance.BlocksOnly]] that vector is a single
-  * [[MarkdownInline.Text]] holding the raw source -- which is what "not parsed" means, stated
-  * as a value rather than as an empty field a consumer has to know about.
+  * A paragraph and a heading hold [[MarkdownInline]] values, not a string. Under a profile whose
+  * [[Conformance]] is [[Conformance.BlocksOnly]] that vector is a single [[MarkdownInline.Text]]
+  * holding the raw source -- which is what "not parsed" means, stated as a value rather than as an
+  * empty field a consumer has to know about.
   */
 sealed trait MarkdownBlock:
 
@@ -51,8 +51,8 @@ object MarkdownBlock:
     *
     * `style` is kept although §18.2 lets the writer pick a canonical syntax: a round trip that
     * turns every Setext heading into an ATX one is allowed, but a writer that '''wants''' to
-    * preserve the input needs to know what the input was. Keeping it costs a field; recovering
-    * it later is impossible.
+    * preserve the input needs to know what the input was. Keeping it costs a field; recovering it
+    * later is impossible.
     */
   final case class Heading(
       id: SyntaxId,
@@ -64,9 +64,9 @@ object MarkdownBlock:
 
   /** Fenced or indented code. `literal` is verbatim, including inner blank lines.
     *
-    * `fence` is `None` for an indented block. That is the only difference the model keeps --
-    * an indented block has no info string and no fence character, and pretending otherwise
-    * would mean inventing values the source never had.
+    * `fence` is `None` for an indented block. That is the only difference the model keeps -- an
+    * indented block has no info string and no fence character, and pretending otherwise would mean
+    * inventing values the source never had.
     */
   final case class CodeBlock(
       id: SyntaxId,
@@ -77,11 +77,10 @@ object MarkdownBlock:
 
   /** A raw HTML block, kept as literal source text.
     *
-    * §18.1: "Raw HTML wird als sichtbarer Text erhalten statt ausgefuehrt." The parser
-    * recognises HTML blocks because CommonMark does -- their block boundaries differ from a
-    * paragraph's, and ignoring them would change the structure around them. What happens to
-    * the literal afterwards is the profile's decision, not the parser's, and
-    * [[MarkdownProfile.rawHtml]] states it.
+    * §18.1: "Raw HTML wird als sichtbarer Text erhalten statt ausgefuehrt." The parser recognises
+    * HTML blocks because CommonMark does -- their block boundaries differ from a paragraph's, and
+    * ignoring them would change the structure around them. What happens to the literal afterwards
+    * is the profile's decision, not the parser's, and [[MarkdownProfile.rawHtml]] states it.
     */
   final case class HtmlBlock(id: SyntaxId, span: SourceSpan, literal: String) extends Leaf
 
@@ -93,8 +92,8 @@ object MarkdownBlock:
 
   /** A list, with the tight/loose distinction §18.2 asks to preserve.
     *
-    * Tightness is a property of the '''list''', not of an item: CommonMark decides it once,
-    * from blank lines between items and inside them, and then renders every item the same way.
+    * Tightness is a property of the '''list''', not of an item: CommonMark decides it once, from
+    * blank lines between items and inside them, and then renders every item the same way.
     */
   final case class MarkdownList(
       id: SyntaxId,
@@ -112,16 +111,16 @@ object MarkdownBlock:
   *
   * ==Why the destinations are plain strings==
   *
-  * A [[MarkdownInline.Link]] carries `destination: String` and not a `LinkUrl`. That looks like
-  * a missed opportunity for the "type is the door" pattern the rest of this editor uses -- and
-  * it is deliberate: `LinkUrl` lives in `ember-link` and `MediaUrl` in `ember-image`, and §6
-  * gives this module the core alone.
+  * A [[MarkdownInline.Link]] carries `destination: String` and not a `LinkUrl`. That looks like a
+  * missed opportunity for the "type is the door" pattern the rest of this editor uses -- and it is
+  * deliberate: `LinkUrl` lives in `ember-link` and `MediaUrl` in `ember-image`, and §6 gives this
+  * module the core alone.
   *
-  * The door is still there, one step later. `ember-standard` runs the application's policy when
-  * it turns syntax into a document, exactly as §19.1 asks: "URLs werden nach
-  * Entities-/Whitespace-Normalisierung durch die jeweilige Link-/Media-Policy geprueft." The
-  * parser normalises; the adapter decides. A parser that decided would need to know which
-  * policy, and there is no such thing as the one policy.
+  * The door is still there, one step later. `ember-standard` runs the application's policy when it
+  * turns syntax into a document, exactly as §19.1 asks: "URLs werden nach
+  * Entities-/Whitespace-Normalisierung durch die jeweilige Link-/Media-Policy geprueft." The parser
+  * normalises; the adapter decides. A parser that decided would need to know which policy, and
+  * there is no such thing as the one policy.
   */
 sealed trait MarkdownInline:
 
@@ -166,8 +165,8 @@ object MarkdownInline:
       children: Vector[MarkdownInline]
   ) extends MarkdownInline
 
-  /** An image. Its children are the alt text -- CommonMark models it that way because the alt
-    * text may itself contain markup, and flattening it too early would lose that.
+  /** An image. Its children are the alt text -- CommonMark models it that way because the alt text
+    * may itself contain markup, and flattening it too early would lose that.
     */
   final case class Image(
       id: SyntaxId,
@@ -179,14 +178,14 @@ object MarkdownInline:
 
   /** The plain text of an inline tree -- what an image's alt attribute becomes. */
   def plainText(inlines: Vector[MarkdownInline]): String =
-    val out = new StringBuilder
+    val out                                = new StringBuilder
     def walk(inline: MarkdownInline): Unit = inline match
-      case Text(_, _, value)     => out.append(value)
-      case Code(_, _, literal)   => out.append(literal)
-      case SoftBreak(_, _)       => out.append('\n')
-      case HardBreak(_, _)       => out.append('\n')
-      case HtmlInline(_, _, _)   => ()
-      case other                 => other.children.foreach(walk)
+      case Text(_, _, value)   => out.append(value)
+      case Code(_, _, literal) => out.append(literal)
+      case SoftBreak(_, _)     => out.append('\n')
+      case HardBreak(_, _)     => out.append('\n')
+      case HtmlInline(_, _, _) => ()
+      case other               => other.children.foreach(walk)
     inlines.foreach(walk)
     out.toString
 
@@ -197,14 +196,14 @@ enum HeadingStyle:
 /** The fence of a fenced code block.
   *
   * @param char
-  *   `` ` `` or `~`. Needed for the export side: a block whose content holds backticks has to
-  *   be fenced with something else, or with a longer run.
+  *   `` ` `` or `~`. Needed for the export side: a block whose content holds backticks has to be
+  *   fenced with something else, or with a longer run.
   * @param length
   *   how many fence characters opened it, at least three.
   * @param info
-  *   the info string, unescaped and trimmed. Empty when there was none. §18.2 wants the
-  *   language typed -- that typing happens in the adapter, because [[CodeLanguage]] lives in
-  *   `ember-code` and this module does not know it.
+  *   the info string, unescaped and trimmed. Empty when there was none. §18.2 wants the language
+  *   typed -- that typing happens in the adapter, because [[CodeLanguage]] lives in `ember-code`
+  *   and this module does not know it.
   */
 final case class Fence(char: Char, length: Int, info: String)
 
@@ -229,17 +228,17 @@ final case class MarkdownDocument(
   * ==Why UTF-16 and not lines and columns==
   *
   * Because everything else in this editor counts in UTF-16 units -- §11 fixes it for text
-  * positions, and `spliceText` in ui-core takes them. A source map that spoke in lines and
-  * columns would need a conversion at every use, and the conversion is where an off-by-one
-  * hides. CommonMark's own reference implementation reports line/column; this is the one place
-  * the port deliberately does something else.
+  * positions, and `spliceText` in ui-core takes them. A source map that spoke in lines and columns
+  * would need a conversion at every use, and the conversion is where an off-by-one hides.
+  * CommonMark's own reference implementation reports line/column; this is the one place the port
+  * deliberately does something else.
   *
   * ==Why no constructor check==
   *
-  * `start <= end` and both non-negative is an invariant of the '''parser''', not of a caller
-  * -- nobody outside builds one. A guard in the constructor would check the wrong party.
-  * `MarkdownBlockSpec` checks the right one: every span of every parse of all
-  * [[SpecFixtures]] examples is well formed and contained in its parent's.
+  * `start <= end` and both non-negative is an invariant of the '''parser''', not of a caller --
+  * nobody outside builds one. A guard in the constructor would check the wrong party.
+  * `MarkdownBlockSpec` checks the right one: every span of every parse of all [[SpecFixtures]]
+  * examples is well formed and contained in its parent's.
   */
 final case class SourceSpan(start: Int, end: Int):
 
@@ -259,9 +258,9 @@ final case class SourceSpan(start: Int, end: Int):
 /** Identity of a block inside one parse result.
   *
   * Opaque and mintable only by the parser: an id that did not come from a parse cannot address
-  * anything, and letting one be fabricated would make [[SourceMap]] lookups silently miss.
-  * There is nothing to validate here -- the door exists to keep the numbering the parser's
-  * business, not to check a value.
+  * anything, and letting one be fabricated would make [[SourceMap]] lookups silently miss. There is
+  * nothing to validate here -- the door exists to keep the numbering the parser's business, not to
+  * check a value.
   */
 opaque type SyntaxId = Int
 
@@ -270,5 +269,5 @@ object SyntaxId:
   private[markdown] def apply(value: Int): SyntaxId = value
 
   extension (id: SyntaxId)
-    def value: Int    = id
+    def value: Int     = id
     def render: String = s"#$id"

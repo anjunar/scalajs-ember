@@ -8,20 +8,20 @@ import org.scalatest.matchers.should.Matchers
   *
   * ==Why this suite builds its own node types==
   *
-  * §6 gives this module the core alone. The standard rules live in `ember-standard` and are
-  * tested there, against real paragraphs and real links -- but that suite could pass while this
-  * module quietly required something from the rich-text profile.
+  * §6 gives this module the core alone. The standard rules live in `ember-standard` and are tested
+  * there, against real paragraphs and real links -- but that suite could pass while this module
+  * quietly required something from the rich-text profile.
   *
   * So the rules here are local and minimal: two node types nobody else has. That is not a
-  * workaround, it is the check. If [[MarkdownCodec]] ever needed to know what a `ParagraphNode`
-  * is, this file would stop compiling.
+  * workaround, it is the check. If [[MarkdownCodec]] ever needed to know what a `ParagraphNode` is,
+  * this file would stop compiling.
   *
   * ==And why source maps get their own suite==
   *
-  * §18.2 asks for two: UTF-16 source ranges and document positions. The first is a property of
-  * the parse, the second of the codec, and they are the thing a source view sits on. An
-  * off-by-one in either is invisible until someone clicks -- so it gets asserted against real
-  * substrings rather than against numbers.
+  * §18.2 asks for two: UTF-16 source ranges and document positions. The first is a property of the
+  * parse, the second of the codec, and they are the thing a source view sits on. An off-by-one in
+  * either is invisible until someone clicks -- so it gets asserted against real substrings rather
+  * than against numbers.
   */
 final class MarkdownSourceMapSpec extends AnyFlatSpec with Matchers {
 
@@ -123,7 +123,9 @@ final class MarkdownSourceMapSpec extends AnyFlatSpec with Matchers {
     // muss nicht wissen, was darin steht.
     val result = decode("*laut*\n")
 
-    result.document.inDocumentOrder.collectFirst { case run: TextNode => run.marks.contains(Loud.markId) } shouldBe
+    result.document.inDocumentOrder.collectFirst { case run: TextNode =>
+      run.marks.contains(Loud.markId)
+    } shouldBe
       Some(true)
   }
 
@@ -164,13 +166,15 @@ final class MarkdownSourceMapSpec extends AnyFlatSpec with Matchers {
     val source = "# Titel\n\nEin Absatz.\n"
     val result = Markdown.parseSyntax(source).getOrElse(fail("nicht parsebar"))
 
-    result.document.children.map(block => source.substring(block.span.start, block.span.end)) shouldBe
+    result.document.children.map(block =>
+      source.substring(block.span.start, block.span.end)
+    ) shouldBe
       Vector("# Titel", "Ein Absatz.")
   }
 
   it should "answer through the map by id" in {
-    val result   = Markdown.parseSyntax("# Titel\n").getOrElse(fail("nicht parsebar"))
-    val heading  = result.document.children.head
+    val result  = Markdown.parseSyntax("# Titel\n").getOrElse(fail("nicht parsebar"))
+    val heading = result.document.children.head
 
     result.sourceMap.spanOf(heading.id) shouldBe Some(heading.span)
   }
@@ -197,7 +201,8 @@ final class MarkdownSourceMapSpec extends AnyFlatSpec with Matchers {
     val source = "> Ein Zitat.\n"
     val result = decode(source)
 
-    val run = result.document.inDocumentOrder.collectFirst { case value: TextNode => value }
+    val run = result.document.inDocumentOrder
+      .collectFirst { case value: TextNode => value }
       .getOrElse(fail("kein Lauf"))
 
     val span = result.sourceMap.spanOf(run.id).getOrElse(fail("keine Spanne"))
@@ -249,8 +254,8 @@ private object Box extends ElementNodeType[Box]:
     case box: Box => Some(box)
     case _        => None
 
-  def rekey(node: Box, id: NodeId): Box                             = node.copy(id = id)
-  def withChildren(node: Box, children: Vector[NodeId]): Box        = node.copy(children = children)
+  def rekey(node: Box, id: NodeId): Box                      = node.copy(id = id)
+  def withChildren(node: Box, children: Vector[NodeId]): Box = node.copy(children = children)
 
 /** Two marks nobody else has. */
 private case object Loud extends TextMark:

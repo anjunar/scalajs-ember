@@ -5,9 +5,9 @@ import ember.editor.richtext.*
 
 /** Where the caret is, in list terms.
   *
-  * Every list command starts by asking this, and none of them can do anything useful without
-  * the whole answer: the item, the list it is in, and where in that list it sits. Computing it
-  * once, in one place, is the difference between five commands that agree and five that drift.
+  * Every list command starts by asking this, and none of them can do anything useful without the
+  * whole answer: the item, the list it is in, and where in that list it sits. Computing it once, in
+  * one place, is the difference between five commands that agree and five that drift.
   */
 private[list] final case class ListContext(
     block: NodeId,
@@ -43,9 +43,8 @@ object Lists:
 
   /** Whether the caret sits at the very start of its block.
     *
-    * What Backspace needs to know: at offset zero of the first run, there is nothing left in
-    * this block to delete, and the key means "get me out of here" rather than "remove a
-    * character".
+    * What Backspace needs to know: at offset zero of the first run, there is nothing left in this
+    * block to delete, and the key means "get me out of here" rather than "remove a character".
     */
   private[list] def atBlockStart(scope: TransformScope): Boolean =
     val document = scope.document
@@ -55,7 +54,9 @@ object Lists:
       .collect { case Point.Text(node, offset, _) => (node, offset) }
 
     position.exists { (node, offset) =>
-      offset == 0 && document.parentOf(node).exists(document.childrenOf(_).headOption.contains(node))
+      offset == 0 && document
+        .parentOf(node)
+        .exists(document.childrenOf(_).headOption.contains(node))
     }
 
   /** Whether an item has no text at all.

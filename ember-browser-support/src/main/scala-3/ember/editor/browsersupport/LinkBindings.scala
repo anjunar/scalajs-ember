@@ -19,8 +19,8 @@ object LinkBindings:
 
   /** Removing a link needs nothing from the user, so it can be bound outright. */
   val keyboard: KeyboardBindings =
-    KeyboardBindings.of {
-      case Shortcut("k", true, true, false) => session => session.dispatch(LinkCommands.RemoveLink)
+    KeyboardBindings.of { case Shortcut("k", true, true, false) =>
+      session => session.dispatch(LinkCommands.RemoveLink)
     }
 
   /** The shortcut that opens an application's link dialog.
@@ -30,10 +30,9 @@ object LinkBindings:
     * application's dialogs look like.
     */
   def keyboardWith(ask: () => Option[LinkTarget]): KeyboardBindings =
-    KeyboardBindings.of {
-      case Shortcut("k", true, false, false) =>
-        session =>
-          ask() match
-            case Some(target) => session.dispatch(LinkCommands.SetLink, target)
-            case None         => session.dispatch(LinkCommands.RemoveLink)
+    KeyboardBindings.of { case Shortcut("k", true, false, false) =>
+      session =>
+        ask() match
+          case Some(target) => session.dispatch(LinkCommands.SetLink, target)
+          case None         => session.dispatch(LinkCommands.RemoveLink)
     } ++ keyboard

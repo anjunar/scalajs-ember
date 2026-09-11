@@ -6,27 +6,27 @@ import scala.collection.mutable
   *
   * ==What is promised, and what is not==
   *
-  * §18.2 is precise about this, and the precision matters because the obvious expectation is
-  * the wrong one:
+  * §18.2 is precise about this, and the precision matters because the obvious expectation is the
+  * wrong one:
   *
   *   - '''Promised:''' `decode(encode(document)) ≃ normalize(document)`. Write a tree, parse it
   *     again, and you get the same tree back up to normalisation.
-  *   - '''Not promised:''' `encode(decode(source)) == source`. The writer picks a canonical
-  *     syntax. A heading written `Titel` over `=====` comes back as `# Titel`; a list written
-  *     with `+` comes back with `-`. §18.2 says so outright: "`encode(decode(source)) == source`
-  *     ist kein Ziel."
+  *   - '''Not promised:''' `encode(decode(source)) == source`. The writer picks a canonical syntax.
+  *     A heading written `Titel` over `=====` comes back as `# Titel`; a list written with `+`
+  *     comes back with `-`. §18.2 says so outright: "`encode(decode(source)) == source` ist kein
+  *     Ziel."
   *
-  * That is not laziness. Preserving the input spelling would mean carrying it through the
-  * document model, and the document model is the editor's state -- it holds what the text
-  * '''means''', not how someone typed it. The one exception is [[HeadingStyle]], which the
-  * syntax tree keeps because it costs a field and cannot be recovered later.
+  * That is not laziness. Preserving the input spelling would mean carrying it through the document
+  * model, and the document model is the editor's state -- it holds what the text '''means''', not
+  * how someone typed it. The one exception is [[HeadingStyle]], which the syntax tree keeps because
+  * it costs a field and cannot be recovered later.
   *
   * ==Escaping==
   *
   * The writer escapes what would otherwise be read back as syntax, and nothing else. §18.2:
-  * "Dekodierung und erneutes Escaping ohne Syntaxinjektion." Over-escaping is safe but makes
-  * the output unreadable, so the rule is positional: a `#` is escaped at the start of a line
-  * and left alone in the middle of one.
+  * "Dekodierung und erneutes Escaping ohne Syntaxinjektion." Over-escaping is safe but makes the
+  * output unreadable, so the rule is positional: a `#` is escaped at the start of a line and left
+  * alone in the middle of one.
   */
 object MarkdownWriter:
 
@@ -55,9 +55,9 @@ object MarkdownWriter:
   /** Whether two consecutive blocks need a blank line between them.
     *
     * Almost always yes -- two paragraphs without one are a single paragraph. The exception is
-    * inside a '''tight''' list item: `- aussen` followed by an indented `- innen` is a nested
-    * list with no blank line, and writing one turns the outer list loose. That change survives
-    * a re-parse, so a round trip sees it and a rendered comparison does not.
+    * inside a '''tight''' list item: `- aussen` followed by an indented `- innen` is a nested list
+    * with no blank line, and writing one turns the outer list loose. That change survives a
+    * re-parse, so a round trip sees it and a rendered comparison does not.
     */
   private def needsBlankLineBefore(
       previous: MarkdownBlock,
@@ -84,7 +84,8 @@ object MarkdownWriter:
       // die anders aussieht als das Original.
       if style == HeadingStyle.Setext && level <= 2 && !text.contains('\n') && text.nonEmpty then
         out.line(text)
-        out.line(if level == 1 then "=" * math.max(3, text.length) else "-" * math.max(3, text.length))
+        out.line(if level == 1 then "=" * math.max(3, text.length)
+        else "-" * math.max(3, text.length))
       else out.line(s"${"#" * level} $text".stripSuffix(" "))
 
     case MarkdownBlock.CodeBlock(_, _, literal, fence) =>
@@ -166,12 +167,20 @@ object MarkdownWriter:
       case MarkdownInline.Link(_, _, destination, title, children) =>
         out.append('['): Unit
         writeInline(children, out)
-        out.append("](").append(writeDestination(destination)).append(titleOf(title)).append(')'): Unit
+        out
+          .append("](")
+          .append(writeDestination(destination))
+          .append(titleOf(title))
+          .append(')'): Unit
 
       case MarkdownInline.Image(_, _, destination, title, children) =>
         out.append("!["): Unit
         writeInline(children, out)
-        out.append("](").append(writeDestination(destination)).append(titleOf(title)).append(')'): Unit
+        out
+          .append("](")
+          .append(writeDestination(destination))
+          .append(titleOf(title))
+          .append(')'): Unit
     }
 
   private def titleOf(title: Option[String]): String =
@@ -244,9 +253,9 @@ object MarkdownWriter:
 
   /** The output buffer, with the block-prefix stack containers need.
     *
-    * A block quote inside a list item is `- > text`, and the prefix of the '''first''' line
-    * differs from the rest. Getting that wrong produces Markdown that parses back into a
-    * different tree, which is exactly what the round-trip promise forbids.
+    * A block quote inside a list item is `- > text`, and the prefix of the '''first''' line differs
+    * from the rest. Getting that wrong produces Markdown that parses back into a different tree,
+    * which is exactly what the round-trip promise forbids.
     */
   private final class Sink:
     private val buffer   = new StringBuilder
@@ -259,13 +268,11 @@ object MarkdownWriter:
       // Jede Ebene entscheidet selbst, ob sie ihr Marker- oder ihr Fortsetzungspraefix schreibt.
       // Ein einziges "erste Zeile"-Flag reichte nicht: `- > Text` hat zwei Ebenen, die beide
       // ihre erste Zeile schreiben, und danach schreibt jede etwas anderes.
-      val prefix = prefixes
-        .map { level =>
-          val value = if level.used then level.rest else level.first
-          level.used = true
-          value
-        }
-        .mkString
+      val prefix = prefixes.map { level =>
+        val value = if level.used then level.rest else level.first
+        level.used = true
+        value
+      }.mkString
 
       // Ein Praefix ohne Inhalt traegt keinen Leerraum ans Zeilenende -- `>` und nicht `> `.
       val rendered = if text.isEmpty then prefix.replaceAll("\\s+$", "") else prefix + text

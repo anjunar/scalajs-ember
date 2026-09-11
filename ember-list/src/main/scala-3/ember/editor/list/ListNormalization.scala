@@ -7,22 +7,22 @@ import ember.editor.richtext.*
   *
   * ==What they are for==
   *
-  * Every list command is a move, and a move can leave a structure that no renderer accepts: an
-  * item with nothing in it, a list with nothing in it, a paragraph that landed directly in a
-  * list. §8.2 fixes the shape ("eine Liste ListItems, ein ListItem Blockinhalte") and P13's
-  * acceptance names the one that matters most: "Kein nackter Paragraph direkt in ListNode."
+  * Every list command is a move, and a move can leave a structure that no renderer accepts: an item
+  * with nothing in it, a list with nothing in it, a paragraph that landed directly in a list. §8.2
+  * fixes the shape ("eine Liste ListItems, ein ListItem Blockinhalte") and P13's acceptance names
+  * the one that matters most: "Kein nackter Paragraph direkt in ListNode."
   *
   * ==Why they repair instead of reject==
   *
   * The commands could each be careful enough never to produce these. They would then each be
-  * careful, separately, for as long as anyone remembers -- and the first foreign module that
-  * moves a node into a list would not be. §3.2 puts invariant repair in transforms for exactly
-  * this reason: the rule holds regardless of who caused the problem.
+  * careful, separately, for as long as anyone remembers -- and the first foreign module that moves
+  * a node into a list would not be. §3.2 puts invariant repair in transforms for exactly this
+  * reason: the rule holds regardless of who caused the problem.
   *
   * ==Termination==
   *
-  * P13's acceptance asks for it, and the risk is real: a rule that wraps loose children and a
-  * rule that unwraps empty items can feed each other forever, and §10's budget would abort the
+  * P13's acceptance asks for it, and the risk is real: a rule that wraps loose children and a rule
+  * that unwraps empty items can feed each other forever, and §10's budget would abort the
   * transaction after 32 rounds. Each rule below therefore either removes a node or reduces the
   * number of misplaced ones, and none of them creates work for another.
   */
@@ -30,12 +30,12 @@ private[list] object ListNormalization:
 
   /** A block that landed directly in a list gets an item around it.
     *
-    * The usual way it happens is an outdent that moved a paragraph one level too far, or a
-    * foreign module inserting where it should not. Wrapping is the repair that keeps the
-    * content: rejecting would fail the whole transaction, and dropping would lose text.
+    * The usual way it happens is an outdent that moved a paragraph one level too far, or a foreign
+    * module inserting where it should not. Wrapping is the repair that keeps the content: rejecting
+    * would fail the whole transaction, and dropping would lose text.
     *
-    * One child per pass. `insert` and `move` change the list underneath, so a loop here would
-    * walk a stale vector -- the transform loop comes back while the node stays dirty (§10).
+    * One child per pass. `insert` and `move` change the list underneath, so a loop here would walk
+    * a stale vector -- the transform loop comes back while the node stays dirty (§10).
     */
   def looseChildNeedsItem(generator: NodeIdGenerator): Transform[ListNode] =
     new Transform[ListNode]:
@@ -92,22 +92,22 @@ private[list] object ListNormalization:
     *
     * ==Why this is needed and not merely tidy==
     *
-    * Outdenting an item out of the middle of a list splits it in two, and indenting the item
-    * after it produces a second nested list next to the first. Without this rule, a few
-    * keystrokes leave a document whose HTML has three `<ul>` where the author sees one list --
-    * and whose Markdown export renumbers, because each list starts again.
+    * Outdenting an item out of the middle of a list splits it in two, and indenting the item after
+    * it produces a second nested list next to the first. Without this rule, a few keystrokes leave
+    * a document whose HTML has three `<ul>` where the author sees one list -- and whose Markdown
+    * export renumbers, because each list starts again.
     *
-    * Only the same kind, and only direct neighbours. A numbered list next to a bulleted one is
-    * two lists in every format, and this rule is deliberately blind to anything further away:
-    * the left list's `start` and `tight` win, because it is the one that was there first.
+    * Only the same kind, and only direct neighbours. A numbered list next to a bulleted one is two
+    * lists in every format, and this rule is deliberately blind to anything further away: the left
+    * list's `start` and `tight` win, because it is the one that was there first.
     *
     * ==Why it looks backwards==
     *
-    * Because the dirty node has to be the one that acts. Wrapping a paragraph creates a *new*
-    * list next to an existing one: the new one is in `ChangeSet.created`, the old one is
-    * untouched and never becomes a transform candidate (§3.4). A rule that looked forward would
-    * be asked only on the node that has nothing after it, and would sit there doing nothing --
-    * the same mistake the text-run merge made in P12, in the same shape.
+    * Because the dirty node has to be the one that acts. Wrapping a paragraph creates a *new* list
+    * next to an existing one: the new one is in `ChangeSet.created`, the old one is untouched and
+    * never becomes a transform candidate (§3.4). A rule that looked forward would be asked only on
+    * the node that has nothing after it, and would sit there doing nothing -- the same mistake the
+    * text-run merge made in P12, in the same shape.
     */
   val adjacentListsJoin: Transform[ListNode] = new Transform[ListNode]:
     val name           = "list.adjacent-lists-join"
@@ -122,9 +122,9 @@ private[list] object ListNormalization:
         index  <- document.indexOfChild(node.id)
         if index > 0
         before <- document.childrenOf(parent).lift(index - 1)
-        list <- document.node(before).collect {
-                  case value: ListNode if value.kind == node.kind => value
-                }
+        list   <- document.node(before).collect {
+          case value: ListNode if value.kind == node.kind => value
+        }
       yield list
 
       predecessor.foreach { earlier =>

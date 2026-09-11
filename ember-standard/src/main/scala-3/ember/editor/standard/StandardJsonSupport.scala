@@ -12,16 +12,16 @@ import ember.editor.richtext.*
   *
   * ==Why they live here and not in `ember-json`==
   *
-  * The same reason [[ImageJsonSupport]] does, and it is worth repeating because the temptation
-  * runs the other way: §6 puts `json` '''beside''' the node modules, not above them. A server
-  * that stores documents links `ember-json` and the node modules it actually uses -- not every
-  * node type that exists. If the codecs lived in `ember-json`, choosing JSON would drag in
-  * lists, links, code and images whether the application had them or not.
+  * The same reason [[ImageJsonSupport]] does, and it is worth repeating because the temptation runs
+  * the other way: §6 puts `json` '''beside''' the node modules, not above them. A server that
+  * stores documents links `ember-json` and the node modules it actually uses -- not every node type
+  * that exists. If the codecs lived in `ember-json`, choosing JSON would drag in lists, links, code
+  * and images whether the application had them or not.
   *
   * ==Separately selectable==
   *
-  * §6 forbids "eager Sammelregistrierungen". Every codec is its own value, and the bundles at
-  * the bottom are a convenience, not the only door:
+  * §6 forbids "eager Sammelregistrierungen". Every codec is its own value, and the bundles at the
+  * bottom are a convenience, not the only door:
   *
   * {{{
   * JsonSupport.of(StandardJsonCodecs.paragraph, StandardJsonCodecs.heading)
@@ -31,10 +31,10 @@ import ember.editor.richtext.*
   *
   * ==What a codec writes, and what it does not==
   *
-  * Children are not a codec's business: [[DocumentJson]] writes the child list itself, because
-  * it is the same shape for every element and because referential integrity is checked once, in
-  * one place (§19.2). A codec writes what makes '''its''' node type different -- a heading's
-  * level, a list's start number, a link's target.
+  * Children are not a codec's business: [[DocumentJson]] writes the child list itself, because it
+  * is the same shape for every element and because referential integrity is checked once, in one
+  * place (§19.2). A codec writes what makes '''its''' node type different -- a heading's level, a
+  * list's start number, a link's target.
   */
 object StandardJsonCodecs:
 
@@ -61,13 +61,16 @@ object StandardJsonCodecs:
         context: DecodeContext
     ): Either[DecodeError, HeadingNode] =
       for
-        raw <- payload.int("level", context.path)
+        raw   <- payload.int("level", context.path)
         level <- HeadingLevel
           .fromInt(raw)
           .toRight(
             // §19.2 verlangt die Pruefung von Zahlenbereichen. Auf H6 zu klemmen erzeugte ein
             // Dokument, das vom Payload abweicht, ohne es zu sagen.
-            DecodeError.InvalidValue(s"`$raw` ist keine Ueberschriftsebene (1 bis 6).", context.path.field("level"))
+            DecodeError.InvalidValue(
+              s"`$raw` ist keine Ueberschriftsebene (1 bis 6).",
+              context.path.field("level")
+            )
           )
       yield HeadingNode(id, Vector.empty, level)
 
@@ -86,7 +89,7 @@ object StandardJsonCodecs:
         context: DecodeContext
     ): Either[DecodeError, BreakNode] =
       for
-        raw <- payload.string("kind", context.path)
+        raw  <- payload.string("kind", context.path)
         kind <- BreakKind.values
           .find(_.toString.equalsIgnoreCase(raw))
           .toRight(
@@ -140,7 +143,7 @@ object StandardJsonCodecs:
     ): Either[DecodeError, ListNode] =
       for
         rawKind <- payload.string("kind", context.path)
-        kind <- ListKind.values
+        kind    <- ListKind.values
           .find(_.toString.equalsIgnoreCase(rawKind))
           .toRight(
             DecodeError.InvalidValue(s"`$rawKind` ist keine Listenart.", context.path.field("kind"))
@@ -155,7 +158,7 @@ object StandardJsonCodecs:
   ): Either[DecodeError, Int] =
     payload.get("start") match
       case None | Some(JsonValue.Null) => Right(1)
-      case Some(_) =>
+      case Some(_)                     =>
         payload.int("start", at).flatMap { value =>
           if value >= 0 then Right(value)
           else
@@ -170,9 +173,9 @@ object StandardJsonCodecs:
 
   /** The link codec, with the application's policy.
     *
-    * Same shape as [[ImageJsonSupport.codec]] and the same reason: §19.1 wants the same check on
-    * a payload as on a dialog, and passing the policy in is what makes them one check rather
-    * than two that could drift.
+    * Same shape as [[ImageJsonSupport.codec]] and the same reason: §19.1 wants the same check on a
+    * payload as on a dialog, and passing the policy in is what makes them one check rather than two
+    * that could drift.
     */
   def link(policy: LinkUrlPolicy = LinkUrlPolicy.default): NodeJsonCodec[LinkNode] =
     new NodeJsonCodec[LinkNode]:
@@ -224,8 +227,8 @@ object StandardJsonCodecs:
     ): Either[DecodeError, CodeBlockNode] =
       for
         rawLanguage <- payload.optionalString("language", context.path)
-        language <- rawLanguage match
-          case None => Right(None)
+        language    <- rawLanguage match
+          case None        => Right(None)
           case Some(value) =>
             CodeLanguage
               .parse(value)
@@ -245,8 +248,8 @@ object StandardJsonCodecs:
 
   /** The five built-in marks. None of them carries data, so all five are the same codec.
     *
-    * They are still five values and not one, because §6 asks for separate selectability and
-    * because a profile that has no underline should not be able to read one from a payload.
+    * They are still five values and not one, because §6 asks for separate selectability and because
+    * a profile that has no underline should not be able to read one from a payload.
     */
   val strong: MarkJsonCodec[TextMark]     = dataless(StandardMarks.Strong)
   val emphasis: MarkJsonCodec[TextMark]   = dataless(StandardMarks.Emphasis)
@@ -269,7 +272,10 @@ object StandardJsonCodecs:
     new NodeJsonCodec[N]:
       val nodeType: NodeType[N] = kind
 
-      def encode(node: N, context: EncodeContext): Either[EncodeError, Vector[(String, JsonValue)]] =
+      def encode(
+          node: N,
+          context: EncodeContext
+      ): Either[EncodeError, Vector[(String, JsonValue)]] =
         Right(Vector.empty)
 
       def decode(
@@ -296,7 +302,7 @@ object StandardJsonCodecs:
   ): Either[DecodeError, Boolean] =
     payload.get(name) match
       case Some(JsonValue.Bool(value)) => Right(value)
-      case Some(other) =>
+      case Some(other)                 =>
         Left(DecodeError.TypeMismatch("boolean", other.getClass.getSimpleName, at.field(name)))
       case None => Left(DecodeError.MissingField(name, at))
 
@@ -324,8 +330,8 @@ object StandardJsonSupport:
 
   /** Everything P12 to P16 built.
     *
-    * The policies have no defaults on purpose: a caller reaching for "everything" should still
-    * have to say which URLs it trusts. A payload is exactly as untrusted as a dialog (§19.1).
+    * The policies have no defaults on purpose: a caller reaching for "everything" should still have
+    * to say which URLs it trusts. A payload is exactly as untrusted as a dialog (§19.1).
     */
   def everything(
       links: LinkUrlPolicy = LinkUrlPolicy.default,

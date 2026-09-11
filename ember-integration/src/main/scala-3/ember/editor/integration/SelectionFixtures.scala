@@ -18,9 +18,9 @@ import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
 /** An atom whose inside is not editor text.
   *
   * §15.2 names the case: "native Inputs/Textareas in Atom-Views, unmanaged Bereiche und
-  * verschachtelte Editoren gehoeren nicht automatisch zum aeusseren Editor." A picture is the
-  * usual atom and makes a poor test of it -- `<img>` is void, so nothing can be selected inside.
-  * This one holds a real textarea, which is exactly the shape the rule is about.
+  * verschachtelte Editoren gehoeren nicht automatisch zum aeusseren Editor." A picture is the usual
+  * atom and makes a poor test of it -- `<img>` is void, so nothing can be selected inside. This one
+  * holds a real textarea, which is exactly the shape the rule is about.
   */
 final case class WidgetNode(id: NodeId, label: String) extends AtomNode
 
@@ -94,13 +94,13 @@ object SelectionFixtures:
 
   private val rootId = NodeId("root")
 
-  private var session: EditorSession    = null
-  private var view: DocumentView        = null
-  private var port: SelectionPort       = null
-  private var focus: FocusController    = null
-  private var host: dom.Element         = null
-  private var imports                   = 0
-  private var focusChanges              = Vector.empty[Boolean]
+  private var session: EditorSession              = null
+  private var view: DocumentView                  = null
+  private var port: SelectionPort                 = null
+  private var focus: FocusController              = null
+  private var host: dom.Element                   = null
+  private var imports                             = 0
+  private var focusChanges                        = Vector.empty[Boolean]
   private var bookmark: Option[SelectionBookmark] = None
 
   private val views: ViewSupport = ViewSupport.of(WidgetView) ++ ImageSupport.views
@@ -122,14 +122,17 @@ object SelectionFixtures:
     dispose()
 
     val generator = NodeIdGenerator.sequential("g")
-    val resolved = ExtensionResolver.resolve(
+    val resolved  = ExtensionResolver.resolve(
       Vector(RichText(generator), CodeExtension(generator), WidgetExtension)
     ) match
       case Right(value) => value
       case Left(errors) => throw new IllegalStateException(errors.map(_.render).mkString("; "))
 
     val nodes = Vector(
-      RootNode(rootId, Vector(NodeId("h0"), NodeId("p0"), NodeId("p1"), NodeId("c0"), NodeId("p2"))),
+      RootNode(
+        rootId,
+        Vector(NodeId("h0"), NodeId("p0"), NodeId("p1"), NodeId("c0"), NodeId("p2"))
+      ),
       HeadingNode(NodeId("h0"), Vector(NodeId("t0")), HeadingLevel.H2),
       TextNode(NodeId("t0"), "Titel"),
       ParagraphNode(NodeId("p0"), Vector(NodeId("t1"), NodeId("t2"))),
@@ -173,7 +176,7 @@ object SelectionFixtures:
     disposeNeighbour()
 
     val generator = NodeIdGenerator.sequential("n")
-    val resolved = ExtensionResolver.resolve(Vector(RichText(generator))) match
+    val resolved  = ExtensionResolver.resolve(Vector(RichText(generator))) match
       case Right(value) => value
       case Left(errors) => throw new IllegalStateException(errors.map(_.render).mkString("; "))
 
@@ -283,9 +286,10 @@ object SelectionFixtures:
   def modelSelection(): String =
     session.selection match
       case Some(range: RangeSelection) => renderRange(range)
-      case Some(nodes: NodeSelection)  => nodes.nodes.toVector.map(_.value).sorted.mkString("nodes:", ",", "")
-      case Some(_)                     => "other"
-      case None                        => "none"
+      case Some(nodes: NodeSelection)  =>
+        nodes.nodes.toVector.map(_.value).sorted.mkString("nodes:", ",", "")
+      case Some(_) => "other"
+      case None    => "none"
 
   /** The direction of the model selection in document order (§11). */
   @JSExport
@@ -354,8 +358,8 @@ object SelectionFixtures:
   /** Writes a selection straight through the port, without asking the core first.
     *
     * The core rejects a child point on an atom before the port ever sees it -- rightly, and the
-    * test says so. This is the way to show that the port has its own answer for the same
-    * position instead of relying on somebody else having refused it.
+    * test says so. This is the way to show that the port has its own answer for the same position
+    * instead of relying on somebody else having refused it.
     */
   @JSExport
   def writeRawChildren(parent: String, offset: Int): String =
@@ -425,12 +429,12 @@ object SelectionFixtures:
   @JSExport
   def restore(intent: String): String =
     bookmark match
-      case None => "no-bookmark"
+      case None        => "no-bookmark"
       case Some(saved) =>
         val chosen = intent match
-          case "always"      => FocusIntent.Always
+          case "always"         => FocusIntent.Always
           case "if-it-was-ours" => FocusIntent.IfItWasOurs
-          case _             => FocusIntent.SelectionOnly
+          case _                => FocusIntent.SelectionOnly
 
         focus.restore(saved, chosen) match
           case RestoreOutcome.Restored(selection, focused) =>
@@ -459,14 +463,15 @@ object SelectionFixtures:
   private def render(reading: SelectionReading): String = reading match
     case SelectionReading.Absent              => "absent"
     case SelectionReading.Outside             => "outside"
-    case SelectionReading.Unmappable(problem) => s"unmappable:${problem.toString.takeWhile(_ != '(')}"
-    case SelectionReading.Foreign(owner)      => s"foreign:${owner.value}"
-    case SelectionReading.Mapped(selection)   => renderRange(selection)
+    case SelectionReading.Unmappable(problem) =>
+      s"unmappable:${problem.toString.takeWhile(_ != '(')}"
+    case SelectionReading.Foreign(owner)    => s"foreign:${owner.value}"
+    case SelectionReading.Mapped(selection) => renderRange(selection)
 
   private def render(write: SelectionWrite): String = write match
-    case SelectionWrite.Written          => "written"
-    case SelectionWrite.Skipped(reason)  => s"skipped:$reason"
-    case SelectionWrite.Failed(problem)  => s"failed:${problem.toString.takeWhile(_ != '(')}"
+    case SelectionWrite.Written         => "written"
+    case SelectionWrite.Skipped(reason) => s"skipped:$reason"
+    case SelectionWrite.Failed(problem) => s"failed:${problem.toString.takeWhile(_ != '(')}"
 
   private def renderRange(selection: RangeSelection): String =
     s"${renderPoint(selection.anchor)}|${renderPoint(selection.focus)}"

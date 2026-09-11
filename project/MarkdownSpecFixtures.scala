@@ -9,21 +9,21 @@ import scala.jdk.CollectionConverters.*
   * ==Warum nicht zur Laufzeit lesen==
   *
   * Weil es zur Laufzeit nichts zu lesen gibt. Die Tests laufen als Scala.js-Modul: kein
-  * Dateisystem, kein Classpath, kein `getResourceAsStream`. Ein `src/test/resources` existiert
-  * fuer diesen Build ueberhaupt nur als Ablage -- der Linker sieht es nie.
+  * Dateisystem, kein Classpath, kein `getResourceAsStream`. Ein `src/test/resources` existiert fuer
+  * diesen Build ueberhaupt nur als Ablage -- der Linker sieht es nie.
   *
-  * Also wird die Konformitaetssuite zur Bauzeit in eine Scala-Datei uebersetzt. Der Nebeneffekt
-  * ist erwuenscht: die Fixtures sind '''versioniert''', im Wortsinn. Die Spezifikationsversion
-  * steht im Dateinamen, die Beispielzahl faellt beim Erzeugen an, und beides landet als
-  * Konstante im generierten Code. Die "Korpus-/Spezifikationsversion" aus P17s Abnahme ist
-  * damit eine Zahl, die der Build ausrechnet, und keine Behauptung in einem Kommentar.
+  * Also wird die Konformitaetssuite zur Bauzeit in eine Scala-Datei uebersetzt. Der Nebeneffekt ist
+  * erwuenscht: die Fixtures sind '''versioniert''', im Wortsinn. Die Spezifikationsversion steht im
+  * Dateinamen, die Beispielzahl faellt beim Erzeugen an, und beides landet als Konstante im
+  * generierten Code. Die "Korpus-/Spezifikationsversion" aus P17s Abnahme ist damit eine Zahl, die
+  * der Build ausrechnet, und keine Behauptung in einem Kommentar.
   *
   * ==Das Format von spec.txt==
   *
   * Beispiele stehen zwischen einer Zeile aus mindestens 32 Backticks mit `example` und einer
-  * schliessenden Zeile derselben Art. Quelle und erwartete Ausgabe trennt ein `.`. Ein `→`
-  * (U+2192) steht fuer ein Tabulatorzeichen -- die Spezifikation macht Tabs sichtbar, damit man
-  * sie im Fliesstext sieht.
+  * schliessenden Zeile derselben Art. Quelle und erwartete Ausgabe trennt ein `.`. Ein `→` (U+2192)
+  * steht fuer ein Tabulatorzeichen -- die Spezifikation macht Tabs sichtbar, damit man sie im
+  * Fliesstext sieht.
   */
 object MarkdownSpecFixtures {
 
@@ -150,22 +150,22 @@ object MarkdownSpecFixtures {
 
   /** Escaping fuer ein Scala-String-Literal.
     *
-    * Von Hand und nicht ueber eine Bibliothek, weil genau drei Dinge zaehlen und jedes davon
-    * hier vorkommt: Backslash, Anfuehrungszeichen und Zeilenumbruch. `$` muss ebenfalls weg --
-    * die erzeugte Datei enthaelt keine Interpolatoren, aber ein `s"..."` im erzeugenden Code
-    * hat schon einmal jemanden erwischt.
+    * Von Hand und nicht ueber eine Bibliothek, weil genau drei Dinge zaehlen und jedes davon hier
+    * vorkommt: Backslash, Anfuehrungszeichen und Zeilenumbruch. `$` muss ebenfalls weg -- die
+    * erzeugte Datei enthaelt keine Interpolatoren, aber ein `s"..."` im erzeugenden Code hat schon
+    * einmal jemanden erwischt.
     */
   private def quote(text: String): String = {
     val escaped = new StringBuilder("\"")
     text.foreach {
-      case '\\' => escaped.append("\\\\")
-      case '"'  => escaped.append("\\\"")
-      case '\n' => escaped.append("\\n")
-      case '\r' => escaped.append("\\r")
-      case '\t' => escaped.append("\\t")
-      case '$'  => escaped.append("$")
+      case '\\'         => escaped.append("\\\\")
+      case '"'          => escaped.append("\\\"")
+      case '\n'         => escaped.append("\\n")
+      case '\r'         => escaped.append("\\r")
+      case '\t'         => escaped.append("\\t")
+      case '$'          => escaped.append("$")
       case c if c < ' ' => escaped.append("\\u%04x".format(c.toInt))
-      case c    => escaped.append(c)
+      case c            => escaped.append(c)
     }
     escaped.append('"').toString
   }

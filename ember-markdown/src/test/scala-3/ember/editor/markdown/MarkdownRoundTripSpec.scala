@@ -12,12 +12,12 @@ import org.scalatest.matchers.should.Matchers
   *
   * So this suite never compares Markdown to Markdown. It compares '''trees''' -- and it does so
   * over the whole conformance corpus, because 652 real inputs find escaping bugs that a dozen
-  * hand-written cases do not. A writer that forgets to escape a leading `#` produces valid
-  * Markdown that means something else, and only a round trip notices.
+  * hand-written cases do not. A writer that forgets to escape a leading `#` produces valid Markdown
+  * that means something else, and only a round trip notices.
   *
-  * Ids and spans are excluded from the comparison on purpose: the second parse reads a
-  * different string, so its offsets are different by construction and its ids are handed out in
-  * a different order. What has to survive is the '''shape'''.
+  * Ids and spans are excluded from the comparison on purpose: the second parse reads a different
+  * string, so its offsets are different by construction and its ids are handed out in a different
+  * order. What has to survive is the '''shape'''.
   */
 final class MarkdownRoundTripSpec extends AnyFlatSpec with Matchers {
 
@@ -30,9 +30,9 @@ final class MarkdownRoundTripSpec extends AnyFlatSpec with Matchers {
   /** The tree without ids and spans -- what the round trip has to preserve. */
   private def shape(block: MarkdownBlock): String =
     val head = block match
-      case _: MarkdownDocument                          => "doc"
-      case MarkdownBlock.Paragraph(_, _, inlines)       => s"p(${shapeOf(inlines)})"
-      case MarkdownBlock.Heading(_, _, level, _, lines) => s"h$level(${shapeOf(lines)})"
+      case _: MarkdownDocument                           => "doc"
+      case MarkdownBlock.Paragraph(_, _, inlines)        => s"p(${shapeOf(inlines)})"
+      case MarkdownBlock.Heading(_, _, level, _, lines)  => s"h$level(${shapeOf(lines)})"
       case MarkdownBlock.CodeBlock(_, _, literal, fence) =>
         // Der Zaunzeichen und seine Laenge sind Schreibweise, der Info-String ist Bedeutung.
         s"code[${fence.map(_.info).getOrElse("")}](${literal.replace("\n", "\\n")})"
@@ -42,8 +42,8 @@ final class MarkdownRoundTripSpec extends AnyFlatSpec with Matchers {
       case MarkdownBlock.ListItem(_, _, _)        => "item"
       case MarkdownBlock.MarkdownList(_, _, kind, tight, _) =>
         val shown = kind match
-          case ListKind.Bullet(_)             => "ul"
-          case ListKind.Ordered(start, _)     => s"ol$start"
+          case ListKind.Bullet(_)         => "ul"
+          case ListKind.Ordered(start, _) => s"ol$start"
         s"$shown${if tight then "" else "-loose"}"
 
     if block.children.isEmpty then head
@@ -51,13 +51,13 @@ final class MarkdownRoundTripSpec extends AnyFlatSpec with Matchers {
 
   private def shapeOf(inlines: Vector[MarkdownInline]): String =
     inlines.map {
-      case MarkdownInline.Text(_, _, value)         => value
-      case MarkdownInline.Code(_, _, literal)       => s"c($literal)"
-      case MarkdownInline.SoftBreak(_, _)           => "~"
-      case MarkdownInline.HardBreak(_, _)           => "|"
-      case MarkdownInline.HtmlInline(_, _, literal) => s"raw($literal)"
-      case MarkdownInline.Emphasis(_, _, kids)      => s"e(${shapeOf(kids)})"
-      case MarkdownInline.Strong(_, _, kids)        => s"s(${shapeOf(kids)})"
+      case MarkdownInline.Text(_, _, value)               => value
+      case MarkdownInline.Code(_, _, literal)             => s"c($literal)"
+      case MarkdownInline.SoftBreak(_, _)                 => "~"
+      case MarkdownInline.HardBreak(_, _)                 => "|"
+      case MarkdownInline.HtmlInline(_, _, literal)       => s"raw($literal)"
+      case MarkdownInline.Emphasis(_, _, kids)            => s"e(${shapeOf(kids)})"
+      case MarkdownInline.Strong(_, _, kids)              => s"s(${shapeOf(kids)})"
       case MarkdownInline.Link(_, _, target, title, kids) =>
         s"a[$target|${title.getOrElse("")}](${shapeOf(kids)})"
       case MarkdownInline.Image(_, _, target, title, kids) =>
@@ -77,11 +77,11 @@ final class MarkdownRoundTripSpec extends AnyFlatSpec with Matchers {
       val outcome =
         try
           parse(example.markdown) match
-            case None => Outcome.Broke("erster Parse abgewiesen")
+            case None        => Outcome.Broke("erster Parse abgewiesen")
             case Some(first) =>
               val written = MarkdownWriter.write(first)
               parse(written) match
-                case None => Outcome.Broke("zweiter Parse abgewiesen")
+                case None         => Outcome.Broke("zweiter Parse abgewiesen")
                 case Some(second) =>
                   if shape(first) == shape(second) then Outcome.Stable
                   else Outcome.Drifted(shape(first), shape(second), written)

@@ -13,25 +13,25 @@ import ember.editor.richtext.*
   * ==Why they live here==
   *
   * §6 names this module for exactly this: "der einzige Ort, an dem Feature-Nodes und Renderer
-  * einander kennen". `ember-markdown` may not know what a `ParagraphNode` is -- it depends on
-  * the core alone -- and `ember-rich-text` may not know what Markdown is. This file is where
-  * both are on the classpath, and it is the only one.
+  * einander kennen". `ember-markdown` may not know what a `ParagraphNode` is -- it depends on the
+  * core alone -- and `ember-rich-text` may not know what Markdown is. This file is where both are
+  * on the classpath, and it is the only one.
   *
   * The consequence is worth stating: an application that wants Markdown for its '''own''' block
-  * types writes its own rules in its own module and changes nothing here. §6 asks for that
-  * ("Eine Fremderweiterung liefert ihre Adapter in ihrem eigenen Modul").
+  * types writes its own rules in its own module and changes nothing here. §6 asks for that ("Eine
+  * Fremderweiterung liefert ihre Adapter in ihrem eigenen Modul").
   *
   * ==The policies are injected, for the third time==
   *
   * [[MarkdownRules.links]] and [[MarkdownRules.images]] take a [[LinkUrlPolicy]] and a
-  * [[MediaUrlPolicy]]. §19.1 says why: "URLs werden nach Entities-/Whitespace-Normalisierung
-  * durch die jeweilige Link-/Media-Policy geprueft." The parser normalises, the rule decides --
-  * and it decides with the same policy the command path uses, because there is no other way to
-  * build a [[LinkUrl]] or a [[MediaUrl]].
+  * [[MediaUrlPolicy]]. §19.1 says why: "URLs werden nach Entities-/Whitespace-Normalisierung durch
+  * die jeweilige Link-/Media-Policy geprueft." The parser normalises, the rule decides -- and it
+  * decides with the same policy the command path uses, because there is no other way to build a
+  * [[LinkUrl]] or a [[MediaUrl]].
   *
-  * A source whose link the profile refuses does not silently become text. It becomes a
-  * diagnostic and the link's '''content''' survives, because losing the words of a sentence
-  * because its target was wrong would be the worse failure.
+  * A source whose link the profile refuses does not silently become text. It becomes a diagnostic
+  * and the link's '''content''' survives, because losing the words of a sentence because its target
+  * was wrong would be the worse failure.
   */
 object MarkdownRules:
 
@@ -67,7 +67,7 @@ object MarkdownRules:
         case MarkdownBlock.Heading(_, span, level, _, _) =>
           HeadingLevel.fromInt(level) match
             case Some(heading) => Some(sink.add(span)(HeadingNode(_, children, heading)))
-            case None =>
+            case None          =>
               // Unerreichbar fuer CommonMark -- der Parser laesst nur eins bis sechs zu. Der
               // Fall steht hier, weil eine fremde Syntaxquelle nicht daran gebunden ist.
               sink.note(s"Ueberschriftsebene $level gibt es nicht; wird ein Absatz.", span)
@@ -174,10 +174,10 @@ object MarkdownRules:
 
   /** Code blocks. Fenced and indented both become one node -- the fence is spelling.
     *
-    * §18.2: "Inhalt einschliesslich innerer Leerzeilen erhalten; sichere Fence-Laenge beim
-    * Export; Info-/Sprachmetadaten typisiert behandeln." The typing is [[CodeInfo]], which P15
-    * already built: a language when the info string names one, and the raw text as meta when it
-    * does not, so that a round trip loses neither.
+    * §18.2: "Inhalt einschliesslich innerer Leerzeilen erhalten; sichere Fence-Laenge beim Export;
+    * Info-/Sprachmetadaten typisiert behandeln." The typing is [[CodeInfo]], which P15 already
+    * built: a language when the info string names one, and the raw text as meta when it does not,
+    * so that a round trip loses neither.
     */
   val code: MarkdownBlockRule = new MarkdownBlockRule:
     val id = "ember.markdown.code"
@@ -216,8 +216,8 @@ object MarkdownRules:
   /** Raw HTML blocks, kept as visible text (§18.1).
     *
     * `RawHtmlPolicy.AsText` is the profile's promise, and this is where it is kept: the literal
-    * becomes a paragraph with one text run. Not a code block -- that would claim the author
-    * meant code -- and not an HTML node, because there is none and §2 rules one out.
+    * becomes a paragraph with one text run. Not a code block -- that would claim the author meant
+    * code -- and not an HTML node, because there is none and §2 rules one out.
     */
   val rawHtml: MarkdownBlockRule = new MarkdownBlockRule:
     val id = "ember.markdown.raw-html"
@@ -389,7 +389,11 @@ object MarkdownRules:
                 )
               )
             case Left(error) =>
-              sink.note(s"Bildquelle abgewiesen, Bild entfaellt: ${error.render}", span, loss = true)
+              sink.note(
+                s"Bildquelle abgewiesen, Bild entfaellt: ${error.render}",
+                span,
+                loss = true
+              )
               sink.discard(children)
               Some(Vector.empty)
         case _ => None
@@ -428,9 +432,9 @@ object MarkdownRules:
   /** Emphasis, strong -- and the two marks Markdown cannot write.
     *
     * §18.2 is explicit: "Underline, Strike, Bildmasse/-ID und GFM-Tabellen sind '''keine'''
-    * implizite CommonMark-Garantie." So [[StandardMarks.Underline]] and
-    * [[StandardMarks.Strike]] have a rule that reports a loss instead of quietly inventing
-    * `<u>` or `~~`. A profile that wants them is a separate, named profile.
+    * implizite CommonMark-Garantie." So [[StandardMarks.Underline]] and [[StandardMarks.Strike]]
+    * have a rule that reports a loss instead of quietly inventing `<u>` or `~~`. A profile that
+    * wants them is a separate, named profile.
     */
   val emphasis: MarkdownMarkRule = markRule("emphasis", 20, StandardMarks.Emphasis) {
     case MarkdownInline.Emphasis(_, _, _) => StandardMarks.Emphasis
@@ -446,10 +450,10 @@ object MarkdownRules:
 
   /** Inline code, so that the encoder finds an owner for the mark.
     *
-    * The decode direction is empty: a code span becomes a run with this mark through
-    * [[text]], because its content is verbatim and has no children to descend into. The encode
-    * direction is empty too -- [[text]] writes the backticks. What is left is [[owns]], and it
-    * has to exist or the export would report a missing rule for a mark that is handled.
+    * The decode direction is empty: a code span becomes a run with this mark through [[text]],
+    * because its content is verbatim and has no children to descend into. The encode direction is
+    * empty too -- [[text]] writes the backticks. What is left is [[owns]], and it has to exist or
+    * the export would report a missing rule for a mark that is handled.
     */
   val inlineCode: MarkdownMarkRule = new MarkdownMarkRule:
     val id      = "ember.markdown.inline-code"
@@ -466,9 +470,9 @@ object MarkdownRules:
 
   /** The two marks that have no CommonMark spelling.
     *
-    * They need a rule even though they can never be decoded: without one, the encoder would
-    * find no rule for the mark and the export would fail with "no rule" instead of with the
-    * truth, which is that Markdown cannot write it.
+    * They need a rule even though they can never be decoded: without one, the encoder would find no
+    * rule for the mark and the export would fail with "no rule" instead of with the truth, which is
+    * that Markdown cannot write it.
     */
   val unwritableMarks: MarkdownMarkRule = new MarkdownMarkRule:
     val id      = "ember.markdown.unwritable-marks"
@@ -521,8 +525,8 @@ object MarkdownSupports:
 
   /** Everything §18.2 lists, with the application's policies.
     *
-    * The policies have no defaults here on purpose -- a caller that reaches for "everything"
-    * should still have to say which URLs it trusts.
+    * The policies have no defaults here on purpose -- a caller that reaches for "everything" should
+    * still have to say which URLs it trusts.
     */
   def everything(
       links: LinkUrlPolicy = LinkUrlPolicy.default,

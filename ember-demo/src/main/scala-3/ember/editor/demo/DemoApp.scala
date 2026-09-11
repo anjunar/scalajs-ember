@@ -48,11 +48,11 @@ final class DemoApp extends AbstractComponent:
   /** What stands in the status line. Kept apart from the session, because it is display. */
   private val status = Property("")
 
-  private var view: DocumentView = null
-  private var port: SelectionPort = null
+  private var view: DocumentView            = null
+  private var port: SelectionPort           = null
   private var input: BrowserInputController = null
-  private var marked: Option[NodeId] = None
-  private val bindings = collection.mutable.ArrayBuffer.empty[Disposable]
+  private var marked: Option[NodeId]        = None
+  private val bindings                      = collection.mutable.ArrayBuffer.empty[Disposable]
 
   override def compose(cursor: Cursor): Unit =
     setClasses(Seq("ember-demo"))
@@ -116,7 +116,10 @@ final class DemoApp extends AbstractComponent:
     div {
       classes = Seq("ember-demo__panel", "ember-demo__panel--surface")
 
-      panelTitle("Editierflaeche", "Anklicken und tippen -- Tab rueckt ein, Escape dann Tab geht raus")
+      panelTitle(
+        "Editierflaeche",
+        "Anklicken und tippen -- Tab rueckt ein, Escape dann Tab geht raus"
+      )
 
       val host = div {
         classes = Seq("ember-demo__surface")
@@ -154,10 +157,10 @@ final class DemoApp extends AbstractComponent:
     * waiting for: "The real judgement -- when a native action is prevented and when it is not --
     * belongs to P22." It does now, so the demo uses it instead of imitating it.
     *
-    * What changed for the page is that this is no longer a stand-in. The same `SelectionPort`,
-    * the same `BrowserInputController` and the same bindings the integration harness drives run
-    * here, against a session that carries every feature module this repository has. That is what
-    * the demo is for: the proof that the modules compose into an application.
+    * What changed for the page is that this is no longer a stand-in. The same `SelectionPort`, the
+    * same `BrowserInputController` and the same bindings the integration harness drives run here,
+    * against a session that carries every feature module this repository has. That is what the demo
+    * is for: the proof that the modules compose into an application.
     */
   private def attachEditing(host: AbstractComponent): Unit =
     DomNodes.option(host.host).foreach {
@@ -247,8 +250,8 @@ final class DemoApp extends AbstractComponent:
   /** Brings status line and caret marker up to date.
     *
     * The marker goes through [[DocumentView.componentFor]] -- the index §15.1 keeps as "eine
-    * Zuordnung, keine zweite Ownership-Liste". The demo colours the run the model caret sits
-    * in; it sets no DOM selection, because there is none yet.
+    * Zuordnung, keine zweite Ownership-Liste". The demo colours the run the model caret sits in; it
+    * sets no DOM selection, because there is none yet.
     */
   private def refreshStatus(): Unit =
     val caret = editor.caret
@@ -265,10 +268,11 @@ final class DemoApp extends AbstractComponent:
 
     val projected = view.projectedRevision.value
     val revision  = editor.session.state.revision.value
-    val marks     = editor.activeMarks.markIds.map(_.value.split("/").head.split(Array(0x2e.toChar)).last)
-    val undo      = editor.history.state.undo.length
-    val redo      = editor.history.state.redo.length
-    val problem   = editor.error.map(text => s"  ·  Fehler: $text").getOrElse("")
+    val marks     =
+      editor.activeMarks.markIds.map(_.value.split("/").head.split(Array(0x2e.toChar)).last)
+    val undo    = editor.history.state.undo.length
+    val redo    = editor.history.state.redo.length
+    val problem = editor.error.map(text => s"  ·  Fehler: $text").getOrElse("")
 
     status.set(
       s"$position  ·  Revision $revision, projiziert $projected  ·  " +
@@ -351,8 +355,8 @@ private enum Panel(val label: String, val hint: String):
       )
 
   def contentOf(editor: DemoSession): String = this match
-    case Outline => editor.outline
+    case Outline  => editor.outline
     case Json     => editor.json
     case Markdown => editor.markdown
-    case Content => editor.html
-    case Editor  => editor.editorHtml
+    case Content  => editor.html
+    case Editor   => editor.editorHtml

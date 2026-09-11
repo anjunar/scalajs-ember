@@ -5,8 +5,8 @@ import ember.editor.core.*
 /** A heading level. Typed, not an `Int`.
   *
   * The plan asks for "typisierte Level" and the reason shows up at the first call site: an `Int`
-  * makes `SetHeading(0)` and `SetHeading(9)` compile, and both are documents that no renderer
-  * can produce. HTML has six levels; so has this.
+  * makes `SetHeading(0)` and `SetHeading(9)` compile, and both are documents that no renderer can
+  * produce. HTML has six levels; so has this.
   */
 enum HeadingLevel(val level: Int):
   case H1 extends HeadingLevel(1)

@@ -52,7 +52,13 @@ object FormFixtures:
     val schema     = extensions.schema
 
     val document = MarkdownCodec
-      .decode(source, schema, MarkdownSupports.richText, NodeIdGenerator.sequential("d"), NodeId("root"))
+      .decode(
+        source,
+        schema,
+        MarkdownSupports.richText,
+        NodeIdGenerator.sequential("d"),
+        NodeId("root")
+      )
       .map(_.document)
       .getOrElse(throw new IllegalStateException(s"Fixture nicht dekodierbar: $source"))
 
@@ -71,10 +77,10 @@ object FormFixtures:
 
   /** Renders the field the way a server would, without touching a DOM.
     *
-    * Called from `server.mjs` in Node. This is the whole point of §15.2's "Importieren eines
-    * Moduls im Serverprozess darf nicht bereits `window` oder `document` lesen" -- without it
-    * there would be no server-rendered field to submit, and the no-JavaScript test would have
-    * to test a hand-written HTML string instead of the real one.
+    * Called from `server.mjs` in Node. This is the whole point of §15.2's "Importieren eines Moduls
+    * im Serverprozess darf nicht bereits `window` oder `document` lesen" -- without it there would
+    * be no server-rendered field to submit, and the no-JavaScript test would have to test a
+    * hand-written HTML string instead of the real one.
     */
   @JSExport
   def renderForNoScript(source: String): String =
@@ -103,10 +109,10 @@ object FormFixtures:
   // Der Browser
   // -----------------------------------------------------------------------------------------
 
-  private var field: EditorField           = null
-  private var session: EditorSession       = null
-  private var binding: EditorFormBinding   = null
-  private var view: EditorFieldView        = null
+  private var field: EditorField         = null
+  private var session: EditorSession     = null
+  private var binding: EditorFormBinding = null
+  private var view: EditorFieldView      = null
 
   @JSExport
   def mount(container: dom.Element, source: String, reject: Boolean): Unit =
@@ -132,7 +138,7 @@ object FormFixtures:
     binding = null
     field = null
 
-  @JSExport def mode: String       = if binding.mode == FieldMode.Source then "source" else "rich"
+  @JSExport def mode: String        = if binding.mode == FieldMode.Source then "source" else "rich"
   @JSExport def submitValue: String = binding.submitValue
   @JSExport def deferred: js.Array[String] = js.Array(binding.deferred*)
 
@@ -185,19 +191,18 @@ object FormFixtures:
   def firstRun: String =
     session.document.inDocumentOrder.collectFirst { case run: TextNode => run.text }.getOrElse("")
 
-
   // -----------------------------------------------------------------------------------------
   // Hydration (P20)
   // -----------------------------------------------------------------------------------------
 
-  private var hydrated = false
+  private var hydrated    = false
   private var activations = 0
 
   /** Hydrates over markup the server already sent.
     *
     * `container` holds the server's HTML; nothing here writes it. The cursor claims it, the
-    * boundary captures the fallback first (§17.2) and the preflight checks it before binding
-    * hides it (§17.5).
+    * boundary captures the fallback first (§17.2) and the preflight checks it before binding hides
+    * it (§17.5).
     *
     * @param source
     *   the document the server rendered. A '''different''' one here is how the test produces a
@@ -221,10 +226,10 @@ object FormFixtures:
   /** The activation decision right now (§17.6). */
   @JSExport
   def activationState: String = view.activation(hydrated) match
-    case ActivationState.Active            => "active"
-    case ActivationState.Pending           => "pending"
-    case ActivationState.Deferred(reason)  => s"deferred:${reason.toString}"
-    case ActivationState.Failed(problem)   => s"failed:$problem"
+    case ActivationState.Active           => "active"
+    case ActivationState.Pending          => "pending"
+    case ActivationState.Deferred(reason) => s"deferred:${reason.toString}"
+    case ActivationState.Failed(problem)  => s"failed:$problem"
 
   /** Runs the activation. Counted, so that a test can show it is idempotent. */
   @JSExport
