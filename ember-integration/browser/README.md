@@ -122,12 +122,12 @@ ein Textedit schreibt einen einzigen `characterData`-Eintrag statt den Baum neu 
 
 ## Was hier nicht geprueft wird
 
-Keine der Fixtures hat `contenteditable`:
-
-- Native Eingabe mit Composition, Mutation-Observer und Recovery ist P21 bis P23.
-
 Reale IME- und Screen-Reader-Abnahmen brauchen dokumentierte manuelle Tests (§24) und lassen
-sich durch synthetische Ereignisse nicht ersetzen.
+sich durch synthetische Ereignisse nicht ersetzen. Fuer die IME gibt es dafuer
+[manual-ime.md](manual-ime.md).
+
+`emberFixtures` und `projectionFixtures` haben weiterhin kein `contenteditable` -- sie pruefen
+die Projektion, nicht das Editieren. Die Eingabe faehrt `editingFixtures`.
 
 ## Das Formularfeld (P19b)
 
@@ -244,3 +244,30 @@ erstes trifft, und die Tests ueber die Tab-Regel der Editierflaeche pruefen sie 
 
 Die Regeln selbst -- Absichtstabelle, Dedupe, kleinster Splice, Tab-Regel -- stehen headless in
 `ember-browser/…/InputPipelineSpec.scala`.
+
+## Composition und fremde Mutationen (P23)
+
+`composition.spec.mjs` prueft das **Protokoll**, nicht die Eingabemethode: welchen Bereich eine
+Composition besitzt, wer waehrend ihrer Laufzeit schreiben darf, wie sie endet, und dass eine
+Composition genau eine Undo-Stufe ergibt. Dafuer genuegen synthetische Ereignisse, und dafuer
+sind sie auch das richtige Werkzeug.
+
+`mutation-race.spec.mjs` nimmt den anderen Fall: eine Erweiterung, ein Uebersetzungswerkzeug,
+irgendetwas, das in die Seite schreibt, ohne es anzukuendigen. Geprueft wird der Abgleich gegen
+das **Dokument** -- §15.2 schliesst beide naheliegenden Alternativen aus, und der Test zeigt
+ausserdem, dass die Reparatur kein `innerHTML` schreibt und nach dem begrenzten Versuch aufhoert.
+
+Ein Befund kam nur aus WebKit: bei `blur` ist die Dokumentauswahl schon weg, und der Abschluss
+las den Lauf ueber genau diese Auswahl -- ein halbgetipptes Wort war damit verloren. Die Sitzung
+weiss, wo sie begann, und wird seither zuerst gefragt.
+
+### Was auch ein Browsertest nicht beantwortet
+
+Eine echte Eingabemethode. §15.3 sagt es selbst -- "ein willkuerlicher Timeout ohne
+reproduzierten Browserfall ist kein Abschlussprotokoll" --, und §15.2 zaehlt reale Faelle auf,
+die keine Spezifikation vorhersagt: koreanische 10-Tasten-Eingabe ohne Composition-Ereignisse,
+Android, das trotz `preventDefault` nativ loescht, verwaiste `insertCompositionText`.
+
+Dafuer gibt es [manual-ime.md](manual-ime.md): eine Liste von Faellen und eine Tabelle fuer
+Geraet, Betriebssystem, Browser und Eingabemethode. Ohne ausgefuellte Zeilen gilt die
+IME-Unterstuetzung als **nicht abgenommen**, gleich wie viele Tests gruen sind.

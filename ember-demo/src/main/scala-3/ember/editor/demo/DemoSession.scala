@@ -1,5 +1,6 @@
 package ember.editor.demo
 
+import ember.editor.browser.{BrowserInputController, CompositionHolder}
 import ember.editor.core.*
 import ember.editor.code.{CodeCommands, CodeExtension, CodeInfo}
 import ember.editor.history.{History, HistoryConfig}
@@ -13,7 +14,7 @@ import ember.editor.image.{
 }
 import ember.editor.link.{LinkCommands, LinkExtension, LinkTarget, LinkUrlPolicy}
 import ember.editor.list.{ListCommands, ListExtension, ListKind}
-import ember.editor.html.RenderProfile
+import ember.editor.html.{HtmlSupport, RenderProfile}
 import ember.editor.jfx.{DocumentView, ViewSupport}
 import ember.editor.json.*
 import ember.editor.richtext.*
@@ -46,6 +47,20 @@ final class DemoSession:
     */
   val history: History = new History(HistoryConfig.default)
 
+  /** How the composition gate reaches the session (§15.3).
+    *
+    * The rule has to be in place from the first commit -- §10's step 5 is where it runs -- and the
+    * controller that answers it does not exist until the view does. The holder bridges the two.
+    */
+  val compositions: CompositionHolder = new CompositionHolder
+
+  private object CompositionGateExtension extends Extension:
+    val id: ExtensionId = ExtensionId("ember.demo.composition-gate")
+    override def contribute: ExtensionContributions =
+      ExtensionContributions(preCommitRules =
+        Vector(BrowserInputController.busyRule(compositions))
+      )
+
   private val resolved: ResolvedExtensions =
     ExtensionResolver.resolve(
       Vector(
@@ -54,7 +69,8 @@ final class DemoSession:
         LinkExtension(generator),
         CodeExtension(generator),
         ImageExtension(generator, media),
-        history
+        history,
+        CompositionGateExtension
       )
     ) match
       case Right(value) => value
@@ -87,6 +103,11 @@ final class DemoSession:
 
   /** Every standard adapter: rich text, lists, links, code and images. */
   val views: ViewSupport = ImageSupport.views
+
+  /** Die Beschreibung, gegen die §15.4s Reparatur die Ansicht misst -- dieselbe, aus der
+    * `views` abgeleitet ist.
+    */
+  val semanticsForRepair: HtmlSupport = ImageSupport.everything
 
   /** The Markdown rules, with this demo's policies -- the same two the commands use. */
   private val markdownRules = MarkdownSupports.everything(LinkUrlPolicy.default, media)

@@ -131,13 +131,17 @@ hier im Stylesheet der Demo.
 aktiviert zu und verlangt einen Ausgang: Escape, dann Tab, und der Fokus geht weiter. Die Demo
 schaltet `TabPolicy.IndentsUntilEscape` ein und zeigt beides.
 
+**Auch Composition und Reparatur fahren mit.** Seit P23 hängen am Controller der Demo das
+Commit-Gate (§15.3), die Schutzsperre für den Block, in dem getippt wird, die Undo-Gruppe einer
+Composition (§14) und die begrenzte Reparatur der Ansicht (§15.4). Die Probe, dass sich die
+Module zu einer Anwendung zusammensetzen lassen, schließt das ein.
+
 ## Was ausdrücklich noch fehlt
 
-**Composition, Observer-Abgleich und Recovery.** Das ist P23. Eine IME funktioniert für einfache
-Fälle, und mehr behauptet P22 nicht: während einer Composition beansprucht der Controller nichts
-und schreibt nichts, und was sie hinterlässt, wird danach gelesen. Eine native Struktur, die sich
-nicht als Dokumentänderung ausdrücken lässt, führt in `Recovering` -- mit gesichertem Text und
-einer Meldung in der Statuszeile, aber ohne Reparatur.
+**Eine abgenommene IME.** Das Protokoll steht (P23), und die Demo fährt es; was fehlt, ist die
+Handprüfung mit einer echten Eingabemethode auf einem echten Gerät. §15.2 zählt Fälle auf, die
+sich synthetisch nicht herstellen lassen, und ohne dokumentiertes Geräteergebnis gilt IME als
+nicht abgenommen -- siehe [manual-ime.md](../ember-integration/browser/manual-ime.md).
 
 **Keine Hydration.** Die Seite rendert clientseitig in `#root`; der Server liefert eine leere
 Hülle. P20 gibt es, diese Demo benutzt es nur nicht.

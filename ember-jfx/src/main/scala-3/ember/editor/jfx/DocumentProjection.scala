@@ -274,6 +274,21 @@ final class DocumentProjection private[jfx] (
     * The subtree below goes with it. That is what a replacement means, and §15.1 says it needs
     * selection restoration -- the `SelectionPort` from P21.
     */
+  /** Rebuilds one node's view from the current document (§15.4).
+    *
+    * "Der Controller prueft den betroffenen Besitzbereich und importiert entweder ein zulaessiges
+    * Fragment oder laesst JFX diesen Bereich aus dem gueltigen State neu aufbauen." This is the
+    * second half of that sentence, and the reason it is here rather than in the browser module:
+    * rebuilding means unmounting and remounting through the runtime, and §15.1 gives that to the
+    * projection alone. A repair that wrote `innerHTML` is ruled out in the same section.
+    */
+  private[jfx] def rebuild(nodeId: NodeId): Boolean =
+    current.node(nodeId) match
+      case Some(node) if components.contains(nodeId) =>
+        replaceView(nodeId, node)
+        true
+      case _ => false
+
   private def replaceView(nodeId: NodeId, node: EditorNode): Unit =
     current.parentOf(nodeId).flatMap(parentId => groups.get(parentId).map(parentId -> _)) match
       case Some((parentId, group)) =>

@@ -27,8 +27,9 @@ strukturell hergab.
 ## Stand
 
 P09 abgeschlossen. Vorhanden: `NodeView`, `DocumentProjection`, `DocumentView`,
-`EditorProperties`. Selection und Fokus (P21) und Hydration (P20) leben in `ember-browser`; hier
-kamen dafür nur zwei Zugänge dazu (siehe unten). Noch nicht hier: native Eingabe (P22).
+`EditorProperties`. Hydration, Selection, Eingabe und Composition (P20–P23) leben in
+`ember-browser`; hier kamen dafür nur die Zugänge und Reparaturen dazu, die ohne die Projektion
+nicht gehen (siehe unten).
 
 ### Zwei Hosts, die der SelectionPort braucht
 
@@ -41,13 +42,19 @@ Beides ließe sich von außen nach der Zahl der Tags abzählen — und wäre dan
 Beschreibung derselben Struktur, die beim ersten Mark auseinanderläuft, das nicht als genau ein
 Element rendert. Die Komponente weiß es; gefragt wird sie.
 
-### Zwei Zugeständnisse an den Browser (P22)
+### Was der Browser verlangt (P22, P23)
 
 `TextRunElement.resetText` baut die DOM eines Laufs aus einem bekannten Wert neu auf und räumt
 dabei weg, was die Projektion **nicht** dorthin geschrieben hat. Das ist §15.4s „lässt JFX diesen
 Bereich aus dem gültigen State neu aufbauen", und es gibt das, weil ein Browser mehr im Wrapper
 hinterlassen kann als den einen Textknoten: Firefox teilt einen Lauf in drei, wenn nativ ein
 Zeichen außerhalb der BMP eingefügt wird.
+
+`DocumentView.rebuild` (P23) ist die größere Reparatur: die Komponenten eines Knotens werden
+abgeräumt und aus dem Dokument neu gebaut. §15.4 nennt sie — „lässt JFX diesen Bereich aus dem
+gültigen State neu aufbauen" —, und sie liegt hier und nicht im Browsermodul, weil Ab- und
+Anmontieren durch die Runtime läuft und §15.1 das der Projektion allein gibt. Die Wurzel ist
+ausgenommen: sie neu zu bauen wäre eine Ersetzung der ganzen Ansicht.
 
 `DocumentProjection` wendet einen Textsplice außerdem **nicht** an, wenn das DOM den committeten
 Text schon zeigt. Eine native Eingabe wird aus dem DOM gelesen (§15.2) — der Text steht dort

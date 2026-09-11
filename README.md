@@ -14,7 +14,7 @@ Laufzeitabhängigkeit.
 
 ## Stand
 
-**Meilenstein A, B und C stehen, D fast** — P01–P22 abgeschlossen, P23–P30 offen. Der frühere
+**Meilenstein A bis D stehen** — P01–P23 abgeschlossen, P24–P30 offen. Der frühere
 `contenteditable`-Prototyp (`ember.core.Editor` mit `execCommand` und HTML-String als
 Zustand) und seine vite-Demo wurden entfernt — Architektur §2 und §25 schließen diesen
 Ansatz aus.
@@ -118,6 +118,23 @@ kennt `execCommand` nicht. Verhindert wird die native Aktion nur bei erfolgreich
 bewusster Ablehnung; was niemand beansprucht, macht der Browser, und `input` zieht das Modell
 nach. Ein readonly Editor bleibt dabei fokussierbar und lesbar, und Tab verlässt die Fläche,
 solange nicht jemand Einrückung ausdrücklich einschaltet -- mit einem Ausgang.
+
+P23 nimmt den einen Zustand dazu, in dem der Editor **nicht** Herr über seinen eigenen DOM ist:
+eine laufende Texteingabe. Der Browser schreibt dort Text, den er noch ändern wird, und jeder
+Schreibzugriff dorthin zerstört die Eingabe. Also wird der betroffene Block gesperrt, jede
+unabhängige Änderung **vor** dem Commit abgewiesen oder mit Bookmark zurückgestellt, und der
+Abschluss liest genau einmal — revisioniert, damit ein nachgereichtes `input` nichts verdoppelt.
+Eine Composition ergibt dabei genau eine Undo-Stufe.
+
+Und für alles, was sonst in eine Seite schreibt — eine Erweiterung, ein Übersetzungswerkzeug —
+gilt: bemerkt wird es von einem `MutationObserver`, beurteilt wird es am **Dokument**, und
+repariert wird die Ansicht aus dem Dokument heraus. Genau einmal; danach bleiben der Text und
+eine Meldung.
+
+Was noch fehlt, steht ausdrücklich da: eine reale IME-Abnahme ist eine Handprüfung mit
+dokumentiertem Geräteergebnis
+([manual-ime.md](ember-integration/browser/manual-ime.md)), und ohne ausgefüllte Zeilen gilt sie
+als nicht erteilt.
 
 ## Module
 

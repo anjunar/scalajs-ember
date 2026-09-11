@@ -13,8 +13,9 @@ Verbindlicher Entwurf: [JFX_EDITOR_ARCHITECTURE.md](../JFX_EDITOR_ARCHITECTURE.m
 
 ## Stand
 
-**P22 abgeschlossen.** Vorhanden: `RichTextBindings`, `HistoryBindings`, `ListBindings`,
-`LinkBindings`, `CodeBindings` und die zusammengesetzten `EditorBindings`.
+**P22 und der History-Anteil von P23 abgeschlossen.** Vorhanden: `RichTextBindings`,
+`HistoryBindings`, `ListBindings`, `LinkBindings`, `CodeBindings` und die zusammengesetzten
+`EditorBindings`.
 
 ## Warum es dieses Modul gibt
 
@@ -79,6 +80,20 @@ Shift+Enter nicht: **WebKit meldet dafür `insertParagraph`**, also würde der A
 Block teilen statt einen Umbruch zu setzen. Ein verhindertes `keydown` erzeugt gar kein
 `beforeinput`, und damit ist die Tastaturroute die einzige Stelle, an der sich alle drei Engines
 einig sind. Ein Browsertest hat das gefunden.
+
+## Eine Composition ist eine Undo-Stufe
+
+§15.3 verlangt es, §14 macht es möglich, und §7 sorgt dafür, dass es hier steht:
+`HistoryBindings.groupCompositions` hängt an den Meldungen des Controllers und öffnet bzw.
+schließt eine History-Gruppe.
+
+Warum die History es nicht selbst merkt: §14 gruppiert nach dem, was tatsächlich passiert ist,
+und für Tippen ist das richtig. Eine Composition ist der Fall, in dem die Regeln die Gruppe nicht
+sehen können — eine Eingabemethode erzeugt Zwischenstände, die wie unabhängige Änderungen
+aussehen, und der Benutzer hat eine Taste gedrückt.
+
+Eine verworfene Composition schließt die Gruppe ebenfalls. Eine offen gelassene Gruppe schluckte
+alles, was danach getippt wird.
 
 ## Undo gehört dem Modell
 

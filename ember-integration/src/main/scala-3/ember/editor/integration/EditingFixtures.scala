@@ -41,6 +41,10 @@ object EditingFixtures:
   private var controller: BrowserInputController = null
   private var host: dom.Element                 = null
   private var outcomes                          = Vector.empty[String]
+  private var compositions                      = Vector.empty[String]
+  private var history: History                  = null
+  private var recoveryOf: RecoveryController    = null
+  private val holder                            = new CompositionHolder
 
   // Das Atom traegt eine echte Textarea. P22s Testliste nennt "native Controls in Atoms", und
   // §15.2 verlangt die Ownership-Pruefung vor jeder Eingabeverarbeitung -- ohne ein Feld im
@@ -60,10 +64,21 @@ object EditingFixtures:
     dispose()
 
     val generator = NodeIdGenerator.sequential("g")
+    history = new History()
+
+    // The composition gate goes in as a pre-commit rule (§10, Schritt 5), which is the only
+    // moment §15.3 allows -- "vor Commit". The session exists before the controller does, so the
+    // rule asks through a holder.
+    val gate = new Extension:
+      val id: ExtensionId = ExtensionId("ember.it.composition-gate")
+      override def contribute: ExtensionContributions =
+        ExtensionContributions(preCommitRules = Vector(BrowserInputController.busyRule(holder)))
+
     val resolved = ExtensionResolver.resolve(
       Vector(
         RichText(generator),
-        new History(),
+        history,
+        gate,
         ListExtension(generator),
         CodeExtension(generator),
         WidgetExtension
@@ -93,6 +108,9 @@ object EditingFixtures:
       case Left(errors) => throw new IllegalStateException(errors.map(_.render).mkString("; "))
 
     host = container
+    // The composition log survives `dispose`, so a test can read what dispose reported. It is
+    // reset here instead.
+    compositions = Vector.empty
     view = DocumentView.mount(session, DomCursor.root(container), views, RenderProfile.Editor)
     port = SelectionPort.attachTo(session, view, container)
 
@@ -106,9 +124,19 @@ object EditingFixtures:
       if bare then HistoryBindings.input else EditorBindings.everything,
       EditorBindings.everythingKeyboard ++
         (if tabIndents then ListBindings.tabIndentation else KeyboardBindings.empty),
-      if tabIndents then TabPolicy.IndentsUntilEscape else TabPolicy.LeavesEditor
+      if tabIndents then TabPolicy.IndentsUntilEscape else TabPolicy.LeavesEditor,
+      EditorMode.Editable,
+      // What recovery compares the view against (§15.4) -- the same description that rendered it.
+      Some(RichTextSupport.semantics),
+      BusyPolicy.Defer
     )
+    // One controller, not one per call: §15.4s limit counts attempts, and a fresh instance every
+    // time would start at zero and never reach it.
+    recoveryOf = new RecoveryController(session, view, port.positions, RichTextSupport.semantics)
+    holder.bind(controller)
     controller.onOutcome(outcome => outcomes = outcomes :+ render(outcome)): Unit
+    controller.onComposition(event => compositions = compositions :+ render(event)): Unit
+    HistoryBindings.groupCompositions(controller, history): Unit
 
   @JSExport
   def dispose(): Unit =
@@ -116,7 +144,10 @@ object EditingFixtures:
     if port != null then port.dispose()
     if view != null then view.dispose()
     if session != null then session.dispose()
+    holder.release()
     controller = null
+    history = null
+    recoveryOf = null
     port = null
     view = null
     session = null
@@ -240,6 +271,93 @@ object EditingFixtures:
     controller.setMode(if readOnly then EditorMode.ReadOnly else EditorMode.Editable)
 
   @JSExport def resume(): Unit = controller.resume()
+
+  // -----------------------------------------------------------------------------------------
+  // Composition und Recovery (P23)
+  // -----------------------------------------------------------------------------------------
+
+  /** The id of the composition in progress, or `0`. */
+  @JSExport
+  def compositionId(): Double = controller.composition.map(_.id.toDouble).getOrElse(0d)
+
+  /** The blocks the write barrier covers, or `<host>` when everything is protected. */
+  @JSExport
+  def protectedRegion(): String =
+    controller.composition.map(_.region) match
+      case Some(ProtectedRegion.Blocks(nodes)) => nodes.map(_.value).mkString(",")
+      case Some(ProtectedRegion.WholeHost)     => "<host>"
+      case None                                => ""
+
+  /** What the controller reported about compositions, in order. */
+  @JSExport def compositionLog(): String = compositions.mkString(",")
+
+  @JSExport def clearCompositions(): Unit = compositions = Vector.empty
+
+  /** Edits the document straight through the session, past the controller.
+    *
+    * What a feature command, a timer or an arriving upload does -- and therefore what §15.3's
+    * pre-commit gate has to catch, since none of those go through the controller.
+    */
+  @JSExport
+  def splice(node: String, start: Int, deleteCount: Int, inserted: String): Boolean =
+    session.update(_.spliceText(NodeId(node), start, deleteCount, inserted): Unit).isRight
+
+  @JSExport
+  def remove(node: String): Boolean =
+    session.update(_.remove(NodeId(node)): Unit).isRight
+
+  /** Offers an independent change -- the thing §15.3 refuses or defers. */
+  @JSExport
+  def offerEdit(label: String): String =
+    val intent = DeferredIntent(
+      label,
+      None,
+      (target, _) =>
+        target.update(_.spliceText(NodeId("t0"), 0, 0, label): Unit).map(_ => ())
+    )
+    controller.offer(intent) match
+      case Left(busy)     => s"busy:${busy.session}"
+      case Right(outcome) => render(outcome)
+
+  /** Offers one that wants to land at a bookmark taken now. */
+  @JSExport
+  def offerBookmarked(label: String, node: String, offset: Int): String =
+    val mark = Bookmark(Point.textBefore(NodeId(node), offset), session.state.revision)
+    val intent = DeferredIntent(
+      label,
+      Some(mark),
+      (target, point) =>
+        point match
+          case Some(Point.Text(id, at, _)) =>
+            target.update(_.spliceText(id, at, 0, label): Unit).map(_ => ())
+          case _ => Right(())
+    )
+    controller.offer(intent) match
+      case Left(busy)     => s"busy:${busy.session}"
+      case Right(outcome) => render(outcome)
+
+  /** How many undo steps the history holds. One composition must make exactly one. */
+  @JSExport def undoDepth(): Int = history.state.undo.length
+
+  /** What the view gets wrong, if anything (§15.4). */
+  @JSExport
+  def viewProblems(): String =
+    recoveryOf.check().map(_.render).mkString(" | ")
+
+  @JSExport
+  def repairView(): String = recoveryOf.repair().render
+
+  private def render(outcome: IntentOutcome): String = outcome match
+    case IntentOutcome.Applied(label)     => s"applied:$label"
+    case IntentOutcome.Rejected(label, _) => s"rejected:$label"
+    case IntentOutcome.Expired(label)     => s"expired:$label"
+
+  private def render(event: CompositionEvent): String = event match
+    case CompositionEvent.Started(id, _)        => s"start:$id"
+    case CompositionEvent.Finished(id, released) =>
+      s"end:$id${released.map(o => "/" + render(o)).mkString}"
+    case CompositionEvent.Discarded(id, reason, dropped) =>
+      s"discard:$id:$reason${dropped.map("/" + _).mkString}"
 
   private def render(outcome: InputOutcome): String = outcome match
     case InputOutcome.TakenOver(intent)  => s"taken:${name(intent)}"

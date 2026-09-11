@@ -1,6 +1,7 @@
 package ember.editor.browser
 
 import ember.editor.core.*
+import ember.editor.html.HtmlSupport
 import ember.editor.jfx.DocumentView
 import org.scalajs.dom
 
@@ -60,6 +61,9 @@ enum InputOutcome:
   /** The controller is not in a state that processes input. */
   case Idle(state: ControllerState)
 
+  /** A change was refused because a composition is running (§15.3). */
+  case Busy(session: Long)
+
   /** A `keydown` that is plainly text, and therefore not the keyboard layer's business.
     *
     * §15.2: "Text generell ueber Input-Pipeline." A letter without a modifier is never a
@@ -87,6 +91,17 @@ enum InputOutcome:
   def isNotable: Boolean = this match
     case NotAShortcut(_) => false
     case _               => true
+
+/** What happened to a native input session (§15.3).
+  *
+  * Reported rather than acted on, because the two things that care live above this module: the
+  * history, which makes one undo group of a composition (§14), and the application, which may
+  * want to say that something is being typed.
+  */
+enum CompositionEvent:
+  case Started(session: Long, region: ProtectedRegion)
+  case Finished(session: Long, released: Vector[IntentOutcome])
+  case Discarded(session: Long, reason: String, dropped: Vector[String])
 
 /** Browser editing: events in, commands out, and nothing in between that touches the DOM.
   *
@@ -119,9 +134,14 @@ final class BrowserInputController private (
     view: DocumentView,
     port: SelectionPort,
     reader: NativeInputReader,
+    guard: ProjectionWriteGuard,
+    mutations: NativeMutationObserver,
+    recovery: RecoveryController,
+    queue: DeferredIntentQueue,
     bindings: InputBindings,
     keyboard: KeyboardBindings,
     tabPolicy: TabPolicy,
+    busyPolicy: BusyPolicy,
     initialMode: EditorMode
 ):
 
@@ -130,6 +150,8 @@ final class BrowserInputController private (
   private val operations                    = new InputOperationLog()
   private var escapeArmed                   = false
   private var observers                     = Vector.empty[(Long, InputOutcome => Unit)]
+  private var compositionObservers          = Vector.empty[(Long, CompositionEvent => Unit)]
+  private var current: Option[CompositionSession] = None
   private var nextHandle                    = 0L
 
   private var beforeInputListener: js.Function1[dom.Event, Unit] = null
@@ -137,6 +159,7 @@ final class BrowserInputController private (
   private var keyDownListener: js.Function1[dom.Event, Unit]     = null
   private var compositionStart: js.Function1[dom.Event, Unit]    = null
   private var compositionEnd: js.Function1[dom.Event, Unit]      = null
+  private var focusOut: js.Function1[dom.Event, Unit]            = null
 
   def state: ControllerState = currentState
 
@@ -174,13 +197,18 @@ final class BrowserInputController private (
       keyDownListener     = event => dispatchEvent(event, handleKeyDown)
       compositionStart    = _ => onCompositionStart()
       compositionEnd      = _ => onCompositionEnd()
+      // §15.3: "Blur erfasst noch offene native Aenderung." Focus leaving is not a reason to
+      // throw a half-typed word away -- it is a reason to take it.
+      focusOut            = _ => if current.isDefined then onCompositionEnd()
 
       host.addEventListener("beforeinput", beforeInputListener)
       host.addEventListener("input", inputListener)
       host.addEventListener("keydown", keyDownListener)
       host.addEventListener("compositionstart", compositionStart)
       host.addEventListener("compositionend", compositionEnd)
+      host.addEventListener("focusout", focusOut)
 
+      mutations.start()
       currentState = ControllerState.Ready
       applyEditingAttributes()
 
@@ -192,6 +220,10 @@ final class BrowserInputController private (
       if keyDownListener != null then host.removeEventListener("keydown", keyDownListener)
       if compositionStart != null then host.removeEventListener("compositionstart", compositionStart)
       if compositionEnd != null then host.removeEventListener("compositionend", compositionEnd)
+      if focusOut != null then host.removeEventListener("focusout", focusOut)
+      // §15.3: "Dispose raeumt auf und meldet ggf. nicht abgeschlossene Eingabe an den Host."
+      discardComposition("dispose")
+      mutations.stop()
       host.removeAttribute("contenteditable")
       host.removeAttribute("tabindex")
       host.removeAttribute("aria-readonly")
@@ -200,8 +232,10 @@ final class BrowserInputController private (
       keyDownListener = null
       compositionStart = null
       compositionEnd = null
+      focusOut = null
       operations.clear()
       observers = Vector.empty
+      compositionObservers = Vector.empty
       currentState = ControllerState.Disposed
 
   /** The editing surface's own attributes.
@@ -294,28 +328,44 @@ final class BrowserInputController private (
   // -----------------------------------------------------------------------------------------
 
   def handleInput(event: dom.Event): InputOutcome =
-    if currentState != ControllerState.Ready then InputOutcome.Idle(currentState)
-    else if !owns(event) then InputOutcome.NotOurs
+    if !owns(event) then InputOutcome.NotOurs
+    // §15.3: "Native Zwischenstaende werden als zusammengehoerige Transaktionen uebernommen."
+    // The model follows the composition as it goes, tagged as its own so the gate lets it
+    // through and the rich-text profile holds back its merges (§8.2).
+    else if currentState == ControllerState.Composing then
+      importNative(CompositionGate.meta("composition-input"))
+    else if currentState != ControllerState.Ready then InputOutcome.Idle(currentState)
     else
       val inputType = event match
         case input: dom.InputEvent => input.inputType.toString
         case _                     => ""
 
       if operations.consume(inputType) then InputOutcome.Deduplicated
-      else importNative()
+      else importNative(NativeInput)
 
-  /** Brings the model to what the DOM already says. */
-  private def importNative(): InputOutcome =
-    reader.read(session.document) match
+  /** Brings the model to what the DOM already says.
+    *
+    * @param hint
+    *   a run to look at before asking the selection. Blur is why it exists: WebKit drops the
+    *   document selection when focus leaves, so the reader had nothing to anchor on and a
+    *   half-composed word was lost -- exactly the case §15.3 wants kept ("Blur erfasst noch
+    *   offene native Aenderung"). The composition knows where it started; the selection may not
+    *   be there any more.
+    */
+  private def importNative(meta: TransactionMeta, hint: Option[NodeId] = None): InputOutcome =
+    readNative(hint) match
       case NativeImport.Nothing => InputOutcome.Deduplicated
 
       case NativeImport.Text(node, splice) =>
-        session.update(NativeInput) { transaction =>
+        session.update(meta) { transaction =>
           transaction.spliceText(node, splice.start, splice.deleteCount, splice.inserted): Unit
         } match
           case Right(_) =>
-            // The caret is wherever the browser left it, and that is the truth now.
-            port.importNative(): Unit
+            current = current.map(_.withCapture(node, splice.inserted))
+            // The caret is wherever the browser left it, and that is the truth now. Not while a
+            // composition runs: §15.3 forbids a selection write there, and the browser is the one
+            // holding the caret anyway.
+            if current.isEmpty then port.importNative(): Unit
             InputOutcome.Imported(node, splice)
           case Left(error) =>
             enterRecovery()
@@ -327,13 +377,14 @@ final class BrowserInputController private (
       // one-text-node assumption the position map is built on.
       case NativeImport.SplitRun(node, splice) =>
         val caret = Point.textBefore(node, splice.start + splice.inserted.length)
-        session.update(NativeInput) { transaction =>
+        session.update(meta) { transaction =>
           transaction.spliceText(node, splice.start, splice.deleteCount, splice.inserted): Unit
           transaction.select(RangeSelection.caret(caret)): Unit
         } match
           case Right(_) =>
             view.resetRun(node): Unit
-            port.sync(WriteIntent.Explicit): Unit
+            // §15.3: no selection write while a composition holds the caret.
+            if current.isEmpty then port.sync(WriteIntent.Explicit): Unit
             InputOutcome.Imported(node, splice)
           case Left(error) =>
             enterRecovery()
@@ -342,6 +393,14 @@ final class BrowserInputController private (
       case NativeImport.Unimportable(reason, _) =>
         enterRecovery()
         InputOutcome.Unimported(reason)
+
+  private def readNative(hint: Option[NodeId]): NativeImport =
+    val document = session.document
+    hint
+      .filter(id => document.node(id).exists(_.isInstanceOf[TextNode]))
+      .map(reader.readRun(_, document))
+      .filterNot(_ == NativeImport.Nothing)
+      .getOrElse(reader.read(document))
 
   private def enterRecovery(): Unit =
     if currentState == ControllerState.Ready then currentState = ControllerState.Recovering
@@ -394,25 +453,110 @@ final class BrowserInputController private (
             case Outcome.Rejected(error) => InputOutcome.Refused(named, error)
 
   // -----------------------------------------------------------------------------------------
-  // Composition (P22s Anteil; das Protokoll ist P23)
+  // -----------------------------------------------------------------------------------------
+  // Composition (§15.3)
   // -----------------------------------------------------------------------------------------
 
-  private def onCompositionStart(): Unit =
-    if currentState == ControllerState.Ready then currentState = ControllerState.Composing
+  /** The composition in progress, if there is one. */
+  def composition: Option[CompositionSession] = current
 
-  /** Takes the composed text once the browser is done with it.
+  /** Whether an independent change would be refused right now. */
+  def isBusy: Boolean = current.isDefined
+
+  /** Offers a change that is not the composition's.
     *
-    * P22 claims no more than this, and says so: "noch keine behauptete vollstaendige
-    * IME-Freigabe". While a composition runs, nothing is taken over and nothing is written --
-    * §15.3's reason is that "Re-Render oder Selection-Schreiben kann laufende native Texteingabe
-    * zerstoeren". What the composition left behind is read back here, through the same reader an
-    * ordinary native change goes through.
+    * §15.3 allows two answers and the application picks: refuse now, or queue with a bookmark and
+    * re-validate later. Outside a composition the change simply runs.
+    */
+  def offer(intent: DeferredIntent): Either[CompositionBusy, IntentOutcome] =
+    current match
+      case None => Right(DeferredIntentQueue.runNow(session, intent))
+      case Some(open) =>
+        val busy = CompositionBusy(open.id, DiagnosticPath.Root)
+        busyPolicy match
+          case BusyPolicy.Reject => Left(busy)
+          case BusyPolicy.Defer  => queue.offer(intent, busy).map(_ => IntentOutcome.Applied(intent.label))
+
+  /** Notified when a composition begins, ends or is thrown away.
+    *
+    * The history group hangs on this (§14: a composition is '''one''' undo step), and it hangs
+    * outside this module because §7 keeps history out of `browser`. The wiring lives where the
+    * features do.
+    */
+  def onComposition(listener: CompositionEvent => Unit): Subscription =
+    if currentState == ControllerState.Disposed then Subscription.cancelled
+    else
+      nextHandle += 1
+      val handle = nextHandle
+      compositionObservers = compositionObservers :+ (handle, listener)
+      Subscription(() => compositionObservers = compositionObservers.filterNot(_._1 == handle))
+
+  private def announceComposition(event: CompositionEvent): Unit =
+    compositionObservers.foreach { (_, listener) =>
+      try listener(event)
+      catch case _: Throwable => ()
+    }
+
+  private def onCompositionStart(): Unit =
+    if currentState == ControllerState.Ready then
+      val open = CompositionSession.start(session.document, session.selection, session.state.revision)
+      current = Some(open)
+      currentState = ControllerState.Composing
+
+      // The barrier first, then the announcement: a listener that edits on `Started` would
+      // otherwise write into an unprotected region.
+      guard.protect(open.region)
+      mutations.drain()
+      announceComposition(CompositionEvent.Started(open.id, open.region))
+
+  /** Ends a composition and takes what it left behind.
+    *
+    * §15.3's completion protocol, in the order it states:
+    *
+    *   1. Release the lease -- jfx-core requires it before the projection runs again.
+    *   1. Read the DOM once, revisioned, so a trailing `input` cannot insert the same text twice.
+    *   1. Normalise: the merges deferred during the session run now, on a state nobody is typing
+    *      into.
+    *   1. Project the final state.
+    *   1. Restore the selection '''only''' while the focus is still inside the editor.
+    *   1. Release the queued intents, each re-validated against the document as it is now.
     */
   private def onCompositionEnd(): Unit =
-    if currentState == ControllerState.Composing then
-      currentState = ControllerState.Ready
-      operations.clear()
-      importNative(): Unit
+    current match
+      case None => ()
+      case Some(open) =>
+        guard.release()
+        current = None
+        currentState = ControllerState.Ready
+
+        // The run the composition started in, so that a lost selection does not lose the text.
+        val started = open.selection.collect { case range: RangeSelection => range.focus.owner }
+        val taken   = importNative(NativeInput, started)
+        mutations.drain()
+
+        // A last chance for the view to be wrong: an IME can leave structure behind that no
+        // splice describes. Repairing here, while the guard is down, is the only moment it can
+        // be done without fighting the composition.
+        val repaired = recovery.repair()
+        repaired match
+          case RecoveryOutcome.Exhausted(_) => enterRecovery()
+          case _                            => ()
+
+        if scope.focusWithin then port.sync(): Unit
+
+        val released = queue.release(session)
+        announceComposition(CompositionEvent.Finished(open.id, released))
+        taken: Unit
+
+  /** Throws the session away without taking its text. Blur and dispose. */
+  private def discardComposition(reason: String): Unit =
+    current.foreach { open =>
+      guard.release()
+      current = None
+      if currentState == ControllerState.Composing then currentState = ControllerState.Ready
+      val dropped = queue.clear()
+      announceComposition(CompositionEvent.Discarded(open.id, reason, dropped))
+    }
 
   /** What a chain of bindings came to. */
   private enum Outcome:
@@ -470,7 +614,12 @@ final class BrowserInputController private (
 
 object BrowserInputController:
 
-  /** Builds a controller and connects it. */
+  /** Builds a controller and connects it.
+    *
+    * `semantics` is what the recovery compares the view against (§15.4) -- the same description
+    * that rendered it. Without one there is nothing to check, and the controller then repairs
+    * nothing rather than guessing.
+    */
   def attachTo(
       session: EditorSession,
       view: DocumentView,
@@ -478,9 +627,12 @@ object BrowserInputController:
       bindings: InputBindings,
       keyboard: KeyboardBindings = KeyboardBindings.empty,
       tabPolicy: TabPolicy = TabPolicy.LeavesEditor,
-      mode: EditorMode = EditorMode.Editable
+      mode: EditorMode = EditorMode.Editable,
+      semantics: Option[HtmlSupport] = None,
+      busyPolicy: BusyPolicy = BusyPolicy.Reject
   ): BrowserInputController =
-    val controller = detached(session, view, port, bindings, keyboard, tabPolicy, mode)
+    val controller =
+      detached(session, view, port, bindings, keyboard, tabPolicy, mode, semantics, busyPolicy)
     controller.attach()
     controller
 
@@ -492,15 +644,52 @@ object BrowserInputController:
       bindings: InputBindings,
       keyboard: KeyboardBindings = KeyboardBindings.empty,
       tabPolicy: TabPolicy = TabPolicy.LeavesEditor,
-      mode: EditorMode = EditorMode.Editable
+      mode: EditorMode = EditorMode.Editable,
+      semantics: Option[HtmlSupport] = None,
+      busyPolicy: BusyPolicy = BusyPolicy.Reject
   ): BrowserInputController =
     new BrowserInputController(
       session,
       view,
       port,
       new NativeInputReader(port.positions, port.scope),
+      new ProjectionWriteGuard(view, port.scope),
+      new NativeMutationObserver(port.scope.host),
+      new RecoveryController(
+        session,
+        view,
+        port.positions,
+        semantics.getOrElse(HtmlSupport.empty)
+      ),
+      new DeferredIntentQueue(),
       bindings,
       keyboard,
       tabPolicy,
+      busyPolicy,
       mode
     )
+
+  /** The rule that refuses independent changes while a composition runs (§15.3).
+    *
+    * Handed to the session at construction, because §10's step 5 is where it has to run and a
+    * session's rules are fixed when it is built. The controller comes later and reports itself
+    * through the holder.
+    */
+  def busyRule(holder: CompositionHolder): PreCommitRule =
+    CompositionGate.rule(() => holder.runningComposition)
+
+/** What the pre-commit rule asks, once the controller exists.
+  *
+  * A session is built before its controller -- the controller needs the view, the view needs the
+  * session. The rule has to be in place from the first commit, so it asks through this rather
+  * than holding a controller it could not have been given.
+  */
+final class CompositionHolder:
+
+  private var controller: Option[BrowserInputController] = None
+
+  def bind(value: BrowserInputController): Unit = controller = Some(value)
+
+  def release(): Unit = controller = None
+
+  def runningComposition: Option[Long] = controller.flatMap(_.composition).map(_.id)

@@ -1,11 +1,11 @@
 # scalajs-ember-browser
 
-Was der Editor tut, wenn die Seite schon da ist: eine serverseitig gerenderte Ansicht
-übernehmen, ohne zu zerstören, was bis dahin auf der Seite stand — und danach logische und
-Browserauswahl in beide Richtungen abbilden.
+Der Editor im Browser: eine ausgelieferte Seite übernehmen, ohne zu zerstören, was darauf stand;
+logische und Browserauswahl in beide Richtungen abbilden; Tastendrücke zu Commands machen; und
+eine laufende Texteingabe unversehrt lassen, auch wenn das heißt, eine Weile nicht zu schreiben.
 
-Verbindlicher Entwurf: [JFX_EDITOR_ARCHITECTURE.md](../JFX_EDITOR_ARCHITECTURE.md) §§11, 15.4,
-17, 22.
+Verbindlicher Entwurf: [JFX_EDITOR_ARCHITECTURE.md](../JFX_EDITOR_ARCHITECTURE.md) §§11, 15.2,
+15.3, 15.4, 17, 22.
 
 | | |
 | --- | --- |
@@ -15,8 +15,9 @@ Verbindlicher Entwurf: [JFX_EDITOR_ARCHITECTURE.md](../JFX_EDITOR_ARCHITECTURE.m
 
 ## Stand
 
-**P20, P21 und P22 abgeschlossen.** Composition, Observer-Abgleich und Recovery sind P23 und
-stehen noch aus.
+**P20 bis P23 abgeschlossen.** Die reale IME-Abnahme steht noch aus — sie ist eine Handprüfung
+mit dokumentiertem Geräteergebnis, und das Formular dafür ist
+[manual-ime.md](../ember-integration/browser/manual-ime.md).
 
 | Hydration (P20) | |
 | --- | --- |
@@ -41,10 +42,22 @@ stehen noch aus.
 | `InputOperationLog` | genau einmal, auch wenn eine Aktion zweimal ankommt |
 | `KeyboardBindings` | die Shortcut-Tabelle, samt Tab-Regel |
 
+| Composition und Recovery (P23) | |
+| --- | --- |
+| `CompositionSession` | eine laufende Eingabe: ID, Ausgangsrevision, Schutzbereich, erfasster Text |
+| `CompositionRegion` | welche Blöcke eine Composition besitzt — die reine Hälfte des Protokolls |
+| `CompositionGate` | die `PreCommitRule`, die unabhängige Änderungen abweist |
+| `ProjectionWriteGuard` | die Schreibsperre der Ansicht, per jfx-core-Lease |
+| `DeferredIntentQueue` | was warten musste, neu validiert statt abgespielt |
+| `NativeMutationObserver` | dass überhaupt etwas passiert ist |
+| `RecoveryController` | die Ansicht aus dem Dokument neu aufbauen, begrenzt |
+
 Welche Absicht welches Feature-Command wird, steht **nicht** hier, sondern in
 [ember-browser-support](../ember-browser-support/README.md) — §7 verbietet diesem Modul den
 Import eines Features, und das ist der Grund, warum ein Editor ohne Listen bei
-`insertUnorderedList` nicht kaputtgeht, sondern das Ereignis nativ lässt.
+`insertUnorderedList` nicht kaputtgeht, sondern das Ereignis nativ lässt. Dieselbe Trennung
+trägt die History-Gruppe einer Composition: der Controller meldet Anfang und Ende, gruppiert
+wird nebenan.
 
 Die austauschbare Boundary selbst kommt aus jfx-core (`HydrationBoundary`, P20s generischer
 Anteil). Dieses Modul liefert, was der Editor darüber hinaus weiß.
@@ -331,13 +344,93 @@ Das hat zwei konkrete Folgen, beide von Browsertests erzwungen:
 - **WebKit navigiert bei Backspace zurück**, wenn ein fokussiertes Element nicht editierbar ist.
   Ein readonly Editor weist die Editiertasten deshalb ausdrücklich ab, statt zu hoffen.
 
-## Composition (P22s Anteil)
+## Composition (§15.3)
 
-P22 behauptet keine vollständige IME-Freigabe und verhält sich entsprechend: `compositionstart`
-führt in `Composing`, dort wird **nichts** beansprucht und nichts geschrieben — §15.3: „Re-Render
-oder Selection-Schreiben kann laufende native Texteingabe zerstören" —, und was die Composition
-hinterlassen hat, liest derselbe Reader, durch den auch jede andere native Änderung geht. Das
-Protokoll mit Schreibsperre und Abschlussregeln ist P23.
+Eine laufende Composition ist der einzige Zustand, in dem der Editor **nicht** der Herr über
+seinen eigenen DOM ist. Der Browser schreibt Text, den er noch ändern wird, in einen Knoten, den
+die Projektion besitzt; jeder Schreibzugriff dorthin zerstört die Eingabe, ohne Ereignis und ohne
+Weg zurück. §15.3 zieht daraus drei Konsequenzen, und alle drei stehen hier.
+
+### Der Schutzbereich ist ein Block, nie ein Blatt
+
+> Die Schreibsperre schützt den vollständigen anfänglichen Ersetzungsbereich einschließlich aller
+> betroffenen Leaves, Marks, Atomgrenzen und Blöcke [...]. Bei einer kollabierten Range ist dies
+> mindestens der aktive Block. [...] ein blockübergreifender Start darf nicht als Ein-Leaf-Fall
+> behandelt werden.
+
+`CompositionRegion` rechnet das aus, und es ist der eine Teil des Protokolls, der eine reine
+Funktion ist: Dokument und Auswahl hinein, Knoten-IDs heraus. Ein Block ist zugleich die
+kleinste Grenze, die immer reicht — die Sperre schützt einen Teilbaum, also ist mit dem Block
+jedes Blatt, jede Mark und jedes Atom darin geschützt. Lässt sich der Bereich nicht benennen,
+sagt `WholeHost` das, statt enger zu raten.
+
+### Unabhängige Änderungen werden **vor** dem Commit abgewiesen
+
+`CompositionGate` ist eine `PreCommitRule` und keine Prüfung im Controller — weil §10s Schritt 5
+der Zeitpunkt ist, den §15.3 nennt, und weil ein Feature-Command, ein Timer oder ein
+eintreffender Upload die Sitzung direkt erreichen, ohne je am Controller vorbeizukommen.
+
+Abgewiesen wird auch, was **außerhalb** des Schutzbereichs liegt, und der Grund ist nicht der DOM,
+sondern die History: §14 nimmt eine Gruppe ganz zurück. Ein fremder Commit, der in der Gruppe der
+Composition landet, würde mit ihr rückgängig gemacht — jemandes Änderung, gelöscht von einem
+Tastendruck, der nichts damit zu tun hatte. Das zu erlauben braucht selektive History, und §15.3
+schließt das für den MVP ausdrücklich aus.
+
+Erlaubt bleiben die eigenen Zwischenstände der Composition (am Tag erkennbar) und reine
+Auswahl-, View- und Effekt-Änderungen. Was warten muss, geht je nach `BusyPolicy` als Fehler
+zurück oder in die `DeferredIntentQueue` — als **Thunk**, denn §15.3 verbietet, fertig gerechnete
+Entwürfe später anzuwenden: ein Upload muss dorthin, wo sein Bookmark *jetzt* zeigt, und
+unterbleiben, wenn die Stelle weg ist.
+
+### Der Abschluss
+
+In dieser Reihenfolge, und jede Zeile hat einen Grund:
+
+1. **Lease lösen.** jfx-core verlangt es, bevor die Projektion wieder läuft.
+2. **Einmal lesen, revisioniert.** Auf `compositionend` folgt oft noch ein `input`; der Vergleich
+   gegen das Dokument verhindert, dass derselbe Text zweimal ankommt.
+3. **Normalisieren.** Die während der Sitzung aufgeschobenen Merges laufen jetzt — auf einem
+   Zustand, in den niemand tippt.
+4. **Reparieren**, falls die Eingabemethode Struktur hinterlassen hat, die kein Splice beschreibt.
+5. **Auswahl zurückschreiben** — nur solange der Fokus noch im Editor ist (§17.7).
+6. **Warteschlange freigeben**, jeder Eintrag neu validiert.
+
+Der Lauf, aus dem gelesen wird, kommt aus der **Sitzung** und nicht aus der Auswahl. Ein
+WebKit-Lauf hat gezeigt warum: bei `blur` ist die Dokumentauswahl schon weg, und ein
+halbgetipptes Wort war damit verloren — genau der Fall, den §15.3 mit „Blur erfasst noch offene
+native Änderung" retten will.
+
+### Was aufgeschoben wird, und warum
+
+`TextRunNormalization` lässt seine Merges während einer Composition liegen. Ein Merge ersetzt den
+inneren Textknoten eines Laufs, und ein Browser, der gerade hineinkomponiert, verliert damit die
+Eingabe. Die beiden Module einigen sich über einen Tag in `TransactionMeta` — im Kern benannt,
+weil `ember-rich-text` und `ember-browser` einander nicht kennen und sich einen String nicht
+jeweils selbst ausdenken können.
+
+## Fremde Mutationen und Recovery (§15.4)
+
+Nicht der Browser beim Tippen — das ist der native Eingabepfad —, sondern alles andere, was in
+eine Seite schreibt: eine Erweiterung, ein Übersetzungswerkzeug, ein Passwortmanager.
+
+`NativeMutationObserver` beantwortet dabei nur **eine** Frage: ist überhaupt etwas passiert. Ob
+die Ansicht noch stimmt, beantwortet das Dokument — über denselben Abgleich, der auch entscheidet,
+ob eine serverseitig gerenderte Seite übernommen werden darf. §15.2 schließt beide naheliegenden
+Alternativen aus: ein synchrones `suppress` unterscheidet eigene und fremde Mutationen nicht,
+weil die Zustellung verzögert ist; und eine Vorhersage der eigenen Schreibzugriffe wäre ein
+zweites Modell des Renderers, dem der Editor im Zweifel glaubt.
+
+`RecoveryController` baut, was nicht stimmt, **aus dem Dokument** neu auf — ein Lauf bekommt
+seinen Text zurück (der Wrapper überlebt, und mit ihm die Knotenidentität), alles andere wird
+neu montiert. Kein `innerHTML`, das verbietet §15.4 ausdrücklich.
+
+Und genau **ein** Wiederholungsversuch. Ein Neuaufbau ist selbst eine Mutation; hält die Reparatur
+nicht, erzeugt ein zweiter Versuch dieselben Records und dasselbe Scheitern, nur schneller. Danach
+bleiben der Text — das Dokument ist ja unberührt — und eine Meldung.
+
+`NoSemantics` zählt dabei nicht als Schaden: ein Knoten mit eigener `NodeView` hat per Entwurf
+keine HTML-Beschreibung (§15.1), und das als Defekt zu lesen setzte jeden Editor mit einem Atom in
+Dauerreparatur. Ein Browsertest hat genau das getan.
 
 ## Tests
 
@@ -345,16 +438,23 @@ Protokoll mit Schreibsperre und Abschlussregeln ist P23.
 sbt --server "scalajs-ember-browser/Test/testOnly *"
 ```
 
-`HydrationBoundarySpec`, `SelectionPolicySpec` und `InputPipelineSpec` prüfen die Regeln als
-Regeln: wann aktiviert, geschrieben, fokussiert werden darf, was ein abgelaufenes Bookmark ist,
-welche Absicht ein `inputType` bedeutet und was der kleinste Splice zwischen zwei Strings ist.
+`HydrationBoundarySpec`, `SelectionPolicySpec`, `InputPipelineSpec` und `CompositionSpec` prüfen
+die Regeln als Regeln: wann aktiviert, geschrieben, fokussiert werden darf, was ein abgelaufenes
+Bookmark ist, welche Absicht ein `inputType` bedeutet, was der kleinste Splice zwischen zwei
+Strings ist, welche Blöcke eine Composition besitzt und was währenddessen abgewiesen wird.
 
 Was eine lebende Seite braucht, steht im Browser-Gate
 ([ember-integration/browser](../ember-integration/browser/README.md)):
-`editor-hydration.spec.mjs`, `selection.spec.mjs`, `focus.spec.mjs`, `editing.spec.mjs` und
-`native-input.spec.mjs`. Wo ein Gruppenanker liegt, wie eine Markkette aussieht, wohin der Fokus
-wirklich geht, ob ein Tastendruck überhaupt ein abbrechbares `beforeinput` erzeugt, was eine
-Engine mit einem Shadow Root macht — dazu hat keine headless Prüfung etwas zu sagen.
+`editor-hydration.spec.mjs`, `selection.spec.mjs`, `focus.spec.mjs`, `editing.spec.mjs`,
+`native-input.spec.mjs`, `composition.spec.mjs` und `mutation-race.spec.mjs`. Wo ein Gruppenanker
+liegt, wie eine Markkette aussieht, wohin der Fokus wirklich geht, ob ein Tastendruck überhaupt
+ein abbrechbares `beforeinput` erzeugt, was eine Engine mit einem Shadow Root macht — dazu hat
+keine headless Prüfung etwas zu sagen.
+
+Und eine Stufe darüber steht, was auch kein Browsertest beantwortet: eine echte
+Eingabemethode. Das ist eine Handprüfung mit dokumentiertem Geräteergebnis
+([manual-ime.md](../ember-integration/browser/manual-ime.md)), und ohne sie gilt die
+IME-Unterstützung als nicht abgenommen — gleich wie viele Tests grün sind.
 
 Die Aufteilung ist dieselbe wie bei §16 und aus demselben Grund: eine Regel, die durch eine
 ihrer Darstellungen geprüft wird, ist einmal geprüft.

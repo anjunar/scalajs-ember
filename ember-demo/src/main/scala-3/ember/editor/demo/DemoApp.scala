@@ -1,7 +1,7 @@
 package ember.editor.demo
 
 import ember.editor.browser.*
-import ember.editor.browsersupport.{CodeBindings, EditorBindings}
+import ember.editor.browsersupport.{CodeBindings, EditorBindings, HistoryBindings}
 import ember.editor.core.*
 import ember.editor.jfx.{DocumentView, EditorProperties}
 import ember.editor.richtext.{BreakKind, HeadingLevel, StandardMarks}
@@ -75,6 +75,7 @@ final class DemoApp extends AbstractComponent:
     bindings.foreach(_.dispose())
     bindings.clear()
     if input != null then input.dispose()
+    editor.compositions.release()
     if port != null then port.dispose()
     if view != null then view.dispose()
     editor.session.dispose()
@@ -171,9 +172,19 @@ final class DemoApp extends AbstractComponent:
           // Tab rueckt hier ein -- in einem Codeblock die Zeile, in einer Liste das Element.
           // §22 laesst das nur ausdruecklich aktiviert zu, und nur mit einem Ausgang: Escape,
           // dann Tab, und der Fokus geht weiter.
-          EditorBindings.everythingKeyboard ++ CodeBindings.tabIndentation,
-          TabPolicy.IndentsUntilEscape
+          EditorBindings.everythingKeyboard ++ EditorBindings.tabIndentation,
+          TabPolicy.IndentsUntilEscape,
+          EditorMode.Editable,
+          // Woran die Reparatur die Ansicht misst (§15.4): dieselbe Beschreibung, die sie
+          // gerendert hat.
+          Some(editor.semanticsForRepair),
+          BusyPolicy.Defer
         )
+
+        // §15.3 und §14: die Regel, die waehrend einer Composition unabhaengige Aenderungen
+        // abweist, und die Gruppe, die aus einer Composition eine Undo-Stufe macht.
+        editor.compositions.bind(input)
+        HistoryBindings.groupCompositions(input, editor.history): Unit
 
         // §15.4 verlangt bei Recovery eine verstaendliche Statusmeldung, §16 eine sichtbare
         // Ablehnung an der Formatgrenze. Beides laeuft hier in die Statuszeile.

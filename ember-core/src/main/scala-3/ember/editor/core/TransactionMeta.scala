@@ -66,6 +66,19 @@ final case class TransactionMeta(
 
 object TransactionMeta:
 
+  /** The tag a protected native input session puts on its own transactions.
+    *
+    * The core does not interpret it -- it carries it, like every other tag. It is named here
+    * because two modules that never meet have to agree on the word: the browser sets it (§15.3),
+    * and the rich-text profile reads it to defer its optimising merges (§8.2: "Widersprueche ...
+    * werden vom Profil bestimmt", and the merge is one of the things a composition may not see
+    * happen underneath it).
+    *
+    * A tag rather than a field, because that is what §14 built tags for: something the trigger
+    * knows and the core does not have to.
+    */
+  val CompositionTag: String = "ember.composition"
+
   val user: TransactionMeta   = TransactionMeta(Origin.User)
   val system: TransactionMeta = TransactionMeta(Origin.System)
 

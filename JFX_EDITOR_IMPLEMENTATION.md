@@ -1,8 +1,8 @@
 # JFX Editor: ausführbarer Implementierungsplan
 
-Status: **Meilenstein A, B und C stehen, D fast** — P01–P22 abgeschlossen (1052
-Scala-Tests und 483 Browserfälle in Chromium, Firefox und WebKit grün),
-P23–P30 offen. Dieses Repository (`scalajs-ember`) ist das in
+Status: **Meilenstein A bis D stehen** — P01–P23 abgeschlossen (1089 Scala-Tests und 576
+Browserfälle in Chromium, Firefox und WebKit grün; die reale IME-Abnahme ist eine
+Handprüfung und steht aus), P24–P30 offen. Dieses Repository (`scalajs-ember`) ist das in
 Architektur und Plan gemeinte „eigene Repository“. Die generischen JFX-Core-Anteile aus
 P08/P09, P19a, P20 und P23 sind **nicht hier, sondern im Nachbar-Repo `../scalajs-jfx`**
 implementiert und seit P17 als veröffentlichtes Artefakt `com.anjunar:scalajs-jfx-core:3.0.5`
@@ -1951,6 +1951,98 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 - **Dependencies:** P11, P12, P13, P14, P15, P21; Architektur §15.
 
 ## P23 — Composition, Observer-Abgleich und Recovery
+
+> **Abgeschlossen, bis auf die Handprüfung.** `ember-browser` gewachsen um `CompositionSession`,
+> `CompositionRegion`, `CompositionGate`, `ProjectionWriteGuard`, `DeferredIntentQueue`,
+> `NativeMutationObserver` und `RecoveryController`. Abnahme:
+>
+> ```
+> sbt --server "Test/testOnly *"
+> ```
+>
+> | Suite | Ergebnis |
+> | --- | --- |
+> | `CompositionSpec` | 23 Tests grün |
+> | `composition.spec.mjs` | 42 Fälle grün (14 × 3 Engines) |
+> | `mutation-race.spec.mjs` | 39 Fälle grün (13 × 3 Engines) |
+> | Gesamtes Scala-Gate | 1089 Tests grün |
+> | Browser-Gate | 576 Fälle grün |
+> | Reale IME | **offen** — [manual-ime.md](ember-integration/browser/manual-ime.md) |
+>
+> **Die Abnahme ist unvollständig, und das ist keine Nachlässigkeit.** P23 sagt es selbst: „Reale
+> IME-Abnahme erst mit dokumentiertem Geräteergebnis." Die Suiten prüfen das *Protokoll* —
+> Schutzbereich, Gate, Abschlussreihenfolge, Undo-Gruppe —, und dafür sind synthetische Ereignisse
+> das richtige Werkzeug. Die Eingabemethode selbst prüfen sie nicht, und §15.2s Fallliste sagt,
+> warum das ein Unterschied ist: koreanische 10-Tasten-Eingabe ohne Composition-Ereignisse,
+> Android, das trotz `preventDefault` nativ löscht, verwaistes `insertCompositionText`. Keiner
+> dieser Fälle lässt sich synthetisch herstellen. `manual-ime.md` ist das Formular dafür; ohne
+> ausgefüllte Zeilen gilt IME als nicht abgenommen.
+>
+> **Drei Mechanismen aus der Architektur trugen den größten Teil.** P23 sah nach der Phase aus,
+> die neue Infrastruktur braucht, und brauchte fast keine:
+>
+> - *Das Gate ist eine `PreCommitRule`.* §10s Schritt 5 ist genau der Zeitpunkt, den §15.3 nennt —
+>   „vor Commit" —, und eine Prüfung im Controller hätte nur gesehen, was durch den Controller
+>   geht. Ein Feature-Command, ein Timer, ein eintreffender Upload erreichen die Sitzung direkt.
+> - *Die Schreibsperre ist jfx-cores `HostMutationGuard`.* Ein Lease auf einen Teilbaum, mit
+>   `HostWriteBlocked` vor jedem Seiteneffekt — im Nachbar-Repo längst vorhanden, hier nur noch
+>   auf Dokumentknoten abgebildet.
+> - *Die Undo-Gruppe ist `History.beginGroup`.* §14 hatte sie für „Composition, Drag, ein
+>   mehrstufiger Dialog" schon gebaut. Verdrahtet wird sie in `browser-support`, weil §7 die
+>   History aus `ember-browser` heraushält.
+>
+> **Der aufgeschobene Merge stand seit P12 als Kommentar im Code.** `TextRunNormalization` trug die
+> Zeile „Deferring the merge during a protected composition (§8.2, §15.3) is not here: composition
+> is P23" — jetzt ist sie es. Ein Merge ersetzt den inneren Textknoten eines Laufs, und ein
+> Browser, der gerade hineinkomponiert, verliert damit die Eingabe. Die Verständigung läuft über
+> einen Tag in `TransactionMeta`, im **Kern** benannt: `ember-rich-text` und `ember-browser` kennen
+> einander nicht und können sich einen String nicht jeweils selbst ausdenken.
+>
+> **Der Abgleich ist der Hydrationscheck.** §15.2 schließt die beiden naheliegenden Wege
+> ausdrücklich aus — ein synchrones `suppress` unterscheidet eigene und fremde Mutationen nicht,
+> weil die Zustellung verzögert ist, und eine Vorhersage der eigenen Schreibzugriffe wäre ein
+> zweites Modell des Renderers. Also beantwortet der `MutationObserver` nur „ist etwas passiert",
+> und ob die Ansicht stimmt, beantwortet das **Dokument** — über `EditorHydration.check`, dieselbe
+> Frage, die auch entscheidet, ob eine ausgelieferte Seite übernommen werden darf.
+
+> **Zwei Befunde aus dem Browser:**
+>
+> - *Bei `blur` ist die Dokumentauswahl in WebKit schon weg.* Der Abschluss las den betroffenen
+>   Lauf über genau diese Auswahl — und verlor damit ein halbgetipptes Wort, also genau das, was
+>   §15.3s „Blur erfasst noch offene native Änderung" retten will. Die Sitzung weiß, wo sie begann,
+>   und wird seither zuerst gefragt.
+> - *`NoSemantics` ist kein Ansichtsschaden.* Ein Knoten mit eigener `NodeView` hat per Entwurf
+>   keine HTML-Beschreibung (§15.1). Die Reparatur las das als Defekt und setzte jeden Editor mit
+>   einem Atom in Dauerreparatur — die Fixture hat genau eines. Für die Hydration bleibt es ein
+>   Befund: dort ist ein Knoten, den sie nicht beschreiben kann, einer, den sie nicht übernehmen
+>   darf.
+>
+> **Bewusste Entscheidungen:**
+>
+> - *Der Schutzbereich ist ein Block, nie ein Blatt.* §15.3 verbietet die enge Lesart ausdrücklich
+>   („ein blockübergreifender Start darf nicht als Ein-Leaf-Fall behandelt werden"), und ein Block
+>   ist zugleich die kleinste Grenze, die immer reicht: die Sperre schützt einen Teilbaum.
+> - *Unabhängige Änderungen werden auch außerhalb des Schutzbereichs abgewiesen.* Der Grund ist
+>   nicht der DOM, sondern die History: §14 nimmt eine Gruppe ganz zurück, und ein fremder Commit
+>   darin verschwände mit ihr. Das zu erlauben braucht selektive History, die §15.3 für den MVP
+>   ausschließt.
+> - *Zurückgestellte Intents sind Thunks.* §15.3: „Es werden keine bereits berechneten Drafts
+>   später angewendet." Ein Upload muss dorthin, wo sein Bookmark *jetzt* zeigt — und unterbleiben,
+>   wenn die Stelle weg ist. Dieselbe Form wie §16s Formular-Intents, aus demselben Grund.
+> - *Die Warteschlange ist begrenzt.* Eine Composition, die nie endet — ein verlorenes
+>   `compositionend`, jemand, der mitten im Wort weggeht —, sammelte sonst Arbeit ohne Grenze und
+>   wendete sie Minuten später auf ein Dokument an, das niemand wiedererkennt.
+> - *Genau ein Wiederholungsversuch.* Ein Neuaufbau ist selbst eine Mutation; hält die Reparatur
+>   nicht, erzeugt ein zweiter Versuch dieselben Records und dasselbe Scheitern, nur schneller.
+>   §15.4 verlangt „keine Endlosschleife aus Observer→Render→Observer", und danach bleiben der Text
+>   — das Dokument ist ja unberührt — und eine Meldung.
+> - *Kein `innerHTML`.* §15.4 verbietet es, und der Test bewacht den Setter, statt es zu glauben.
+>
+> **Die Demo fährt es mit.** Gate, Schutzbereich, Undo-Gruppe und Reparatur sind dort verdrahtet —
+> die Probe, dass sich die Module zu einer Anwendung zusammensetzen lassen, schließt P23 ein.
+>
+> Modulverträge: [ember-browser/README.md](ember-browser/README.md),
+> [ember-browser-support/README.md](ember-browser-support/README.md).
 
 - **Ziel:** IME und Browsermutationen als ausdrücklich getesteter Inputvertrag.
 - **Module:** browser; jfx; jfx-core; history; forms; IT.

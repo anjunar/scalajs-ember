@@ -78,19 +78,25 @@ private[richtext] object TextRunNormalization:
     override val phase = TransformPhase.Late
 
     def transform(node: TextNode, scope: TransformScope): Unit =
-      val document = scope.document
+      // §8.2 and §15.3: not during a protected composition. A merge replaces the inner text node
+      // of a run, and a browser composing into that node loses the composition -- with no event
+      // and no way back. The seam is closed when the session ends, where the same rule runs
+      // again on a state nobody is typing into.
+      if scope.meta.tags.contains(TransactionMeta.CompositionTag) then ()
+      else
+        val document = scope.document
 
-      val siblings = document.parentOf(node.id).map(document.childrenOf).getOrElse(Vector.empty)
-      val index    = siblings.indexOf(node.id)
+        val siblings = document.parentOf(node.id).map(document.childrenOf).getOrElse(Vector.empty)
+        val index    = siblings.indexOf(node.id)
 
-      if index >= 0 then
-        val left  = if index > 0 then siblings.lift(index - 1) else None
-        val right = siblings.lift(index + 1)
+        if index >= 0 then
+          val left  = if index > 0 then siblings.lift(index - 1) else None
+          val right = siblings.lift(index + 1)
 
-        if left.exists(mergeable(document, _, node.id)) then
-          scope.mergeText(left.get, node.id): Unit
-        else if right.exists(mergeable(document, node.id, _)) then
-          scope.mergeText(node.id, right.get): Unit
+          if left.exists(mergeable(document, _, node.id)) then
+            scope.mergeText(left.get, node.id): Unit
+          else if right.exists(mergeable(document, node.id, _)) then
+            scope.mergeText(node.id, right.get): Unit
 
   /** Two children that may become one.
     *

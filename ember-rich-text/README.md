@@ -173,6 +173,16 @@ Text weit hinter ihrem Ende.
 
 Liegen beide Enden im selben Block, faellt seither nur weg, was **dazwischen** liegt.
 
+### Nicht während einer Composition
+
+Seit P23 lässt die Regel ihre Merges liegen, solange eine geschützte Texteingabe läuft (§8.2,
+§15.3). Ein Merge ersetzt den inneren Textknoten eines Laufs, und ein Browser, der gerade
+hineinkomponiert, verliert damit die Eingabe — ohne Ereignis und ohne Weg zurück.
+
+Erkannt wird das an einem Tag in `TransactionMeta`, der im **Kern** benannt ist: `ember-browser`
+setzt ihn, dieses Modul liest ihn, und die beiden kennen einander nicht. Die Naht wird
+geschlossen, wenn die Sitzung endet — dieselbe Regel, auf einem Zustand, in den niemand tippt.
+
 ### Die Naht danach
 
 Wird ein Knoten **zwischen** zwei Läufen entfernt, ändert sich keiner der beiden — also ist auch

@@ -51,6 +51,19 @@ final class DocumentView private (
   /** Anzahl projizierter Knoten. */
   def size: Int = projection.size
 
+  /** Rebuilds a node's view from the current document (§15.4).
+    *
+    * The wider repair, for when a native mutation left something a text reset cannot fix -- an
+    * element that was replaced, a child that was moved by a browser extension. The node's
+    * components are unmounted and built again from the document; the document itself has to be
+    * right already.
+    *
+    * The root cannot be rebuilt this way: that is a replacement of the whole view and belongs to
+    * whoever owns it (§15.1).
+    */
+  def rebuild(nodeId: NodeId): Boolean =
+    !isDisposed && nodeId != session.document.rootId && projection.rebuild(nodeId)
+
   /** Rebuilds one text run's DOM from the current document (§15.4).
     *
     * For a caller that has found the browser leaving extra nodes in a run's wrapper. It is not a
