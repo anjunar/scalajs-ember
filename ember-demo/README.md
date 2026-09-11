@@ -29,12 +29,12 @@ scheitert an der Origin-Prüfung des Browsers.
 
 ## Was zu sehen ist
 
-Links die Editierfläche, rechts derselbe Stand in vier Ansichten — Dokumentbaum, JSON,
-ausgeliefertes HTML und Editor-HTML. Alle vier hängen an **einem** Dokument; die Panels sind über
+Links die Editierfläche, rechts derselbe Stand in fünf Ansichten — Dokumentbaum, JSON,
+Markdown, ausgeliefertes HTML und Editor-HTML. Alle fünf hängen an **einem** Dokument; die Panels sind über
 `EditorProperties.document(session)` gebunden und werden bei jedem Commit nachgeführt (§10), nicht
 von einem Timer.
 
-Damit ist der Stand nach P16 an einem Stück sichtbar:
+Damit ist der Stand nach P18 an einem Stück sichtbar:
 
 | | |
 | --- | --- |
@@ -48,6 +48,7 @@ Damit ist der Stand nach P16 an einem Stück sichtbar:
 | P14 | Links samt URL-Policy |
 | P15 | Codeblöcke mit Sprachangabe |
 | P16 | Bilder als Inline-Atome samt Media-Policy |
+| P17/P18 | Markdown: Parser, Writer und der Weg ins Dokument |
 
 Undo und Redo gibt es als Knöpfe und über Strg+Z beziehungsweise Strg+Shift+Z; die Statuszeile
 zeigt die Tiefe beider Stapel. Zusammenhängendes Tippen wird dabei zu einer Stufe zusammengefasst
@@ -77,6 +78,15 @@ Hälften.
 „Link" auf dem Lauf am Caret: ein Atom hat keine Textposition, ein Caret kann also nicht *darin*
 stehen, und es mit der Maus zu benennen ist der `SelectionPort` aus P21. Auswahl, Änderung und
 der Caret danach laufen in **einer** Transaktion -- drei wären drei History-Stufen.
+
+Das Panel „Markdown" zeigt den Export (P18). Es wählt **`AllowLossy`**, und das ist der
+interessante Teil: eine Ansicht, die statt eines Dokuments einen Fehler zeigte, sobald etwas
+keine Markdown-Schreibweise hat, wäre unbrauchbar. §18.2 macht die Wahl ausdrücklich, und was
+nicht mitkommt, steht unter dem Quelltext — beim Startdokument etwa die Maße des Bildes. Still
+verloren geht nichts.
+
+Und was das Panel **nicht** zeigt: den Quelltext, aus dem das Dokument einmal kam. §18.2 sagt
+`encode(decode(source)) == source` ausdrücklich ab. Zugesichert ist die andere Richtung.
 
 „Codeblock" macht aus dem Absatz am Caret einen Codeblock. Tab und Shift+Tab rücken darin die
 Zeile ein statt das Listenelement -- die Demo probiert erst den Code-Befehl, dann den
@@ -112,7 +122,7 @@ hat.
 | Datei | Inhalt |
 | --- | --- |
 | `Main.scala` | Einstieg. Kein Initialisierungscode auf oberster Ebene — §15.2. |
-| `DemoSession.scala` | Sitzung, Schema, Codecs und die vier Ansichten. Die einzige Stelle, an der alle Module vorkommen. |
+| `DemoSession.scala` | Sitzung, Schema, Codecs und die fünf Ansichten. Die einzige Stelle, an der alle Module vorkommen. |
 | `DemoApp.scala` | Die Seite als JFX-Komponentenbaum. |
 | `dev/` | HTML-Hülle, Stylesheet, Bild, Server. |
 

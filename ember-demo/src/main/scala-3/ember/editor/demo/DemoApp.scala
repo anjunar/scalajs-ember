@@ -305,6 +305,12 @@ private enum Panel(val label: String, val hint: String):
         "Was ein Leser bekommt. Ueber denselben Weg wie die Flaeche links, nur mit SsrCursor."
       )
 
+  case Markdown
+      extends Panel(
+        "Markdown",
+        "ember-markdown, P18. Kanonische Schreibweise -- der Export ist nicht quelltextgleich."
+      )
+
   case Editor
       extends Panel(
         "HTML (Editor)",
@@ -313,6 +319,7 @@ private enum Panel(val label: String, val hint: String):
 
   def contentOf(editor: DemoSession): String = this match
     case Outline => editor.outline
-    case Json    => editor.json
+    case Json     => editor.json
+    case Markdown => editor.markdown
     case Content => editor.html
     case Editor  => editor.editorHtml

@@ -17,7 +17,8 @@ import ember.editor.html.RenderProfile
 import ember.editor.jfx.{DocumentView, ViewSupport}
 import ember.editor.json.*
 import ember.editor.richtext.*
-import ember.editor.standard.{ImageJsonSupport, ImageSupport}
+import ember.editor.markdown.{LossPolicy, MarkdownCodec}
+import ember.editor.standard.{ImageJsonSupport, ImageSupport, MarkdownSupports}
 
 /** The session of the demo and everything hanging off it.
   *
@@ -86,6 +87,9 @@ final class DemoSession:
 
   /** Every standard adapter: rich text, lists, links, code and images. */
   val views: ViewSupport = ImageSupport.views
+
+  /** The Markdown rules, with this demo's policies -- the same two the commands use. */
+  private val markdownRules = MarkdownSupports.everything(LinkUrlPolicy.default, media)
 
   private var lastError: Option[String] = None
 
@@ -328,6 +332,21 @@ final class DemoSession:
         case None       => Vector.empty
 
     walk(document.rootId, 0).mkString("\n")
+
+  /** The same state as Markdown (P18).
+    *
+    * '''AllowLossy''', and that is the interesting part: a panel that showed an error
+    * instead of a document whenever something has no Markdown spelling would be useless. §18.2
+    * makes the choice explicit, and a viewer legitimately chooses to see what Markdown can
+    * carry -- the demo prints what it could not underneath, so the loss is visible rather than
+    * silent.
+    */
+  def markdown: String =
+    MarkdownCodec.encode(session.document, markdownRules, LossPolicy.AllowLossy) match
+      case Right(written) =>
+        val losses = written.losses.map(loss => s"-- ${loss.message}")
+        (written.source +: losses).mkString("\n")
+      case Left(error) => error.render
 
   /** The same state as JSON (P10). */
   def json: String =

@@ -25,7 +25,7 @@ final class MarkdownRoundTripSpec extends AnyFlatSpec with Matchers {
     *
     * Raise it when the writer gets better; never lower it without saying why in the commit.
     */
-  private val StableShapes = 621
+  private val StableShapes = 627
 
   /** The tree without ids and spans -- what the round trip has to preserve. */
   private def shape(block: MarkdownBlock): String =

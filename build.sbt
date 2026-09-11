@@ -450,8 +450,8 @@ lazy val emberJfx =
 lazy val emberStandard =
   Project(id = "scalajs-ember-standard", base = file("ember-standard"))
     .enablePlugins(ScalaJSPlugin)
-    .dependsOn(emberCore, emberRichText, emberList, emberLink, emberCode, emberImage, emberJson,
-      emberHtml, emberJfx)
+    .dependsOn(emberCore, emberRichText, emberList, emberLink, emberCode, emberImage,
+      emberMarkdown, emberJson, emberHtml, emberJfx)
     .settings(
       name        := "scalajs-ember-standard",
       moduleName  := "scalajs-ember-standard",
@@ -472,6 +472,7 @@ lazy val emberStandard =
           "scalajs-ember-link",
           "scalajs-ember-code",
           "scalajs-ember-image",
+          "scalajs-ember-markdown",
           "scalajs-ember-json",
           "scalajs-ember-html",
           "scalajs-ember-jfx"

@@ -14,8 +14,7 @@ Laufzeitabhängigkeit.
 
 ## Stand
 
-**Meilenstein A und B stehen, C und D angefangen** — P01–P17 abgeschlossen, P18 zur Hälfte,
-P19–P30 offen. Der frühere
+**Meilenstein A und B stehen, C und D angefangen** — P01–P18 abgeschlossen, P19–P30 offen. Der frühere
 `contenteditable`-Prototyp (`ember.core.Editor` mit `execCommand` und HTML-String als
 Zustand) und seine vite-Demo wurden entfernt — Architektur §2 und §25 schließen diesen
 Ansatz aus.
@@ -80,9 +79,12 @@ heraus, und 621 überleben Schreiben und Neu-Parsen unverändert. Beide Zahlen w
 geprüft — eine Verschlechterung fällt damit ebenso auf wie eine Verbesserung, die jemand
 nachzutragen vergisst.
 
-Was noch fehlt, ist der Dokumentadapter: die typisierte SPI, die Syntax auf registrierte
-NodeTypes abbildet (§18.1). Bis dahin gibt es einen Parser und einen Writer, aber keinen
-Import-/Exportweg ins Dokument.
+Und mit P18 geht beides auch ins Dokument: eine typisierte SPI bildet Syntax auf registrierte
+NodeTypes ab (§18.1), ohne HTML oder DOM als Zwischenstufe. Emphasis wird dabei eine **Mark**
+und kein Knoten — `*a*` ist ein Lauf mit einer Eigenschaft, kein Knoten um einen Lauf herum
+(§8.2). Was Markdown nicht schreiben kann — Unterstreichung, Bildmaße, ein abgewiesenes
+Linkziel —, meldet der Export: unter `Strict` als Fehler, unter `AllowLossy` als Diagnose.
+Still verloren geht nichts.
 
 ## Module
 
@@ -108,8 +110,8 @@ Vorhanden:
   `ember.editor.image`. Externe Bilder als Inline-Atome mit geprüfter Media-Policy. Hängt
   allein am Kern — ein Bild braucht vom Rich-Text-Profil nichts.
 - [`ember-markdown`](ember-markdown/README.md) — sbt-ID `scalajs-ember-markdown`, Paket
-  `ember.editor.markdown`. CommonMark-Parser, -Writer, Syntaxbaum und SourceMap. Headless,
-  hängt allein am Kern — er baut einen Syntaxbaum, kein Dokument.
+  `ember.editor.markdown`. CommonMark-Parser, -Writer, Syntaxbaum, SourceMaps und die
+  Adapter-SPI. Headless, hängt allein am Kern — die Regeln kommen von außen.
 - [`ember-json`](ember-json/README.md) — sbt-ID `scalajs-ember-json`, Paket
   `ember.editor.json`. Wire-ADT, Node- und Mark-Codecs, Grenzen, Schema-Migration. Headless.
 - [`ember-history`](ember-history/README.md) — sbt-ID `scalajs-ember-history`, Paket

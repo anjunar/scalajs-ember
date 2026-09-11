@@ -1,8 +1,8 @@
 # JFX Editor: ausführbarer Implementierungsplan
 
-Status: **Meilenstein A und B stehen, C und D angefangen** — P01–P17 abgeschlossen, P18 zur
-Hälfte (864 Scala-Tests und 126 Browserfälle in Chromium, Firefox und WebKit grün),
-P18s Dokumentadapter und P19–P30 offen. Dieses Repository (`scalajs-ember`) ist das in
+Status: **Meilenstein A und B stehen, C und D angefangen** — P01–P18 abgeschlossen (942
+Scala-Tests und 126 Browserfälle in Chromium, Firefox und WebKit grün),
+P19–P30 offen. Dieses Repository (`scalajs-ember`) ist das in
 Architektur und Plan gemeinte „eigene Repository“. Die generischen JFX-Core-Anteile aus
 P08/P09, P19a, P20 und P23 sind **nicht hier, sondern im Nachbar-Repo `../scalajs-jfx`**
 implementiert und seit P17 als veröffentlichtes Artefakt `com.anjunar:scalajs-jfx-core:3.0.5`
@@ -1403,14 +1403,7 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 
 ## P18 — Markdown: Inlines, Writer und Document-Adapter
 
-> **Zur Hälfte erledigt: Parser und Writer stehen, der Dokumentadapter fehlt.**
->
-> Vorhanden: `InlineParser.scala`, `DelimiterStack.scala`, `EntityTable.scala`,
-> `MarkdownWriter.scala` sowie `MarkdownInlineSpec` und `MarkdownRoundTripSpec`.
-> **Offen:** `MarkdownRule.scala`, `MarkdownCodec.scala`, `standard/MarkdownSupport.scala`,
-> `standard/StandardJsonSupport.scala` und die Suiten `MarkdownSourceMapSpec` sowie
-> `StandardJsonRoundTripSpec`. Bis dahin gibt es einen Parser und einen Writer, aber keinen
-> Import-/Exportweg ins Dokument.
+> **Abgeschlossen.**
 >
 > ```
 > sbt --server "Test/testOnly *"
@@ -1420,9 +1413,11 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 > | --- | --- |
 > | `MarkdownInlineSpec` | 53 Tests grün |
 > | `MarkdownRoundTripSpec` | 19 Tests grün |
-> | `CommonMarkConformanceSpec` | 7 Tests grün |
-> | `ember-markdown` gesamt | 145 Tests grün |
-> | Gesamtes Scala-Gate | 864 Tests grün |
+> | `MarkdownSourceMapSpec` | 13 Tests grün |
+> | `MarkdownDocumentSpec` (ember-standard) | 38 Tests grün |
+> | `StandardJsonRoundTripSpec` (ember-standard) | 27 Tests grün |
+> | `ember-markdown` gesamt | 158 Tests grün |
+> | Gesamtes Scala-Gate | 942 Tests grün |
 > | Browser-Gate | 126 Fälle grün |
 >
 > **Zwei Zahlen, zwei verschiedene Aussagen: 651 und 621 von 652.**
@@ -1474,6 +1469,52 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 >   Unsichtbarer Leerraum am Zeilenende überlebt keinen Editor, der ihn trimmt.
 > - *`inline` ist ein Soft Keyword.* Zweimal in Folge als Methodenname gewählt, zweimal mit
 >   Fehlermeldungen, die alles außer der Ursache benennen. Steht jetzt als Kommentar dort.
+>
+> **Drei Arten von Regel, weil die Syntax drei Formen hat.** Ein Block wird ein Knoten, ein
+> Inline wird ein Knoten — und ein Inline wird eine **Mark**, kein Knoten. Die dritte ist die,
+> die man leicht übersieht und später nicht mehr nachrüsten kann: `*a*` ist kein Knoten um einen
+> Lauf, sondern ein Lauf mit einer Mark (§8.2). Der Codec trägt deshalb eine `MarkSet` den
+> Inline-Baum hinunter, statt eine Hülle zu bauen.
+>
+> **Drei weitere Fehler, die erst der Durchlauf durchs Dokument gefunden hat:**
+>
+> - *Alle Marks verschwanden beim Export, lautlos.* Um die Mark eines `MarkSet` zu ihrer Regel
+>   zu finden, bekam die Regel ein synthetisches `MarkdownInline.Text` hingehalten — das keine
+>   je wiedererkannte. `MarkdownMarkRule` hat jetzt `owns(mark)` neben `markFor(inline)`; die
+>   Richtungen sind verschieden, und die Rückrichtung hat kein Inline anzubieten.
+> - *Ein Bild machte den ganzen Import ungültig.* Der Codec dekodiert die Kinder einer Regel,
+>   bevor die Regel läuft — und die Bildregel faltet ihren Alt-Text zu einem String. Die
+>   dekodierten Läufe blieben unerreichbar im Knotensatz stehen, und `Document.build` wies das
+>   ganze Dokument ab. `NodeSink.discard` macht das Verwerfen ausdrücklich; unerreichbare Knoten
+>   stillschweigend wegzuräumen hätte den nächsten Fall dieser Art versteckt.
+> - *Eine verschachtelte Liste wurde beim Schreiben lose.* Der Writer setzte zwischen Absatz und
+>   Unterliste eine Leerzeile, die dort nicht hingehört. Die Änderung überlebt ein Neu-Parsen,
+>   also sieht ein Round-Trip sie — ein Vergleich der Darstellung nicht.
+>
+> **Der Gleichstand in der Dokument-SourceMap.** Ein Absatz und sein einziger Lauf decken
+> dieselben Zeichen ab; keine Spannenregel entscheidet das. Der Gleichstand geht an den zuerst
+> aufgezeichneten Knoten, und das ist nicht willkürlich: der Codec dekodiert Kinder vor ihren
+> Eltern. Deshalb steht dort ein `Vector` und keine `Map` — eine Map antwortete je nach Hashing
+> anders.
+>
+> **Bewusste Entscheidungen:**
+>
+> - *`MarkdownSourceMapSpec` baut eigene Knotenarten und eigene Marks.* Kein Behelf, sondern die
+>   Probe: müsste `MarkdownCodec` je wissen, was ein `ParagraphNode` ist, hörte die Datei auf zu
+>   kompilieren. Dieselbe Überlegung wie beim lokalen `BlockNode` in P16.
+> - *Ein abgewiesenes Linkziel lässt den Text stehen, eine abgewiesene Bildquelle nicht.* Die
+>   Wörter eines Satzes zu verlieren, weil seine Adresse falsch war, wäre der schlechtere
+>   Ausgang. Ein Bild ohne Quelle ist dagegen nichts. Beides meldet einen Verlust.
+> - *Ein weicher Umbruch wird im Dokument ein Leerzeichen*, ein harter ein `BreakNode`. §18.2
+>   verlangt den Unterschied erhalten; ein `\n` in einem Absatzlauf wäre ein Dokument, das kein
+>   Renderer richtig zeigt — dieselbe Entscheidung wie in P15.
+> - *`StandardJsonCodecs` liegt in `standard`, nicht in `json`.* Sonst zöge die Wahl von JSON
+>   Listen, Links, Code und Bilder mit herein, ob die Anwendung sie hat oder nicht (§6). Jeder
+>   Codec ist ein eigener Wert; die Bündel sind Bequemlichkeit, nicht die einzige Tür. Ein Test
+>   hält es nach: das Rich-Text-Bündel weist ein Dokument mit Liste ab.
+> - *Die Demo wählt `AllowLossy`.* Ein Panel, das statt eines Dokuments einen Fehler zeigte,
+>   sobald etwas keine Markdown-Schreibweise hat, wäre unbrauchbar. Die Verluste stehen unter dem
+>   Quelltext — sichtbar statt still.
 >
 > Modulvertrag: [ember-markdown/README.md](ember-markdown/README.md).
 

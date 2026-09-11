@@ -13,10 +13,11 @@ Verbindlicher Entwurf: [JFX_EDITOR_ARCHITECTURE.md](../JFX_EDITOR_ARCHITECTURE.m
 
 ## Stand
 
-**P17 abgeschlossen. P18 zur Hälfte: Parser und Writer stehen, der Dokumentadapter fehlt.**
+**P17 und P18 abgeschlossen.**
 
 Vorhanden: `MarkdownBlock` und `MarkdownInline` samt Syntaxbaum, `Markdown.parseSyntax`,
-`MarkdownWriter`, `SourceMap`, `MarkdownProfile`, `ParseLimits` und `EntityTable`. Der Parser
+`MarkdownWriter`, `MarkdownCodec`, `SourceMap`, `DocumentSourceMap`, `MarkdownProfile`,
+`ParseLimits` und `EntityTable`. Der Parser
 deckt CommonMark **0.31.2** ab — Blöcke wie Inlines: Absätze, Überschriften, Zitate, Listen,
 Code, Trenner, HTML-Blöcke, Emphasis, Links samt Referenzdefinitionen, Autolinks, Bilder,
 Code-Spans, Escapes und Zeichenreferenzen.
@@ -25,10 +26,9 @@ Code-Spans, Escapes und Zeichenreferenzen.
 Konformitätssuite kommen zeichengenau heraus. Der eine Rest ist kein Zufall — siehe
 [Entities](#entities).
 
-**Noch nicht vorhanden: der Dokumentadapter.** `MarkdownRule`, `MarkdownCodec` und
-`standard/MarkdownSupport` — die typisierte SPI, die Syntax auf registrierte NodeTypes abbildet
-(§18.1) — sind die zweite Hälfte von P18. Bis dahin ist dies ein Parser und ein Writer, kein
-Import-/Exportweg ins Dokument.
+Dazu die typisierte SPI, die Syntax auf registrierte NodeTypes abbildet (§18.1):
+`MarkdownRule`, `MarkdownCodec` und `DocumentSourceMap`. Die Regeln selbst liegen in
+`ember-standard` — hier weiß nichts, was ein `ParagraphNode` ist.
 
 Das Profil sagt, wo es steht:
 
@@ -211,6 +211,68 @@ Was der Writer dafür garantiert:
   Zeilenende überlebt keinen Editor, der ihn trimmt, und §18.2 verlangt den Unterschied
   erhalten.
 
+## Dokument und zurück
+
+`MarkdownCodec` ist der Weg zwischen Quelltext und Dokument. §18.1 verlangt ihn ohne Umweg —
+"Kein HTML-/DOM-Zwischenschritt" —, und genau so läuft er: `source → syntax → nodes` und
+zurück, ohne HTML-String und ohne DOM dazwischen.
+
+```scala
+MarkdownCodec.decode(quelltext, schema, regeln, generator, wurzel)   // Either[MarkdownError, DecodedDocument]
+MarkdownCodec.encode(dokument, regeln, LossPolicy.Strict)            // Either[MarkdownError, EncodedMarkdown]
+```
+
+### Drei Arten von Regel, weil die Syntax drei Formen hat
+
+| | |
+| --- | --- |
+| `MarkdownBlockRule` | Ein Block wird ein Knoten. Absatz, Überschrift, Zitat, Liste, Code. |
+| `MarkdownInlineRule` | Ein Inline wird ein Knoten oder mehrere. Text, Bild, Link. |
+| `MarkdownMarkRule` | Ein Inline wird eine **Mark**, kein Knoten. Emphasis, Strong, Inline-Code. |
+
+Die dritte ist die, die man leicht übersieht und später nicht mehr nachrüsten kann. `*a*` ist
+kein Knoten um einen Lauf herum, sondern ein Lauf mit einer Mark (§8.2). Der Codec trägt
+deshalb eine `MarkSet` den Inline-Baum hinunter, statt eine Hülle zu bauen — eine Regel, die
+eine Hülle gewollt hätte, hätte ein Dokument erzeugt, das das Rich-Text-Profil ablehnt.
+
+### Verlust ist eine Entscheidung, keine Überraschung
+
+§18.2: „`Strict` verweigert Informationsverlust, `AllowLossy` muss die Anwendung bewusst
+wählen." Was Markdown nicht schreiben kann, ist in §18.2 aufgezählt und wird gemeldet statt
+verschwiegen:
+
+| | |
+| --- | --- |
+| Unterstreichung, Durchstreichung | keine CommonMark-Garantie |
+| Bildmaße, MediaId | dito |
+| ein Linkziel, das die Policy abweist | der **Text** überlebt, das Ziel nicht |
+
+Unter `Strict` ist jedes davon ein `MarkdownError.WouldLose` und es entsteht kein Export. Unter
+`AllowLossy` entsteht einer, und `EncodedMarkdown.losses` sagt, was fehlt. Die Demo wählt
+`AllowLossy` und druckt die Verluste unter den Quelltext — sichtbar statt still.
+
+### Die Policies fahren mit
+
+`MarkdownSupports.everything(linkPolicy, mediaPolicy)` nimmt dieselben zwei Policies wie die
+Commands. §19.1 verlangt das: „URLs werden nach Entities-/Whitespace-Normalisierung durch die
+jeweilige Link-/Media-Policy geprüft." Es gibt keinen zweiten Weg zu einem `LinkUrl` oder
+`MediaUrl`, also **können** Import und Dialog nicht auseinanderlaufen.
+
+### Dokumentpositionen
+
+`DecodedDocument.sourceMap` ist die zweite Hälfte von §18.2: Knoten zu Quellbereich und zurück.
+
+```scala
+ergebnis.sourceMap.spanOf(knoten.id)   // wo dieser Knoten herkommt
+ergebnis.sourceMap.nodeAt(offset)      // welcher Knoten hier steht
+```
+
+Ein Absatz und sein einziger Lauf decken **dieselben** Zeichen ab — da entscheidet keine
+Spannenregel mehr. Der Gleichstand geht an den zuerst aufgezeichneten Knoten, und das ist nicht
+willkürlich: der Codec dekodiert Kinder vor ihren Eltern, also ist der frühere Eintrag der
+tiefere Knoten. Deshalb steht dort ein `Vector` und keine `Map` — eine Map beantwortete
+dieselbe Frage je nach Hashing anders.
+
 ## Tests
 
 ```bash
@@ -225,6 +287,15 @@ Fünf Suiten, die verschiedene Fragen stellen:
 | `MarkdownInlineSpec` | Stimmt die Inline-Struktur, Fall für Fall? |
 | `CommonMarkConformanceSpec` | **Wie viel** von der Spezifikation stimmt? |
 | `MarkdownRoundTripSpec` | Überlebt ein Baum das Schreiben und Neu-Parsen? |
+| `MarkdownSourceMapSpec` | Stimmen die Quellbereiche — und läuft die SPI ohne Profil? |
+
+`MarkdownSourceMapSpec` baut sich eigene Knotenarten und eigene Marks. Das ist kein Behelf,
+sondern die Probe: würde `MarkdownCodec` je wissen müssen, was ein `ParagraphNode` ist, hörte
+diese Datei auf zu kompilieren. Dieselbe Überlegung wie beim lokalen `BlockNode` in
+`ember-image`.
+
+Die Regeln des Standardprofils werden dort getestet, wo sie liegen:
+`ember-standard/…/MarkdownDocumentSpec.scala`.
 
 Die beiden ersten prüfen die **Struktur**, nicht gerendertes HTML — der Baum ist das, was der
 Rest des Editors konsumiert. Die beiden letzten fahren die offizielle Konformitätssuite, alle

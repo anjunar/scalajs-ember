@@ -46,11 +46,29 @@ object MarkdownWriter:
   // Bloecke
   // -----------------------------------------------------------------------------------------
 
-  private def writeBlocks(blocks: Vector[MarkdownBlock], out: Sink): Unit =
+  private def writeBlocks(blocks: Vector[MarkdownBlock], out: Sink, tight: Boolean = false): Unit =
     blocks.zipWithIndex.foreach { (block, index) =>
-      if index > 0 then out.blankLine()
+      if index > 0 && needsBlankLineBefore(blocks(index - 1), block, tight) then out.blankLine()
       writeBlock(block, out)
     }
+
+  /** Whether two consecutive blocks need a blank line between them.
+    *
+    * Almost always yes -- two paragraphs without one are a single paragraph. The exception is
+    * inside a '''tight''' list item: `- aussen` followed by an indented `- innen` is a nested
+    * list with no blank line, and writing one turns the outer list loose. That change survives
+    * a re-parse, so a round trip sees it and a rendered comparison does not.
+    */
+  private def needsBlankLineBefore(
+      previous: MarkdownBlock,
+      next: MarkdownBlock,
+      tight: Boolean
+  ): Boolean =
+    if !tight then true
+    else
+      (previous, next) match
+        case (MarkdownBlock.Paragraph(_, _, _), MarkdownBlock.MarkdownList(_, _, _, _, _)) => false
+        case _                                                                             => true
 
   private def writeBlock(block: MarkdownBlock, out: Sink): Unit = block match
     case document: MarkdownDocument =>
@@ -102,11 +120,16 @@ object MarkdownWriter:
         // nur als Praefix behandelt. `- foo`, `-`, `- bar` verlor so den mittleren Punkt
         // spurlos. Er bekommt seine Zeile ausdruecklich.
         if item.children.isEmpty then out.line(marker.stripSuffix(" "))
-        else out.indented(marker, " " * marker.length) { writeBlock(item, out) }
+        else out.indented(marker, " " * marker.length) { writeItem(item, out, tight) }
       }
 
     case MarkdownBlock.ListItem(_, _, children) =>
       writeBlocks(children, out)
+
+  /** A list item, told whether its list is tight. See [[needsBlankLineBefore]]. */
+  private def writeItem(item: MarkdownBlock, out: Sink, tight: Boolean): Unit = item match
+    case MarkdownBlock.ListItem(_, _, children) => writeBlocks(children, out, tight)
+    case other                                  => writeBlock(other, out)
 
   // -----------------------------------------------------------------------------------------
   // Inlines

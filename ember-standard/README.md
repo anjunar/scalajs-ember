@@ -9,19 +9,48 @@ Verbindlicher Entwurf: [JFX_EDITOR_ARCHITECTURE.md](../JFX_EDITOR_ARCHITECTURE.m
 | --- | --- |
 | sbt-ID / Artefakt | `scalajs-ember-standard` |
 | Scala-Paket | `ember.editor.standard` |
-| Produktionsabhängigkeiten | `scalajs-ember-core`, `scalajs-ember-rich-text`, `scalajs-ember-list`, `scalajs-ember-link`, `scalajs-ember-code`, `scalajs-ember-image`, `scalajs-ember-html`, `scalajs-ember-jfx` |
+| Produktionsabhängigkeiten | `scalajs-ember-core`, `scalajs-ember-rich-text`, `scalajs-ember-list`, `scalajs-ember-link`, `scalajs-ember-code`, `scalajs-ember-image`, `scalajs-ember-markdown`, `scalajs-ember-json`, `scalajs-ember-html`, `scalajs-ember-jfx` |
 
 ## Stand
 
-P09 und P12 bis P16 abgeschlossen. Vorhanden: `ParagraphSupport` (Wurzel, Absatz, Textlauf),
+P09 und P12 bis P18 abgeschlossen. Vorhanden: `ParagraphSupport` (Wurzel, Absatz, Textlauf),
 `RichTextSupport` (Überschrift, Zitat, Umbrüche) samt `StandardMarkTags` — der Tabelle, die aus
 den fünf eingebauten Marks HTML-Tags macht — `ListSupport` (`ul`/`ol`/`li` samt Startnummer),
 `LinkSupport` (`a` samt der Entscheidung über `target` und `rel`), `CodeSupport` (`pre`/`code`
 samt Sprachklasse) und `ImageSupport` (`img` als Void-Element).
 
-Dazu `ImageJsonSupport` — der erste Adapter hier, der **nicht** HTML macht. Er steht aus
-demselben Grund in diesem Modul: §6 gibt `image` nur den Kern, `ember-json` weiß nichts von
-Bildern, und dies ist der eine Ort, an dem beide auf dem Klassenpfad liegen.
+Dazu zwei Adaptersätze, die **nicht** HTML machen und aus demselben Grund hier stehen — §6 gibt
+den Node-Modulen nur den Kern, und dies ist der eine Ort, an dem beide Seiten auf dem
+Klassenpfad liegen:
+
+| | |
+| --- | --- |
+| `MarkdownRules` / `MarkdownSupports` | Syntax auf Knotenarten, P18. |
+| `StandardJsonCodecs` / `StandardJsonSupport` | die Built-in-Codecs für JSON, P18. |
+
+Beide sind **einzeln wählbar**. §6 verbietet „eager Sammelregistrierungen", und das ist keine
+Formsache: läge `StandardJsonCodecs` in `ember-json`, zöge die Wahl von JSON Listen, Links,
+Code und Bilder mit herein, ob die Anwendung sie hat oder nicht. Ein Test hält es nach —
+`StandardJsonSupport.richText` weist ein Dokument mit Liste ab.
+
+### Markdown: drei Arten von Regel
+
+Ein Block wird ein Knoten, ein Inline wird ein Knoten — und ein Inline wird eine **Mark**, kein
+Knoten. Die dritte ist die, die man leicht übersieht: `*a*` ist kein Knoten um einen Lauf
+herum, sondern ein Lauf mit einer Eigenschaft (§8.2).
+
+Die Policies fahren mit. `MarkdownSupports.everything(linkPolicy, mediaPolicy)` nimmt dieselben
+zwei wie die Commands, und §19.1 verlangt genau das. Es gibt keinen zweiten Weg zu einem
+`LinkUrl` oder `MediaUrl`, also **können** Import und Dialog nicht auseinanderlaufen.
+
+Was Markdown nicht schreiben kann, wird gemeldet statt verschwiegen: Unterstreichung und
+Durchstreichung (§18.2 zählt beide ausdrücklich nicht zur CommonMark-Garantie), Bildmaße,
+MediaId. Unter `Strict` schlägt der Export fehl, unter `AllowLossy` steht es in
+`EncodedMarkdown.losses`.
+
+Ein abgewiesenes **Linkziel** lässt den Text stehen, eine abgewiesene **Bildquelle** nicht. Die
+Wörter eines Satzes zu verlieren, weil seine Adresse falsch war, wäre der schlechtere Ausgang;
+ein Bild ohne Quelle ist dagegen nichts.
 
 `strong` und `em`, nicht `b` und `i`: §16 verlangt semantisches HTML, und das sagt, was gemeint
 ist, statt wie es aussieht. Underline bekommt `u` — nicht weil HTML dafür eine gute Antwort
@@ -99,6 +128,12 @@ DocumentView.renderToHtml(document, ParagraphSupport.views)
 ```bash
 sbt --server "scalajs-ember-standard/Test/testOnly *"
 ```
+
+`MarkdownDocumentSpec` fährt den Weg aus §18.1 am Stück: Quelltext zu Syntax zu Knoten und
+zurück, ohne HTML und ohne DOM dazwischen. `StandardJsonRoundTripSpec` prüft die Built-in-
+Codecs — über Round-Trips und nicht über erwartete Payloads, weil ein Round-Trip belegt, dass
+Encoder und Decoder sich einig sind, und das ist die Eigenschaft, von der ein gespeichertes
+Dokument abhängt.
 
 `ProjectionSpec` ist der Rendererbeweis aus P09 und läuft headless gegen einen `SsrCursor`.
 Das ist keine Notlösung, sondern derselbe Weg: `DocumentView` nimmt einen beliebigen Cursor,
