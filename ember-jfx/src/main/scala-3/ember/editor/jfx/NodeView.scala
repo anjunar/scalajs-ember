@@ -139,6 +139,25 @@ final class TextRunElement(tagName: String) extends SemanticElement(tagName):
       tags = next
       if isBound then rebuild()
 
+  /** Rebuilds this run's DOM from a known-good value.
+    *
+    * §15.4's sanctioned repair: "laesst JFX diesen Bereich aus dem gueltigen State neu aufbauen."
+    * It exists because a browser can leave more in the wrapper than the one text node the
+    * projection owns -- Firefox splits a run into three when an astral character is inserted
+    * natively, and a splice afterwards would write into one of them while the others stand.
+    *
+    * Unlike [[setMarkTags]] this also clears what the projection did not put there. That is the
+    * point: the wrapper is the boundary of what this component owns, and after a repair it holds
+    * exactly what the document says.
+    */
+  def resetText(value: String): Unit =
+    if isBound then
+      if chain != null then Runtime.unmount(chain)
+      host.clearChildren()
+      content = new TextComponent(value)
+      chain = Runtime.mount(build(), Runtime.contentCursor(this), Some(this))
+    else content.setText(value)
+
   private def build(): AbstractComponent =
     tags.foldRight[AbstractComponent](content)((tag, inner) => new MarkElement(tag, inner))
 

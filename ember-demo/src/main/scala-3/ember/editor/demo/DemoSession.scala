@@ -159,10 +159,6 @@ final class DemoSession:
     */
   def perform(command: DemoCommand): Boolean =
     val outcome = command match
-      case DemoCommand.Insert(text) => session.dispatch(RichText.InsertText, text)
-      case DemoCommand.Paragraph    => session.dispatch(RichText.InsertParagraph)
-      case DemoCommand.Backspace    => session.dispatch(RichText.DeleteBackward)
-      case DemoCommand.Delete       => session.dispatch(RichText.DeleteForward)
       case DemoCommand.Undo         => return handled(history.undo())
       case DemoCommand.Redo         => return handled(history.redo())
       case DemoCommand.Mark(mark)   => session.dispatch(RichText.ToggleMark, mark)
@@ -177,9 +173,7 @@ final class DemoSession:
       case DemoCommand.Outdent      => session.dispatch(ListCommands.Outdent)
       case DemoCommand.Unlink       => session.dispatch(LinkCommands.RemoveLink)
       case DemoCommand.Link(url) => return linkRunAtCaret(url)
-      case DemoCommand.Code        => session.dispatch(CodeCommands.ToggleCodeBlock, CodeInfo.of("scala"))
-      case DemoCommand.IndentCode  => session.dispatch(CodeCommands.IndentLine)
-      case DemoCommand.OutdentCode => session.dispatch(CodeCommands.OutdentLine)
+      case DemoCommand.Code => session.dispatch(CodeCommands.ToggleCodeBlock, CodeInfo.of("scala"))
       case DemoCommand.Image(url, alt) => return insertImage(url, alt)
       case DemoCommand.Describe(alt)   => return changeImage(_.copy(alt = alt))
       case DemoCommand.Resize(width) =>
@@ -196,8 +190,9 @@ final class DemoSession:
     * ==Warum die Demo den Bereich selbst setzt==
     *
     * `SetLink` braucht eine Auswahl -- es gibt nichts zu umschliessen, wenn nichts ausgewaehlt
-    * ist. Eine DOM-Auswahl gibt es aber noch nicht: der `SelectionPort` ist P21. Die Demo waehlt
-    * deshalb im Modell aus, und zwar den ganzen Lauf am Caret: vorhersagbar, erklaerbar
+    * ist. Seit P21 gaebe es eine DOM-Auswahl zu lesen, aber ein Klick auf "Link" kommt typisch
+    * bei einem Caret, nicht bei einem markierten Bereich. Die Demo waehlt deshalb im Modell aus,
+    * und zwar den ganzen Lauf am Caret: vorhersagbar, erklaerbar
     * und ohne so zu tun, als koennte man hier schon mit der Maus markieren.
     *
     * Auswahl und Command laufen in einer Transaktion. Zwei waeren zwei History-Stufen,
@@ -367,12 +362,13 @@ final class DemoSession:
   def editorHtml: String =
     DocumentView.renderToHtml(session.document, views, RenderProfile.Editor)
 
-/** What the demo can trigger. No dispatch API -- commands are values (§12). */
+/** What the demo's buttons can trigger. No dispatch API -- commands are values (§12).
+  *
+  * Typing, Enter, Backspace and the two indent commands used to be in here, because the page had
+  * a hand-written `keydown` bridge. Since P22 the real input pipeline runs them, and a second
+  * spelling of the same thing would only be something to keep in sync.
+  */
 enum DemoCommand:
-  case Insert(text: String)
-  case Paragraph
-  case Backspace
-  case Delete
   case Undo
   case Redo
   case Mark(mark: TextMark)
@@ -388,8 +384,6 @@ enum DemoCommand:
   case Link(url: String)
   case Unlink
   case Code
-  case IndentCode
-  case OutdentCode
   case Image(url: String, alt: String)
   case Describe(alt: String)
   case Resize(width: Int)

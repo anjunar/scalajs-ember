@@ -222,8 +222,8 @@ final class DomPositionMap(view: DocumentView, scope: BrowserScope):
           case None          => Left(PositionProblem.NotProjected(id))
       case _ => hostOf(id)
 
-  /** The DOM text node of a run. */
-  private def textNodeOf(id: NodeId): Either[PositionProblem, dom.Text] =
+  /** The DOM text node of a run. Public because [[NativeInputReader]] compares against it. */
+  def textNodeOf(id: NodeId): Either[PositionProblem, dom.Text] =
     view.componentFor(id) match
       case Some(run: TextRunElement) if run.isBound =>
         run.textHost.flatMap(DomNodes.option).flatMap(DomKinds.asText) match

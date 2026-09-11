@@ -207,3 +207,40 @@ Drei Befunde kamen nur von hier:
 
 Die Regeln selbst — Schreibbedingungen, Fokuspolitik, Bookmarks — stehen headless in
 `ember-browser/…/SelectionPolicySpec.scala`.
+
+## Tippen (P22)
+
+`editing.spec.mjs` und `native-input.spec.mjs` fahren alles ueber **echte Tasten**.
+`page.keyboard.type` erzeugt echte `beforeinput`- und `input`-Ereignisse mit echten
+`cancelable`-Flags, und genau das ist der Punkt: ob ein Tastendruck ueberhaupt ein `beforeinput`
+erzeugt, ob es abbrechbar ist und ob `preventDefault` die DOM-Aenderung wirklich verhindert,
+beantwortet keine synthetische Pruefung.
+
+Der native Pfad -- §15.2s Fall "beforeinput nicht abbrechbar oder fehlend" -- entsteht dabei
+nicht durch ein gefaelschtes Ereignis, sondern durch einen Editor **ohne** Bindings fuer Text:
+dann uebernimmt niemand, der Browser aendert das DOM, und das anschliessende `input` muss das
+Modell nachziehen. Derselbe Weg, nur reproduzierbar.
+
+Was diese beiden Suiten gefunden haben und keine andere Pruefung haette finden koennen:
+
+- *Die Projektion wandte den Splice ein zweites Mal an.* Eine native Eingabe wird **aus** dem DOM
+  gelesen -- der Text steht dort schon, wenn der Commit ankommt. Sichtbar als `aababc` nach dem
+  Tippen von `abc`.
+- *Firefox teilt einen Lauf in drei Textknoten*, wenn nativ ein Zeichen ausserhalb der BMP
+  eingefuegt wird. Ohne den Reparaturweg verloere Firefox jedes so eingefuegte Emoji.
+- *Playwrights WebKit unter Windows meldet einen Macintosh-User-Agent.* Die Erkennung der
+  Befehlstaste griff daneben, und der Editor hatte auf einer ganzen Engine kein Undo.
+- *WebKit meldet Shift+Enter als `insertParagraph`* und *navigiert bei Backspace zurueck*, wenn
+  ein fokussiertes Element nicht editierbar ist -- der Readonly-Test verlor damit die Seite.
+- *`contenteditable="false"` nimmt ein Element aus der Tab-Reihenfolge*, womit ein readonly
+  Editor per Tastatur unerreichbar war. §22 trennt Fokusfaehigkeit und Editierbarkeit; erst ein
+  Browsertest zeigt, dass das Markup es nicht tut.
+
+Die Fixture traegt ein Atom mit einer echten `<textarea>`. §15.2s Event-Ownership -- "native
+Inputs/Textareas in Atom-Views ... gehoeren nicht automatisch zum aeusseren Editor" -- laesst
+sich ohne ein Feld im Dokument nicht zeigen; ein `<img>` waere als Probe wertlos, weil es leer
+ist. Die Textarea steht dabei ausserhalb der Tab-Reihenfolge, sonst waere sie das, was Tab als
+erstes trifft, und die Tests ueber die Tab-Regel der Editierflaeche pruefen sie statt ihrer.
+
+Die Regeln selbst -- Absichtstabelle, Dedupe, kleinster Splice, Tab-Regel -- stehen headless in
+`ember-browser/…/InputPipelineSpec.scala`.

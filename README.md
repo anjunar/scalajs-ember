@@ -14,7 +14,7 @@ Laufzeitabhängigkeit.
 
 ## Stand
 
-**Meilenstein A und B stehen, C und D angefangen** — P01–P21 abgeschlossen, P22–P30 offen. Der frühere
+**Meilenstein A, B und C stehen, D fast** — P01–P22 abgeschlossen, P23–P30 offen. Der frühere
 `contenteditable`-Prototyp (`ember.core.Editor` mit `execCommand` und HTML-String als
 Zustand) und seine vite-Demo wurden entfernt — Architektur §2 und §25 schließen diesen
 Ansatz aus.
@@ -112,6 +112,13 @@ Atoms gehört nicht dem Editor. Und alles, was der Port anfasst, kommt aus dem `
 seines Hosts, damit ein Editor in einem iframe oder Shadow Root funktioniert oder ehrlich sagt,
 dass er es nicht kann.
 
+Und mit P22 kann man tippen. Ein Tastendruck wird zu einer Absicht, die Absicht zu einem
+Command, das Command zu einer Transaktion -- der Controller fasst das Dokument-DOM nie an und
+kennt `execCommand` nicht. Verhindert wird die native Aktion nur bei erfolgreicher Übernahme oder
+bewusster Ablehnung; was niemand beansprucht, macht der Browser, und `input` zieht das Modell
+nach. Ein readonly Editor bleibt dabei fokussierbar und lesbar, und Tab verlässt die Fläche,
+solange nicht jemand Einrückung ausdrücklich einschaltet -- mit einem Ausgang.
+
 ## Module
 
 Konvention: Verzeichnis `ember-<modul>`, sbt-ID und Artefakt `scalajs-ember-<modul>`,
@@ -152,8 +159,12 @@ Vorhanden:
   `ember.editor.jfx`. Die keyed Dokumentansicht auf der JFX-Runtime. Einziges
   **veröffentlichtes** Modul, das JFX kennt.
 - [`ember-browser`](ember-browser/README.md) — sbt-ID `scalajs-ember-browser`, Paket
-  `ember.editor.browser`. Hydration mit Verlustschutz und die Brücke zur Browserauswahl:
-  Positionsabbildung, Selection-Port, Fokus und Bookmarks. Eingabe folgt mit P22.
+  `ember.editor.browser`. Hydration mit Verlustschutz, die Brücke zur Browserauswahl und die
+  Eingabepipeline: Positionsabbildung, Selection-Port, Fokus, Bookmarks, `beforeinput`/`input`
+  und die Tastatur.
+- [`ember-browser-support`](ember-browser-support/README.md) — sbt-ID
+  `scalajs-ember-browser-support`, Paket `ember.editor.browsersupport`. Wo Browserabsichten auf
+  Feature-Commands treffen. Getrennt, damit `browser` kein Feature kennen muss.
 - [`ember-standard`](ember-standard/README.md) — sbt-ID `scalajs-ember-standard`, Paket
   `ember.editor.standard`. Die einzeln wählbaren Standardadapter — der Ort, an dem
   Knotenarten und Renderer einander kennen.

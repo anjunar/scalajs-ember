@@ -45,6 +45,11 @@ private final class WidgetComponent(node: WidgetNode) extends AbstractComponent:
     DslLayer.render(this, cursor) {
       val area = textArea(node.label) {}
       area.setAttribute("data-widget-input", "")
+      // Out of the tab order. §22 wants atomic media reachable by keyboard, but that is the
+      // media view's own affordance (P26) -- a bare control inside an atom would simply be what
+      // Tab hits first, and the tests about the editing surface's own Tab behaviour would then
+      // be testing this textarea instead.
+      area.setAttribute("tabindex", "-1")
     }
 
 private object WidgetView extends NodeView[WidgetNode]:

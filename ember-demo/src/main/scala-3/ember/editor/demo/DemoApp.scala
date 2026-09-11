@@ -1,10 +1,11 @@
 package ember.editor.demo
 
+import ember.editor.browser.*
+import ember.editor.browsersupport.{CodeBindings, EditorBindings}
 import ember.editor.core.*
 import ember.editor.jfx.{DocumentView, EditorProperties}
 import ember.editor.richtext.{BreakKind, HeadingLevel, StandardMarks}
 import jfx.core.component.{AbstractComponent, Runtime}
-import jfx.core.dsl.AttributeDsl.setAttribute
 import jfx.core.dsl.ClassDsl.classes
 import jfx.core.dsl.DslLayer
 import jfx.core.dsl.EventDsl.onClick
@@ -12,7 +13,7 @@ import jfx.core.layout.Button.button
 import jfx.core.layout.Condition.when
 import jfx.core.layout.Div.div
 import jfx.core.layout.TextComponent.text
-import jfx.core.render.Cursor
+import jfx.core.render.{Cursor, DomNodes}
 import jfx.core.state.{Disposable, Property, ReadOnlyProperty}
 import org.scalajs.dom
 
@@ -20,14 +21,17 @@ import org.scalajs.dom
   *
   * ==What it shows, and what it does not==
   *
-  * It shows the state after P16: an immutable document model, atomic transactions, commands,
-  * the keyed projection from P09, the versioned JSON from P10, and the block and inline types
-  * P12 to P16 added -- all on the same document, side by side.
+  * It shows the state after P22: an immutable document model, atomic transactions, commands, the
+  * keyed projection from P09, the versioned JSON from P10, the block and inline types P12 to P16
+  * added -- and, since P21 and P22, a surface that can actually be typed into.
   *
-  * It shows '''no''' editing surface in the full sense. There is no `contenteditable`, no DOM
-  * selection and no native input; those are P20 to P23. The surface catches key presses and
-  * translates them into commands -- the same chain a real input will take later, only without
-  * the native part in front of it. The caret is a model value and is shown as one.
+  * The surface is a real editing host: `contenteditable`, a `SelectionPort` that reads and writes
+  * the browser's selection, and the `BrowserInputController` that turns `beforeinput` into
+  * commands. Nothing here imitates that any more; it is the same pipeline the integration harness
+  * drives, against a session carrying every feature module in this repository.
+  *
+  * What is still open is P23: composition with its write lock, the observer reconciliation and
+  * recovery. An IME works for simple cases and claims nothing beyond that.
   *
   * ==Two runtimes, one tree==
   *
@@ -45,6 +49,8 @@ final class DemoApp extends AbstractComponent:
   private val status = Property("")
 
   private var view: DocumentView = null
+  private var port: SelectionPort = null
+  private var input: BrowserInputController = null
   private var marked: Option[NodeId] = None
   private val bindings = collection.mutable.ArrayBuffer.empty[Disposable]
 
@@ -68,6 +74,8 @@ final class DemoApp extends AbstractComponent:
   override def dispose(): Unit =
     bindings.foreach(_.dispose())
     bindings.clear()
+    if input != null then input.dispose()
+    if port != null then port.dispose()
     if view != null then view.dispose()
     editor.session.dispose()
     super.dispose()
@@ -94,8 +102,8 @@ final class DemoApp extends AbstractComponent:
     div {
       classes = Seq("ember-demo__footer")
       text(
-        "Stand P01-P16. Keine native Eingabe, keine DOM-Selection, kein contenteditable -- " +
-          "das sind P20 bis P23."
+        "Stand P01-P22. Tippen, Auswahl und Tastatur laufen ueber die echte Pipeline; " +
+          "Composition, Observer-Abgleich und Recovery sind P23."
       ) {}
     }
 
@@ -107,16 +115,21 @@ final class DemoApp extends AbstractComponent:
     div {
       classes = Seq("ember-demo__panel", "ember-demo__panel--surface")
 
-      panelTitle("Editierflaeche", "Anklicken und tippen")
+      panelTitle("Editierflaeche", "Anklicken und tippen -- Tab rueckt ein, Escape dann Tab geht raus")
 
       val host = div {
         classes = Seq("ember-demo__surface")
-        // Focusable without contenteditable: the browser should be able to reach the surface,
-        // but change nothing on it. What changes it is the projection.
-        setAttribute("tabindex", "0")
-        setAttribute("role", "textbox")
-        setAttribute("aria-label", "Ember-Demodokument")
       }
+
+      // `contenteditable`, `role` und `tabindex` setzt seit P22 der Controller -- sie gehoeren zur
+      // Editierflaeche und nicht zu diesem Markup. Der zugaengliche Name bleibt hier, weil §22 ihn
+      // ausdruecklich der Anwendung ueberlaesst.
+      //
+      // `host.setAttribute` und nicht die DSL-Erweiterung im Block: innerhalb einer
+      // `AbstractComponent` verdeckt deren eigenes `setAttribute` die Erweiterung, und das
+      // Attribut landete am Wurzel-Div der Seite statt an der Flaeche. Kein Compilefehler, nur ein
+      // Attribut an der falschen Stelle -- derselbe Fall wie in P19b, hier von P22 aufgedeckt.
+      host.setAttribute("aria-label", "Ember-Demodokument")
 
       view = DocumentView.mount(
         editor.session,
@@ -125,7 +138,7 @@ final class DemoApp extends AbstractComponent:
         parent = Some(host)
       )
 
-      keys(host)
+      attachEditing(host)
       commandBar()
       statusLine()
 
@@ -134,35 +147,44 @@ final class DemoApp extends AbstractComponent:
       refreshStatus()
     }
 
-  /** Connects real key presses to the commands.
+  /** Connects the real input pipeline (P22) to the surface.
     *
-    * `preventDefault` for everything handled, because there is no native editing surface here
-    * that could carry the action out instead. The real judgement -- when a native action is
-    * prevented and when it is not -- belongs to P22.
+    * Until P22 this was a hand-written `keydown` bridge, and its own comment said what it was
+    * waiting for: "The real judgement -- when a native action is prevented and when it is not --
+    * belongs to P22." It does now, so the demo uses it instead of imitating it.
+    *
+    * What changed for the page is that this is no longer a stand-in. The same `SelectionPort`,
+    * the same `BrowserInputController` and the same bindings the integration harness drives run
+    * here, against a session that carries every feature module this repository has. That is what
+    * the demo is for: the proof that the modules compose into an application.
     */
-  private def keys(host: AbstractComponent): Unit =
-    host.onHandler("keydown") { event =>
-      val native = event.raw.asInstanceOf[dom.KeyboardEvent]
-      val handled = native.key match
-        case "z" if native.ctrlKey || native.metaKey =>
-          editor.perform(if native.shiftKey then DemoCommand.Redo else DemoCommand.Undo)
-        case "y" if native.ctrlKey => editor.perform(DemoCommand.Redo)
-        case "Tab" =>
-          // Im Codeblock ruecken Tab und Shift+Tab die Zeile ein, sonst das Listenelement.
-          // Beide Commands geben `Pass`, wenn sie nicht zustaendig sind (§12) -- die Demo
-          // probiert deshalb erst den einen, dann den anderen.
-          val code = editor.perform(
-            if native.shiftKey then DemoCommand.OutdentCode else DemoCommand.IndentCode
-          )
-          if code then true
-          else editor.perform(if native.shiftKey then DemoCommand.Outdent else DemoCommand.Indent)
-        case "Enter"     => editor.perform(DemoCommand.Paragraph)
-        case "Backspace" => editor.perform(DemoCommand.Backspace)
-        case "Delete"    => editor.perform(DemoCommand.Delete)
-        case key if key.length == 1 && !native.ctrlKey && !native.metaKey && !native.altKey =>
-          editor.perform(DemoCommand.Insert(key))
-        case _ => false
-      if handled then native.preventDefault()
+  private def attachEditing(host: AbstractComponent): Unit =
+    DomNodes.option(host.host).foreach {
+      case element: dom.Element =>
+        port = SelectionPort.attachTo(editor.session, view, element)
+
+        input = BrowserInputController.attachTo(
+          editor.session,
+          view,
+          port,
+          EditorBindings.everything,
+          // Tab rueckt hier ein -- in einem Codeblock die Zeile, in einer Liste das Element.
+          // §22 laesst das nur ausdruecklich aktiviert zu, und nur mit einem Ausgang: Escape,
+          // dann Tab, und der Fokus geht weiter.
+          EditorBindings.everythingKeyboard ++ CodeBindings.tabIndentation,
+          TabPolicy.IndentsUntilEscape
+        )
+
+        // §15.4 verlangt bei Recovery eine verstaendliche Statusmeldung, §16 eine sichtbare
+        // Ablehnung an der Formatgrenze. Beides laeuft hier in die Statuszeile.
+        input.onOutcome {
+          case InputOutcome.Refused(_, reason) => status.set(s"Abgelehnt: $reason")
+          case InputOutcome.Unimported(reason) =>
+            status.set(s"Native Aenderung nicht uebernommen: $reason")
+          case _ => ()
+        }: Unit
+
+      case _ => ()
     }
 
   private def commandBar()(using AbstractComponent, Cursor): Unit =

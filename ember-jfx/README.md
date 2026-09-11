@@ -41,6 +41,20 @@ Beides ließe sich von außen nach der Zahl der Tags abzählen — und wäre dan
 Beschreibung derselben Struktur, die beim ersten Mark auseinanderläuft, das nicht als genau ein
 Element rendert. Die Komponente weiß es; gefragt wird sie.
 
+### Zwei Zugeständnisse an den Browser (P22)
+
+`TextRunElement.resetText` baut die DOM eines Laufs aus einem bekannten Wert neu auf und räumt
+dabei weg, was die Projektion **nicht** dorthin geschrieben hat. Das ist §15.4s „lässt JFX diesen
+Bereich aus dem gültigen State neu aufbauen", und es gibt das, weil ein Browser mehr im Wrapper
+hinterlassen kann als den einen Textknoten: Firefox teilt einen Lauf in drei, wenn nativ ein
+Zeichen außerhalb der BMP eingefügt wird.
+
+`DocumentProjection` wendet einen Textsplice außerdem **nicht** an, wenn das DOM den committeten
+Text schon zeigt. Eine native Eingabe wird aus dem DOM gelesen (§15.2) — der Text steht dort
+bereits, wenn der Commit ankommt, und der Splice fügte ihn ein zweites Mal ein. Sichtbar wurde
+das als `aababc` nach dem Tippen von `abc`. Es ist derselbe No-op-Vertrag, den §15.1 für
+unveränderte Knoten verlangt, eine Ebene höher.
+
 ## Was hier bewusst nicht steht
 
 Kein zweiter Renderer, kein VDOM, kein Scheduler (§2, §15.1). `DocumentProjection` erzeugt kein

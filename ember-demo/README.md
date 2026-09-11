@@ -34,7 +34,7 @@ Markdown, ausgeliefertes HTML und Editor-HTML. Alle fünf hängen an **einem** D
 `EditorProperties.document(session)` gebunden und werden bei jedem Commit nachgeführt (§10), nicht
 von einem Timer.
 
-Damit ist der Stand nach P18 an einem Stück sichtbar:
+Damit ist der Stand nach P22 an einem Stück sichtbar:
 
 | | |
 | --- | --- |
@@ -49,6 +49,8 @@ Damit ist der Stand nach P18 an einem Stück sichtbar:
 | P15 | Codeblöcke mit Sprachangabe |
 | P16 | Bilder als Inline-Atome samt Media-Policy |
 | P17/P18 | Markdown: Parser, Writer und der Weg ins Dokument |
+| P21 | DOM-Selection, Fokus und Bookmarks |
+| P22 | Tippen: `beforeinput`, Tastatur, nativer Eingabepfad |
 
 Undo und Redo gibt es als Knöpfe und über Strg+Z beziehungsweise Strg+Shift+Z; die Statuszeile
 zeigt die Tiefe beider Stapel. Zusammenhängendes Tippen wird dabei zu einer Stufe zusammengefasst
@@ -58,9 +60,9 @@ Seit P12 stehen daneben Fett, Kursiv, Code, H2, Zitat, Umbruch und Trenner; die 
 die aktiven Marks. P13 bringt Liste, Nummern, Einrücken und Ausrücken dazu -- Letztere auch auf
 Tab und Shift+Tab, was P13 ausdrücklich als Sache der Anwendung führt und nicht des Moduls.
 
-„Link" und „Link weg" arbeiten auf dem Lauf am Caret: `SetLink` braucht eine Auswahl, und eine
-DOM-Auswahl gibt es erst mit P21. Die Demo wählt deshalb im Modell aus -- vorhersagbar, und ohne
-so zu tun, als ließe sich hier schon mit der Maus markieren.
+„Link" und „Link weg" arbeiten auf dem Lauf am Caret: `SetLink` braucht eine Auswahl, und ein
+Klick auf „Link" kommt typisch bei einem Caret statt bei einem markierten Bereich. Seit P21 wäre
+eine DOM-Auswahl zu lesen; die Demo wählt trotzdem den ganzen Lauf -- vorhersagbar und erklärbar.
 
 „Bild", „Alt-Text" und „Bild 96px" gehören zu P16. Das eingefügte Bild ist eine **echte Datei
 unter einem relativen Pfad** (`/ember.svg`, vom Dev-Server ausgeliefert) — genau die Quelle, die
@@ -76,8 +78,9 @@ Hälften.
 
 „Alt-Text" und „Bild 96px" arbeiten auf dem Bild neben dem Caret, aus demselben Grund wie
 „Link" auf dem Lauf am Caret: ein Atom hat keine Textposition, ein Caret kann also nicht *darin*
-stehen, und es mit der Maus zu benennen ist der `SelectionPort` aus P21. Auswahl, Änderung und
-der Caret danach laufen in **einer** Transaktion -- drei wären drei History-Stufen.
+stehen. Seit P21 ließe es sich auch mit der Maus auswählen; die Knopfvariante bleibt, weil sie
+ohne Erklärung reproduzierbar ist. Auswahl, Änderung und der Caret danach laufen in **einer**
+Transaktion -- drei wären drei History-Stufen.
 
 Das Panel „Markdown" zeigt den Export (P18). Es wählt **`AllowLossy`**, und das ist der
 interessante Teil: eine Ansicht, die statt eines Dokuments einen Fehler zeigte, sobald etwas
@@ -89,25 +92,48 @@ Und was das Panel **nicht** zeigt: den Quelltext, aus dem das Dokument einmal ka
 `encode(decode(source)) == source` ausdrücklich ab. Zugesichert ist die andere Richtung.
 
 „Codeblock" macht aus dem Absatz am Caret einen Codeblock. Tab und Shift+Tab rücken darin die
-Zeile ein statt das Listenelement -- die Demo probiert erst den Code-Befehl, dann den
-Listen-Befehl, und beide geben `Pass` zurück, wenn sie nicht zuständig sind (§12). Wer bei leerem Caret „Fett" drückt, erzeugt keinen Text -- die nächste Eingabe
+Zeile ein statt das Listenelement: beide Befehle liegen auf derselben Taste, und beide geben
+`Pass` zurück, wenn sie nicht zuständig sind (§12) -- der Controller probiert sie deshalb der
+Reihe nach. Wo keiner zuständig ist, verlässt Tab die Fläche.
+
+Wer bei leerem Caret „Fett" drückt, erzeugt keinen Text -- die nächste Eingabe
 kommt fett heraus (§11). Und wer die Formatierung wieder wegnimmt, sieht im Panel „Dokument", wie
 die drei Läufe zu einem zusammenwachsen.
 
+## Seit P21 und P22: eine echte Editierfläche
+
+Die Fläche ist ein richtiger Editing-Host. `contenteditable`, `role="textbox"` und
+`aria-multiline` setzt der `BrowserInputController`; ein `SelectionPort` liest und schreibt die
+Browserauswahl, und Tastendrücke werden zu Absichten, Absichten zu Commands.
+
+Nichts davon ist hier nachgebaut. Es ist dieselbe Pipeline, die das Integrations-Gate fährt --
+gegen eine Sitzung, die jedes Feature-Modul dieses Repositories trägt. Genau dafür gibt es die
+Demo: als Probe, dass sich die Module zu einer Anwendung zusammensetzen lassen.
+
+Bis P22 stand hier eine handgeschriebene `keydown`-Brücke, und ihr eigener Kommentar sagte,
+worauf sie wartete: „The real judgement -- when a native action is prevented and when it is not --
+belongs to P22." Die Brücke ist weg, und mit ihr die Demo-Commands, die nur sie brauchte.
+
+**Der Caret ist weiterhin auch ein Modellwert.** Er steht in der Statuszeile als
+`knoten:offset`, und der Textlauf, in dem er sitzt, wird eingefärbt -- über
+`DocumentView.componentFor`, den Index, den §15.1 als „eine Zuordnung, keine zweite
+Ownership-Liste" führt. Neu ist, dass daneben eine echte Browserauswahl steht, die mit ihm
+übereinstimmt.
+
+**Tab rückt ein und sperrt niemanden ein.** §22 lässt Einrückung auf Tab nur ausdrücklich
+aktiviert zu und verlangt einen Ausgang: Escape, dann Tab, und der Fokus geht weiter. Die Demo
+schaltet `TabPolicy.IndentsUntilEscape` ein und zeigt beides.
+
 ## Was ausdrücklich noch fehlt
 
-**Kein `contenteditable`, keine DOM-Selection, keine native Eingabe.** Das sind P20 bis P23. Die
-Fläche ist fokussierbar und fängt Tastendrücke ab, die sie in Commands übersetzt — dieselbe Kette,
-die eine echte Eingabe später nimmt, nur ohne den nativen Teil davor. Composition, IME und
-Mutation-Recovery fehlen entsprechend ganz.
+**Composition, Observer-Abgleich und Recovery.** Das ist P23. Eine IME funktioniert für einfache
+Fälle, und mehr behauptet P22 nicht: während einer Composition beansprucht der Controller nichts
+und schreibt nichts, und was sie hinterlässt, wird danach gelesen. Eine native Struktur, die sich
+nicht als Dokumentänderung ausdrücken lässt, führt in `Recovering` -- mit gesichertem Text und
+einer Meldung in der Statuszeile, aber ohne Reparatur.
 
-**Der Caret ist ein Modellwert.** Er steht in der Statuszeile als `knoten:offset`, und der Textlauf,
-in dem er sitzt, wird eingefärbt. Die Einfärbung läuft über `DocumentView.componentFor` — den Index,
-den §15.1 als „eine Zuordnung, keine zweite Ownership-Liste" führt. Eine echte Browserauswahl setzt
-sie nicht; das ist der `SelectionPort` aus P21.
-
-**Keine Hydration.** Die Seite rendert clientseitig in `#root`; der Server liefert eine leere Hülle.
-Hydration ist P20.
+**Keine Hydration.** Die Seite rendert clientseitig in `#root`; der Server liefert eine leere
+Hülle. P20 gibt es, diese Demo benutzt es nur nicht.
 
 ## Die Gruppenanker in der HTML-Ausgabe
 

@@ -1,8 +1,8 @@
 # JFX Editor: ausführbarer Implementierungsplan
 
-Status: **Meilenstein A und B stehen, C und D angefangen** — P01–P21 abgeschlossen (1025
-Scala-Tests und 375 Browserfälle in Chromium, Firefox und WebKit grün),
-P22–P30 offen. Dieses Repository (`scalajs-ember`) ist das in
+Status: **Meilenstein A, B und C stehen, D fast** — P01–P22 abgeschlossen (1052
+Scala-Tests und 483 Browserfälle in Chromium, Firefox und WebKit grün),
+P23–P30 offen. Dieses Repository (`scalajs-ember`) ist das in
 Architektur und Plan gemeinte „eigene Repository“. Die generischen JFX-Core-Anteile aus
 P08/P09, P19a, P20 und P23 sind **nicht hier, sondern im Nachbar-Repo `../scalajs-jfx`**
 implementiert und seit P17 als veröffentlichtes Artefakt `com.anjunar:scalajs-jfx-core:3.0.5`
@@ -1816,6 +1816,104 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 - **Dependencies:** P09, P20; Architektur §§11, 15, 22.
 
 ## P22 — Normale Eingabe, Keyboard und NativeInput
+
+> **Abgeschlossen.** Neues Modul `ember-browser-support` (sbt-ID
+> `scalajs-ember-browser-support`, Paket `ember.editor.browsersupport`); `ember-browser` gewachsen
+> um `InputIntent`, `BeforeInputAdapter`, `NativeInputReader`, `InputOperationToken`,
+> `KeyboardBindings` und `BrowserInputController`. Abnahme:
+>
+> ```
+> sbt --server "Test/testOnly *"
+> ```
+>
+> | Suite | Ergebnis |
+> | --- | --- |
+> | `InputPipelineSpec` | 27 Tests grün |
+> | `editing.spec.mjs` | 66 Fälle grün (22 × 3 Engines) |
+> | `native-input.spec.mjs` | 42 Fälle grün (14 × 3 Engines) |
+> | Gesamtes Scala-Gate | 1052 Tests grün |
+> | Browser-Gate | 483 Fälle grün |
+>
+> **Die Trennung, die §7 verlangt, trägt hier zum ersten Mal etwas.** `ember-browser` darf kein
+> Feature importieren, also ist eine Eingabeabsicht Browservokabular: `formatBold` heißt so in der
+> Spezifikation, nicht im Editor. Welche Mark daraus wird, weiß erst `browser-support`. Die Folge
+> ist die nützliche Sorte Modularität — ein Editor ohne Listen ist keiner, der bei
+> `insertUnorderedList` kaputtgeht; er hat dafür keine Bindung, und das Ereignis bleibt **nativ**.
+> Dasselbe gilt für jede Absicht, die niemand beansprucht, und genau darauf beruht der Rest.
+>
+> **`preventDefault` folgt der Übernahme, nicht dem Handler.** Die Risikoliste unten sagt es, und
+> es ist die Regel, an der die ganze Pipeline hängt: verhindert wird bei erfolgreicher Übernahme
+> **und** bei bewusster Ablehnung — sonst nie. Eine Ablehnung ohne `preventDefault` ließe den
+> Browser ein Dokument ändern, zu dem das Modell nein gesagt hat; ein `preventDefault` ohne
+> Übernahme schluckt eine Eingabe, die niemand verarbeitet.
+>
+> **Der Fehler, den die Projektion hatte, seit es sie gibt.** Eine native Eingabe wird **aus** dem
+> DOM gelesen — der Browser hat den Buchstaben schon geschrieben, der Controller merkt es beim
+> `input`, und die Transaktion danach holt nur das Modell nach. Zum Commit-Zeitpunkt steht der Text
+> also bereits im Textknoten, und `applySplices` fügte ihn ein zweites Mal ein. Sichtbar wurde das
+> als `aababc` nach dem Tippen von `abc`. `DocumentProjection` vergleicht seither gegen den
+> committeten Text, bevor sie schreibt — derselbe No-op-Vertrag, den §15.1 für unveränderte Knoten
+> verlangt, eine Ebene höher.
+>
+> **Vier Befunde, die je eine Engine beigesteuert hat:**
+>
+> - *Firefox teilt einen Lauf in drei Textknoten*, wenn nativ ein Zeichen außerhalb der BMP
+>   eingefügt wird: `"Hallo"` + Emoji + `" Welt"`. Der **Text** ist importierbar — ein Lauf ist die
+>   Verkettung, und die Marks haben sich nicht geändert —, die **Ansicht** nicht. `SplitRun` plus
+>   `TextRunElement.resetText` ist §15.4s „lässt JFX diesen Bereich aus dem gültigen State neu
+>   aufbauen". Der Caret wird dabei gerechnet statt gelesen: ein aufgeteiltes DOM lässt sich mit
+>   der Ein-Textknoten-Annahme der Positionstabelle nicht adressieren. Ohne diesen Weg verlöre
+>   Firefox jedes nativ eingefügte Emoji.
+> - *Playwrights WebKit-Build unter Windows meldet einen Macintosh-User-Agent.* Die Erkennung der
+>   Befehlstaste — `Cmd` auf dem Mac, `Ctrl` sonst — griff daneben, und der Editor hatte auf einer
+>   ganzen Engine kein Undo. `navigator.platform` ist deprecated, `userAgentData` nicht überall,
+>   und beide wären genauso falsch gewesen. Jetzt setzt **jede** der beiden Tasten `primary`. Der
+>   Preis ist eine selten benutzte Emacs-Bindung unter macOS; der Gegenwert eine Tabelle, die
+>   überall funktioniert.
+> - *WebKit meldet Shift+Enter als `insertParagraph`.* Der Absichtspfad hätte den Block geteilt
+>   statt einen Umbruch zu setzen. Shift+Enter liegt deshalb auf der Tastatur — ein verhindertes
+>   `keydown` erzeugt gar kein `beforeinput`, und das ist die einzige Stelle, an der sich alle drei
+>   Engines einig sind. Enter selbst braucht das nicht und folgt weiter §15.2s „Text generell über
+>   Input-Pipeline".
+> - *WebKit navigiert bei Backspace zurück*, wenn ein fokussiertes Element nicht editierbar ist —
+>   ein Readonly-Test verlor damit die ganze Seite. Ein readonly Editor weist die Editiertasten
+>   jetzt ausdrücklich ab, statt zu hoffen, dass nichts passiert.
+>
+> **Readonly ist nicht "nicht fokussierbar".** §22 trennt beides, und `contenteditable="false"`
+> nimmt ein Element aus der Tab-Reihenfolge: ein readonly Editor war per Tastatur unerreichbar.
+> Der Host trägt jetzt in beiden Modi `tabindex="0"`, was zugleich verhindert, dass ein
+> Moduswechsel den Fokus aus dem Text reißt.
+>
+> **Ein verhindertes `beforeinput` erzeugt gar kein `input`.** Die Dedupe-Erwartung im ersten
+> Testlauf war deshalb falsch, nicht der Code: `InputOperationLog` trägt die Engines, die trotzdem
+> beides schicken, und §15.2 verlangt ihn ausdrücklich auch für Clipboard-Ereignisse.
+
+> **Bewusste Entscheidungen:**
+>
+> - *Keydown ist die Shortcut-Ebene, mehr nicht.* Ein Buchstabe ohne Modifier wird nicht einmal in
+>   der Tabelle gesucht — §15.2 schickt Text durch die Input-Pipeline, wo auch Diktat,
+>   Autokorrektur und mobile Tastaturen ankommen, die ein `keydown` nie sieht.
+> - *Tab verlässt die Fläche, es sei denn, jemand schaltet es um — und dann gibt es einen Ausgang.*
+>   §22 verbietet die permanente Keyboard-Falle. `TabPolicy.IndentsUntilEscape` nimmt Escape als
+>   Ausstieg, die Konvention, die ein festsitzender Benutzer als erstes probiert. Einrücken geht
+>   außerdem immer auch über `Ctrl/Cmd+]`, damit die Tab-Bindung wirklich optional bleibt.
+> - *Paste, Drop und Autokorrektur sind nicht gebunden.* Eine Bindung, die den Klartext einfügte,
+>   wäre die Paste-Implementierung ohne §21s Sanitizing; Autokorrektur ersetzt einen Bereich aus
+>   `getTargetRanges`, den erst P23s DOM-Abgleich sicher macht. Beides bleibt nativ und wird
+>   importiert — ein ehrlicher halber Zustand statt eines unehrlichen ganzen.
+> - *Composition wird betreten, verlassen und hinterher gelesen.* Mehr behauptet P22 nicht:
+>   „noch keine behauptete vollständige IME-Freigabe". Solange sie läuft, wird nichts beansprucht
+>   und nichts geschrieben (§15.3), und was sie hinterlässt, geht durch denselben Reader wie jede
+>   andere native Änderung.
+> - *Der Controller schreibt nie ins Dokument-DOM und ruft kein `execCommand`.* §15.1: die
+>   Projektion schreibt. Jede Änderung wird ein Command, das Command eine Transaktion, die
+>   Transaktion ein Commit — und JFX führt aus.
+> - *`onOutcome` ist nicht nur für Tests.* §15.4 verlangt bei Recovery eine „verständliche
+>   Statusmeldung" und §16 eine sichtbare Ablehnung an der Formatgrenze. Beide brauchen jemanden,
+>   der weiß, dass etwas abgelehnt wurde — und das ist der Controller.
+>
+> Modulverträge: [ember-browser/README.md](ember-browser/README.md),
+> [ember-browser-support/README.md](ember-browser-support/README.md).
 
 - **Ziel:** Ein neuer Rich-Editor für normale Browserbearbeitung; noch keine behauptete vollständige IME-Freigabe.
 - **Module:** browser; neues browser-support für konkrete rich-text/list/link/code/history-Verdrahtung; IT.

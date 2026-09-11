@@ -378,6 +378,46 @@ lazy val emberBrowser =
     )
 
 
+// §6: Die konkrete Verdrahtung der Features an die Browsereingabe. P22.
+//
+// Getrennt von `browser`, weil `browser` die Features nicht kennen darf (§7): eine
+// Eingabeabsicht ist Browservokabular, welches Command daraus wird, weiss erst dieses Modul.
+// Damit bleibt `browser` in einem Profil ohne Listen genauso brauchbar -- es gibt dann einfach
+// keine Bindung fuer `insertUnorderedList`, und das Ereignis bleibt nativ.
+lazy val emberBrowserSupport =
+  Project(id = "scalajs-ember-browser-support", base = file("ember-browser-support"))
+    .enablePlugins(ScalaJSPlugin)
+    .dependsOn(emberCore, emberRichText, emberList, emberLink, emberCode, emberHistory,
+      emberJfx, emberBrowser)
+    .settings(
+      name        := "scalajs-ember-browser-support",
+      moduleName  := "scalajs-ember-browser-support",
+      description := "Concrete input and keyboard bindings for the Ember editor features."
+    )
+    .settings(testSettings)
+    .settings(domSettings)
+    .settings(commonJsSettings)
+    .settings(publishSettings)
+    // Wie bei `standard`: dieses Modul liegt *ueber* `browser` und ist genau der Ort, an dem
+    // Browserabsichten auf Feature-Commands treffen. `forms` und `ui` bleiben verboten.
+    .settings(
+      boundarySettings(
+        allowedProjects = Seq(
+          "scalajs-ember-core",
+          "scalajs-ember-rich-text",
+          "scalajs-ember-list",
+          "scalajs-ember-link",
+          "scalajs-ember-code",
+          "scalajs-ember-history",
+          "scalajs-ember-jfx",
+          "scalajs-ember-browser"
+        ),
+        forbiddenImports = forbiddenUpwardImports.filterNot(name =>
+          name == "ember.editor.jfx" || name == "ember.editor.browser"),
+        allowedModules = Seq("scalajs-jfx-core")
+      )
+    )
+
 // §6: Markdown-/JSON-Feld, Textarea-Fallback, Submit/Reset, Media-Service-Port und
 // Multipart-Vertrag. P19b baut davon den Feldteil; der Media-Service ist P26.
 //
@@ -560,7 +600,7 @@ lazy val emberIntegration =
   Project(id = "scalajs-ember-integration", base = file("ember-integration"))
     .enablePlugins(ScalaJSPlugin)
     .dependsOn(emberCore, emberRichText, emberMarkdown, emberHtml, emberJfx, emberBrowser,
-      emberForms, emberStandard)
+      emberBrowserSupport, emberForms, emberStandard)
     .settings(
       name                            := "scalajs-ember-integration",
       moduleName                      := "scalajs-ember-integration",
@@ -586,7 +626,9 @@ lazy val emberIntegration =
         allowedProjects =
           Seq("scalajs-ember-core", "scalajs-ember-rich-text", "scalajs-ember-markdown",
               "scalajs-ember-html", "scalajs-ember-jfx", "scalajs-ember-browser",
-              "scalajs-ember-forms", "scalajs-ember-standard"),
+              "scalajs-ember-browser-support", "scalajs-ember-forms", "scalajs-ember-standard",
+              "scalajs-ember-list", "scalajs-ember-link", "scalajs-ember-code",
+              "scalajs-ember-history", "scalajs-ember-image"),
         // Wie bei `standard` fehlt `ember.editor.jfx` mit Absicht: der Harness haengt an der
         // Projektion, das ist seit P09 sein Zweck. Seit P19b faehrt er ausserdem das
         // Formularfeld -- der Harness liegt ueber allen Modulen, nicht unter ihnen.
@@ -608,7 +650,7 @@ lazy val emberDemo =
   Project(id = "scalajs-ember-demo", base = file("ember-demo"))
     .enablePlugins(ScalaJSPlugin)
     .dependsOn(emberCore, emberRichText, emberList, emberLink, emberCode, emberImage, emberJson,
-      emberHistory, emberHtml, emberJfx, emberStandard)
+      emberHistory, emberHtml, emberJfx, emberBrowser, emberBrowserSupport, emberStandard)
     .settings(
       name                            := "scalajs-ember-demo",
       moduleName                      := "scalajs-ember-demo",
@@ -633,16 +675,18 @@ lazy val emberDemo =
           Seq("scalajs-ember-core", "scalajs-ember-rich-text", "scalajs-ember-list",
               "scalajs-ember-link", "scalajs-ember-code", "scalajs-ember-image",
               "scalajs-ember-json", "scalajs-ember-history", "scalajs-ember-html",
-              "scalajs-ember-jfx", "scalajs-ember-standard"),
-        forbiddenImports = forbiddenUpwardImports.filterNot(_ == "ember.editor.jfx"),
+              "scalajs-ember-jfx", "scalajs-ember-browser", "scalajs-ember-browser-support",
+              "scalajs-ember-standard"),
+        forbiddenImports = forbiddenUpwardImports.filterNot(name =>
+          name == "ember.editor.jfx" || name == "ember.editor.browser"),
         allowedModules = Seq("scalajs-jfx-core")
       )
     )
 
 lazy val root = Project(id = "scalajs-ember-root", base = file("."))
   .aggregate(emberCore, emberRichText, emberList, emberLink, emberCode, emberImage,
-    emberMarkdown, emberJson, emberHistory, emberHtml, emberJfx, emberBrowser, emberForms,
-    emberStandard,
+    emberMarkdown, emberJson, emberHistory, emberHtml, emberJfx, emberBrowser,
+    emberBrowserSupport, emberForms, emberStandard,
     emberIntegration, emberDemo)
   .settings(
     name           := "scalajs-ember",

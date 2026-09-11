@@ -15,7 +15,8 @@ Verbindlicher Entwurf: [JFX_EDITOR_ARCHITECTURE.md](../JFX_EDITOR_ARCHITECTURE.m
 
 ## Stand
 
-**P20 und P21 abgeschlossen.** Eingabe, Keyboard und NativeInput sind P22 und stehen noch aus.
+**P20, P21 und P22 abgeschlossen.** Composition, Observer-Abgleich und Recovery sind P23 und
+stehen noch aus.
 
 | Hydration (P20) | |
 | --- | --- |
@@ -30,6 +31,20 @@ Verbindlicher Entwurf: [JFX_EDITOR_ARCHITECTURE.md](../JFX_EDITOR_ARCHITECTURE.m
 | `SelectionPort` | lesen, schreiben, beobachten; und keine Rückkopplungsschleife |
 | `FocusController` | wer den Fokus hat, was gemerkt wird, wann er zurückgegeben wird |
 | `DomKinds` | `nodeType` statt `instanceof` — warum, steht unten |
+
+| Eingabe (P22) | |
+| --- | --- |
+| `InputIntent` | was der Browser will, in seinem eigenen Vokabular |
+| `BeforeInputAdapter` | die Tabelle von `inputType` auf Absicht |
+| `BrowserInputController` | die Zustandsmaschine: Ereignisse rein, Commands raus |
+| `NativeInputReader` | was der Browser schon getan hat, als Dokumentänderung gelesen |
+| `InputOperationLog` | genau einmal, auch wenn eine Aktion zweimal ankommt |
+| `KeyboardBindings` | die Shortcut-Tabelle, samt Tab-Regel |
+
+Welche Absicht welches Feature-Command wird, steht **nicht** hier, sondern in
+[ember-browser-support](../ember-browser-support/README.md) — §7 verbietet diesem Modul den
+Import eines Features, und das ist der Grund, warum ein Editor ohne Listen bei
+`insertUnorderedList` nicht kaputtgeht, sondern das Ereignis nativ lässt.
 
 Die austauschbare Boundary selbst kommt aus jfx-core (`HydrationBoundary`, P20s generischer
 Anteil). Dieses Modul liefert, was der Editor darüber hinaus weiß.
@@ -252,20 +267,94 @@ Das ist die schwerer sichtbare Hälfte von §15.4 — es geht nicht nur darum, w
 gefragt wird, sondern darum, nicht anzunehmen, es gäbe nur eines. `nodeType` ist eine Zahl aus der
 Spezifikation und bedeutet in jedem Realm dasselbe.
 
+## Eingabe: drei Wege hinein, und warum es drei sind
+
+| | |
+| --- | --- |
+| `beforeinput`, abbrechbar | Der gute Fall. Die Absicht steht fest, **bevor** etwas passiert; ein Command läuft, die native Aktion wird verhindert. |
+| `input` | Was bleibt, wenn `beforeinput` nicht abbrechbar war oder gar nicht kam. Das DOM ist voraus, und `NativeInputReader` zieht das Modell nach. |
+| `keydown` | Nur Shortcuts und strukturelle Tasten. Text **nie** — §15.2: „Text generell über Input-Pipeline", denn eine Keydown-Tabelle sieht weder Diktat noch Autokorrektur noch eine mobile Tastatur. |
+
+### `preventDefault` folgt der Übernahme, nicht dem Handler
+
+Die Regel, die P22 ausdrücklich nennt:
+
+> Event-Ownership und erfolgreiche Modellübernahme **oder bewusste Ablehnung** bestimmen
+> `preventDefault`, nicht die bloße Existenz eines Handlers.
+
+Also verhindert wird bei `TakenOver` und bei `Refused` — und sonst nie. Eine Ablehnung ohne
+`preventDefault` ließe den Browser ein Dokument ändern, zu dem das Modell nein gesagt hat; ein
+`preventDefault` ohne Übernahme schluckt eine Eingabe, die niemand verarbeitet hat.
+
+### Genau einmal
+
+Dieselbe Benutzeraktion erreicht den Editor mehrfach: `beforeinput` und dann `input`, oder
+`paste` und `beforeinput`. `InputOperationLog` macht den zweiten zum No-op — ein Protokoll und
+kein Flag, weil die Ereignisse nicht verlässlich paarweise kommen und ein Browser mehrere
+`beforeinput` vor einem `input` schicken darf (§15.2 nennt Autokorrektur als den Fall).
+
+In der Praxis greift es seltener als erwartet: **ein verhindertes `beforeinput` erzeugt gar kein
+`input`.** Der Dedupe-Pfad trägt die Engines, die trotzdem beides schicken.
+
+### Der native Pfad und seine Fallgrube
+
+`NativeInputReader` vergleicht den Lauf, in dem der Caret steht, mit dem Dokument und liefert den
+kleinsten Splice. Drei Ergebnisse sind möglich, und das mittlere ist das, das nur ein Browser
+zeigt:
+
+| | |
+| --- | --- |
+| `Text` | ein Lauf, ein Splice. Der Normalfall. |
+| `SplitRun` | der Text stimmt, aber der Browser hat mehrere Textknoten im Wrapper hinterlassen. **Firefox tut das beim nativen Einfügen eines Zeichens außerhalb der BMP.** Der Text ist importierbar, die Ansicht muss neu gebaut werden. |
+| `Unimportable` | Struktur, die kein Splice ausdrückt. Der gefundene Text reist mit (§15.4), der Controller geht in `Recovering`, und niemand rät. |
+
+Bei `SplitRun` folgt auf den Commit `DocumentView.resetRun` — §15.4s „lässt JFX diesen Bereich aus
+dem gültigen State neu aufbauen". Der Caret wird dabei **gerechnet** und nicht gelesen: ein
+aufgeteiltes DOM lässt sich mit der Ein-Textknoten-Annahme der Positionstabelle nicht adressieren.
+
+Die zweite Fallgrube liegt in der Projektion und wurde als `aababc` nach dem Tippen von `abc`
+sichtbar: eine native Eingabe wird **aus** dem DOM gelesen, also steht der Text dort schon, wenn
+der Commit ankommt — und der Splice fügte ihn ein zweites Mal ein. `DocumentProjection`
+vergleicht seither gegen den committeten Text, bevor es schreibt.
+
+## Readonly und Fokus
+
+§22 hält zwei Dinge auseinander, die wie eines aussehen: „Fokusfähigkeit und Editierbarkeit sind
+getrennte Entscheidungen." Ein readonly Editor ist weiterhin fokussierbar, auswählbar und
+vorlesbar — er ändert sich nur nicht.
+
+Das hat zwei konkrete Folgen, beide von Browsertests erzwungen:
+
+- `contenteditable="false"` nimmt ein Element aus der Tab-Reihenfolge. Der Host bekommt deshalb in
+  **beiden** Modi `tabindex="0"` — sonst wäre ein readonly Editor per Tastatur unerreichbar, und
+  ein Moduswechsel risse den Fokus aus dem Text.
+- **WebKit navigiert bei Backspace zurück**, wenn ein fokussiertes Element nicht editierbar ist.
+  Ein readonly Editor weist die Editiertasten deshalb ausdrücklich ab, statt zu hoffen.
+
+## Composition (P22s Anteil)
+
+P22 behauptet keine vollständige IME-Freigabe und verhält sich entsprechend: `compositionstart`
+führt in `Composing`, dort wird **nichts** beansprucht und nichts geschrieben — §15.3: „Re-Render
+oder Selection-Schreiben kann laufende native Texteingabe zerstören" —, und was die Composition
+hinterlassen hat, liest derselbe Reader, durch den auch jede andere native Änderung geht. Das
+Protokoll mit Schreibsperre und Abschlussregeln ist P23.
+
 ## Tests
 
 ```bash
 sbt --server "scalajs-ember-browser/Test/testOnly *"
 ```
 
-`HydrationBoundarySpec` und `SelectionPolicySpec` prüfen die Regeln als Regeln: wann aktiviert,
-wann geschrieben, wann fokussiert werden darf, und was ein abgelaufenes Bookmark ist.
+`HydrationBoundarySpec`, `SelectionPolicySpec` und `InputPipelineSpec` prüfen die Regeln als
+Regeln: wann aktiviert, geschrieben, fokussiert werden darf, was ein abgelaufenes Bookmark ist,
+welche Absicht ein `inputType` bedeutet und was der kleinste Splice zwischen zwei Strings ist.
 
 Was eine lebende Seite braucht, steht im Browser-Gate
 ([ember-integration/browser](../ember-integration/browser/README.md)):
-`editor-hydration.spec.mjs`, `selection.spec.mjs` und `focus.spec.mjs`. Wo ein Gruppenanker liegt,
-wie eine Markkette aussieht, wohin der Fokus wirklich geht, was eine Engine mit einem Shadow Root
-macht — dazu hat keine headless Prüfung etwas zu sagen.
+`editor-hydration.spec.mjs`, `selection.spec.mjs`, `focus.spec.mjs`, `editing.spec.mjs` und
+`native-input.spec.mjs`. Wo ein Gruppenanker liegt, wie eine Markkette aussieht, wohin der Fokus
+wirklich geht, ob ein Tastendruck überhaupt ein abbrechbares `beforeinput` erzeugt, was eine
+Engine mit einem Shadow Root macht — dazu hat keine headless Prüfung etwas zu sagen.
 
 Die Aufteilung ist dieselbe wie bei §16 und aus demselben Grund: eine Regel, die durch eine
 ihrer Darstellungen geprüft wird, ist einmal geprüft.

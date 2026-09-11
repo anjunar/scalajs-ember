@@ -221,10 +221,27 @@ final class DocumentProjection private[jfx] (
       val room = current.childrenOf(parentId).count(destination.componentFor(_).isDefined)
       source.transferTo(nodeId, destination, math.min(wanted, room))
 
+  /** Applies text splices -- unless the DOM is already showing the result.
+    *
+    * ==Why that case exists at all==
+    *
+    * Because a native input is read '''out of''' the DOM (§15.2): the browser typed the character
+    * first, the controller noticed on `input`, and the transaction that follows only brings the
+    * model up to date. By the time the commit arrives, the text node already contains what the
+    * splice would insert -- and applying it would insert it a second time.
+    *
+    * A browser test found it as `aababc` after typing `abc`.
+    *
+    * The comparison is against the '''committed''' text, so an ordinary edit is unaffected: there
+    * the component still holds the previous string and the splice is exactly what is needed. This
+    * is the same no-op contract §15.1 asks for on unchanged nodes, one level up.
+    */
   private def applySplices(entry: (NodeId, Vector[TextSplice])): Unit =
     val (nodeId, splices) = entry
     components.get(nodeId).collect { case run: TextRunElement => run }.foreach { run =>
-      splices.foreach(splice => run.spliceText(splice.start, splice.deleteCount, splice.inserted))
+      val committed = current.node(nodeId).collect { case text: TextNode => text.text }
+      if !committed.contains(run.text) then
+        splices.foreach(splice => run.spliceText(splice.start, splice.deleteCount, splice.inserted))
     }
 
   private def reorder(parentId: NodeId): Unit =

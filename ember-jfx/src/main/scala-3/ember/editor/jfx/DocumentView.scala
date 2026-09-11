@@ -51,6 +51,20 @@ final class DocumentView private (
   /** Anzahl projizierter Knoten. */
   def size: Int = projection.size
 
+  /** Rebuilds one text run's DOM from the current document (§15.4).
+    *
+    * For a caller that has found the browser leaving extra nodes in a run's wrapper. It is not a
+    * repair of the '''document''' -- that has to be right already -- but of the view, and it is
+    * the only way back to §15.1's "one stable wrapper with one text child" once something else
+    * has written there.
+    */
+  def resetRun(nodeId: NodeId): Boolean =
+    (projection.componentFor(nodeId), session.document.node(nodeId)) match
+      case (Some(run: TextRunElement), Some(text: TextNode)) =>
+        run.resetText(text.text)
+        true
+      case _ => false
+
   def isDisposed: Boolean = disposedFlag
 
   /** Meldet den Abschluss einer Projektion mit der dargestellten Revision (§5, §15.1). */
