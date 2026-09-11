@@ -1,8 +1,8 @@
 # JFX Editor: ausführbarer Implementierungsplan
 
-Status: **Meilenstein A und B stehen, C und D angefangen** — P01–P20 abgeschlossen (1002
-Scala-Tests und 249 Browserfälle in Chromium, Firefox und WebKit grün),
-P21–P30 offen. Dieses Repository (`scalajs-ember`) ist das in
+Status: **Meilenstein A und B stehen, C und D angefangen** — P01–P21 abgeschlossen (1025
+Scala-Tests und 375 Browserfälle in Chromium, Firefox und WebKit grün),
+P22–P30 offen. Dieses Repository (`scalajs-ember`) ist das in
 Architektur und Plan gemeinte „eigene Repository“. Die generischen JFX-Core-Anteile aus
 P08/P09, P19a, P20 und P23 sind **nicht hier, sondern im Nachbar-Repo `../scalajs-jfx`**
 implementiert und seit P17 als veröffentlichtes Artefakt `com.anjunar:scalajs-jfx-core:3.0.5`
@@ -1718,6 +1718,92 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 - **Dependencies:** P07, P09, P19a, P19b; Architektur §17.
 
 ## P21 — DOM-Selection und Fokus
+
+> **Abgeschlossen.** `ember-browser` gewachsen um `BrowserScope`, `DomPositionMap`,
+> `SelectionPort`, `FocusController` und `DomKinds`. Abnahme:
+>
+> ```
+> sbt --server "Test/testOnly *"
+> ```
+>
+> | Suite | Ergebnis |
+> | --- | --- |
+> | `SelectionPolicySpec` | 23 Tests grün |
+> | `selection.spec.mjs` | 75 Fälle grün (25 × 3 Engines) |
+> | `focus.spec.mjs` | 51 Fälle grün (17 × 3 Engines) |
+> | Gesamtes Scala-Gate | 1025 Tests grün |
+> | Browser-Gate | 375 Fälle grün |
+>
+> **Die Abbildungstabelle zählt keine DOM-Kinder.** §11 warnt davor — „DOM-Kinder einschließlich
+> Renderhilfen zählen anders als Dokumentkinder" —, und die Versuchung ist groß, es trotzdem zu
+> tun und die Anker abzuziehen. Stattdessen wird jeder Offset aus den **Hosts der Dokumentkinder**
+> abgeleitet: `hostOf(child)`, dann dessen tatsächlicher Index. Gruppenanker, Innentags und
+> spätere Platzhalter fallen damit von selbst weg, ohne dass sie jemand aufzählen müsste.
+>
+> Zwei Zugänge in `ember-jfx` machen das möglich: `ContainerElement.contentHost` (bei `<pre><code>`
+> hängen die Kinder im inneren Tag) und `TextRunElement.textHost` (der Textknoten liegt unter der
+> Markkette). Die Komponente weiß beides; von außen wäre es Abzählen nach Tagzahl — eine zweite
+> Beschreibung derselben Struktur, die beim ersten anders gerenderten Mark auseinanderläuft.
+>
+> **Gesucht wird abwärts, nicht aufwärts.** Um zu einem DOM-Knoten den Dokumentknoten zu finden,
+> liegt ein Index DOM→ID nahe. Der wäre eine zweite Ownership-Liste — genau das, was §15.1 der
+> Projektion verbietet, und hier um nichts besser. `nodeAt` steigt stattdessen das **Dokument**
+> hinab und fragt pro Ebene nur `Node.contains`. Wo kein Kind mehr passt, gehört der Knoten dem
+> erreichten: Markkette, Innentag und Gruppenanker sind per Definition dessen eigenes Markup.
+>
+> **Der Fehler, den erst ein iframe zeigte.** `isInstanceOf[dom.Text]` kompiliert zu `instanceof`
+> gegen den `Text`-Konstruktor **dieses** Fensters. Ein Textknoten aus einem iframe-Dokument ist
+> eine Instanz des Konstruktors *jenes* Fensters und besteht den Test nie — also meldete jede
+> Abbildung im iframe „nicht projiziert", während die richtigen Elemente die ganze Zeit im DOM
+> standen. §15.4 verlangt `ownerDocument`/`defaultView` für Hosts in iframes; die schwerer
+> sichtbare Hälfte dieser Regel ist, dass auch **Typprüfungen** nicht von einem einzigen Realm
+> ausgehen dürfen. `DomKinds` fragt seither `nodeType` — eine Zahl, die in jedem Realm dasselbe
+> bedeutet.
+>
+> **Zwei Engines haben je eine Regel verschärft:**
+>
+> - *Chromium fokussiert ein `contenteditable`, in das man eine Auswahl schreibt.* Das Scaladoc
+>   von `WriteIntent.Explicit` behauptete, ein Schreibvorgang fasse den Fokus nicht an. Er ruft
+>   `focus()` tatsächlich nicht — die Engine zieht ihn trotzdem nach. `Explicit` heißt jetzt
+>   „schreiben und hinnehmen, dass die Engine folgt", und ist deshalb nicht die Voreinstellung.
+> - *Firefox setzt die Dokumentauswahl an den Anfang des Editing-Hosts, wenn ein verschachteltes
+>   Feld den Fokus bekommt.* Eine Ownership-Prüfung, die nur Anker und Fokus ansieht, importierte
+>   daraufhin einen Caret an den Dokumentanfang, während der Benutzer in der Textarea eines Atoms
+>   stand. §15.2 nennt drei Dinge, die zusammenpassen müssen — „Composed Event-Target, aktives
+>   Element und tatsächlich betroffener Editing-Host" —, und das **aktive Element** steht jetzt
+>   zuerst.
+>
+> **Zwei Instanzen weisen einen Punkt im Atom ab, und beide sollen es tun.** Der Kern zuerst: ein
+> Kindpunkt auf einem Knoten ohne Kinder ist keine gültige Auswahl, und die Transaktion scheitert,
+> bevor der Port sie sieht. Der Port hat dieselbe Antwort für dieselbe Position — `InsideAtom` —,
+> und darauf zu verzichten hieße, sich darauf zu verlassen, dass jemand anders vorher ablehnt.
+>
+> **`AlreadyThere` ist ein gelungener Restore, kein abgewiesener.** Nach einer Bearbeitung steht
+> der Caret meist schon dort, wohin das Bookmark zeigt — der Kern führt die lebende Auswahl durch
+> dieselbe Abbildung nach. Nichts zu schreiben ist dann kein Fehlschlag: die Nachbedingung, um die
+> der Aufrufer gebeten hat, gilt.
+>
+> **Bewusste Entscheidungen:**
+>
+> - *Kein `data-ember-node` im Port.* Das Attribut ist eine Entscheidung des Renderprofils (§19.1).
+>   Ein Port, der es parst, funktioniert nur für diese Semantik — und funktioniert **falsch**
+>   weiter, wenn ein Profil aufhört, es zu setzen. `componentFor` ist derselbe Index, mit dem die
+>   Projektion verschiebt und nachführt; einen zweiten gibt es nicht.
+> - *Fokus ist nicht Teil des Ports.* „Die Auswahl zurücksetzen, ohne den Fokus zu nehmen" muss
+>   sagbar sein — genau das braucht eine Toolbar. Läge der Fokus im Port, wäre jeder Schreibvorgang
+>   eine Fokusentscheidung, und er müsste raten, welche.
+> - *Die Schreibregel ist eine Funktion.* Projektionsrevision, Fokus, Fähigkeit, Absicht — vier
+>   Werte, die der Aufrufer ohnehin hat. Als Funktion ist sie ohne Browser prüfbar; als Methode auf
+>   dem Port wäre sie es nicht.
+> - *Shadow DOM wird gemeldet, nicht behauptet.* Chromium hat `ShadowRoot.getSelection`, Firefox
+>   und WebKit haben es nicht. §15.4 verlangt dafür einen eigenen Capability-Test;
+>   `ShadowUnsupported` ist eine Aussage über die Engine, und der Port liest dann lieber nichts als
+>   die Auswahl des Dokuments, die dort den Shadow-Host meldet und alles darin verschweigt.
+> - *Bidi wird nicht gerechnet.* §11: „Bidi-Visualordnung wird nicht aus logischer
+>   Dokumentreihenfolge erraten." Der Test behauptet deshalb keine Richtung — er prüft, dass Modell
+>   und Browser nach einem Pfeiltastendruck dasselbe sagen.
+>
+> Modulvertrag: [ember-browser/README.md](ember-browser/README.md).
 
 - **Ziel:** Logische und Browserauswahl zuverlässig in beide Richtungen abbilden.
 - **Module:** browser; jfx; IT.

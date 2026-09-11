@@ -176,3 +176,34 @@ nichts zu uebernehmen und faellt darauf nicht herein.
 
 Die Entscheidungsregeln — wann aktiviert werden darf und warum nicht — stehen headless in
 `ember-browser/…/HydrationBoundarySpec.scala`.
+
+## Selection und Fokus (P21)
+
+`selection.spec.mjs` faehrt die Abbildungstabelle aus §11 in beide Richtungen. Das Dokument der
+Fixture ist so gebaut, dass jeder Block eine Zeile dieser Tabelle trifft, die ein einfacheres
+nicht erreichte: ein Lauf mit Mark (Textknoten unter einer Kette), ein leerer Absatz (im DOM nur
+Gruppenanker), ein Codeblock (die Kinder haengen im inneren `<code>`) und ein Atom mit einer
+echten `<textarea>` darin.
+
+Das Atom traegt ein natives Feld mit Absicht. §15.2 nennt genau diesen Fall — "native
+Inputs/Textareas in Atom-Views ... gehoeren nicht automatisch zum aeusseren Editor" —, und ein
+`<img>` waere als Probe wertlos: es ist leer, in ihm laesst sich nichts auswaehlen.
+
+`focus.spec.mjs` deckt ab, was §22 ueber Fokus sagt, und dazu die Grenzfaelle des
+Geltungsbereichs: zwei Editoren nebeneinander, ein Editor in einem iframe, einer in einem Shadow
+Root. Die Shadow-Zusicherung ist bewusst engine-abhaengig formuliert — Chromium hat
+`ShadowRoot.getSelection`, Firefox und WebKit haben es nicht, und §15.4 verlangt dafuer einen
+Capability-Test statt einer Behauptung.
+
+Drei Befunde kamen nur von hier:
+
+- *Chromium fokussiert ein `contenteditable`, in das man eine Auswahl schreibt.* Das aendert, was
+  ein "expliziter" Schreibvorgang bedeutet, und es macht Tests ueber einen unfokussierten Editor
+  unmoeglich, die ihre Auswahl durch einen Schreibvorgang setzen.
+- *Firefox setzt die Dokumentauswahl an den Anfang des Editing-Hosts, wenn ein verschachteltes
+  Feld den Fokus bekommt.* Die Ownership-Pruefung sieht seither zuerst das aktive Element an.
+- *Typprueferei ist realm-gebunden.* `instanceof Text` gilt nur fuer das eigene Fenster; im
+  iframe scheiterte jede Abbildung. Das sieht man in keinem Testlauf, der nur ein Dokument kennt.
+
+Die Regeln selbst — Schreibbedingungen, Fokuspolitik, Bookmarks — stehen headless in
+`ember-browser/…/SelectionPolicySpec.scala`.

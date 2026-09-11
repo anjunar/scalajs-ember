@@ -4,7 +4,7 @@ import ember.editor.core.*
 import ember.editor.html.*
 import jfx.core.component.{AbstractComponent, Runtime}
 import jfx.core.layout.TextComponent
-import jfx.core.render.Cursor
+import jfx.core.render.{Cursor, HostElement, HostNode}
 
 /** Eine JFX-Komponente mit semantischem Tag und Attributen.
   *
@@ -43,6 +43,7 @@ final class ContainerElement(tagName: String) extends SemanticElement(tagName):
 
   private var group: Option[AbstractComponent] = None
   private var tags = Vector.empty[String]
+  private var contentOwner: AbstractComponent = null
 
   private[jfx] def attach(children: AbstractComponent): Unit =
     require(group.isEmpty && !isBound, "Die Kindergruppe steht vor dem Mount fest.")
@@ -59,12 +60,28 @@ final class ContainerElement(tagName: String) extends SemanticElement(tagName):
 
   def innerTags: Vector[String] = tags
 
+  /** The element that actually holds the document children.
+    *
+    * With inner tags -- `<pre><code>` -- that is not this component's own host but the
+    * innermost of them. A child boundary of this node sits in '''that''' element, and deriving
+    * it from the outer host would be one level off for every code block (§11: "Bei
+    * DOM-Elementoffsets zaehlen DOM-Kinder einschliesslich Renderhilfen anders als
+    * Dokumentkinder").
+    */
+  def contentHost: HostElement = if contentOwner == null then host else contentOwner.host
+
   override def compose(cursor: Cursor): Unit =
     super.compose(cursor)
     group.foreach { children =>
-      val nested = tags.foldRight[AbstractComponent](children)((tag, inside) =>
-        new MarkElement(tag, inside)
-      )
+      // Wie ein `foldRight`, behaelt aber den innersten Wrapper. Den kennt sonst niemand
+      // wieder: er traegt keine Identitaet, und von aussen liesse er sich nur durch Abzaehlen
+      // der Tags erraten.
+      var nested: AbstractComponent = children
+      tags.reverse.foreach { tag =>
+        val wrapper = new MarkElement(tag, nested)
+        if contentOwner == null then contentOwner = wrapper
+        nested = wrapper
+      }
       Runtime.mount(nested, cursor, Some(this)): Unit
     }
 
@@ -88,6 +105,15 @@ final class TextRunElement(tagName: String) extends SemanticElement(tagName):
     chain = Runtime.mount(build(), cursor, Some(this))
 
   def setText(value: String): Unit = content.setText(value)
+
+  /** The DOM text node of this run, once mounted.
+    *
+    * The `SelectionPort` needs exactly this node: a `Point.Text` offset is a UTF-16 offset into
+    * it (§11). Finding it from the outside by descending [[markTags]] levels would be a second
+    * description of a structure this component already holds -- and the two would part ways the
+    * first time a mark renders as something other than one element.
+    */
+  def textHost: Option[HostNode] = content.physicalHosts.headOption
 
   def spliceText(start: Int, deleteCount: Int, inserted: String): Unit =
     content.spliceText(start, deleteCount, inserted)

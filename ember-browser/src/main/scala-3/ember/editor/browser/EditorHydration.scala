@@ -164,9 +164,9 @@ object EditorHydration:
     val out = Vector.newBuilder[dom.Element]
     var index = 0
     while index < element.childNodes.length do
-      element.childNodes(index) match
-        case child: dom.Element => out += child
-        case _                  => ()
+      // `nodeType` and not a type test: a document in an iframe has its own `Element`, and
+      // `instanceof` against this realm's would miss every node in it. See [[DomKinds]].
+      DomKinds.asElement(element.childNodes(index)).foreach(child => out += child)
       index += 1
     out.result()
 

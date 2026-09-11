@@ -14,7 +14,7 @@ Laufzeitabhängigkeit.
 
 ## Stand
 
-**Meilenstein A und B stehen, C und D angefangen** — P01–P20 abgeschlossen, P21–P30 offen. Der frühere
+**Meilenstein A und B stehen, C und D angefangen** — P01–P21 abgeschlossen, P22–P30 offen. Der frühere
 `contenteditable`-Prototyp (`ember.core.Editor` mit `execCommand` und HTML-String als
 Zustand) und seine vite-Demo wurden entfernt — Architektur §2 und §25 schließen diesen
 Ansatz aus.
@@ -103,6 +103,15 @@ Editierbar wird das Feld erst nach erfolgreichem Claim **und** abgeschlossener �
 Hydration — und solange eine Eingabesitzung offen sein könnte oder der Quelltext seit dem
 Rendern geändert wurde, gar nicht.
 
+P21 verbindet logische und Browserauswahl. Die Abbildung zählt dabei **keine** DOM-Kinder: jeder
+Offset kommt von den Hosts der Dokumentkinder, sodass Gruppenanker, Innentags und Platzhalter
+von selbst wegfallen. Geschrieben wird nur bei passender Projektionsrevision und nur in einen
+fokussierten Host — ein Hintergrundupdate nimmt niemandem den Fokus weg. Pfeilnavigation läuft
+nativ und wird importiert, nicht gerechnet; ein Caret in einem nativen Feld innerhalb eines
+Atoms gehört nicht dem Editor. Und alles, was der Port anfasst, kommt aus dem `ownerDocument`
+seines Hosts, damit ein Editor in einem iframe oder Shadow Root funktioniert oder ehrlich sagt,
+dass er es nicht kann.
+
 ## Module
 
 Konvention: Verzeichnis `ember-<modul>`, sbt-ID und Artefakt `scalajs-ember-<modul>`,
@@ -143,8 +152,8 @@ Vorhanden:
   `ember.editor.jfx`. Die keyed Dokumentansicht auf der JFX-Runtime. Einziges
   **veröffentlichtes** Modul, das JFX kennt.
 - [`ember-browser`](ember-browser/README.md) — sbt-ID `scalajs-ember-browser`, Paket
-  `ember.editor.browser`. Hydration mit Verlustschutz: Erfassung vor dem Claim, der
-  Semantikabgleich und die Aktivierungsentscheidung. Selection und Eingabe folgen mit P21/P22.
+  `ember.editor.browser`. Hydration mit Verlustschutz und die Brücke zur Browserauswahl:
+  Positionsabbildung, Selection-Port, Fokus und Bookmarks. Eingabe folgt mit P22.
 - [`ember-standard`](ember-standard/README.md) — sbt-ID `scalajs-ember-standard`, Paket
   `ember.editor.standard`. Die einzeln wählbaren Standardadapter — der Ort, an dem
   Knotenarten und Renderer einander kennen.

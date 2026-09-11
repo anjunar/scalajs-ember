@@ -1,9 +1,11 @@
 # scalajs-ember-browser
 
 Was der Editor tut, wenn die Seite schon da ist: eine serverseitig gerenderte Ansicht
-übernehmen, ohne zu zerstören, was bis dahin auf der Seite stand.
+übernehmen, ohne zu zerstören, was bis dahin auf der Seite stand — und danach logische und
+Browserauswahl in beide Richtungen abbilden.
 
-Verbindlicher Entwurf: [JFX_EDITOR_ARCHITECTURE.md](../JFX_EDITOR_ARCHITECTURE.md) §17.
+Verbindlicher Entwurf: [JFX_EDITOR_ARCHITECTURE.md](../JFX_EDITOR_ARCHITECTURE.md) §§11, 15.4,
+17, 22.
 
 | | |
 | --- | --- |
@@ -13,16 +15,21 @@ Verbindlicher Entwurf: [JFX_EDITOR_ARCHITECTURE.md](../JFX_EDITOR_ARCHITECTURE.m
 
 ## Stand
 
-**P20 abgeschlossen.** Vorhanden: `HydrationSnapshot`, `EditorHydration` und
-`EditorActivation`. Selection-Port, Fokus und Eingabe sind P21/P22 und stehen noch aus.
+**P20 und P21 abgeschlossen.** Eingabe, Keyboard und NativeInput sind P22 und stehen noch aus.
 
-## Die drei Teile
-
-| | |
+| Hydration (P20) | |
 | --- | --- |
 | `HydrationSnapshot` | was auf der Seite stand, **bevor** irgendetwas geclaimt wurde |
 | `EditorHydration` | der Abgleich, den ein Strukturvergleich nicht leistet |
 | `EditorActivation` | die Entscheidung, ob editiert werden darf — und warum noch nicht |
+
+| Selection und Fokus (P21) | |
+| --- | --- |
+| `BrowserScope` | welches Dokument, welches Fenster, welche Selection — und was davon es gibt |
+| `DomPositionMap` | die explizite Abbildungstabelle aus §11, in beide Richtungen |
+| `SelectionPort` | lesen, schreiben, beobachten; und keine Rückkopplungsschleife |
+| `FocusController` | wer den Fokus hat, was gemerkt wird, wann er zurückgegeben wird |
+| `DomKinds` | `nodeType` statt `instanceof` — warum, steht unten |
 
 Die austauschbare Boundary selbst kommt aus jfx-core (`HydrationBoundary`, P20s generischer
 Anteil). Dieses Modul liefert, was der Editor darüber hinaus weiß.
@@ -111,16 +118,154 @@ Die Reihenfolge zählt: ein gescheiterter Claim steht **vor** jeder Zurückstell
 Nutzer das Feld tatsächlich fokussiert hatte, darf eine Auswahl geschrieben werden. Ein Editor,
 der sich beim Laden selbst fokussiert, nimmt den Fokus dort weg, wo der Benutzer war.
 
+## Positionen: die Tabelle, die nichts abzählt
+
+§11 nennt das Problem und die Abhilfe in einem Satz:
+
+> Bei DOM-Elementoffsets zählen DOM-Kinder einschließlich Renderhilfen anders als Dokumentkinder;
+> die explizite Mapping-Tabelle löst dies auf.
+
+Unter einem Container stehen Dinge, für die das Dokument kein Wort hat: die Gruppenanker der
+Runtime (`<!--jfx:KeyedChildren:start-->`), das innere `<code>` eines Codeblocks, später ein
+Platzhalter-`<br>`. DOM-Kinder zu zählen und das Ergebnis Kindoffset zu nennen, ist bei jedem
+Knoten um einen anderen Betrag falsch.
+
+Deshalb zählt hier nichts. Jeder Offset kommt aus der Lage der **Hosts der Dokumentkinder**, und
+jede Auflösung geht über die Projektion:
+
+| Punkt | DOM-Position |
+| --- | --- |
+| `Text(run, o)` | der Textknoten des Laufs, Offset `o` — beide messen UTF-16 |
+| `Children(p, i)`, `i < n` | im Inhaltselement von `p`, vor dem Host des `i`-ten Kindes |
+| `Children(p, n)` | ebenda, hinter dem Host des letzten Kindes |
+| `Children(p, 0)`, `p` leer | ebenda, Offset 0 — kein Dokumentkind steht davor |
+
+Zwei Zugänge in `ember-jfx` liefern die Ausgangspunkte: `ContainerElement.contentHost` (die
+Kinder eines Codeblocks hängen im `<code>`) und `TextRunElement.textHost` (der Textknoten liegt
+unter der Markkette). Die Komponente weiß beides. Es von außen nach Tagzahl abzuzählen wäre eine
+zweite Beschreibung derselben Struktur — und die läuft beim ersten Mark, das nicht als genau ein
+Element rendert, auseinander.
+
+### Die Gegenrichtung geht abwärts
+
+Um zu einem DOM-Knoten den Dokumentknoten zu finden, liegt ein Index DOM→ID nahe. Der wäre eine
+zweite Ownership-Liste, und §15.1 verbietet der Projektion genau das. `nodeAt` steigt stattdessen
+das **Dokument** hinab und fragt pro Ebene nur `Node.contains`. Passt kein Kind mehr, gehört der
+Knoten dem erreichten — Markkette, Innentag und Gruppenanker sind dessen eigenes Markup.
+
+Das Attribut `data-ember-node` kommt dabei nicht vor. Es ist eine Entscheidung des Renderprofils
+(§19.1); ein Port, der es parst, funktioniert nur für diese Semantik und funktioniert *falsch*
+weiter, wenn ein Profil aufhört, es zu setzen.
+
+## Schreiben ist die gefährliche Richtung
+
+Lesen ist billig und immer erlaubt: `selectionchange` meldet, wohin der Benutzer gegangen ist,
+und §11 lässt Pfeilnavigation ausdrücklich nativ laufen. Schreiben kann einen Caret wegziehen,
+den Fokus nehmen und das Ereignis auslösen, das es selbst verursacht hat. Jeder Schreibvorgang
+passiert deshalb zuerst `SelectionWriteGate`:
+
+| Ergebnis | Grund |
+| --- | --- |
+| `StaleProjection` | §11: nur bei passender Projektionsrevision schreiben |
+| `NotFocused` | §22: Hintergrundupdates stehlen keinen Fokus |
+| `Unsupported` | ein Shadow Root ohne `getSelection` (§15.4) |
+| `AlreadyThere` | das DOM sagt das schon; ein Schreibvorgang feuerte nur ein Ereignis |
+| `NoSelection` | das Modell hat keine — die Browserauswahl zu löschen nähme den Caret weg |
+
+`WriteIntent.Explicit` umgeht die Fokusbedingung, aber keine der anderen. Es heißt **nicht**
+„ohne den Fokus anzufassen": dieser Port ruft nie `focus()`, doch eine Auswahl in ein
+`contenteditable` zu schreiben fokussiert es in Chromium trotzdem. Deshalb ist es nicht die
+Voreinstellung.
+
+### Keine Schleife
+
+§15.2 verlangt, „eigene Selection-Schreibvorgänge anhand Revision und tatsächlichem Wert zu
+erkennen". Beide Hälften sind nötig. Ein synchrones Flag trägt nicht, weil `selectionchange`
+asynchron zugestellt wird — lange nachdem das Flag zurückgesetzt ist. Eine Revision allein trägt
+auch nicht, weil der Benutzer den Caret bewegen kann, ohne dass sich etwas ändert. Der Port merkt
+sich die vier DOM-Werte, die er zuletzt geschrieben hat, samt der Revision dazu; ein Ereignis mit
+genau diesen Werten ist sein eigenes Echo.
+
+### Was dem Editor nicht gehört
+
+§15.2 prüft vor jeder Eingabeverarbeitung die Ownership: „native Inputs/Textareas in Atom-Views,
+unmanaged Bereiche und verschachtelte Editoren gehören nicht automatisch zum äußeren Editor."
+Für Selection heißt das: liegt das **aktive Element** in einem Atom, ist die Dokumentauswahl nicht
+die des Editors, und `read()` meldet `Foreign`.
+
+Das aktive Element steht dabei vor den Endpunkten, und ein Firefox-Lauf hat gezeigt warum: solange
+ein natives Feld in einem Atom den Fokus hat, setzt Firefox die Dokumentauswahl an den **Anfang**
+des Editing-Hosts. Eine Prüfung nur von Anker und Fokus hätte daraufhin einen Caret an den
+Dokumentanfang importiert, während der Benutzer ganz woanders stand.
+
+## Fokus, getrennt vom Port
+
+Weil „die Auswahl zurücksetzen, ohne den Fokus zu nehmen" sagbar sein muss — genau das braucht
+eine Toolbar. Läge der Fokus im Port, wäre jeder Schreibvorgang eine Fokusentscheidung.
+
+`FocusController` beobachtet `focusin`/`focusout` statt `focus`/`blur`: das erste Paar blubbert,
+und ein Editor enthält Fokussierbares — eine Mediensteuerung in einem Atom, ein verschachteltes
+Feld. Fokus dorthin ist immer noch Fokus im Editor.
+
+`capture()` merkt sich die Auswahl als zwei Bookmarks — §11 bildet Anchor und Focus **unabhängig**
+ab — plus die Angabe, ob der Editor den Fokus hatte. Daran hängt §22s „Schließen stellt Fokus nur
+im passenden Interaktionskontext wieder her":
+
+| `FocusIntent` | nimmt den Fokus |
+| --- | --- |
+| `SelectionOnly` | nie. Was ein Hintergrundupdate darf |
+| `IfItWasOurs` | nur, wenn der Editor ihn beim Merken hatte — der Dialogfall |
+| `Always` | ja, auf ausdrückliche Geste |
+
+Nie dagegen, wenn der Fokus schon im Host liegt (ein erneutes `focus()` scrollt nur) oder der Host
+gar nicht fokussierbar ist — §22 hält Fokusfähigkeit und Editierbarkeit auseinander.
+
+Ein Bookmark nimmt beim Auflösen die Ersatzgrenze in Kauf (`resolveOrFallback`). Der Unterschied
+steht im Kern: „Ein Caret darf auf die Grenze zurückfallen — der Cursor muss irgendwo stehen. Ein
+Upload-Bookmark darf das nicht."
+
+## Ein Dokument ist nicht das Dokument
+
+§15.4: „Für Editor-Hosts in iframes werden ownerDocument/defaultView verwendet. Shadow-DOM-Selection
+ist ein eigener Capability-Test." `BrowserScope` ist die eine Stelle, an der das entschieden wird;
+nichts hier greift nach `dom.window`.
+
+| `SelectionCapability` | |
+| --- | --- |
+| `Document` | der Regelfall: ein Host in einem Dokument mit Fenster |
+| `ShadowNative` | ein Shadow Root, dessen Engine `getSelection` anbietet (heute Chromium) |
+| `ShadowUnsupported` | einer ohne. Dort wird nichts gelesen statt etwas Falsches |
+| `Detached` | ein Host ohne Fenster |
+
+`ShadowUnsupported` liest bewusst **nichts**. Die Auswahl des Dokuments meldet dort den
+Shadow-Host und verschweigt alles darin — ein Wert, der plausibel aussieht und nichts bedeutet.
+
+### `nodeType` statt `instanceof`
+
+`DomKinds` gibt es wegen eines Fehlers, den erst ein iframe zeigte. Eine Scala.js-Typprüfung auf
+einen Fassadentyp kompiliert zu `instanceof`, und `instanceof Text` prüft gegen den
+`Text`-Konstruktor **dieses** Fensters. Ein Textknoten aus dem Dokument eines iframes ist eine
+Instanz von dessen Konstruktor und besteht den Test nie: jede Abbildung dort meldete „nicht
+projiziert", während die richtigen Elemente im DOM standen.
+
+Das ist die schwerer sichtbare Hälfte von §15.4 — es geht nicht nur darum, welches `window`
+gefragt wird, sondern darum, nicht anzunehmen, es gäbe nur eines. `nodeType` ist eine Zahl aus der
+Spezifikation und bedeutet in jedem Realm dasselbe.
+
 ## Tests
 
 ```bash
 sbt --server "scalajs-ember-browser/Test/testOnly *"
 ```
 
-`HydrationBoundarySpec` prüft die Regeln als Regeln. Was eine lebende Seite braucht — liest die
-Erfassung den getippten Wert, überlebt der Fallback einen gescheiterten Claim, behält ein
-gültiger Teilbaum seine Host-Identität —, steht im Browser-Gate:
-[ember-integration/browser](../ember-integration/browser/README.md), `editor-hydration.spec.mjs`.
+`HydrationBoundarySpec` und `SelectionPolicySpec` prüfen die Regeln als Regeln: wann aktiviert,
+wann geschrieben, wann fokussiert werden darf, und was ein abgelaufenes Bookmark ist.
+
+Was eine lebende Seite braucht, steht im Browser-Gate
+([ember-integration/browser](../ember-integration/browser/README.md)):
+`editor-hydration.spec.mjs`, `selection.spec.mjs` und `focus.spec.mjs`. Wo ein Gruppenanker liegt,
+wie eine Markkette aussieht, wohin der Fokus wirklich geht, was eine Engine mit einem Shadow Root
+macht — dazu hat keine headless Prüfung etwas zu sagen.
 
 Die Aufteilung ist dieselbe wie bei §16 und aus demselben Grund: eine Regel, die durch eine
 ihrer Darstellungen geprüft wird, ist einmal geprüft.

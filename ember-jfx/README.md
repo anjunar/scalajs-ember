@@ -27,8 +27,19 @@ strukturell hergab.
 ## Stand
 
 P09 abgeschlossen. Vorhanden: `NodeView`, `DocumentProjection`, `DocumentView`,
-`EditorProperties`. Noch nicht hier: Selection und Fokus (P21), Hydration (P20), native
-Eingabe (P22).
+`EditorProperties`. Selection und Fokus (P21) und Hydration (P20) leben in `ember-browser`; hier
+kamen dafür nur zwei Zugänge dazu (siehe unten). Noch nicht hier: native Eingabe (P22).
+
+### Zwei Hosts, die der SelectionPort braucht
+
+`ContainerElement.contentHost` und `TextRunElement.textHost` sagen, wo die Kinder bzw. der
+Textknoten eines Knotens im DOM tatsächlich hängen. Bei `<pre><code>` sind die Kinder nicht im
+Host des Knotens, sondern im inneren Tag; bei einem markierten Lauf liegt der Textknoten unter
+der Markkette.
+
+Beides ließe sich von außen nach der Zahl der Tags abzählen — und wäre dann eine zweite
+Beschreibung derselben Struktur, die beim ersten Mark auseinanderläuft, das nicht als genau ein
+Element rendert. Die Komponente weiß es; gefragt wird sie.
 
 ## Was hier bewusst nicht steht
 

@@ -16,11 +16,12 @@ await readFile(new URL('main.js', output)).catch(() => {
 const html = `<!doctype html><html><body>
 <div id="root"></div>
 <script type="module">
-import { emberFixtures, runtimeFixtures, projectionFixtures, formFixtures } from '/main.js'
+import { emberFixtures, runtimeFixtures, projectionFixtures, formFixtures, selectionFixtures } from '/main.js'
 window.fixtures = emberFixtures
 window.runtime = runtimeFixtures
 window.projection = projectionFixtures
 window.form = formFixtures
+window.selection = selectionFixtures
 window.ready = true
 </script>
 </body></html>`
