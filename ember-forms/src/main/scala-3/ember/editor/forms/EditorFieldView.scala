@@ -1,9 +1,12 @@
 package ember.editor.forms
 
+import ember.editor.browser.*
 import ember.editor.core.*
-import ember.editor.html.RenderProfile
+import ember.editor.html.{HtmlSupport, RenderProfile}
 import ember.editor.jfx.{DocumentView, ViewSupport}
-import jfx.core.component.AbstractComponent
+import jfx.core.component.{AbstractComponent, HydrationBoundary}
+import jfx.core.render.HostElement
+import org.scalajs.dom
 import jfx.core.dsl.AttributeDsl.setAttribute
 import jfx.core.dsl.DslLayer
 import jfx.core.layout.Div.div
@@ -46,7 +49,8 @@ final class EditorFieldView(
     binding: EditorFormBinding,
     session: EditorSession,
     views: ViewSupport,
-    label: String
+    label: String,
+    semantics: Option[HtmlSupport] = None
 ) extends AbstractComponent:
 
   val tagName = "section"
@@ -55,6 +59,16 @@ final class EditorFieldView(
   private var preview: DocumentView = null
   private var activated             = false
 
+  /** What was on the page before the first claim (§17.2). `None` outside hydration. */
+  private var snapshot: Option[HydrationSnapshot] = None
+
+  /** Whether the local claim came through. A rebuild sets it to `false` (§17.3). */
+  private var claimed = true
+
+  private var sourceImported = false
+  private var lastFailure: Option[String] = None
+  private var boundary: HydrationBoundary[HydrationSnapshot] = null
+
   /** The textarea, once composed. For a caller that drives focus or selection. */
   def sourceControl: TextArea = source
 
@@ -62,27 +76,137 @@ final class EditorFieldView(
     setAttribute("data-editor-field", binding.fieldName)
 
     DslLayer.render(this, cursor) {
-      val host = div {}
-      // Auf der Komponente und nicht ueber den DSL-Import: innerhalb einer AbstractComponent
-      // verdeckt deren eigenes `setAttribute` die Erweiterung, und die Attribute landeten
-      // stillschweigend auf der Section statt auf dem Div.
-      host.setAttribute("data-editor-preview", "")
-      // Die Vorschau traegt keinen Formularnamen und ist im Source-Modus readonly (§16).
-      host.setAttribute("role", "document")
-
-      preview = DocumentView.mount(session, jfx.core.component.Runtime.contentCursor(host), views,
-        parent = Some(host))
-
+      // Die Textarea zuerst und ausserhalb der Boundary. §17.3: "Der Fallback liegt
+      // ausserhalb der austauschbaren Rich-View-Boundary und bleibt bei deren Fehler erhalten."
+      // Laege sie darin, naehme ein fehlgeschlagener Claim sie mit -- samt dem, was der
+      // Benutzer hineingetippt hat.
       source = textArea(binding.submitValue) {}
       source.setAttribute("name", binding.fieldName)
       source.setAttribute("aria-label", label)
       source.setDefaultValue(binding.submitValue)
+
+      // Die Vorschau steckt in einer HydrationBoundary. Sie ist die austauschbare Haelfte:
+      // scheitert der Claim, baut jfx-core NUR SIE neu auf und nimmt dabei die schon
+      // registrierten Cursor und die noch offenen Hydration-Callbacks dieses Versuchs mit
+      // (§17, letzter Absatz).
+      val wrapper = new HydrationBoundary[HydrationSnapshot](
+        "div",
+        capture = _ => captureFallback(),
+        preflight = (element, _) => runPreflight(element),
+        onRecovery = error =>
+          claimed = false
+          lastFailure = Some(error.getMessage)
+      )((inner: AbstractComponent) ?=>
+        (isolated: Cursor) ?=>
+          // Ein zweiter Versuch laeuft durch denselben Block. Die Runtime hat die Komponenten
+          // des ersten schon abgeraeumt -- die Ansicht darum herum haelt aber noch ihr
+          // Commit-Abonnement, und das zeigte danach auf einen Baum, den es nicht mehr gibt.
+          if preview != null then preview.dispose()
+
+          inner.setAttribute("data-editor-preview", "")
+          // Die Vorschau traegt keinen Formularnamen und ist im Source-Modus readonly (§16).
+          inner.setAttribute("role", "document")
+
+          // Der isolierte Cursor der Boundary, nicht `Runtime.contentCursor(inner)`:
+          // `withHydrationBoundary` uebergibt ihm den gesamten verbleibenden Bereich und laesst
+          // den eigenen Cursor der Komponente leer zurueck. Ueber den zu hydrieren hiesse, an
+          // einer Stelle weiterzulesen, die die Boundary gerade abgegeben hat.
+          preview = DocumentView.mount(session, isolated, views, parent = Some(inner))
+      )
+
+      jfx.core.component.Runtime.mount(wrapper, summon[jfx.core.render.Cursor], Some(this)): Unit
+      boundary = wrapper
     }
 
     // Nach jedem Commit synchron nachziehen (§16). Eine verzoegerte Vorschau waere davon
     // unabhaengig -- der '''Wert''' darf nie hinterherhinken.
     preview.onProjected(_ => syncFromDocument()): Unit
     applyMode()
+
+  // -----------------------------------------------------------------------------------------
+  // Hydration (§17)
+  // -----------------------------------------------------------------------------------------
+
+  /** Reads the fallback before anything claims it.
+    *
+    * §17.2 puts this '''before the first claim''': the live `value`, the selection and the
+    * focus, not the attribute. A user who typed before the script ran changed `value`; the
+    * attribute still holds what the server sent, and reading it would discard their input.
+    *
+    * It reads the '''textarea''', although the boundary hands over the preview host. That is
+    * deliberate, and it is why the fallback sits outside: the thing worth rescuing must not be
+    * inside the thing that might fail.
+    */
+  private def captureFallback(): HydrationSnapshot =
+    val captured = Option(source)
+      .flatMap(area => jfx.core.render.DomNodes.option(area.host))
+      .collect { case element: dom.HTMLTextAreaElement => HydrationSnapshot.of(element) }
+
+    snapshot = captured
+    captured.getOrElse(
+      HydrationSnapshot("", 0, 0, SelectionDirection.Collapsed, focused = false, composing = false)
+    )
+
+  /** Checks the served markup against the document, before binding hides it (§17.5). */
+  private def runPreflight(element: HostElement): Unit =
+    semantics.foreach { support =>
+      jfx.core.render.DomNodes.option(element).foreach {
+        case host: dom.Element =>
+          // Der Editor-Check, den JFX-Strict allein nicht leistet: IDs, Text und die Attribute,
+          // die die Semantik nennt.
+          //
+          // `preflightContent`, nicht `preflight`: die Boundary reicht ihren eigenen Host
+          // herueber -- den Vorschau-Container --, und der Wurzelknoten des Dokuments ist das
+          // erste Element darin.
+          EditorHydration.preflightContent(host, session.document, support, RenderProfile.Editor)
+        case _ => ()
+      }
+    }
+
+  /** What was captured before the first claim, if anything. */
+  def captured: Option[HydrationSnapshot] = snapshot
+
+  /** Whether the local claim came through. */
+  def claimSucceeded: Boolean = claimed
+
+  /** The activation decision of §17 for the current state.
+    *
+    * Recomputed rather than stored: every input is something this object already knows, and a
+    * cached answer would be a second opinion. Repeated enhancement is then idempotent by
+    * construction, which §17's deviation table asks for.
+    */
+  def activation(pageHydrated: Boolean): ActivationState =
+    EditorActivation.decide(claimed, pageHydrated, snapshot, binding.submitValue, sourceImported)
+
+  /** Takes over a source the user changed before the script ran (§17.4).
+    *
+    * "Das anfaengliche Preview wird gegen den Server-Snapshot geclaimt; anschliessend wird der
+    * erfolgreich geparste Source-Draft als neuer Zustand projiziert." So: claim first, import
+    * second -- and a parse error leaves the draft editable and blocks the enhancement.
+    */
+  def importCapturedSource(): Either[EditorError, Unit] =
+    snapshot match
+      case None =>
+        sourceImported = true
+        Right(())
+      case Some(value) if !value.differsFrom(binding.submitValue) =>
+        sourceImported = true
+        Right(())
+      case Some(value) =>
+        binding.enterSource() match
+          case Left(error) => Left(error)
+          case Right(_) =>
+            setDraft(value.sourceValue)
+            binding.applyDraft() match
+              case Right(_) =>
+                sourceImported = true
+                applyMode()
+                Right(())
+              // §17.4: "Parsingfehler lassen den Draft editierbar und verhindern Enhancement."
+              case Left(error) => Left(error)
+
+  /** Why the local claim failed, if it did. */
+  def failure: Option[String] = lastFailure
 
   /** Hides the textarea, because the rich view has taken over.
     *

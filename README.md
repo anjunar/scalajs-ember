@@ -14,7 +14,7 @@ Laufzeitabhängigkeit.
 
 ## Stand
 
-**Meilenstein A und B stehen, C und D angefangen** — P01–P19 abgeschlossen, P20–P30 offen. Der frühere
+**Meilenstein A und B stehen, C und D angefangen** — P01–P20 abgeschlossen, P21–P30 offen. Der frühere
 `contenteditable`-Prototyp (`ember.core.Editor` mit `execCommand` und HTML-String als
 Zustand) und seine vite-Demo wurden entfernt — Architektur §2 und §25 schließen diesen
 Ansatz aus.
@@ -94,6 +94,15 @@ zurückgestellt oder abgewiesen. Die **Formatgrenze liegt vor dem Commit** — e
 `ToggleUnderline` in einem Strict-CommonMark-Feld erzeugt kein Dokument, dessen Formwert
 veraltet wäre, sondern gar keines.
 
+P20 nimmt eine schon ausgelieferte Seite in Betrieb. Was darauf stand, bevor das Skript lief —
+der getippte Text, die Auswahl samt Richtung, der Fokus —, wird **vor** dem ersten Claim
+erfasst; ein Editor-Check vergleicht IDs, Text und die genannten Attribute gegen dieselbe
+Semantik, die die Seite gerendert hat. Scheitert er, baut sich nur die Vorschau neu auf: die
+Textarea liegt außerhalb dieser Grenze und behält, was jemand hineingeschrieben hat.
+Editierbar wird das Feld erst nach erfolgreichem Claim **und** abgeschlossener äußerer
+Hydration — und solange eine Eingabesitzung offen sein könnte oder der Quelltext seit dem
+Rendern geändert wurde, gar nicht.
+
 ## Module
 
 Konvention: Verzeichnis `ember-<modul>`, sbt-ID und Artefakt `scalajs-ember-<modul>`,
@@ -133,6 +142,9 @@ Vorhanden:
 - [`ember-jfx`](ember-jfx/README.md) — sbt-ID `scalajs-ember-jfx`, Paket
   `ember.editor.jfx`. Die keyed Dokumentansicht auf der JFX-Runtime. Einziges
   **veröffentlichtes** Modul, das JFX kennt.
+- [`ember-browser`](ember-browser/README.md) — sbt-ID `scalajs-ember-browser`, Paket
+  `ember.editor.browser`. Hydration mit Verlustschutz: Erfassung vor dem Claim, der
+  Semantikabgleich und die Aktivierungsentscheidung. Selection und Eingabe folgen mit P21/P22.
 - [`ember-standard`](ember-standard/README.md) — sbt-ID `scalajs-ember-standard`, Paket
   `ember.editor.standard`. Die einzeln wählbaren Standardadapter — der Ort, an dem
   Knotenarten und Renderer einander kennen.

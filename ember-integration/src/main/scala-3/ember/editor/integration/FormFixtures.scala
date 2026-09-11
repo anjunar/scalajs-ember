@@ -1,6 +1,7 @@
 package ember.editor.integration
 
 import ember.editor.core.*
+import ember.editor.browser.*
 import ember.editor.forms.*
 import ember.editor.image.MediaUrlPolicy
 import ember.editor.link.LinkUrlPolicy
@@ -8,7 +9,7 @@ import ember.editor.markdown.*
 import ember.editor.richtext.*
 import ember.editor.standard.{MarkdownSupports, ParagraphSupport, RichTextSupport}
 import jfx.core.component.Runtime
-import jfx.core.render.{DomCursor, SsrCursor}
+import jfx.core.render.{DomCursor, HydratingCursor, SsrCursor}
 import org.scalajs.dom
 
 import scala.scalajs.js
@@ -60,6 +61,9 @@ object FormFixtures:
       .getOrElse(throw new IllegalStateException("Sitzung nicht erzeugbar"))
 
   private val views = RichTextSupport.views
+
+  /** The same description the SSR came from -- the preflight compares against it (§17.5). */
+  private val semantics = RichTextSupport.semantics
 
   // -----------------------------------------------------------------------------------------
   // Der Serverprozess
@@ -114,7 +118,7 @@ object FormFixtures:
       field,
       if reject then IntentPolicy.Reject else IntentPolicy.Defer
     )
-    view = new EditorFieldView(binding, session, views, "Inhalt")
+    view = new EditorFieldView(binding, session, views, "Inhalt", Some(semantics))
     Runtime.mount(view, DomCursor.root(container)): Unit
     // Der Browserpfad ist die '''Aktivierung''' aus §16 -- erst danach verschwindet die Textarea.
     view.activate()
@@ -180,6 +184,78 @@ object FormFixtures:
   @JSExport
   def firstRun: String =
     session.document.inDocumentOrder.collectFirst { case run: TextNode => run.text }.getOrElse("")
+
+
+  // -----------------------------------------------------------------------------------------
+  // Hydration (P20)
+  // -----------------------------------------------------------------------------------------
+
+  private var hydrated = false
+  private var activations = 0
+
+  /** Hydrates over markup the server already sent.
+    *
+    * `container` holds the server's HTML; nothing here writes it. The cursor claims it, the
+    * boundary captures the fallback first (§17.2) and the preflight checks it before binding
+    * hides it (§17.5).
+    *
+    * @param source
+    *   the document the server rendered. A '''different''' one here is how the test produces a
+    *   mismatch without hand-editing the DOM.
+    */
+  @JSExport
+  def hydrate(container: dom.Element, source: String): Unit =
+    dispose()
+    hydrated = false
+    activations = 0
+    field = newField()
+    session = newSession(field, source)
+    binding = new EditorFormBinding(session, field)
+    view = new EditorFieldView(binding, session, views, "Inhalt", Some(semantics))
+
+    val cursor = HydratingCursor.root(container)
+    Runtime.mount(view, cursor): Unit
+    cursor.completeHydration()
+    hydrated = true
+
+  /** The activation decision right now (§17.6). */
+  @JSExport
+  def activationState: String = view.activation(hydrated) match
+    case ActivationState.Active            => "active"
+    case ActivationState.Pending           => "pending"
+    case ActivationState.Deferred(reason)  => s"deferred:${reason.toString}"
+    case ActivationState.Failed(problem)   => s"failed:$problem"
+
+  /** Runs the activation. Counted, so that a test can show it is idempotent. */
+  @JSExport
+  def activate(): String =
+    val state = view.activation(hydrated)
+    if state == ActivationState.Active then
+      activations += 1
+      view.activate()
+    activationState
+
+  @JSExport def activationCount: Int = activations
+
+  @JSExport def claimSucceeded: Boolean = view.claimSucceeded
+
+  @JSExport def capturedSource: String = view.captured.map(_.sourceValue).getOrElse("")
+
+  @JSExport def capturedFocus: Boolean = view.captured.exists(_.focused)
+
+  @JSExport
+  def capturedSelection: String = view.captured match
+    case Some(value) => s"${value.selectionStart}:${value.selectionEnd}:${value.selectionDirection}"
+    case None        => "none"
+
+  @JSExport def mayRestoreSelection: Boolean = EditorActivation.mayRestoreSelection(view.captured)
+
+  @JSExport
+  def importCapturedSource(): String = view.importCapturedSource() match
+    case Right(_)    => ""
+    case Left(error) => error.message
+
+  @JSExport def hydrationFailure: String = view.failure.getOrElse("")
 
   @JSExport
   def valueForSubmit(): String = binding.valueForSubmit() match

@@ -1,14 +1,15 @@
 # JFX Editor: ausführbarer Implementierungsplan
 
-Status: **Meilenstein A und B stehen, C und D angefangen** — P01–P19 abgeschlossen (985
-Scala-Tests und 201 Browserfälle in Chromium, Firefox und WebKit grün),
-P20–P30 offen. Dieses Repository (`scalajs-ember`) ist das in
+Status: **Meilenstein A und B stehen, C und D angefangen** — P01–P20 abgeschlossen (1002
+Scala-Tests und 249 Browserfälle in Chromium, Firefox und WebKit grün),
+P21–P30 offen. Dieses Repository (`scalajs-ember`) ist das in
 Architektur und Plan gemeinte „eigene Repository“. Die generischen JFX-Core-Anteile aus
 P08/P09, P19a, P20 und P23 sind **nicht hier, sondern im Nachbar-Repo `../scalajs-jfx`**
 implementiert und seit P17 als veröffentlichtes Artefakt `com.anjunar:scalajs-jfx-core:3.0.5`
 eingebunden ([build.sbt](build.sbt)), vorher als Quell-Abhängigkeit; der Vertrag steht in
 [JFX_CORE_INTEGRATION.md](JFX_CORE_INTEGRATION.md). Das erledigt nicht die jeweiligen
-Editor-Integrationsphasen. Stand: 10. September 2026.
+Editor-Integrationsphasen — P20 kam mit dem veröffentlichten 3.0.5 ohne jede Änderung dort
+aus. Stand: 11. September 2026.
 
 Eine laufende Demo des jeweils erreichten Standes liegt in
 [ember-demo/](ember-demo/README.md) -- nicht publiziert, ohne Bundler, `node
@@ -1635,6 +1636,76 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 - **Dependencies:** P10, P18, P19a; Architektur §16.
 
 ## P20 — Isolierte Hydration mit Verlustschutz
+
+> **Abgeschlossen.** Neues Modul `ember-browser` (sbt-ID `scalajs-ember-browser`, Paket
+> `ember.editor.browser`). Abnahme:
+>
+> ```
+> sbt --server "Test/testOnly *"
+> ```
+>
+> | Suite | Ergebnis |
+> | --- | --- |
+> | `HydrationBoundarySpec` | 17 Tests grün |
+> | `editor-hydration.spec.mjs` | 48 Fälle grün (16 × 3 Engines) |
+> | Gesamtes Scala-Gate | 1002 Tests grün |
+> | Browser-Gate | 249 Fälle grün |
+>
+> **An jfx-core war nichts zu ändern.** Die „Ändern"-Liste unten nennt `HydratingCursor.scala`,
+> `Runtime.scala` und `Cursor.scala` für scoped Claim, Preflight und Callback-Cleanup — 3.0.5
+> bringt das alles mit: `HydrationBoundary` mit `capture`/`preflight`/`onRecovery`,
+> `withHydrationBoundary` als isolierter Bereich und `afterHydration` für die aufgeschobenen
+> Callbacks. Die Umstellung auf das veröffentlichte Artefakt in P17 hat sich hier zum ersten Mal
+> ausgezahlt: eine Phase, die im Plan zwei Repositories berührt, berührte tatsächlich eines.
+>
+> **Der Fehler, den nur der Browser zeigen konnte.** Die Vorschau wurde mit
+> `Runtime.contentCursor(inner)` montiert — dem Cursor der Boundary-Komponente. Der ist nach
+> `withHydrationBoundary` **leer**: der Bereich gehört ab diesem Moment dem isolierten Cursor,
+> und der eigene steht auf dem Ende. Serverseitig fällt das nicht auf, weil ein `SsrCursor`
+> nichts zu übernehmen hat und einfach anfügt; im Browser hydrierte die Vorschau an einer
+> Stelle, die die Boundary gerade abgegeben hatte. Der Block nimmt jetzt den Cursor, den die
+> Boundary ihm gibt.
+>
+> **Der Preflight prüfte den Kasten gegen den Inhalt.** `HydrationBoundary` reicht ihren eigenen
+> Host herüber — den Vorschau-Container. Verglichen wurde er mit dem Wurzelknoten des Dokuments,
+> also meldete jede korrekte Seite „erwartet `<article>`, gefunden `<div>`". Ein Check, der aus
+> strukturellen Gründen immer fehlschlägt, kann keine echte Abweichung mehr melden — die drei
+> Mismatch-Tests waren rot und hätten es aus dem falschen Grund auch bei intaktem Markup sein
+> können. `preflightContent` steigt eine Ebene ab; dass der Fallback außerhalb der Boundary
+> liegt (§17.3), macht den Container zwangsläufig zu einem Wrapper.
+>
+> **Zwei Fehler im Harness, beide lehrreich:**
+>
+> - *Der Hydrationscontainer war das `<form>`.* `HydratingCursor.root(container)` beginnt beim
+>   ersten hydrierbaren Kind — das war das `<label>` und nicht die `<section>` des Feldes. Die
+>   Testseite gibt dem Feld jetzt einen eigenen `<div id="editor-host">`. Eine Anwendung muss
+>   dasselbe tun: der Container ist die Grenze des Komponentenbaums, nicht der Kasten drumherum.
+> - *Der Testserver liefert die `fullLinkJS`-Ausgabe.* Er scheitert laut, wenn **kein**
+>   Linkeroutput da ist, aber nicht, wenn ein alter da ist. Ein halber Diagnosezyklus lief gegen
+>   ein Bundle von vorgestern, während `fastLinkJS` brav in ein anderes Verzeichnis schrieb.
+>   Steht jetzt im [Harness-README](ember-integration/browser/README.md).
+>
+> **Bewusste Entscheidungen:**
+>
+> - *`SelectionDirection` ist der Begriff des Kerns (§11), kein zweiter daneben.* Ein eigenes
+>   Enum bräuchte an jeder Verwendung eine Umrechnung, und genau dort liefen die beiden
+>   irgendwann auseinander. Was unterschiedlich ist, ist nur das Vokabular: `"none"` im DOM
+>   heißt `Collapsed` im Kern.
+> - *Fokus allein genügt zum Aufschieben.* Nicht weil Fokus Composition bedeutet, sondern weil
+>   ein fokussiertes Feld der einzige Ort ist, an dem eine vor dem Attach begonnene laufen
+>   könnte — und es keinen Weg gibt zu fragen (§17.2). „Nein" zu raten hieße, Text mitten in
+>   einer Composition zu ersetzen.
+> - *Die Aktivierung ist eine Funktion, kein Controller.* Jede Bedingung aus §17 ist eine
+>   Eigenschaft von Werten, die der Aufrufer ohnehin hat. Ein Controller hielte Kopien davon,
+>   die widersprechen könnten; so ist „wiederholtes Enhancement ist idempotent" keine Zusage,
+>   sondern eine Eigenschaft.
+> - *Geprüft werden nur die Attribute, die die Semantik nennt, und nur Elementkinder.* Eine
+>   Seite darf eigene Attribute mitbringen, und die Gruppenanker der Runtime sind keine
+>   Dokumentknoten. Beides mitzuzählen machte den Check in jeder realen Anwendung unbrauchbar.
+> - *Höchstens acht Abweichungen.* Eine Abweichung weit oben lässt jeden Knoten darunter
+>   abweichen; die ersten paar sagen, wo es anfing, und das ist die Frage, die ein Leser hat.
+>
+> Modulvertrag: [ember-browser/README.md](ember-browser/README.md).
 
 - **Ziel:** Rich-Subtree übernehmen oder lokal ersetzen, ohne Fallback/Nutzereingabe zu zerstören.
 - **Module:** jfx-core; jfx; forms; neues browser mit Hydration-Aktivierung; IT.

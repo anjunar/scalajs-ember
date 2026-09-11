@@ -9,16 +9,16 @@ Verbindlicher Entwurf: [JFX_EDITOR_ARCHITECTURE.md](../JFX_EDITOR_ARCHITECTURE.m
 | --- | --- |
 | sbt-ID / Artefakt | `scalajs-ember-forms` |
 | Scala-Paket | `ember.editor.forms` |
-| Produktionsabhängigkeiten | `scalajs-ember-core`, `scalajs-ember-markdown`, `scalajs-ember-json`, `scalajs-ember-html`, `scalajs-ember-jfx` |
+| Produktionsabhängigkeiten | `scalajs-ember-core`, `scalajs-ember-markdown`, `scalajs-ember-json`, `scalajs-ember-html`, `scalajs-ember-jfx`, `scalajs-ember-browser` |
 
 ## Stand
 
-**P19b abgeschlossen.** Vorhanden: `FieldCodec`, `EditorField` samt `EncodedFieldValue`,
-`SourceDraft`, `EditorFormBinding` und `EditorFieldView`.
+**P19b und der Feldanteil von P20 abgeschlossen.** Vorhanden: `FieldCodec`, `EditorField`
+samt `EncodedFieldValue`, `SourceDraft`, `EditorFormBinding` und `EditorFieldView` — letzteres
+seit P20 mit der Hydrationsgrenze.
 
-§6 führt außerdem `browser` und `jfx-forms` als Abhängigkeiten. Beide fehlen hier mit Absicht:
-`ember-browser` gibt es erst ab P20, und die Textarea kommt aus jfx-core (P19a). Der
-Media-Service aus §6 ist P26.
+§6 führt außerdem `jfx-forms` als Abhängigkeit. Das fehlt hier mit Absicht: die Textarea kommt
+aus jfx-core (P19a). Der Media-Service aus §6 ist P26.
 
 ## Verwendung
 
@@ -112,6 +112,38 @@ Formularnamen"). Zwei Werte für einen Namen wären für einen Server nicht aufl
 Action, Methode, CSRF, Validierung, Persistenz und Fehlerrückgabe liefert die Anwendung. Der
 Editor erfindet dafür keinen HTTP-Endpunkt.
 
+## Hydration: was drinnen liegt und was draußen
+
+§17.3 legt eine Linie durch dieses Feld:
+
+> Der Fallback liegt außerhalb der austauschbaren Rich-View-Boundary und bleibt bei deren
+> Fehler erhalten.
+
+Deshalb komponiert `EditorFieldView` die Textarea **zuerst und außerhalb** der
+`HydrationBoundary`, und nur die Vorschau steht darin. Läge sie darin, nähme ein
+fehlgeschlagener Claim sie mit — samt dem, was jemand hineingetippt hat. Das ist kein
+theoretischer Fall: der Fehlerpfad der Boundary räumt ihre Kinder ab und baut genau einmal neu
+auf.
+
+Drei Rückrufe verbinden das Feld mit §17:
+
+| | |
+| --- | --- |
+| `capture` | liest die **Textarea**, obwohl die Boundary den Vorschau-Host herüberreicht — was zu retten ist, darf nicht in dem liegen, was scheitern kann |
+| `preflight` | `EditorHydration.preflightContent` gegen dieselbe `HtmlSupport`, die die Seite gerendert hat |
+| `onRecovery` | merkt sich, dass der Claim gescheitert ist; `activation` meldet danach `Failed` |
+
+Die Vorschau hydriert über den Cursor, den die Boundary ihrem Block gibt, **nicht** über
+`Runtime.contentCursor`. Der eigene Cursor der Komponente ist nach `withHydrationBoundary`
+leer — der Bereich gehört ab da dem isolierten. Serverseitig fällt das nicht auf, weil ein
+`SsrCursor` nichts zu übernehmen hat; im Browser hydrierte die Vorschau an einer Stelle, die
+gerade abgegeben worden war.
+
+`activate()` und `activation(pageHydrated)` sind getrennt: das eine ist die Entscheidung
+(`ember-browser`), das andere die Handlung. `importCapturedSource()` ist §17.4 — erst gegen
+den Server-Snapshot claimen, dann den getippten Quelltext übernehmen, und ein Parsefehler lässt
+den Entwurf editierbar und verhindert das Enhancement.
+
 ## Die Kosten, ausgesprochen
 
 §16 verlangt es ausdrücklich:
@@ -143,7 +175,7 @@ ein eigener Blocktyp ist die Probe, dass es keines braucht — dasselbe Argument
 `BlockNode` in `ember-image`.
 
 Was nur eine echte Engine beantwortet, steht im Browser-Gate:
-[ember-integration/browser](../ember-integration/browser/README.md), `nojs-form.spec.mjs` und
-`source-form.spec.mjs`. Der Testserver rendert das Feld dabei **im Serverprozess** durch
+[ember-integration/browser](../ember-integration/browser/README.md), `nojs-form.spec.mjs`,
+`source-form.spec.mjs` und `editor-hydration.spec.mjs`. Der Testserver rendert das Feld dabei **im Serverprozess** durch
 denselben `EditorFieldView` — möglich nur, weil §15.2 zusichert, dass ein Modulimport weder
 `window` noch `document` liest.

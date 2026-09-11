@@ -32,6 +32,12 @@ npm run verify
 Ohne vorherigen Link brechen beide mit einer Meldung ab, statt gegen eine alte Ausgabe zu
 laufen.
 
+**Der Link muss `fullLinkJS` sein.** Der Server liest `target/ember-browser-tests/`;
+`fastLinkJS` schreibt nach `target/ember-browser-tests-fast/`, und der Harness sieht davon
+nichts. Er scheitert laut, wenn **kein** Output da ist — ein **alter** sieht genauso aus wie
+ein aktueller. Wer waehrend einer Fehlersuche `fastLinkJS` laufen laesst, debuggt das Bundle
+von vorhin; das hat in P20 einen halben Diagnosezyklus gekostet.
+
 ## Die Suiten
 
 | Datei | Was sie prüft |
@@ -147,3 +153,26 @@ Entwurf eine fremde Dokumentaenderung ueberlebt.
 Die Vertragsregeln selbst — Besitz, Baseline, Atomaritaet — stehen headless in
 `ember-forms/…/EditorFieldSpec.scala`. Eine Regel prueft man besser als eine ihrer
 Darstellungen.
+
+## Hydration (P20)
+
+`editor-hydration.spec.mjs` ist der Teil von §17, den keine headless Pruefung beantwortet. §17
+ist eine Aussage ueber eine Seite, die der Server schon geschickt hat: was in der Textarea
+stand, bevor das Skript lief, welche Hosts einen Claim ueberleben, und was stehen bleibt, wenn
+er scheitert.
+
+Die Suite laedt `/form`, haengt danach das Modul als `<script type="module">` an und hydriert
+erst dann — dieselbe Reihenfolge, die eine echte Seite hat, und der einzige Weg, vor dem Skript
+zu tippen.
+
+Der Hydrationscontainer ist `<div id="editor-host">` und nicht das `<form>`:
+`HydratingCursor.root(container)` beginnt beim **ersten hydrierbaren Kind**, und das war sonst
+das `<label>` davor. Eine Anwendung muss dasselbe tun — der Container ist die Grenze des
+Komponentenbaums, nicht der Kasten drumherum.
+
+Was hier gefunden wurde und headless unsichtbar war: die Vorschau hydrierte ueber den Cursor der
+Boundary-Komponente statt ueber den isolierten, den sie ihrem Block gibt. Ein `SsrCursor` hat
+nichts zu uebernehmen und faellt darauf nicht herein.
+
+Die Entscheidungsregeln — wann aktiviert werden darf und warum nicht — stehen headless in
+`ember-browser/…/HydrationBoundarySpec.scala`.

@@ -40,7 +40,7 @@ function formPage(source) {
   return `<!doctype html><html><head><meta charset="utf-8"></head><body>
 <form method="post" action="/submitted" id="editor-form">
 <label for="body-source">Inhalt</label>
-${formFixtures.renderForNoScript(source)}
+<div id="editor-host">${formFixtures.renderForNoScript(source)}</div>
 <button type="submit" id="save">Speichern</button>
 <button type="reset" id="revert">Zuruecksetzen</button>
 </form>
