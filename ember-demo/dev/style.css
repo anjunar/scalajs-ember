@@ -124,8 +124,22 @@ body {
   margin-bottom: 0;
 }
 
-/* Der Textlauf, in dem der Modellcaret steht. Keine DOM-Auswahl -- die gibt es erst mit P21;
-   die Markierung laeuft ueber DocumentView.componentFor. */
+/* Ein leerer Block hat sonst keine Hoehe.
+
+   Ein Absatz ohne Text enthaelt nur einen leeren Textlauf, und ein leeres Inline-Element erzeugt
+   keine Zeilenbox -- der Block faellt auf 0px zusammen, ist unsichtbar und nicht anklickbar. Wer
+   Enter drueckt, sieht dann nichts passieren, obwohl das Dokument einen neuen Absatz hat.
+
+   Architektur §11 sieht dafuer langfristig einen Platzhalter-<br> in der Editieransicht vor --
+   "ein Platzhalter-`br` ist kein persistentes Dokumentzeichen". Den gibt es noch nicht; er
+   beruehrt Positionsabbildung, Hydration und Projektion und braucht einen eigenen Entwurf. Bis
+   dahin ist die Hoehe das, was eine Anwendung ohnehin selbst setzt. */
+.ember-demo__surface article :is(p, h1, h2, h3, h4, h5, h6, blockquote, li) {
+  min-height: 1.4em;
+}
+
+/* Der Textlauf, in dem der Modellcaret steht. Neben der echten Browserauswahl (P21), nicht
+   statt ihrer: die Markierung laeuft ueber DocumentView.componentFor und zeigt den Modellwert. */
 .ember-caret-run {
   background: var(--accent-soft);
   box-shadow: inset 0 -1px 0 var(--accent);

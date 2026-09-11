@@ -213,6 +213,28 @@ object EditingFixtures:
       case Left(error) => s"rejected:${error.render}"
       case Right(_)    => port.write(Some(selection), WriteIntent.Explicit).toString
 
+  /** Whether the fixture's atom is still in the document. */
+  @JSExport
+  def hasAtom(): Boolean = session.document.node(NodeId("a0")).isDefined
+
+  /** A caret at the child boundary right behind the atom. */
+  @JSExport
+  def setCaretAfterAtom(): String =
+    val parent = NodeId("p1")
+    val index  = session.document.childrenOf(parent).indexOf(NodeId("a0")) + 1
+    val selection = RangeSelection.caret(Point.childrenBefore(parent, index))
+    session.update(_.select(selection): Unit) match
+      case Left(error) => s"rejected:${error.render}"
+      case Right(_)    => port.write(Some(selection), WriteIntent.Explicit).toString
+
+  /** Selects the atom as a node (§11). */
+  @JSExport
+  def selectAtom(): String =
+    val selection = NodeSelection(Set(NodeId("a0")))
+    session.update(_.select(selection): Unit) match
+      case Left(error) => s"rejected:${error.render}"
+      case Right(_)    => port.write(Some(selection), WriteIntent.Explicit).toString
+
   @JSExport
   def setReadOnly(readOnly: Boolean): Unit =
     controller.setMode(if readOnly then EditorMode.ReadOnly else EditorMode.Editable)

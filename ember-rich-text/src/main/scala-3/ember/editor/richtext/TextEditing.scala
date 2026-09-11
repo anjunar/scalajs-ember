@@ -209,9 +209,22 @@ object TextEditing:
       scope: TransformScope,
       boundaries: TextBoundaryService
   ): Either[UpdateError, Unit] =
+    scope.selection match
+      case Some(nodes: NodeSelection) => deleteNodes(scope, nodes)
+      case _                          => deleteBackwardFromRange(scope, boundaries)
+
+  private def deleteBackwardFromRange(
+      scope: TransformScope,
+      boundaries: TextBoundaryService
+  ): Either[UpdateError, Unit] =
     currentRange(scope) match
       case None                              => Right(())
       case Some(range) if !range.isCollapsed => deleteRange(scope, range)
+      // An atom right behind the caret goes as a whole. Without this the caret resolves past it
+      // to the text in front, and Backspace eats a character while the picture stays (§22).
+      case Some(range) if atomBefore(scope.document, range.focus).isDefined =>
+        val (parent, atom, index) = atomBefore(scope.document, range.focus).get
+        removeAtom(scope, parent, atom, index)
       case Some(range)                       =>
         val document = scope.document
         textPositionOf(document, range.focus) match
@@ -248,9 +261,20 @@ object TextEditing:
       scope: TransformScope,
       boundaries: TextBoundaryService
   ): Either[UpdateError, Unit] =
+    scope.selection match
+      case Some(nodes: NodeSelection) => deleteNodes(scope, nodes)
+      case _                          => deleteForwardFromRange(scope, boundaries)
+
+  private def deleteForwardFromRange(
+      scope: TransformScope,
+      boundaries: TextBoundaryService
+  ): Either[UpdateError, Unit] =
     currentRange(scope) match
       case None                              => Right(())
       case Some(range) if !range.isCollapsed => deleteRange(scope, range)
+      case Some(range) if atomAfter(scope.document, range.focus).isDefined =>
+        val (parent, atom, index) = atomAfter(scope.document, range.focus).get
+        removeAtom(scope, parent, atom, index)
       case Some(range)                       =>
         val document = scope.document
         textPositionOf(document, range.focus) match
@@ -308,12 +332,21 @@ object TextEditing:
       case (Some(startBlock), Some(endBlock)) =>
         for
           _ <- trimTail(scope, startNode, startOffset)
-          _ <- removeAfter(scope, startNode)
-          _ <- removeBefore(scope, endNode)
+          // Within one block only what lies '''between''' the two goes. Across blocks, everything
+          // after the first and everything before the second.
+          //
+          // The distinction was missing, and inside one block `removeAfter` then swept up to the
+          // end: selecting an image between two runs deleted the image and the whole run behind
+          // it. The same happened to a range from one marked run into the next -- text beyond the
+          // selection disappeared. Found by selecting a picture in the demo and pressing
+          // Backspace.
+          _ <-
+            if startBlock == endBlock then removeBetween(scope, startNode, endNode)
+            else removeAfter(scope, startNode).flatMap(_ => removeBefore(scope, endNode))
           _ <- trimHead(scope, endNode, endOffset)
           _ <- removeBlocksBetween(scope, startBlock, endBlock)
           _ <-
-            if startBlock == endBlock then Right(())
+            if startBlock == endBlock then healBetween(scope, startNode, endNode)
             else joinBlocks(scope, into = startNode, from = endNode)
           _ <- scope.select(RangeSelection.caret(Point.textBefore(startNode, startOffset)))
         yield ()
@@ -333,6 +366,32 @@ object TextEditing:
       until: Int
   ): Either[UpdateError, Unit] =
     if until <= 0 then Right(()) else scope.spliceText(node, 0, until, "")
+
+  /** Entfernt die Geschwister, die zwischen zwei Knoten desselben Blocks liegen. */
+  private def removeBetween(
+      scope: TransformScope,
+      left: NodeId,
+      right: NodeId
+  ): Either[UpdateError, Unit] =
+    siblingsOf(scope.document, left) match
+      case Some((siblings, index)) =>
+        siblings.indexOf(right) match
+          case until if until > index => removeAll(scope, siblings.slice(index + 1, until))
+          case _                      => Right(())
+      case None => Right(())
+
+  /** Closes the seam between two runs that a removal has made neighbours. */
+  private def healBetween(
+      scope: TransformScope,
+      left: NodeId,
+      right: NodeId
+  ): Either[UpdateError, Unit] =
+    if left == right then Right(())
+    else
+      scope.document.parentOf(left) match
+        case Some(parent) =>
+          healSeam(scope, parent, scope.document.childrenOf(parent).indexOf(left) + 1)
+        case None => Right(())
 
   /** Entfernt alle Geschwister hinter `node` in dessen Block. */
   private def removeAfter(scope: TransformScope, node: NodeId): Either[UpdateError, Unit] =
@@ -392,6 +451,151 @@ object TextEditing:
   // -----------------------------------------------------------------------------------------
   // Kleinteiliges
   // -----------------------------------------------------------------------------------------
+
+  // -----------------------------------------------------------------------------------------
+  // Atome
+  // -----------------------------------------------------------------------------------------
+
+  /** The atom immediately before a caret, if there is one.
+    *
+    * ==Why this is needed at all==
+    *
+    * [[textPositionOf]] resolves a point to a position in a '''text run''', and an atom is not
+    * one. Without this, a Backspace behind a picture reaches past it and deletes the last
+    * character of the run in front of it -- the picture stays, and something else disappears. A
+    * browser test of the demo found exactly that.
+    *
+    * §22 states the requirement: "Atomare Medien sind per Tastatur erreichbar und loeschbar."
+    *
+    * Two shapes of caret mean "right behind the atom": the child boundary after it, and the
+    * start of the text run that follows it. Both occur -- the first from a click on the
+    * boundary, the second from ordinary arrow navigation, which lands in text.
+    */
+  private def atomBefore(document: DocumentRead, point: Point): Option[(NodeId, NodeId, Int)] =
+    neighbours(document, point).flatMap { (parent, children, index) =>
+      children
+        .lift(index - 1)
+        .filter(id => document.node(id).exists(_.isInstanceOf[AtomNode]))
+        .map(atom => (parent, atom, index - 1))
+    }
+
+  /** The atom immediately after a caret. Mirror image of [[atomBefore]]. */
+  private def atomAfter(document: DocumentRead, point: Point): Option[(NodeId, NodeId, Int)] =
+    neighbours(document, point).flatMap { (parent, children, index) =>
+      children
+        .lift(index)
+        .filter(id => document.node(id).exists(_.isInstanceOf[AtomNode]))
+        .map(atom => (parent, atom, index))
+    }
+
+  /** The caret as a position between siblings: the parent, its children, and the index.
+    *
+    * A text point only counts at the very start or the very end of its run. In the middle of a
+    * run there is no neighbour to speak of -- the character next to the caret is text.
+    */
+  private def neighbours(
+      document: DocumentRead,
+      point: Point
+  ): Option[(NodeId, Vector[NodeId], Int)] =
+    point match
+      case Point.Children(parent, index, _) =>
+        Some((parent, document.childrenOf(parent), index))
+
+      case Point.Text(node, offset, _) =>
+        val text = textOf(document, node)
+        siblingsOf(document, node).flatMap { (children, index) =>
+          document.parentOf(node).flatMap { parent =>
+            if offset == 0 then Some((parent, children, index))
+            else if offset == text.length then Some((parent, children, index + 1))
+            else None
+          }
+        }
+
+  /** Removes an atom and leaves the caret where it stood.
+    *
+    * The caret goes to the end of the text before it, or the start of the text after it, and only
+    * falls back to the child boundary when there is neither. A boundary is a valid caret, but it
+    * is not one a person can see -- and after deleting a picture between two words the caret
+    * belongs between those words.
+    */
+  private def removeAtom(
+      scope: TransformScope,
+      parent: NodeId,
+      atom: NodeId,
+      index: Int
+  ): Either[UpdateError, Unit] =
+    val document = scope.document
+    val children = document.childrenOf(parent)
+    val before   = children.lift(index - 1).flatMap(asText(document, _))
+    val after    = children.lift(index + 1).flatMap(asText(document, _))
+
+    val caret = before
+      .map(id => Point.textBefore(id, textOf(document, id).length))
+      .orElse(after.map(Point.textBefore(_, 0)))
+      .getOrElse(Point.childrenBefore(parent, index))
+
+    for
+      _ <- scope.remove(atom)
+      _ <- healSeam(scope, parent, index)
+      _ <- scope.select(RangeSelection.caret(caret))
+    yield ()
+
+  /** Closes the seam a removal left between two runs.
+    *
+    * ==Why this is not the normalisation rule's job==
+    *
+    * It would be, if the rule could see it. `TextRunNormalization` is bound to `TextNode` and its
+    * own comment explains why -- a rule on the block "would sit there through every formatting
+    * change without ever being asked". Its premise is that a seam appears only when something
+    * happens to a run.
+    *
+    * Removing a node from '''between''' two runs breaks that premise: neither run changed, so
+    * neither is a transform candidate, and the document keeps two adjacent runs with identical
+    * marks -- exactly what §8.2 says must grow back together. A test found it as
+    * `"Hallo " | " Welt"` where `"Hallo  Welt"` belongs.
+    *
+    * So the caller closes what the caller opened. The '''decision''' still belongs to the rule:
+    * [[TextRunNormalization.mergeable]] is what is asked.
+    */
+  private def healSeam(
+      scope: TransformScope,
+      parent: NodeId,
+      index: Int
+  ): Either[UpdateError, Unit] =
+    val document = scope.document
+    val children = document.childrenOf(parent)
+
+    (children.lift(index - 1), children.lift(index)) match
+      case (Some(left), Some(right)) if TextRunNormalization.mergeable(document, left, right) =>
+        scope.mergeText(left, right)
+      case _ => Right(())
+
+  /** Removes whatever a [[NodeSelection]] holds.
+    *
+    * §11 keeps node selection as its own kind, and §22 asks for atomic media to be deletable.
+    * Without this, Backspace on a selected picture does nothing at all: [[currentRange]] sees no
+    * range and every delete path returns early.
+    */
+  private def deleteNodes(scope: TransformScope, selection: NodeSelection): Either[UpdateError, Unit] =
+    val document = scope.document
+    val ordered  = selection.normalized(document).nodes.toVector
+
+    val caret = ordered.headOption
+      .flatMap(document.parentOf)
+      .map(parent => Point.childrenBefore(parent, 0))
+
+    val seams = ordered.flatMap(id =>
+      document.parentOf(id).map(parent => (parent, document.childrenOf(parent).indexOf(id)))
+    )
+
+    ordered
+      .foldLeft[Either[UpdateError, Unit]](Right(()))((carry, id) => carry.flatMap(_ => scope.remove(id)))
+      .flatMap(_ =>
+        seams.foldLeft[Either[UpdateError, Unit]](Right(())) { (carry, seam) =>
+          carry.flatMap(_ => healSeam(scope, seam._1, seam._2))
+        }
+      )
+      .flatMap(_ => caret.fold(Right(()))(point => scope.select(RangeSelection.caret(point))))
 
   private def currentRange(scope: TransformScope): Option[RangeSelection] =
     scope.selection.collect { case range: RangeSelection => range }

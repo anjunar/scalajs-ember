@@ -120,6 +120,13 @@ belongs to P22." Die Brücke ist weg, und mit ihr die Demo-Commands, die nur sie
 Ownership-Liste" führt. Neu ist, dass daneben eine echte Browserauswahl steht, die mit ihm
 übereinstimmt.
 
+**Ein leerer Absatz braucht Höhe.** Ein Block ohne Text enthält nur einen leeren Textlauf, und
+ein leeres Inline-Element erzeugt keine Zeilenbox — der Absatz fällt auf 0px zusammen und ist
+unsichtbar. Wer Enter drückt, sieht dann nichts passieren, obwohl das Dokument einen neuen Absatz
+hat. Architektur §11 sieht dafür langfristig einen Platzhalter-`br` in der Editieransicht vor;
+bis den jemand entworfen hat, ist die Mindesthöhe das, was eine Anwendung ohnehin selbst setzt —
+hier im Stylesheet der Demo.
+
 **Tab rückt ein und sperrt niemanden ein.** §22 lässt Einrückung auf Tab nur ausdrücklich
 aktiviert zu und verlangt einen Ausgang: Escape, dann Tab, und der Fokus geht weiter. Die Demo
 schaltet `TabPolicy.IndentsUntilEscape` ein und zeigt beides.

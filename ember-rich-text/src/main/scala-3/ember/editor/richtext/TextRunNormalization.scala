@@ -98,7 +98,13 @@ private[richtext] object TextRunNormalization:
     * removed by `DropRedundantEmptyText`, and merging it here would do the same job in a way
     * that also moves a caret sitting in it.
     */
-  private def mergeable(document: DocumentRead, left: NodeId, right: NodeId): Boolean =
+  /** Whether two children may become one run.
+    *
+    * Visible in the package because a caller that '''creates''' a seam has to close it. Removing
+    * a node from between two runs changes neither of them, so this rule -- bound to `TextNode` --
+    * is never asked about it; see [[TextEditing.removeAtom]].
+    */
+  private[richtext] def mergeable(document: DocumentRead, left: NodeId, right: NodeId): Boolean =
     (document.node(left), document.node(right)) match
       case (Some(first: TextNode), Some(second: TextNode)) => first.marks == second.marks
       case _                                               => false

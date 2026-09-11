@@ -137,6 +137,55 @@ nicht an, auf den die Auswahl zeigt (ein aufgeräumter Baum ist keinen verlorene
 Enter teilt am Absatzanfang und -ende weiterhin nicht — das bleibt eine bewusste Auslassung.
 Die Naht beim Zusammenführen zweier Blöcke räumt seit P12 die Normalisierung auf.
 
+## Atome im Fluss
+
+Ein [[AtomNode]] — ein Bild etwa — steht zwischen Textläufen, und §22 verlangt, dass er per
+Tastatur erreichbar und **löschbar** ist. Das war er nicht.
+
+Der Grund liegt in einer Annahme, die für Text richtig ist: ein Caret wird zu einer Position in
+einem **Textlauf** aufgelöst. Ein Atom ist keiner. Ein Backspace hinter einem Bild griff deshalb
+daran vorbei und nahm das letzte Zeichen des Laufs *davor* — das Bild blieb, etwas anderes
+verschwand. Gefunden beim Benutzen der Demo.
+
+Seit P22 gilt:
+
+| Caret | Backspace | Entfernen |
+| --- | --- | --- |
+| direkt hinter einem Atom | entfernt das Atom | Text wie bisher |
+| direkt vor einem Atom | Text wie bisher | entfernt das Atom |
+| mitten im Text | ein Graphemcluster | ein Graphemcluster |
+| `NodeSelection` | entfernt die ausgewählten Knoten | dasselbe |
+
+„Direkt hinter" hat zwei Gestalten, und beide kommen vor: die Kindgrenze hinter dem Atom (ein
+Klick) und der Anfang des Laufs dahinter (Pfeilnavigation, die immer in Text landet). Eine Regel,
+die nur eine davon kennte, funktionierte in der Hälfte der Fälle.
+
+### Ein Bereich, der ein Atom umschliesst
+
+Was ein Klick auf ein Bild erzeugt: der Browser waehlt es aus, und der Port bildet das auf einen
+Bereich von der Grenze davor bis zur Grenze dahinter ab. Auch das ging schief -- und zwar aus
+einem Grund, der nichts mit Atomen zu tun hatte.
+
+`deleteAcross` entfernte **alle** Geschwister hinter dem Startknoten und alle vor dem Endknoten.
+Innerhalb *eines* Blocks heisst das: alles bis zum Blockende. Ein ausgewaehltes Bild nahm den
+ganzen Lauf dahinter mit, und eine Auswahl von einem markierten Lauf in den naechsten loeschte
+Text weit hinter ihrem Ende.
+
+Liegen beide Enden im selben Block, faellt seither nur weg, was **dazwischen** liegt.
+
+### Die Naht danach
+
+Wird ein Knoten **zwischen** zwei Läufen entfernt, ändert sich keiner der beiden — also ist auch
+keiner ein Transform-Kandidat, und die Normalisierung aus §8.2 wird nie gefragt. Das Dokument
+behielt zwei benachbarte Läufe mit gleichen Marks, wo einer hingehört (`"Hallo " | " Welt"` statt
+`"Hallo  Welt"`).
+
+Die Regel selbst hängt mit gutem Grund am Lauf und nicht am Block (siehe
+[Textlauf-Normalisierung](#textlauf-normalisierung)). Ihre Prämisse — eine Naht entsteht nur,
+wenn einem Lauf etwas zustößt — stimmt für Textänderungen und nicht für diesen Fall. Deshalb
+schließt der Aufrufer, was er aufgerissen hat; die **Entscheidung** bleibt bei der Regel
+(`TextRunNormalization.mergeable`).
+
 ## Unicode-Grenzen
 
 `UnicodeTextBoundaries` implementiert die Grapheme-Cluster-Regeln **GB1–GB13** aus UAX #29 —

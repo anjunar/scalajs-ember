@@ -1912,6 +1912,31 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 >   Statusmeldung" und §16 eine sichtbare Ablehnung an der Formatgrenze. Beide brauchen jemanden,
 >   der weiß, dass etwas abgelehnt wurde — und das ist der Controller.
 >
+> **Drei Fehler, die erst das Benutzen der Demo zeigte.** P22 hat die Demo an die echte Pipeline
+> gehaengt, und damit wurde zum ersten Mal wirklich getippt statt getestet:
+>
+> - *Ein leerer Block hat keine Hoehe.* Ein Absatz ohne Text enthaelt nur einen leeren Textlauf,
+>   und ein leeres Inline-Element erzeugt keine Zeilenbox -- der Block faellt auf 0px zusammen. Wer
+>   Enter drueckt, sieht nichts passieren, obwohl das Dokument einen neuen Absatz hat. §11 sieht
+>   dafuer langfristig einen Platzhalter-`br` in der Editieransicht vor; den gibt es noch nicht, er
+>   beruehrt Positionsabbildung, Hydration und Projektion und braucht einen eigenen Entwurf. Die
+>   Demo setzt bis dahin eine Mindesthoehe, so wie es eine Anwendung ohnehin tut.
+> - *Ein Atom liess sich nicht loeschen.* §22 verlangt "atomare Medien sind per Tastatur erreichbar
+>   und loeschbar", und sie waren es nicht: ein Caret wird zu einer Position in einem **Textlauf**
+>   aufgeloest, ein Atom ist keiner. Backspace hinter einem Bild griff daran vorbei und nahm das
+>   letzte Zeichen des Laufs davor -- das Bild blieb, etwas anderes verschwand. `TextEditing` kennt
+>   jetzt den Nachbarn und die `NodeSelection`.
+> - *Und dahinter lag ein aelterer:* `deleteAcross` entfernte alle Geschwister hinter dem
+>   Startknoten und alle vor dem Endknoten -- innerhalb **eines** Blocks also alles bis zum
+>   Blockende. Ein ausgewaehltes Bild nahm den ganzen Lauf dahinter mit, und eine Auswahl von einem
+>   markierten Lauf in den naechsten loeschte Text weit hinter ihrem Ende. Das war seit P12 so und
+>   hatte mit Atomen nichts zu tun; ohne eine bedienbare Flaeche faellt es nur niemandem auf.
+>
+> Dazu die Naht: wird ein Knoten **zwischen** zwei Laeufen entfernt, aendert sich keiner der
+> beiden -- also ist auch keiner ein Transform-Kandidat, und §8.2s Normalisierung wird nie
+> gefragt. Der Aufrufer schliesst jetzt, was er aufgerissen hat; die Entscheidung bleibt bei der
+> Regel.
+>
 > Modulverträge: [ember-browser/README.md](ember-browser/README.md),
 > [ember-browser-support/README.md](ember-browser-support/README.md).
 

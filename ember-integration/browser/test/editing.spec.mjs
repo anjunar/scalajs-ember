@@ -310,6 +310,66 @@ test.describe('Tippen im echten Browser', () => {
     expect(await model(page)).toBe('xHallo Welt\nZweite Zeile')
   })
 
+
+  // -------------------------------------------------------------------------------------
+  // Atome (§22)
+  // -------------------------------------------------------------------------------------
+
+  test('loescht ein Atom mit Backspace dahinter', async ({ page }) => {
+    // §22: "Atomare Medien sind per Tastatur erreichbar und loeschbar." Vorher nicht: ein Caret
+    // loest zu einer Position in einem Textlauf auf, und ein Atom ist keiner -- Backspace griff
+    // daran vorbei und nahm ein Zeichen aus dem Lauf davor. Gefunden beim Benutzen der Demo.
+    await open(page)
+    await page.evaluate(() => {
+      window.editing.setCaretAfterAtom()
+      window.editing.clearOutcomes()
+    })
+
+    await page.keyboard.press('Backspace')
+
+    expect(await page.evaluate(() => window.editing.hasAtom())).toBe(false)
+    expect(await model(page)).toBe('Hallo Welt\nZweite Zeile')
+  })
+
+  test('loescht es mit Entfernen davor', async ({ page }) => {
+    await open(page)
+    await page.evaluate(() => {
+      window.editing.setCaret('t1', 12)
+      window.editing.clearOutcomes()
+    })
+
+    await page.keyboard.press('Delete')
+
+    expect(await page.evaluate(() => window.editing.hasAtom())).toBe(false)
+  })
+
+  test('loescht ein ausgewaehltes Atom', async ({ page }) => {
+    // §11 fuehrt `NodeSelection` als eigene Art. Vorher lief jeder Loeschweg darauf ins Leere:
+    // es gab keine Range zu sehen, und Backspace tat gar nichts.
+    await open(page)
+    await page.evaluate(() => {
+      window.editing.selectAtom()
+      window.editing.clearOutcomes()
+    })
+
+    await page.keyboard.press('Backspace')
+
+    expect(await page.evaluate(() => window.editing.hasAtom())).toBe(false)
+  })
+
+  test('laesst den Text daneben in Ruhe', async ({ page }) => {
+    await open(page)
+    await page.evaluate(() => {
+      window.editing.setCaret('t1', 6)
+      window.editing.clearOutcomes()
+    })
+
+    await page.keyboard.press('Backspace')
+
+    expect(await page.evaluate(() => window.editing.hasAtom())).toBe(true)
+    expect(await model(page)).toBe('Hallo Welt\nZweit Zeile')
+  })
+
   // -------------------------------------------------------------------------------------
   // Barrierefreiheit (§22)
   // -------------------------------------------------------------------------------------
