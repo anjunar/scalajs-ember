@@ -1,7 +1,7 @@
-# JFX Core: Grundlagen für externe interaktive Komponenten
+# UI Core: Grundlagen für externe interaktive Komponenten
 
-Stand: 9. September 2026. Die hier beschriebenen Scala.js-APIs sind in `jfx-core`
-implementiert — im Nachbar-Repo `../scalajs-jfx`, nicht hier. Ein externer Editor kann davon
+Stand: 9. September 2026. Die hier beschriebenen Scala.js-APIs sind in `ui-core`
+implementiert — im Nachbar-Repo `../scalajs-ui`, nicht hier. Ein externer Editor kann davon
 abhängen; Dokumentmodell, Transaktionen, Textnormalisierung, Commands, Selection-Mapping,
 Eingabecontroller und Plugins werden im eigenen Repository entwickelt. Der vorhandene
 Editor-Prototyp wurde hierfür nicht verwendet.
@@ -10,22 +10,22 @@ Dieses Repository (`scalajs-ember`) ist der Konsument. Die Einbindung erfolgt se
 das veröffentlichte Artefakt:
 
 ```scala
-libraryDependencies += "com.anjunar" %% "scalajs-jfx-core" % "3.0.5"
+libraryDependencies += "com.anjunar" %% "scalajs-ui-core" % "1.0.0"
 ```
 
 Bis dahin war es eine Quell-Abhängigkeit auf das Verzeichnis
-(`ProjectRef(file("../scalajs-jfx"), "scalajs-jfx-core")`). Das war richtig, solange jfx-core
+(`ProjectRef(file("../scalajs-ui"), "scalajs-ui-core")`). Das war richtig, solange ui-core
 sich unter dem Editor bewegte — er war dessen erster ernsthafter Konsument, und jeder Befund
-musste dort sofort behoben werden können. Mit 3.0.5 ist der Vertrag abgenommen, also endet die
+musste dort sofort behoben werden können. Mit 1.0.0 ist der Vertrag abgenommen, also endet die
 Kopplung: beide Repos lassen sich jetzt parallel bearbeiten, und dieser Build hängt an einer
 Version statt an einem Arbeitsverzeichnis.
 
 **Was das für die Verträge unten nicht ändert:** Sie gelten unverändert und sind weiterhin
-Befund, kein Entwurf. Was sich ändert, ist die Reihenfolge — eine Ergänzung in jfx-core wird
+Befund, kein Entwurf. Was sich ändert, ist die Reihenfolge — eine Ergänzung in ui-core wird
 erst hier sichtbar, wenn sie veröffentlicht ist. Ein Befund, der eine Änderung dort verlangt,
 gehört ins Nachbar-Repo und in eine neue Version, nicht in einen lokalen Workaround.
 
-Alle Quellpfade unten sind relativ zu `../scalajs-jfx/jfx-core/src/main/scala-3/jfx/core/`
+Alle Quellpfade unten sind relativ zu `../scalajs-ui/scala/scalajs-ui-core/src/main/scala-3/ui/core/`
 zu lesen — sie zeigen auf die Quellen des Artefakts, nicht mehr auf den Build.
 
 ## Öffentliche Verträge
@@ -84,7 +84,7 @@ rekonstruierbar. Ein aktiver Eingabebereich muss für diesen Zeitraum geschützt
 
 ## Native Textarea und SSR
 
-`jfx.core.layout.TextArea` stellt `value`, `defaultValue`, `valueProperty`, `setValue`,
+`ui.core.layout.TextArea` stellt `value`, `defaultValue`, `valueProperty`, `setValue`,
 `setDefaultValue`, `reset` und `readNativeValue` bereit. `valueProperty` ist lesbar;
 Schreibzugriffe erfolgen ausdrücklich über `setValue`. Native `input`-Events und
 nicht abgebrochene Formular-Resets aktualisieren die Property. Skriptänderungen ohne
@@ -106,7 +106,7 @@ ausgegeben; nach dem Parsen ist dieser zugleich die native Reset-Basis.
 
 Eine `HydrationBoundary[A]` besitzt ein stabiles physisches Containerelement. Ihr
 `capture` liest einen Snapshot, bevor Host-Bindings laufen; `preflight` kann danach
-Profil, Version oder Struktur prüfen. Der Body komponiert gewöhnliche JFX-Kinder.
+Profil, Version oder Struktur prüfen. Der Body komponiert gewöhnliche UI-Kinder.
 Ein Fehler beim Preflight, beim Claim oder durch überschüssige SSR-Kinder räumt nur
 die Kinder dieser Boundary auf und führt genau einen frischen Aufbau aus.
 
@@ -126,12 +126,12 @@ Die Validierung semantischer Textwerte übernimmt `preflight` bzw. der
 
 ```scala
 val lease = HostMutationGuard.protect(component.host)
-// Native Eingabe beobachten; keine JFX-Projektion in den geschützten Bereich.
+// Native Eingabe beobachten; keine UI-Projektion in den geschützten Bereich.
 lease.dispose()
 // Jetzt den aktuellen Modellzustand projizieren.
 ```
 
-Die Sperre blockiert JFX-Schreibzugriffe im Unterbaum sowie dessen Verschieben,
+Die Sperre blockiert UI-Schreibzugriffe im Unterbaum sowie dessen Verschieben,
 Entfernen und die Entfernung seiner Vorfahren. `HostWriteBlocked` entsteht vor
 Textänderung, Mount/Move/Unmount und Änderung der logischen Kindzuordnung. Mehrere
 überlappende Sperren sind unabhängig; Freigabe ist idempotent. Vor dem Unmount muss
@@ -146,17 +146,17 @@ Die Sperre ersetzt weder einen MutationObserver noch Composition- und Selection-
 
 `HostEditingSpec` deckt SSR, Lifecycle, Moves, Context-Invarianten, Keyed-Updates,
 Schreibschutz und Textarea ab. Das nicht publizierte sbt-Modul
-`scalajs-jfx-core-browser-tests` exportiert nur eine Testanwendung. Der Playwright-Harness
-unter `npm/jfx-core-browser-tests` führt dieselben öffentlichen APIs in Chromium,
+`scalajs-ui-core-browser-tests` exportiert nur eine Testanwendung. Der Playwright-Harness
+unter `npm/scalajs-ui-core-browser-tests` führt dieselben öffentlichen APIs in Chromium,
 Firefox und WebKit aus, einschließlich nativer Formulare ohne JavaScript.
 
 Diese Gates laufen **im Nachbar-Repo**, nicht hier:
 
 ```powershell
-cd ../scalajs-jfx
+cd ../scalajs-ui
 sbt --server "Test/testOnly *"
-sbt --server "scalajs-jfx-core-browser-tests/fullLinkJS" "scalajs-jfx-bridge/fullLinkJS"
-npm exec --workspace npm/jfx-core-browser-tests -- playwright install chromium firefox webkit
+sbt --server "scalajs-ui-core-browser-tests/fullLinkJS" "scalajs-ui-bridge/fullLinkJS"
+npm exec --workspace npm/scalajs-ui-core-browser-tests -- playwright install chromium firefox webkit
 npm run verify --workspaces --if-present
 ```
 
@@ -164,10 +164,10 @@ Die CI installiert unter Linux zusätzlich die Browser-Systemabhängigkeiten mit
 `playwright install --with-deps`. Für eine gezielte lokale Prüfung:
 
 ```powershell
-npm run test --workspace npm/jfx-core-browser-tests -- --project chromium --project webkit
+npm run test --workspace npm/scalajs-ui-core-browser-tests -- --project chromium --project webkit
 ```
 
-Das sind JFX-Vertragstests. Reale IME-, Accessibility- und Editor-Interoperabilitätstests
+Das sind UI-Vertragstests. Reale IME-, Accessibility- und Editor-Interoperabilitätstests
 gehören zur Abnahme des späteren Editor-Repositories.
 
 Lokaler Abnahmestand unter Windows: 406 Scala-Tests und 38 Browserfälle in Chromium/

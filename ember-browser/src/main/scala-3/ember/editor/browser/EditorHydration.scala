@@ -8,13 +8,13 @@ import scala.collection.mutable
 
 /** Hydration as a state transfer with loss protection, not as tag matching (§17).
   *
-  * ==The check JFX cannot make==
+  * ==The check UI cannot make==
   *
   * §17 step 5: "Ein zusaetzlicher Editor-Check validiert IDs, Textinhalt und semantisch
   * relevante Attribute gegen das erwartete Profil, '''bevor''' Binding sie verdeckt.
-  * JFX-Strict allein beweist dies heute nicht."
+  * UI-Strict allein beweist dies heute nicht."
   *
-  * JFX's hydrating cursor checks that it finds the tag it expects where it expects it. That is
+  * UI's hydrating cursor checks that it finds the tag it expects where it expects it. That is
   * necessary and not sufficient: a `<p>` with the wrong `data-ember-node`, or with the right id
   * and different text, passes a structural check and then quietly becomes a document that says
   * something other than what the server sent. [[preflight]] is the check that catches it, and it
@@ -31,7 +31,7 @@ object EditorHydration:
   /** Checks a server-rendered subtree against the document it should represent.
     *
     * Throws on the first mismatch: the boundary's `preflight` is a `(HostElement, A) => Unit`,
-    * and jfx-core turns a throw into a scoped rebuild with the fallback intact. Returning an
+    * and ui-core turns a throw into a scoped rebuild with the fallback intact. Returning an
     * `Either` here would mean the caller had to decide what a failure means, and §17 already
     * decided.
     *
@@ -157,7 +157,7 @@ object EditorHydration:
 
   /** Element children only.
     *
-    * The JFX runtime writes comment anchors for keyed groups (`<!--jfx:KeyedChildren:start-->`),
+    * The UI runtime writes comment anchors for keyed groups (`<!--ui:KeyedChildren:start-->`),
     * and they are not document nodes. Counting them would make every keyed container mismatch.
     */
   private def elementChildren(element: dom.Element): Vector[dom.Element] =

@@ -72,7 +72,7 @@ object HtmlAttribute:
   * Die Beschraenkung auf einen Knoten ist der Kern der Sache. Wuerde eine Gestalt ihre Kinder
   * mitbeschreiben, waere sie ein View-Baum, und die Projektion muesste ihn diffen -- also
   * genau das zweite Rendering-System, das §2 ausschliesst. So beschreibt jeder Knoten sich
-  * selbst, und wer die Kinder haelt, ist die JFX-Runtime.
+  * selbst, und wer die Kinder haelt, ist die UI-Runtime.
   */
 enum HtmlShape:
 

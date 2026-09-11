@@ -99,7 +99,7 @@ test.describe('Fremde Mutationen im echten Browser', () => {
   // -------------------------------------------------------------------------------------
 
   test('baut einen fremd geaenderten Lauf aus dem Dokument neu auf', async ({ page }) => {
-    // §15.4: "laesst JFX diesen Bereich aus dem gueltigen State neu aufbauen." Das Dokument ist
+    // §15.4: "laesst UI diesen Bereich aus dem gueltigen State neu aufbauen." Das Dokument ist
     // hier die Wahrheit -- was die Erweiterung tat, war keine Dokumentaenderung.
     await open(page)
     await page.evaluate(() => {

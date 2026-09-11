@@ -1,8 +1,8 @@
 package ember.editor.browser
 
 import ember.editor.core.*
-import ember.editor.jfx.{ContainerElement, DocumentView, TextRunElement}
-import jfx.core.render.DomNodes
+import ember.editor.ui.{ContainerElement, DocumentView, TextRunElement}
+import ui.core.render.DomNodes
 import org.scalajs.dom
 
 /** A DOM position: a container node and an offset in it -- the shape a `Range` endpoint has. */
@@ -52,7 +52,7 @@ enum PositionProblem:
   *
   * `data-ember-node` is a decision of the render profile (§19.1) and belongs to whoever wrote the
   * semantics. A port that parsed it would work for those semantics only, and would keep working,
-  * wrongly, when a profile stopped emitting it. [[ember.editor.jfx.DocumentView.componentFor]] is
+  * wrongly, when a profile stopped emitting it. [[ember.editor.ui.DocumentView.componentFor]] is
   * the same index the projection uses to move and update nodes; there is no second one.
   */
 final class DomPositionMap(view: DocumentView, scope: BrowserScope):

@@ -2,7 +2,7 @@
 
 Codeblöcke mit typisierten Sprachmetadaten — unabhängig von Highlighting. Headless und optional.
 
-Verbindlicher Entwurf: [JFX_EDITOR_ARCHITECTURE.md](../JFX_EDITOR_ARCHITECTURE.md) §§8, 18.
+Verbindlicher Entwurf: [UI_EDITOR_ARCHITECTURE.md](../UI_EDITOR_ARCHITECTURE.md) §§8, 18.
 
 | | |
 | --- | --- |

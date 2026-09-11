@@ -3,7 +3,7 @@
 Externe Bilder als Inline-Atome mit geprüfter Media-Policy. Kein Upload, kein Dateidialog, keine
 Objekt-URL.
 
-Verbindlicher Entwurf: [JFX_EDITOR_ARCHITECTURE.md](../JFX_EDITOR_ARCHITECTURE.md) §§8, 19–20.
+Verbindlicher Entwurf: [UI_EDITOR_ARCHITECTURE.md](../UI_EDITOR_ARCHITECTURE.md) §§8, 19–20.
 
 | | |
 | --- | --- |

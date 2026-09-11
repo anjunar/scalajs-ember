@@ -1,15 +1,15 @@
 package ember.editor.browser
 
 import ember.editor.core.*
-import ember.editor.jfx.DocumentView
-import jfx.core.render.{DomNodes, HostMutationGuard}
-import jfx.core.state.Disposable
+import ember.editor.ui.DocumentView
+import ui.core.render.{DomNodes, HostMutationGuard}
+import ui.core.state.Disposable
 
 /** The write barrier around a running composition.
   *
   * ==What it is and what it is not==
   *
-  * §15.3: "Der JFX-HostMutationGuard verhindert Textschreibzugriffe, Moves, Remounts und
+  * §15.3: "Der UI-HostMutationGuard verhindert Textschreibzugriffe, Moves, Remounts und
   * Entfernung in diesem Bereich vor Seiteneffekten, der SelectionPort verhindert
   * Selection-Writes."
   *
@@ -51,12 +51,12 @@ final class ProjectionWriteGuard(view: DocumentView, scope: BrowserScope):
   /** Releases it. Safe to call when nothing is held.
     *
     * §15.3's order matters here: "Release the lease before retrying a projection or unmounting its
-    * host" -- jfx-core's own words. Everything that follows a composition, the final projection
+    * host" -- ui-core's own words. Everything that follows a composition, the final projection
     * included, happens after this.
     */
   def release(): Unit =
     leases.foreach(_.dispose())
     leases = Vector.empty
 
-  private def hostOf(node: NodeId): Option[jfx.core.render.HostNode] =
+  private def hostOf(node: NodeId): Option[ui.core.render.HostNode] =
     view.componentFor(node).filter(_.isBound).map(_.host)

@@ -1,7 +1,7 @@
 package ember.editor.demo
 
-import jfx.core.component.Runtime
-import jfx.core.render.DomCursor
+import ui.core.component.Runtime
+import ui.core.render.DomCursor
 import org.scalajs.dom
 
 import scala.scalajs.js.annotation.JSExportTopLevel

@@ -8,8 +8,8 @@ import ember.editor.link.LinkUrlPolicy
 import ember.editor.markdown.*
 import ember.editor.richtext.*
 import ember.editor.standard.{MarkdownSupports, ParagraphSupport, RichTextSupport}
-import jfx.core.component.Runtime
-import jfx.core.render.{DomCursor, HydratingCursor, SsrCursor}
+import ui.core.component.Runtime
+import ui.core.render.{DomCursor, HydratingCursor, SsrCursor}
 import org.scalajs.dom
 
 import scala.scalajs.js
@@ -162,9 +162,9 @@ object FormFixtures:
         }
       }
     } match
-      case IntentOutcome.Applied(_)     => "applied"
-      case IntentOutcome.Deferred       => "deferred"
-      case IntentOutcome.Refused(error) => s"refused:${error.message}"
+      case ember.editor.forms.IntentOutcome.Applied(_)     => "applied"
+      case ember.editor.forms.IntentOutcome.Deferred       => "deferred"
+      case ember.editor.forms.IntentOutcome.Refused(error) => s"refused:${error.message}"
 
   /** A change that did 'not' go through the binding.
     *

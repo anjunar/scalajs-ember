@@ -3,13 +3,13 @@
 Wo Browserabsichten auf Feature-Commands treffen. Ein Tastendruck ist hier noch kein `ToggleMark`
 — dieses Modul entscheidet, dass er einer wird.
 
-Verbindlicher Entwurf: [JFX_EDITOR_ARCHITECTURE.md](../JFX_EDITOR_ARCHITECTURE.md) §§6, 7, 15.2, 22.
+Verbindlicher Entwurf: [UI_EDITOR_ARCHITECTURE.md](../UI_EDITOR_ARCHITECTURE.md) §§6, 7, 15.2, 22.
 
 | | |
 | --- | --- |
 | sbt-ID / Artefakt | `scalajs-ember-browser-support` |
 | Scala-Paket | `ember.editor.browsersupport` |
-| Produktionsabhängigkeiten | `scalajs-ember-core`, `-rich-text`, `-list`, `-link`, `-code`, `-history`, `-jfx`, `-browser` |
+| Produktionsabhängigkeiten | `scalajs-ember-core`, `-rich-text`, `-list`, `-link`, `-code`, `-history`, `-ui`, `-browser` |
 
 ## Stand
 

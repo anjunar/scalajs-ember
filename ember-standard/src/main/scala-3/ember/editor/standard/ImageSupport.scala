@@ -3,7 +3,7 @@ package ember.editor.standard
 import ember.editor.core.*
 import ember.editor.html.*
 import ember.editor.image.*
-import ember.editor.jfx.*
+import ember.editor.ui.*
 
 /** Images as HTML.
   *

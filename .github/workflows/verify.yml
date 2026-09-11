@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       # Der Kern und rich-text sind headless. Sie brauchen weder Browser noch das Nachbar-Repo
-      # -- dieser Job muss deshalb auch dann gruen sein, wenn scalajs-jfx gerade nicht
+      # -- dieser Job muss deshalb auch dann gruen sein, wenn scalajs-ui gerade nicht
       # auscheckbar waere.
       - uses: actions/setup-java@v4
         with:
@@ -28,14 +28,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      # Die Integrationsanwendung haengt als Quell-Abhaengigkeit an scalajs-jfx. Ohne das
+      # Die Integrationsanwendung haengt als Quell-Abhaengigkeit an scalajs-ui. Ohne das
       # Nachbar-Repo laesst sie sich nicht linken -- deshalb ein eigener Job, damit ein
       # Problem dort nicht die headless Gates mitreisst.
       - name: Nachbar-Repo auschecken
         uses: actions/checkout@v4
         with:
-          repository: anjunar/scalajs-jfx
-          path: ../scalajs-jfx
+          repository: anjunar/scalajs-ui
+          path: ../scalajs-ui
       - uses: actions/setup-java@v4
         with:
           distribution: temurin

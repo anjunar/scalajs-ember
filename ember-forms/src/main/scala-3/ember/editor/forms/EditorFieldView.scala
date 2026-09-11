@@ -3,16 +3,16 @@ package ember.editor.forms
 import ember.editor.browser.*
 import ember.editor.core.*
 import ember.editor.html.{HtmlSupport, RenderProfile}
-import ember.editor.jfx.{DocumentView, ViewSupport}
-import jfx.core.component.{AbstractComponent, HydrationBoundary}
-import jfx.core.render.HostElement
+import ember.editor.ui.{DocumentView, ViewSupport}
+import ui.core.component.{AbstractComponent, HydrationBoundary}
+import ui.core.render.HostElement
 import org.scalajs.dom
-import jfx.core.dsl.AttributeDsl.setAttribute
-import jfx.core.dsl.DslLayer
-import jfx.core.layout.Div.div
-import jfx.core.layout.TextArea
-import jfx.core.layout.TextArea.textArea
-import jfx.core.render.Cursor
+import ui.core.dsl.AttributeDsl.setAttribute
+import ui.core.dsl.DslLayer
+import ui.core.layout.Div.div
+import ui.core.layout.TextArea
+import ui.core.layout.TextArea.textArea
+import ui.core.render.Cursor
 
 /** The editable field as a component: a preview and exactly one named textarea.
   *
@@ -86,7 +86,7 @@ final class EditorFieldView(
       source.setDefaultValue(binding.submitValue)
 
       // Die Vorschau steckt in einer HydrationBoundary. Sie ist die austauschbare Haelfte:
-      // scheitert der Claim, baut jfx-core NUR SIE neu auf und nimmt dabei die schon
+      // scheitert der Claim, baut ui-core NUR SIE neu auf und nimmt dabei die schon
       // registrierten Cursor und die noch offenen Hydration-Callbacks dieses Versuchs mit
       // (§17, letzter Absatz).
       val wrapper = new HydrationBoundary[HydrationSnapshot](
@@ -114,7 +114,7 @@ final class EditorFieldView(
           preview = DocumentView.mount(session, isolated, views, parent = Some(inner))
       )
 
-      jfx.core.component.Runtime.mount(wrapper, summon[jfx.core.render.Cursor], Some(this)): Unit
+      ui.core.component.Runtime.mount(wrapper, summon[ui.core.render.Cursor], Some(this)): Unit
       boundary = wrapper
     }
 
@@ -139,7 +139,7 @@ final class EditorFieldView(
     */
   private def captureFallback(): HydrationSnapshot =
     val captured = Option(source)
-      .flatMap(area => jfx.core.render.DomNodes.option(area.host))
+      .flatMap(area => ui.core.render.DomNodes.option(area.host))
       .collect { case element: dom.HTMLTextAreaElement => HydrationSnapshot.of(element) }
 
     snapshot = captured
@@ -150,9 +150,9 @@ final class EditorFieldView(
   /** Checks the served markup against the document, before binding hides it (§17.5). */
   private def runPreflight(element: HostElement): Unit =
     semantics.foreach { support =>
-      jfx.core.render.DomNodes.option(element).foreach {
+      ui.core.render.DomNodes.option(element).foreach {
         case host: dom.Element =>
-          // Der Editor-Check, den JFX-Strict allein nicht leistet: IDs, Text und die Attribute,
+          // Der Editor-Check, den UI-Strict allein nicht leistet: IDs, Text und die Attribute,
           // die die Semantik nennt.
           //
           // `preflightContent`, nicht `preflight`: die Boundary reicht ihren eigenen Host

@@ -1,9 +1,9 @@
 # scalajs-ember-rich-text
 
 Das Rich-Text-Profil des Ember-Editors: Absätze, Editing-Semantik und Unicode-Grenzen.
-Headless wie der Kern — ohne DOM, ohne JFX-Runtime.
+Headless wie der Kern — ohne DOM, ohne UI-Runtime.
 
-Verbindlicher Entwurf: [JFX_EDITOR_ARCHITECTURE.md](../JFX_EDITOR_ARCHITECTURE.md) §§8, 11.
+Verbindlicher Entwurf: [UI_EDITOR_ARCHITECTURE.md](../UI_EDITOR_ARCHITECTURE.md) §§8, 11.
 
 | | |
 | --- | --- |

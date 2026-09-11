@@ -3,7 +3,7 @@
 Geordnete und ungeordnete Listen: Ein- und Ausrücken, Enter und Backspace an Listengrenzen,
 Normalisierung. Headless und optional.
 
-Verbindlicher Entwurf: [JFX_EDITOR_ARCHITECTURE.md](../JFX_EDITOR_ARCHITECTURE.md) §§8, 11, 18.
+Verbindlicher Entwurf: [UI_EDITOR_ARCHITECTURE.md](../UI_EDITOR_ARCHITECTURE.md) §§8, 11, 18.
 
 | | |
 | --- | --- |

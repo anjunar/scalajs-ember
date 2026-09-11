@@ -9,7 +9,7 @@ Nicht publiziert, kein Teil eines Artefakts.
 IME-/Selection-Engine. Der neue Browser-Harness muss den tatsaechlich gelinkten Scala-Editor
 ausfuehren."
 
-Ein gruener Lauf hier heisst: Ember-Engine und JFX-Runtime arbeiten im selben Bundle
+Ein gruener Lauf hier heisst: Ember-Engine und UI-Runtime arbeiten im selben Bundle
 zusammen, echte Tastendruecke laufen bis ins Modell durch, und der Dispose raeumt beides ab.
 
 ## Ausfuehren
@@ -43,7 +43,7 @@ von vorhin; das hat in P20 einen halben Diagnosezyklus gekostet.
 | Datei | Was sie prüft |
 | --- | --- |
 | `identity.spec.mjs` | Die Ember-Engine über die volle Kette: DOM-Ereignis, Command, Transaktion, Commit, Projektion. Dazu Dispose und der Error-Sink. |
-| `text-splice.spec.mjs` | `spliceText` aus jfx-core: UTF-16-Offsets, Identität des DOM-Textknotens, und dass ein unveränderter Wert **keinen** Schreibzugriff auslöst. |
+| `text-splice.spec.mjs` | `spliceText` aus ui-core: UTF-16-Offsets, Identität des DOM-Textknotens, und dass ein unveränderter Wert **keinen** Schreibzugriff auslöst. |
 | `move.spec.mjs` | `Runtime.move`: Element- und Listeneridentität, Synchronität von logischer Kindliste und DOM, abgewiesene Operationen ohne Nebenwirkung. |
 | `projection.spec.mjs` | Die keyed `DocumentView` aus P09: DOM-Identität über Textedit und Move, der Umfang der Schreibzugriffe, und dass SSR und Browser initial dasselbe liefern. |
 

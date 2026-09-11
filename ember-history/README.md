@@ -3,7 +3,7 @@
 Undo und Redo für den Ember-Editor: Snapshots, explizite Gruppierungsregeln, Grenzen. Headless
 und optional — eine Anwendung ohne Undo linkt dieses Modul nicht mit.
 
-Verbindlicher Entwurf: [JFX_EDITOR_ARCHITECTURE.md](../JFX_EDITOR_ARCHITECTURE.md) §14.
+Verbindlicher Entwurf: [UI_EDITOR_ARCHITECTURE.md](../UI_EDITOR_ARCHITECTURE.md) §14.
 
 | | |
 | --- | --- |

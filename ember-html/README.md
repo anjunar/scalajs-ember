@@ -2,9 +2,9 @@
 
 Der semantische HTML-Vertrag des Ember-Editors: wie eine Knotenart aussieht, und eine
 unveränderliche Fragmentdarstellung für Import und Export. Headless — kein DOM, keine
-JFX-Runtime.
+UI-Runtime.
 
-Verbindlicher Entwurf: [JFX_EDITOR_ARCHITECTURE.md](../JFX_EDITOR_ARCHITECTURE.md) §§15.1, 19.1.
+Verbindlicher Entwurf: [UI_EDITOR_ARCHITECTURE.md](../UI_EDITOR_ARCHITECTURE.md) §§15.1, 19.1.
 
 | | |
 | --- | --- |
@@ -33,11 +33,11 @@ val paragraph: HtmlSemantics[ParagraphNode] = new HtmlSemantics[ParagraphNode]:
 Dass die Beschränkung auf einen Knoten wichtig ist, ist keine Formsache. Würde eine Gestalt
 ihre Kinder mitbeschreiben, wäre sie ein View-Baum, und irgendetwas müsste ihn diffen — also
 genau das zweite Rendering-System, das §2 ausschließt. So beschreibt jeder Knoten sich selbst,
-und wer die Kinder hält, ist die JFX-Runtime.
+und wer die Kinder hält, ist die UI-Runtime.
 
 Aus derselben Beschreibung entstehen beide Ausgaben: die SSR-Fassung und die Editierfläche im
 Browser. Dass sie übereinstimmen, ist deshalb keine Absprache zwischen zwei Implementierungen,
-sondern dieselbe Zeile Code — `ember-jfx` leitet seine `NodeView`s mit
+sondern dieselbe Zeile Code — `ember-ui` leitet seine `NodeView`s mit
 `ViewSupport.semantic(support)` daraus ab.
 
 ## Renderprofile

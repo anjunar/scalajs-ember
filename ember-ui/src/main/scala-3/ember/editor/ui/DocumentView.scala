@@ -1,11 +1,11 @@
-package ember.editor.jfx
+package ember.editor.ui
 
 import ember.editor.core.*
 import ember.editor.html.*
-import jfx.core.component.{AbstractComponent, Runtime}
-import jfx.core.render.{Cursor, SsrCursor}
+import ui.core.component.{AbstractComponent, Runtime}
+import ui.core.render.{Cursor, SsrCursor}
 
-/** Die Dokumentansicht: haengt eine Sitzung an einen JFX-Cursor.
+/** Die Dokumentansicht: haengt eine Sitzung an einen UI-Cursor.
   *
   * ==Commit und Projektion sind zwei Zeitpunkte==
   *
@@ -150,7 +150,7 @@ object DocumentView:
     * Voreingestellt ist [[RenderProfile.Content]] -- die ausgelieferte Fassung traegt keine
     * Editor-Metadaten (§19.1).
     *
-    * Die Gruppenanker der JFX-Runtime (`<!--jfx:KeyedChildren:start-->`) stehen in beiden
+    * Die Gruppenanker der UI-Runtime (`<!--ui:KeyedChildren:start-->`) stehen in beiden
     * Profilen. Das ist Absicht: P20 braucht sie zum Hydrieren, und ein Kommentarknoten ist im
     * ausgelieferten Dokument weder sichtbar noch semantisch.
     */

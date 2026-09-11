@@ -1,30 +1,30 @@
-# JFX Editor: Architektur eines nativen Scala.js-Editors
+# UI Editor: Architektur eines nativen Scala.js-Editors
 
 Status: Architekturentwurf, noch keine implementierte Editor-API. Stand: 9. September 2026.
 
 Repository-Aufteilung: Der Editor entsteht in einem eigenen Repository — das ist dieses,
-`scalajs-ember`. Die generischen JFX-Core-Voraussetzungen sind implementiert, aber im
-Nachbar-Repo `../scalajs-jfx`; sie werden seit P17 als veröffentlichtes Artefakt
-`com.anjunar:scalajs-jfx-core:3.0.5` eingebunden ([build.sbt](build.sbt)), vorher als
+`scalajs-ember`. Die generischen UI-Core-Voraussetzungen sind implementiert, aber im
+Nachbar-Repo `../scalajs-ui`; sie werden seit P17 als veröffentlichtes Artefakt
+`com.anjunar:scalajs-ui-core:1.0.0` eingebunden ([build.sbt](build.sbt)), vorher als
 Quell-Abhängigkeit auf dessen Submodul. Der tatsächliche API-Vertrag steht in
-[JFX_CORE_INTEGRATION.md](JFX_CORE_INTEGRATION.md). Editorbezogene Module und APIs dieses
+[UI_CORE_INTEGRATION.md](UI_CORE_INTEGRATION.md). Editorbezogene Module und APIs dieses
 Entwurfs bleiben Planung.
 
-Pfade ohne Präfix meinen dieses Repository; Pfade mit `../scalajs-jfx/` das Nachbar-Repo.
+Pfade ohne Präfix meinen dieses Repository; Pfade mit `../scalajs-ui/` das Nachbar-Repo.
 Modulnamen folgen der Konvention Verzeichnis `ember-<modul>`, sbt-ID/Artefakt
 `scalajs-ember-<modul>`, Scala-Paket `ember.editor.<modul>`.
 
-Dieser Entwurf berücksichtigt die Präzisierung des Auftrags: **Der Editor wird vollständig neu entwickelt. Der vorhandene Editor ist ein Prototyp und keine Architektur- oder Implementierungsgrundlage.** Seine öffentliche API dient allenfalls als Inspiration. Die Bestandsanalyse unten betrifft deshalb die gemeinsame JFX3-Infrastruktur. Eine interne Bewertung oder schrittweise Reparatur des Prototyps ist ausdrücklich nicht Teil dieses Vorhabens.
+Dieser Entwurf berücksichtigt die Präzisierung des Auftrags: **Der Editor wird vollständig neu entwickelt. Der vorhandene Editor ist ein Prototyp und keine Architektur- oder Implementierungsgrundlage.** Seine öffentliche API dient allenfalls als Inspiration. Die Bestandsanalyse unten betrifft deshalb die gemeinsame UI3-Infrastruktur. Eine interne Bewertung oder schrittweise Reparatur des Prototyps ist ausdrücklich nicht Teil dieses Vorhabens.
 
-Der zugehörige [Implementierungsplan](JFX_EDITOR_IMPLEMENTATION.md) zerlegt die Entscheidungen in einzeln abnehmbare Arbeitspakete. Alle dort und hier genannten neuen Module, Dateinamen und APIs sind Vorschläge. Vorhandene Fähigkeiten sind als Befund gekennzeichnet; gewünschte Fähigkeiten werden nicht als bereits vorhanden ausgegeben.
+Der zugehörige [Implementierungsplan](UI_EDITOR_IMPLEMENTATION.md) zerlegt die Entscheidungen in einzeln abnehmbare Arbeitspakete. Alle dort und hier genannten neuen Module, Dateinamen und APIs sind Vorschläge. Vorhandene Fähigkeiten sind als Befund gekennzeichnet; gewünschte Fähigkeiten werden nicht als bereits vorhanden ausgegeben.
 
 ## 1. Ziele
 
 Ein eigenständiger Rich-Text-Editor mit kanonischem, unveränderlichem Dokumentzustand, typisierten Änderungen, nachvollziehbarer Selection und unabhängig nutzbaren Funktionen. Der gesamte Editor wird in Scala.js geschrieben. Lexical liefert Konzepte und Vergleichsfälle, keine Laufzeitabhängigkeit und keinen zu portierenden Klassenbauplan.
 
-Die gleichen Dokumente müssen ohne Browser bearbeitet und konvertiert, durch JFX3 semantisch gerendert, serverseitig ausgeliefert und im Browser übernommen werden können. JavaScript erweitert ein bereits benutzbares HTML-Formular. Markdown ist ein direktes Austausch- und Bearbeitungsformat; JSON erhält die vollständige Dokumentstruktur. Bilder und andere Medien enthalten dauerhafte Referenzen, niemals eingebettete Dateidaten.
+Die gleichen Dokumente müssen ohne Browser bearbeitet und konvertiert, durch UI3 semantisch gerendert, serverseitig ausgeliefert und im Browser übernommen werden können. JavaScript erweitert ein bereits benutzbares HTML-Formular. Markdown ist ein direktes Austausch- und Bearbeitungsformat; JSON erhält die vollständige Dokumentstruktur. Bilder und andere Medien enthalten dauerhafte Referenzen, niemals eingebettete Dateidaten.
 
-Die öffentliche API trennt Dokument, Editor-Sitzung, View und Form-Control. Ein Headless-Anwender soll keine Toolbar, Forms, Viewport, DOM-Emulation oder globale Registry mitbringen müssen. Eine spätere TypeScript-Fassade verwendet dieselbe Scala.js-Engine und dieselbe JFX3-Runtime.
+Die öffentliche API trennt Dokument, Editor-Sitzung, View und Form-Control. Ein Headless-Anwender soll keine Toolbar, Forms, Viewport, DOM-Emulation oder globale Registry mitbringen müssen. Eine spätere TypeScript-Fassade verwendet dieselbe Scala.js-Engine und dieselbe UI3-Runtime.
 
 ## 2. Non-Goals
 
@@ -61,45 +61,45 @@ Untersucht wurde der lokale Checkout `../lexical`, Version `0.50.0` aus `package
 
 Lexicals Kern enthält bereits Editor und Browserintegration; `headless` schaltet Browserfunktionen aus. Feature-Pakete ergänzen Nodes und Editing-Semantik. `react` bindet sie an eine UI-Runtime; Playground-Plugins sind Anwendungsbeispiele. `extension` bietet im untersuchten Stand einen eigenständigen kompositorischen Aufbau. Das Bild „Core plus React-Plugins“ wäre daher unvollständig.
 
-Für JFX3 trennen wir die Browserintegration konsequenter vom Core. Die Aufteilung in Feature-Pakete übernehmen wir; React-Composer, Lexicals DOM-Renderer und seine zusätzlichen Signals übernehmen wir nicht.
+Für UI3 trennen wir die Browserintegration konsequenter vom Core. Die Aufteilung in Feature-Pakete übernehmen wir; React-Composer, Lexicals DOM-Renderer und seine zusätzlichen Signals übernehmen wir nicht.
 
 ### 3.2 Bewertung der Mechanismen
 
-Die Spalte „JFX3 / Scala-Entscheidung“ beantwortet jeweils, ob das Konzept benötigt wird und was JFX3 bereits selbst leisten kann.
+Die Spalte „UI3 / Scala-Entscheidung“ beantwortet jeweils, ob das Konzept benötigt wird und was UI3 bereits selbst leisten kann.
 
-| Mechanismus | Warum er in Lexical existiert / welches Problem er löst | JFX3 / Scala-Entscheidung |
+| Mechanismus | Warum er in Lexical existiert / welches Problem er löst | UI3 / Scala-Entscheidung |
 | --- | --- | --- |
-| EditorState | Ein konsistentes Dokument mit Selection statt des veränderlichen Browser-DOM als Datenbank; Snapshots für Lesen und History. | Übernehmen. Unveränderliche Scala-Werte mit explizitem Snapshot-Zugriff, ohne aktiven globalen Editor. JFX-Properties transportieren später den Snapshot, definieren ihn aber nicht. |
+| EditorState | Ein konsistentes Dokument mit Selection statt des veränderlichen Browser-DOM als Datenbank; Snapshots für Lesen und History. | Übernehmen. Unveränderliche Scala-Werte mit explizitem Snapshot-Zugriff, ohne aktiven globalen Editor. UI-Properties transportieren später den Snapshot, definieren ihn aber nicht. |
 | NodeMap und stabile Keys | Schneller Zugriff und Identität über neue Node-Versionen hinweg. | Übernehmen, aber Dokument-IDs auch über SSR/JSON erhalten. Lexical-Runtime-Keys sind kein persistentes Dokument-ID-Format. |
 | `getLatest` / `getWritable` | Äußerlich imperative Node-API bei Copy-on-write im aktuellen Update-Kontext. | Nicht übernehmen. Ein gelesener Scala-Node bleibt genau der gelesene Snapshot; Änderungen sind explizite Tx-Operationen. |
 | RootNode | Eindeutige Dokumentgrenze und Regeln für oberste Kinder. | Übernehmen. Genau eine nicht verschiebbare Root; Rendering-Host und Dokument-Root bleiben verschiedene Dinge. |
 | ElementNode | Hierarchie, Kindordnung und Strukturänderungen. | Übernehmen. Immutable Child-Vectors; Parent-Index im Document statt veränderlicher Parent-Referenzen in öffentlichen Nodes. |
 | TextNode / Format | Textläufe und Editing-Verhalten; Format/Style dürfen DOM-Details überleben. | Übernehmen. Text plus normalisierte typisierte Marks; keine beliebigen CSS-Strings als Dokumentformat. |
-| DecoratorNode | Atomare Inhalte bzw. UI, deren Inneres kein normaler Textbereich ist. | Konzept übernehmen. `AtomNode` mit separater JFX-`NodeView`; Medienreferenz gehört zum Modell, Auswahlrahmen und Dialog nicht. |
+| DecoratorNode | Atomare Inhalte bzw. UI, deren Inneres kein normaler Textbereich ist. | Konzept übernehmen. `AtomNode` mit separater UI-`NodeView`; Medienreferenz gehört zum Modell, Auswahlrahmen und Dialog nicht. |
 | Node Replacement | Eingebaute Typen spezialisieren, ohne jede Aufrufstelle anzupassen. | Explizite Schema-/Factory-Ersetzung mit Konfliktprüfung; bestehende Dokumente werden durch eine Migration geändert. Keine heimliche nachträgliche Klassensubstitution. |
 | RangeSelection | Caret und Bereich unabhängig von DOM Range speichern; Anchor/Focus-Richtung erhalten. | Zwingend Core. Explizite Punkte, Affinität und Positionsabbildungen. DOM Range nur in `browser`. |
 | NodeSelection | Ein oder mehrere atomare/ganze Nodes auswählen. | Zwingend Core, normalisierte ID-Menge. Keine Gleichsetzung mit mehreren Text-Carets oder Tabellenauswahl. |
 | Commands / Prioritäten | Mehrere Features können dieselbe Benutzerabsicht behandeln; der erste zuständige Handler stoppt die Verarbeitung. | Typisierte Identitäts-Keys, benannte Prioritäten und `Handled/Pass`; keine String-Commands. DOM-Cancellation ist eine separate Browserentscheidung. |
 | Updates / Double Buffering | Zusammengehörige Änderungen sehen einen Pending State und werden gemeinsam normalisiert und veröffentlicht. | Atomare synchrone Tx mit privatem Draft. Ein Commit ist sofort kanonisch; View-Projektion hat einen expliziten Abschluss. Kein Nachbau der Microtask-Semantik als öffentliche API. |
 | Dirty Nodes | Nur betroffene Nodes transformieren und projizieren. | Übernehmen als typisiertes ChangeSet samt betroffenen Eltern. Kein Vollbaumvergleich pro Tastendruck. |
-| Transforms | Dokumentinvarianten vor dem sichtbaren Commit herstellen, statt Listener-Update-Kaskaden auszulösen. | Deterministische Fixpunkt-Queue, Typregistrierung und Terminierungsbudget. JFX-Property-Observer sind kein Ersatz für Transforms. |
-| Listener | UI, Persistenz, History und Integrationen erhalten konsistente Änderungen; Registrierung ist aufräumbar. | Snapshot-/Commit-Subscriptions im Core; JFX-Adapter übersetzt sie in vorhandene Disposables/Properties. |
-| Extensions / Plugins | Wiederverwendbare Konfiguration, Dependencies und registriertes Verhalten; UI-Plugins binden Lebenszyklen an React. | Deklarative Extensions mit typisierten Beiträgen und expliziten Dependencies; UI-Plugins separat in JFX-Komponenten. Kein zweites reaktives System. |
+| Transforms | Dokumentinvarianten vor dem sichtbaren Commit herstellen, statt Listener-Update-Kaskaden auszulösen. | Deterministische Fixpunkt-Queue, Typregistrierung und Terminierungsbudget. UI-Property-Observer sind kein Ersatz für Transforms. |
+| Listener | UI, Persistenz, History und Integrationen erhalten konsistente Änderungen; Registrierung ist aufräumbar. | Snapshot-/Commit-Subscriptions im Core; UI-Adapter übersetzt sie in vorhandene Disposables/Properties. |
+| Extensions / Plugins | Wiederverwendbare Konfiguration, Dependencies und registriertes Verhalten; UI-Plugins binden Lebenszyklen an React. | Deklarative Extensions mit typisierten Beiträgen und expliziten Dependencies; UI-Plugins separat in UI-Komponenten. Kein zweites reaktives System. |
 | History | Dokument- und Selection-Snapshots, Gruppierung zusammenhängender Eingaben, Undo/Redo-Kommandos. | Eigenes optionales Modul. Explizite Änderungsursachen sind verlässlicher als ausschließlich aus Textdifferenzen erratene Benutzerabsichten. |
 | JSON | Nodes ohne DOM speichern, typisieren und wiederherstellen. | Versioniertes, validiertes Format im separaten Modul. Persistentes Dokument und flüchtige Sitzung getrennt serialisieren. |
-| HTML | Austausch mit der Außenwelt; Node-Daten auf semantische Tags abbilden. | Import-Regeln übernehmen, DOM-erzeugenden Export nicht. Ausgabe erfolgt über JFX3; serverseitig keine jsdom-Pflicht. |
+| HTML | Austausch mit der Außenwelt; Node-Daten auf semantische Tags abbilden. | Import-Regeln übernehmen, DOM-erzeugenden Export nicht. Ausgabe erfolgt über UI3; serverseitig keine jsdom-Pflicht. |
 | Markdown | Transformer für Syntax→Nodes, Nodes→Syntax und Eingabeshortcuts. | Direkter Scala-Parser/Writer mit spezifiziertem Profil; Syntax-Parser und interaktive Shortcuts getrennt. Lexical-Transformer sind keine Zusage vollständiger CommonMark-Konformität. |
 | Clipboard | Mehrere Formate und strukturelle Fragmente erhalten mehr als `textContent`. | Eigenes Modul, mit Prioritätsregeln und typisierten Fragmenten; Browser-API separat gekapselt. |
-| Reconciler | Lexical muss als eigenständiger Editor Nodes und Browser-DOM zusammenhalten. | Generische DOM-Erzeugung, Besitz, Einfügen, Verschieben und Entfernen gehören JFX3. Nur Modell→View-Zuordnung und Editing-Koordination gehören dem Editor. |
+| Reconciler | Lexical muss als eigenständiger Editor Nodes und Browser-DOM zusammenhalten. | Generische DOM-Erzeugung, Besitz, Einfügen, Verschieben und Entfernen gehören UI3. Nur Modell→View-Zuordnung und Editing-Koordination gehören dem Editor. |
 | Mutation Handling | IME, Autokorrektur, Browser-Editing und Fremdmutationen umgehen JavaScript-Kommandos. | Benötigt. Kontrollierter Native-Input-Adapter führt Beobachtungen in Transaktionen zurück; keine zweite kanonische DOM-Wahrheit. |
 | Composition / IME | Native Texteingabe darf nicht durch Re-Render oder Selection-Rücksetzen abgebrochen werden. | Benötigt. Composition-Sitzung mit begrenzter Schreibsperre der betroffenen Projektion, native Eingabebeobachtung und getesteten Abschlussregeln. |
-| Focus / Keyboard | Editorbefehle, Browsernavigation und Tools dürfen Caret/Fokus nicht versehentlich verlieren. | Browseradapter plus JFX-Lifecycle; keine Autofocus-Wirkung jedes State-Updates. |
+| Focus / Keyboard | Editorbefehle, Browsernavigation und Tools dürfen Caret/Fokus nicht versehentlich verlieren. | Browseradapter plus UI-Lifecycle; keine Autofocus-Wirkung jedes State-Updates. |
 
 ### 3.3 Bewusste Abweichungen
 
-Lexical mischt Modell- und DOM-Verhalten in Node-Klassen und arbeitet mit dynamisch gesetztem Update-Kontext. Beides hilft seiner eigenständigen Runtime, ist hier aber ungeeignet: Ein serverseitig genutzter `ImageNode` braucht weder `createDOM` noch einen aktiven Editor. JFX3 besitzt bereits Komponenten und Host-Knoten.
+Lexical mischt Modell- und DOM-Verhalten in Node-Klassen und arbeitet mit dynamisch gesetztem Update-Kontext. Beides hilft seiner eigenständigen Runtime, ist hier aber ungeeignet: Ein serverseitig genutzter `ImageNode` braucht weder `createDOM` noch einen aktiven Editor. UI3 besitzt bereits Komponenten und Host-Knoten.
 
-Auch die aktuelle Lexical-HTML-Ausgabe benötigt ein DOM: `$generateHtmlFromNodes` prüft entsprechende Globals, während `$generateNodesFromDOM` ein bereits geparstes DOM entgegennimmt. Dies ist keine passende SSR-Basis für JFX3. Übernommen werden semantische Import-/Exportregeln, nicht die DOM-Erzeugung dieses Pakets.
+Auch die aktuelle Lexical-HTML-Ausgabe benötigt ein DOM: `$generateHtmlFromNodes` prüft entsprechende Globals, während `$generateNodesFromDOM` ein bereits geparstes DOM entgegennimmt. Dies ist keine passende SSR-Basis für UI3. Übernommen werden semantische Import-/Exportregeln, nicht die DOM-Erzeugung dieses Pakets.
 
 Die Browserzweige in Lexical sind wertvolle Testfallquellen. Ein User-Agent-Test oder Timeout wird erst übernommen, wenn ein reproduzierbarer Fehler des neuen Editors samt betroffenem Browser und Test vorliegt. Eine solche Ausnahme erhält Zweck, Gültigkeitsbereich und Entfernungskriterium.
 
@@ -107,32 +107,32 @@ Die Browserzweige in Lexical sind wertvolle Testfallquellen. Ein User-Agent-Test
 
 - `cloneEditorState` verwendet `cloneMap`: kleine Maps werden kopiert, große in eine `GenMap` überführt; weitere Clones teilen Basis/Nursery, spätere Writes kopieren oder kompaktieren. Lexical kopiert damit **nicht pauschal bei jeder Eingabe die gesamte Map**. Die Scala-Persistent-Map ist eine eigene Implementierungswahl, deren Vorteil gemessen werden muss.
 - `getLatest` löst einen Node über seine Key im aktiven State neu auf; `getWritable` klont ihn höchstens einmal pro Update und markiert ihn dirty. `EditorState.clone` kann dagegen dieselbe Map teilen. JSON exportiert das Dokument, nicht die Selection. Diese Unterschiede begründen den expliziten Snapshot-Vertrag in Scala.
-- Selection-Mapping erfolgt in Lexical konkret in Operationen wie `TextNode.splitText`, `mergeWithSibling` und `$updateElementSelectionOnCreateDeleteNode`. Es gibt dabei besondere Grenzbias-/Composition-Korrekturen. Die allgemeine komponierbare Mapping-Algebra mit Bookmark-Affinität in §11 ist **unser Entwurf**, keine bereits vorhandene Lexical-API. Lexicals RangeSelection enthält außerdem `format/style`; dafür verwendet JFX das Rich-Text-StateField `TypingMarks`.
+- Selection-Mapping erfolgt in Lexical konkret in Operationen wie `TextNode.splitText`, `mergeWithSibling` und `$updateElementSelectionOnCreateDeleteNode`. Es gibt dabei besondere Grenzbias-/Composition-Korrekturen. Die allgemeine komponierbare Mapping-Algebra mit Bookmark-Affinität in §11 ist **unser Entwurf**, keine bereits vorhandene Lexical-API. Lexicals RangeSelection enthält außerdem `format/style`; dafür verwendet UI das Rich-Text-StateField `TypingMarks`.
 - Der aktuelle `DecoratorNode` unterstützt auch Slots und editierbare Teilbereiche; `EditorState` exportiert diese separat als `$slots`. Unser `AtomNode` ist bewusst enger. Captions werden als fachliche Container modelliert, nicht implizit als beliebiger UI-Slot eines atomaren Blatts.
-- `triggerCommandListeners` läuft zuerst nach Priorität, innerhalb dieser über Editor und Parent-Editoren. Ein höher priorisierter Parent kann vor einem niedrig priorisierten Child handeln. Neuere `COMMAND_PRIORITY_BEFORE_*` registrieren innerhalb der fünf Buckets vorne. JFXs stabile normale Reihenfolge und nur ausdrücklich vereinbarte Parent-Propagation sind bewusste Vereinfachungen.
+- `triggerCommandListeners` läuft zuerst nach Priorität, innerhalb dieser über Editor und Parent-Editoren. Ein höher priorisierter Parent kann vor einem niedrig priorisierten Child handeln. Neuere `COMMAND_PRIORITY_BEFORE_*` registrieren innerhalb der fünf Buckets vorne. UIs stabile normale Reihenfolge und nur ausdrücklich vereinbarte Parent-Propagation sind bewusste Vereinfachungen.
 - `$applyAllTransforms` normalisiert Text, verarbeitet Dirty Leaves vor absichtlich Dirty Elements und behandelt Root zuletzt. Nur zur Traversierung markierte Vorfahren sind keine gleichwertigen Transform-Kandidaten. Deshalb trennt unser ChangeSet tatsächliche Änderungen und betroffene Vorfahren.
-- Die aktuelle History verwendet bereits Composition-Start/Ende, Paste/Cut-Grenzen, injizierbaren Zeitgeber und optionales `maxDepth` mit FIFO-Trim. Default Merge-Delay ist in diesem Checkout 300 ms, `maxDepth` standardmäßig unbeschränkt. JFX ergänzt vor allem explizite Operationsmetadaten, Byte-Budget und eigene Restore-Regeln; diese Mechanismen werden nicht als neu gegenüber Lexical ausgegeben.
-- `LexicalBuilder` und `ExtensionRep` trennen Dependency-Auflösung, `init/build/register/afterRegistration`, Konflikte und Cleanup mit AbortSignal. Die im JFX-Entwurf geforderte atomare Rücknahme teilweise fehlgeschlagener Installation ist eine eigene Anforderung, keine aus diesen Schleifen abgeleitete Lexical-Garantie.
+- Die aktuelle History verwendet bereits Composition-Start/Ende, Paste/Cut-Grenzen, injizierbaren Zeitgeber und optionales `maxDepth` mit FIFO-Trim. Default Merge-Delay ist in diesem Checkout 300 ms, `maxDepth` standardmäßig unbeschränkt. UI ergänzt vor allem explizite Operationsmetadaten, Byte-Budget und eigene Restore-Regeln; diese Mechanismen werden nicht als neu gegenüber Lexical ausgegeben.
+- `LexicalBuilder` und `ExtensionRep` trennen Dependency-Auflösung, `init/build/register/afterRegistration`, Konflikte und Cleanup mit AbortSignal. Die im UI-Entwurf geforderte atomare Rücknahme teilweise fehlgeschlagener Installation ist eine eigene Anforderung, keine aus diesen Schleifen abgeleitete Lexical-Garantie.
 - Im [aktuellen HTML-API-Einstieg](../lexical/packages/lexical-html/src/index.ts) existieren auch experimentelle `$generateDOMFromNodes`/`$generateDOMFromRoot` und `DOMRenderExtension`. Der neue [DOMImportExtension-Weg](../lexical/packages/lexical-html/src/import/DOMImportExtension.ts) unterstützt Context/Preprocess und ordnet eigene Regeln vor Dependency-Regeln; er verwendet keine numerischen Importprioritäten. Unser typisiertes Importprofil ist davon unabhängig.
-- [Markdown](../lexical/packages/lexical-markdown/src/index.ts) bietet bereits Fragmentimport durch `$generateNodesFromMarkdownString` ohne Root-/Selection-Änderung und Selection-Export durch `$convertSelectionToMarkdownString`. [ClipboardImportExtension](../lexical/packages/lexical-clipboard/src/ClipboardImportExtension.ts) bietet MIME-Middleware mit intern/HTML/plain text/URI list und prüft für internes JSON den Namespace. JFX übernimmt die Idee validierter Fragmente und MIME-Fallbacks mit eigenem Schema-/Profilvertrag.
+- [Markdown](../lexical/packages/lexical-markdown/src/index.ts) bietet bereits Fragmentimport durch `$generateNodesFromMarkdownString` ohne Root-/Selection-Änderung und Selection-Export durch `$convertSelectionToMarkdownString`. [ClipboardImportExtension](../lexical/packages/lexical-clipboard/src/ClipboardImportExtension.ts) bietet MIME-Middleware mit intern/HTML/plain text/URI list und prüft für internes JSON den Namespace. UI übernimmt die Idee validierter Fragmente und MIME-Fallbacks mit eigenem Schema-/Profilvertrag.
 
-## 4. JFX3-Bestandsanalyse: gemeinsame Infrastruktur
+## 4. UI3-Bestandsanalyse: gemeinsame Infrastruktur
 
-Untersuchte Basis: `../scalajs-jfx` bei Repository-HEAD `fd3e4af0c14c6b8062b0ce8333730f881bb9642a` und die zu Beginn vorhandenen lokalen Dateien. Im Workspace lagen bereits fremde Änderungen, insbesondere im Tabellenbereich; dieser Dokumentationsauftrag ändert sie nicht. Sämtliche Dateipfade dieser Tabelle liegen im Nachbar-Repo, nicht hier; die als noch fehlend beschriebenen Erweiterungen sind dort inzwischen umgesetzt (siehe [JFX_CORE_INTEGRATION.md](JFX_CORE_INTEGRATION.md)), der Befund bleibt als Begründung der Entwurfsentscheidungen stehen.
+Untersuchte Basis: `../scalajs-ui` bei Repository-HEAD `fd3e4af0c14c6b8062b0ce8333730f881bb9642a` und die zu Beginn vorhandenen lokalen Dateien. Im Workspace lagen bereits fremde Änderungen, insbesondere im Tabellenbereich; dieser Dokumentationsauftrag ändert sie nicht. Sämtliche Dateipfade dieser Tabelle liegen im Nachbar-Repo, nicht hier; die als noch fehlend beschriebenen Erweiterungen sind dort inzwischen umgesetzt (siehe [UI_CORE_INTEGRATION.md](UI_CORE_INTEGRATION.md)), der Befund bleibt als Begründung der Entwurfsentscheidungen stehen.
 
 | Vorhandene Quelle | Befund | Konsequenz für den neuen Editor |
 | --- | --- | --- |
-| [Runtime.scala](../scalajs-jfx/jfx-core/src/main/scala-3/jfx/core/component/Runtime.scala), [AbstractComponent.scala](../scalajs-jfx/jfx-core/src/main/scala-3/jfx/core/component/AbstractComponent.scala) | Mount/Unmount besitzt Parent/Children, physische Hosts und Disposal; Mountfehler lösen Cleanup aus. | Einziger Besitzer der View-Komponenten. Editor-Code darf keine parallele Component-Children-Verwaltung führen. |
-| [Cursor.scala](../scalajs-jfx/jfx-core/src/main/scala-3/jfx/core/render/Cursor.scala), [HostElement.scala](../scalajs-jfx/jfx-core/src/main/scala-3/jfx/core/render/HostElement.scala) | Gemeinsame DOM-/SSR-/Hydration-Schnittstellen, virtuelle Ranges. | Dieselben NodeViews für SSR und Browser verwenden. |
-| [Property.scala](../scalajs-jfx/jfx-core/src/main/scala-3/jfx/core/state/Property.scala), [ListProperty.scala](../scalajs-jfx/jfx-core/src/main/scala-3/jfx/core/state/ListProperty.scala) | Synchrone Beobachter; Listenänderungen sind differenziert, aber nicht transaktional gebündelt. | Commit erst im Editor berechnen, danach projizieren. Eine Property ist weder Transaktion noch History. |
-| [Foreach.scala](../scalajs-jfx/jfx-core/src/main/scala-3/jfx/core/statement/Foreach.scala), [PropertyForeach.scala](../scalajs-jfx/jfx-core/src/main/scala-3/jfx/core/statement/PropertyForeach.scala) | Kein Key-Parameter/Move-Vertrag. Reset ersetzt alle Items, UpdateAt standardmäßig ein Item; indexed Änderungen bauen einen Suffix neu. | `Property[Document] → foreach(children)` wäre für Editing ungeeignet. Generische keyed Children mit stabilen Instanzen ergänzen. |
-| [DomTextNode.scala](../scalajs-jfx/jfx-core/src/main/scala-3/jfx/core/render/DomTextNode.scala), [TextComponent.scala](../scalajs-jfx/jfx-core/src/main/scala-3/jfx/core/layout/TextComponent.scala) | Der Textknoten bleibt erhalten, aber `node.data` wird vollständig geschrieben; auch Host-Bindung setzt Text. | Identische Werte nicht erneut schreiben; gezielte UTF-16-Text-Splices ergänzen. Hydration muss Nutzereingaben vor dem Binden erfassen. |
-| [HydratingCursor.scala](../scalajs-jfx/jfx-core/src/main/scala-3/jfx/core/render/HydratingCursor.scala) | Strict prüft Tag/Nodetyp/Anker/Restknoten; `claimText(initial)` prüft nicht den Textinhalt. `afterHydration` folgt auf vollständige Claim-Prüfung. | Kein vorhandener Editor-State-Abgleich und keine zugesicherte lokale Reparatur. Aktivierung erst nach erfolgreichem Claim. |
-| [DomHostElement.scala](../scalajs-jfx/jfx-core/src/main/scala-3/jfx/core/render/DomHostElement.scala), [SsrNode.scala](../scalajs-jfx/jfx-core/src/main/scala-3/jfx/core/render/SsrNode.scala) | DOM `insertBefore` kann vorhandene Nodes bewegen; SSR-Insertion allein entfernt die alte Referenz nicht. | Move benötigt ausdrücklich gleiche DOM-/SSR-Semantik und Runtime-Ownership, nicht nur einen DOM-Aufruf. |
-| [UiEvent.scala](../scalajs-jfx/jfx-core/src/main/scala-3/jfx/core/render/UiEvent.scala), [DomUiEvent.scala](../scalajs-jfx/jfx-core/src/main/scala-3/jfx/core/render/DomUiEvent.scala), [DomNodes.scala](../scalajs-jfx/jfx-core/src/main/scala-3/jfx/core/render/DomNodes.scala) | Beliebige Eventnamen, raw Event und aufräumbare Handler; interner Zugriff auf reale DOM-Nodes. | Browser-spezifische Eingabetypen im Editoradapter; keine neue globale DOM-Abstraktion erforderlich. |
-| [Control.scala](../scalajs-jfx/jfx-forms/src/main/scala-3/jfx/forms/Control.scala) | Form-Control-Vertrag mit Wert, Editable, Fokus, Fehlern und Validierung. | Separater Forms-Adapter; der Core wird kein `Control[String]`. |
-| [SsrTextNode.scala](../scalajs-jfx/jfx-core/src/main/scala-3/jfx/core/render/SsrTextNode.scala), [Input.scala](../scalajs-jfx/jfx-forms/src/main/scala-3/jfx/forms/Input.scala) | Leerer allgemeiner SSR-Text wird als Kommentaranker ausgegeben; Input implementiert ein input, keinen Textarea-Vertrag. | Generische Textarea-Unterstützung ergänzen: RCDATA, führende LF, defaultValue/value und Hydration müssen gesondert behandelt werden. |
-| [build.sbt](build.sbt), [BridgeRuntime.scala](../scalajs-jfx/jfx-bridge/src/main/scala-3/jfx/bridge/BridgeRuntime.scala) | Derzeit ein Editor-Artefakt auf Forms mit Lexical-Dependency; gemeinsame Scala.js-Bridge. | Neue Module unabhängig anlegen; später Integration bewusst umstellen. Diese Build-Fakten begründen keine Übernahme des Prototyps. |
+| [Runtime.scala](../scalajs-ui/scala/scalajs-ui-core/src/main/scala-3/ui/core/component/Runtime.scala), [AbstractComponent.scala](../scalajs-ui/scala/scalajs-ui-core/src/main/scala-3/ui/core/component/AbstractComponent.scala) | Mount/Unmount besitzt Parent/Children, physische Hosts und Disposal; Mountfehler lösen Cleanup aus. | Einziger Besitzer der View-Komponenten. Editor-Code darf keine parallele Component-Children-Verwaltung führen. |
+| [Cursor.scala](../scalajs-ui/scala/scalajs-ui-core/src/main/scala-3/ui/core/render/Cursor.scala), [HostElement.scala](../scalajs-ui/scala/scalajs-ui-core/src/main/scala-3/ui/core/render/HostElement.scala) | Gemeinsame DOM-/SSR-/Hydration-Schnittstellen, virtuelle Ranges. | Dieselben NodeViews für SSR und Browser verwenden. |
+| [Property.scala](../scalajs-ui/scala/scalajs-ui-core/src/main/scala-3/ui/core/state/Property.scala), [ListProperty.scala](../scalajs-ui/scala/scalajs-ui-core/src/main/scala-3/ui/core/state/ListProperty.scala) | Synchrone Beobachter; Listenänderungen sind differenziert, aber nicht transaktional gebündelt. | Commit erst im Editor berechnen, danach projizieren. Eine Property ist weder Transaktion noch History. |
+| [Foreach.scala](../scalajs-ui/scala/scalajs-ui-core/src/main/scala-3/ui/core/statement/Foreach.scala), [PropertyForeach.scala](../scalajs-ui/scala/scalajs-ui-core/src/main/scala-3/ui/core/statement/PropertyForeach.scala) | Kein Key-Parameter/Move-Vertrag. Reset ersetzt alle Items, UpdateAt standardmäßig ein Item; indexed Änderungen bauen einen Suffix neu. | `Property[Document] → foreach(children)` wäre für Editing ungeeignet. Generische keyed Children mit stabilen Instanzen ergänzen. |
+| [DomTextNode.scala](../scalajs-ui/scala/scalajs-ui-core/src/main/scala-3/ui/core/render/DomTextNode.scala), [TextComponent.scala](../scalajs-ui/scala/scalajs-ui-core/src/main/scala-3/ui/core/layout/TextComponent.scala) | Der Textknoten bleibt erhalten, aber `node.data` wird vollständig geschrieben; auch Host-Bindung setzt Text. | Identische Werte nicht erneut schreiben; gezielte UTF-16-Text-Splices ergänzen. Hydration muss Nutzereingaben vor dem Binden erfassen. |
+| [HydratingCursor.scala](../scalajs-ui/scala/scalajs-ui-core/src/main/scala-3/ui/core/render/HydratingCursor.scala) | Strict prüft Tag/Nodetyp/Anker/Restknoten; `claimText(initial)` prüft nicht den Textinhalt. `afterHydration` folgt auf vollständige Claim-Prüfung. | Kein vorhandener Editor-State-Abgleich und keine zugesicherte lokale Reparatur. Aktivierung erst nach erfolgreichem Claim. |
+| [DomHostElement.scala](../scalajs-ui/scala/scalajs-ui-core/src/main/scala-3/ui/core/render/DomHostElement.scala), [SsrNode.scala](../scalajs-ui/scala/scalajs-ui-core/src/main/scala-3/ui/core/render/SsrNode.scala) | DOM `insertBefore` kann vorhandene Nodes bewegen; SSR-Insertion allein entfernt die alte Referenz nicht. | Move benötigt ausdrücklich gleiche DOM-/SSR-Semantik und Runtime-Ownership, nicht nur einen DOM-Aufruf. |
+| [UiEvent.scala](../scalajs-ui/scala/scalajs-ui-core/src/main/scala-3/ui/core/render/UiEvent.scala), [DomUiEvent.scala](../scalajs-ui/scala/scalajs-ui-core/src/main/scala-3/ui/core/render/DomUiEvent.scala), [DomNodes.scala](../scalajs-ui/scala/scalajs-ui-core/src/main/scala-3/ui/core/render/DomNodes.scala) | Beliebige Eventnamen, raw Event und aufräumbare Handler; interner Zugriff auf reale DOM-Nodes. | Browser-spezifische Eingabetypen im Editoradapter; keine neue globale DOM-Abstraktion erforderlich. |
+| [Control.scala](../scalajs-ui/scala/scalajs-ui-forms/src/main/scala-3/ui/forms/Control.scala) | Form-Control-Vertrag mit Wert, Editable, Fokus, Fehlern und Validierung. | Separater Forms-Adapter; der Core wird kein `Control[String]`. |
+| [SsrTextNode.scala](../scalajs-ui/scala/scalajs-ui-core/src/main/scala-3/ui/core/render/SsrTextNode.scala), [Input.scala](../scalajs-ui/scala/scalajs-ui-forms/src/main/scala-3/ui/forms/Input.scala) | Leerer allgemeiner SSR-Text wird als Kommentaranker ausgegeben; Input implementiert ein input, keinen Textarea-Vertrag. | Generische Textarea-Unterstützung ergänzen: RCDATA, führende LF, defaultValue/value und Hydration müssen gesondert behandelt werden. |
+| [build.sbt](build.sbt), [BridgeRuntime.scala](../scalajs-ui/scala/scalajs-ui-bridge/src/main/scala-3/ui/bridge/BridgeRuntime.scala) | Derzeit ein Editor-Artefakt auf Forms mit Lexical-Dependency; gemeinsame Scala.js-Bridge. | Neue Module unabhängig anlegen; später Integration bewusst umstellen. Diese Build-Fakten begründen keine Übernahme des Prototyps. |
 
 Öffentliche API-Inspiration aus den Editor-READMEs und der TypeScript-Signatur: benanntes Formularfeld, initialer Wert, editierbar/readonly, Platzhalter und Media-Service. Das neue Modell übernimmt weder „Markdown ist der einzige Editorzustand“ noch eine feste Liste stringbasierter Plugin-Namen oder obligatorische Toolbars/Dialogs.
 
@@ -149,9 +149,9 @@ Anwendung / optionale Forms- und UI-Adapter / spätere TS-Fassade
        |
        +---------- Commit / ChangeSet ----------+
                                                 v
-                                  JFX DocumentView / Projection
+                                  UI DocumentView / Projection
                                                 |
-                                 JFX Runtime + Cursor + Hosts
+                                 UI Runtime + Cursor + Hosts
                                      SSR / DOM / Hydration
                                                 ^
                                   BrowserInput / SelectionPort
@@ -162,10 +162,10 @@ Vier Zustandsarten dürfen nicht ineinanderlaufen:
 
 1. **Document:** persistierbare fachliche Struktur mit IDs und Schema, keine DOM-Referenzen.
 2. **EditorState:** Document plus logische Selection und transaktionale StateFields der Sitzung.
-3. **ViewState:** NodeId→JFX-Komponenten, DOM-Punktabbildung, gerenderte Revision. Vollständig aus Modell und Mount-Konfiguration rekonstruierbar.
+3. **ViewState:** NodeId→UI-Komponenten, DOM-Punktabbildung, gerenderte Revision. Vollständig aus Modell und Mount-Konfiguration rekonstruierbar.
 4. **External effects:** Uploads, Netzwerk, Fokus, Clipboard und native Composition-Sitzung. Aufräumbar; Ergebnisse werden mit expliziter Revision/Bookmark wieder in Transaktionen eingespeist.
 
-Der Core veröffentlicht genau einen unveränderlichen Commit. Die View verarbeitet dessen ChangeSet synchron in JFX-Komponenten und meldet danach die gerenderte Revision. Die Browser-Selection wird erst gegen diese Revision geschrieben. Öffentliche Commit-Listener dürfen den neuen State lesen, aber daraus nicht ableiten, dass eine beliebige View schon fertig ist; dafür existiert ein eigener `afterProjection`-Vertrag. Ein Fehler nach dem Commit rollt das gültige Dokument nicht heimlich zurück: die View geht in Recovery und zeigt den gültigen Zustand oder den gesicherten Fallback.
+Der Core veröffentlicht genau einen unveränderlichen Commit. Die View verarbeitet dessen ChangeSet synchron in UI-Komponenten und meldet danach die gerenderte Revision. Die Browser-Selection wird erst gegen diese Revision geschrieben. Öffentliche Commit-Listener dürfen den neuen State lesen, aber daraus nicht ableiten, dass eine beliebige View schon fertig ist; dafür existiert ein eigener `afterProjection`-Vertrag. Ein Fehler nach dem Commit rollt das gültige Dokument nicht heimlich zurück: die View geht in Recovery und zeigt den gültigen Zustand oder den gesicherten Fallback.
 
 ## 6. Modulstruktur
 
@@ -183,22 +183,22 @@ Verzeichnisse heißen `ember-*`, sbt-IDs und Artefakte konsistent `scalajs-ember
 | `ember-json` | Wire-ADT, Node-Codecs, Schema-/Dokumentversionen, Validierung | core |
 | `ember-markdown` | Scala-Syntaxparser, Writer, SourceMap und typisierte AST-Adapter-SPI | core |
 | `ember-html` | Sichere HTML-Fragmentrepräsentation, Importparser, typisierte Import-/Semantikregeln | core |
-| `ember-jfx` | DocumentView, NodeView-SPI, Commit-Projektion, JFX-Property-Adapter, HTML-Ausgabe über JFX | core, html, jfx-core |
-| `ember-standard` | Separat wählbare Standard-Adapter für JSON, Markdown, HTML und NodeViews; komfortable Presets | rich-text, list, link, image, code, json, markdown, html, jfx |
-| `ember-browser` | Input, SelectionPort, Composition, Mutationen, Fokus und Hydration-Aktivierung | core, rich-text, jfx |
+| `ember-ui` | DocumentView, NodeView-SPI, Commit-Projektion, UI-Property-Adapter, HTML-Ausgabe über UI | core, html, ui-core |
+| `ember-standard` | Separat wählbare Standard-Adapter für JSON, Markdown, HTML und NodeViews; komfortable Presets | rich-text, list, link, image, code, json, markdown, html, ui |
+| `ember-browser` | Input, SelectionPort, Composition, Mutationen, Fokus und Hydration-Aktivierung | core, rich-text, ui |
 | `ember-browser-support` | Optionale konkrete Key-/Input-Bindings für History, Listen, Links und Code; getrennt vom Browsermechanismus | browser, history, list, link, code |
 | `ember-clipboard` | Copy/Cut/Paste, Dokumentfragmente, Clipboard-Port | core, rich-text, json, html, browser |
-| `ember-forms` | Markdown-/JSON-Feld, Textarea-Fallback, Submit/Reset, Media-Service-Port und Multipart-Vertrag | core, jfx, browser, markdown, json, image, jfx-forms |
-| `ember-ui` | Optionale Toolbars, Link-/Image-Dialoge, Commands/Status anzeigen | core, rich-text, history, link, image, jfx, browser, jfx-controls, jfx-viewport |
-| `ember-table` (später) | Table/Row/Cell, Zellbereichsselection, Editing und eigene Adapter | core, rich-text; Adapter gezielt zusätzlich json/html/jfx |
+| `ember-forms` | Markdown-/JSON-Feld, Textarea-Fallback, Submit/Reset, Media-Service-Port und Multipart-Vertrag | core, ui, browser, markdown, json, image, ui-forms |
+| `ember-ui` || `ember-toolbar` | Optionale Toolbars, Link-/Image-Dialoge, Commands/Status anzeigen | core, rich-text, history, link, image, ui, browser, ui-controls, ui-viewport |
+| `ember-table` (später) | Table/Row/Cell, Zellbereichsselection, Editing und eigene Adapter | core, rich-text; Adapter gezielt zusätzlich json/html/ui |
 
-`standard` ist bewusst ein optionales Integrationsmodul: Dadurch kennen die Node-Module weder Markdown noch JFX und die Format-SPIs keine konkreten Feature-Nodes. Seine einzelnen Adapter sind eigene Fabriken/Objekte ohne eager globale Sammelregistrierung. Eine reine Paragraph-Anwendung wählt nur Paragraph-/Text-Support. Eine Fremderweiterung liefert ihre Adapter in ihrem eigenen Modul und ändert `standard` nicht.
+`standard` ist bewusst ein optionales Integrationsmodul: Dadurch kennen die Node-Module weder Markdown noch UI und die Format-SPIs keine konkreten Feature-Nodes. Seine einzelnen Adapter sind eigene Fabriken/Objekte ohne eager globale Sammelregistrierung. Eine reine Paragraph-Anwendung wählt nur Paragraph-/Text-Support. Eine Fremderweiterung liefert ihre Adapter in ihrem eigenen Modul und ändert `standard` nicht.
 
 Der Browsermechanismus nimmt typisierte Input-/Key-Bindings und Effect-Callbacks entgegen. Konkrete History-/List-/Code-Commands werden durch `browser-support` oder die Anwendung verdrahtet; `browser` importiert diese Feature-Pakete nicht. Picker und Uploadkoordination liegen im Forms-Adapter, der Browser-/Clipboard-File-Intents konsumiert. So entsteht keine Rückkante `browser → forms`. Konkrete Link-/Image-Dialoge dürfen ihre Feature-Typen im optionalen UI-Modul direkt verwenden.
 
 Die Trade-offs sind ausdrücklich: Das Integrationsmodul hat viele Compile-Abhängigkeiten; die tatsächlich gelinkte Größe muss gemessen werden. Falls einzelne Fabriken trotz getrennter Erreichbarkeit unerwünschte Features festhalten, werden betroffene Adapter in kleinere Integrationsartefakte ausgelagert. Das ist ein messbares Akzeptanzkriterium, kein blindes Vertrauen in Tree Shaking.
 
-Kein separates optionales `selection`: Tx und History benötigen die Typen und Maps zwingend. Kein separates `reactive`: der kleine Adapter gehört zu `jfx`. Syntax-Highlighting, Collaboration, Mentions und Autocomplete werden erst bei Implementierung eigenständige Feature-Module; jetzt werden keine leeren Projekte dafür erzeugt.
+Kein separates optionales `selection`: Tx und History benötigen die Typen und Maps zwingend. Kein separates `reactive`: der kleine Adapter gehört zu `ui`. Syntax-Highlighting, Collaboration, Mentions und Autocomplete werden erst bei Implementierung eigenständige Feature-Module; jetzt werden keine leeren Projekte dafür erzeugt.
 
 ## 7. Dependency Graph
 
@@ -206,7 +206,7 @@ Pfeile bedeuten „hängt ab von“. Die Tabelle in §6 ist der vollständige di
 
 ```mermaid
 flowchart TD
-  UI[editor-ui] --> JFX[editor-jfx]
+  UI[editor-ui] --> UI[editor-ui]
   UI --> Browser[editor-browser]
   Forms[editor-forms] --> Browser
   Forms --> MD[editor-markdown]
@@ -215,14 +215,14 @@ flowchart TD
   Clip[editor-clipboard] --> Browser
   Clip --> JSON
   Clip --> HTML[editor-html]
-  Browser --> JFX
+  Browser --> UI
   Browser --> Rich[editor-rich-text]
   BrowserSupport[editor-browser-support] --> Browser
   BrowserSupport --> Features[list / link / code]
   BrowserSupport --> History[editor-history]
-  JFX --> HTML
-  JFX --> JfxCore[jfx-core]
-  Standard[editor-standard: explizite Adapter] --> JFX
+  UI --> HTML
+  UI --> UiCore[ui-core]
+  Standard[editor-standard: explizite Adapter] --> UI
   Standard --> MD
   Standard --> JSON
   Standard --> Features[list / link / code]
@@ -236,7 +236,7 @@ flowchart TD
   History[editor-history] --> Core
 ```
 
-UI-/Form-Abhängigkeiten reichen niemals nach unten zurück. `core` hat kein `org.scalajs.dom`, keine JFX-Property, kein Forms-/Viewport-Import. Die allgemeinen Build-Settings dürfen dort daher nicht unverändert `scalajs-dom` hinzufügen. Produktions- und Testabhängigkeiten werden getrennt geprüft. Jedes veröffentlichte Modul darf nur auf veröffentlichte Artefakte verweisen.
+UI-/Form-Abhängigkeiten reichen niemals nach unten zurück. `core` hat kein `org.scalajs.dom`, keine UI-Property, kein Forms-/Viewport-Import. Die allgemeinen Build-Settings dürfen dort daher nicht unverändert `scalajs-dom` hinzufügen. Produktions- und Testabhängigkeiten werden getrennt geprüft. Jedes veröffentlichte Modul darf nur auf veröffentlichte Artefakte verweisen.
 
 ## 8. Node Model
 
@@ -354,7 +354,7 @@ Commit-Reihenfolge:
 4. Typisierte Transforms auf Dirty Nodes in deterministischer Reihenfolge bis zum Fixpunkt ausführen; neue Operationen gehen durch dieselbe Pipeline.
 5. Lokale Invarianten, synchrone PreCommit-Regeln und StateField-Reducer prüfen. Auch ein Reducer kann mit typisiertem Fehler ablehnen. Ein Transform-Zyklus, verletzte Invariante oder nicht darstellbarer Formwert verwirft die gesamte Tx.
 6. Unveränderlichen State atomar veröffentlichen. No-op erzeugt keinen Dokumentcommit und keine History-Stufe.
-7. Commit-Konsumenten benachrichtigen; die JFX-Projektion meldet separat ihren Abschluss. Ein fehlerhafter Listener wird an den Error-Sink gemeldet und verhindert nicht die übrigen Benachrichtigungen.
+7. Commit-Konsumenten benachrichtigen; die UI-Projektion meldet separat ihren Abschluss. Ein fehlerhafter Listener wird an den Error-Sink gemeldet und verhindert nicht die übrigen Benachrichtigungen.
 
 Tx-Closures sind synchron und liefern `Unit`; asynchrone Arbeit findet außerhalb statt. Öffentliche verschachtelte `editor.update`-Aufrufe sind ein Fehler. Innerhalb einer Tx werden Commands über `tx.dispatch` im selben Draft ausgeführt. Listener dürfen Änderungen nur durch `editor.enqueueUpdate` für einen folgenden Commit anfordern. Das verhindert versteckte Reentranz, ohne Aktualisierungsbedarf zu verlieren.
 
@@ -465,21 +465,21 @@ Zeitgeber wird injiziert. Grenzen für Eintragszahl und geschätztes Retained-By
 
 ### 15.1 Ein Renderer mit einer Editorprojektion
 
-`DocumentView` übersetzt Nodes durch typisierte `NodeView[N]`-Adapter in reguläre JFX-Komponenten. Ein Adapter erhält immutable Node-Daten und Rendering-Kontext, nicht unbeschränkte DOM-Schreibrechte. Er beschreibt semantische Tags, Attribute, Text und Kindslots. Ein gemeinsamer semantischer Vertrag liefert sowohl eigenständige HTML-Ausgabe als auch die Dokumentansicht; Browser-Editing ergänzt nur Metadaten und Interaktion.
+`DocumentView` übersetzt Nodes durch typisierte `NodeView[N]`-Adapter in reguläre UI-Komponenten. Ein Adapter erhält immutable Node-Daten und Rendering-Kontext, nicht unbeschränkte DOM-Schreibrechte. Er beschreibt semantische Tags, Attribute, Text und Kindslots. Ein gemeinsamer semantischer Vertrag liefert sowohl eigenständige HTML-Ausgabe als auch die Dokumentansicht; Browser-Editing ergänzt nur Metadaten und Interaktion.
 
-Die Projektion hält einen Index der von JFX besessenen Node-Komponenten. Das ist eine Zuordnung, keine zweite Ownership-Liste: Mount/Unmount/Move erfolgen nur durch Runtime-APIs. Updates bestehender Komponenten schreiben ihre Properties bzw. Text-Splices; unveränderte Nodes werden nicht erneut komponiert. Ein allgemeines `setAll` auf jedem Snapshot ist ausgeschlossen.
+Die Projektion hält einen Index der von UI besessenen Node-Komponenten. Das ist eine Zuordnung, keine zweite Ownership-Liste: Mount/Unmount/Move erfolgen nur durch Runtime-APIs. Updates bestehender Komponenten schreiben ihre Properties bzw. Text-Splices; unveränderte Nodes werden nicht erneut komponiert. Ein allgemeines `setAll` auf jedem Snapshot ist ausgeschlossen.
 
 | Tätigkeit | Besitzer |
 | --- | --- |
 | Semantische Darstellung eines fachlichen Node-Typs | NodeView-/HTML-Support des Features |
 | Welche Nodes eines Commits betroffen sind | Editor-ChangeSet und Projection |
-| Komponenten-Lifecycle, physische Hosts, Kindordnung, Text-/Attributschreibzugriffe | JFX3 Runtime/Hosts |
+| Komponenten-Lifecycle, physische Hosts, Kindordnung, Text-/Attributschreibzugriffe | UI3 Runtime/Hosts |
 | Native DOM-Selection ↔ Modellpunkte | Browser-SelectionPort |
 | Eingaben, IME, fremde Mutationen, Koordination geschützter Bereiche | BrowserInputController |
 | History und Dokumentinvarianten | Core/Feature-Module |
 
-Erforderliche JFX-Erweiterungen, inzwischen als generische Core-APIs implementiert
-(Verträge und Grenzen: [JFX_CORE_INTEGRATION.md](JFX_CORE_INTEGRATION.md)):
+Erforderliche UI-Erweiterungen, inzwischen als generische Core-APIs implementiert
+(Verträge und Grenzen: [UI_CORE_INTEGRATION.md](UI_CORE_INTEGRATION.md)):
 
 1. `TextNode.spliceText(startUtf16, deleteCountUtf16, inserted)` mit gleichem DOM-/SSR-Ergebnis und unverändertem Textknoten; No-op schreibt nichts. Keine Graphemsemantik im Host.
 2. Keyed Child-Komposition mit stabilen Component-Instanzen und explizitem Datenupdate; `Runtime.move` besitzt die logische und physische Änderung gemeinsam.
@@ -519,21 +519,21 @@ Weitere konkrete Testfallquellen aus dieser Datei: koreanische iOS-10-key-Eingab
 
 Während nativer Eingabe kann der Browser zwischen DOM-Mutation und `input` kurzfristig voraus sein. Dies ist ein klar abgegrenzter Eingabepuffer, kein zweites Dokumentmodell: der Controller erfasst die Beobachtung und übernimmt sie in einen validierten State. Die laufende Composition besitzt eine Session-ID, Ausgangsrevision, gemappte Selection und die letzte erfasste native Eingabe.
 
-Die Schreibsperre schützt den vollständigen anfänglichen Ersetzungsbereich einschließlich aller betroffenen Leaves, Marks, Atomgrenzen und Blöcke sowie benötigter struktureller Vorfahren. Bei einer kollabierten Range ist dies mindestens der aktive Block. Reicht eine lokale Schutzgrenze nicht, wird der ganze Editing-Host geschützt; ein blockübergreifender Start darf nicht als Ein-Leaf-Fall behandelt werden. Der JFX-HostMutationGuard verhindert Textschreibzugriffe, Moves, Remounts und Entfernung in diesem Bereich vor Seiteneffekten, der SelectionPort verhindert Selection-Writes. Native Zwischenstände werden als zusammengehörige Transaktionen übernommen; optimierende Text-Merges werden bis zum Ende verschoben. **Integritätsvalidierung wird nie abgeschaltet.** Eine native Struktur, die nicht verlustfrei validiert werden kann, führt in Recovery mit gesichertem Text.
+Die Schreibsperre schützt den vollständigen anfänglichen Ersetzungsbereich einschließlich aller betroffenen Leaves, Marks, Atomgrenzen und Blöcke sowie benötigter struktureller Vorfahren. Bei einer kollabierten Range ist dies mindestens der aktive Block. Reicht eine lokale Schutzgrenze nicht, wird der ganze Editing-Host geschützt; ein blockübergreifender Start darf nicht als Ein-Leaf-Fall behandelt werden. Der UI-HostMutationGuard verhindert Textschreibzugriffe, Moves, Remounts und Entfernung in diesem Bereich vor Seiteneffekten, der SelectionPort verhindert Selection-Writes. Native Zwischenstände werden als zusammengehörige Transaktionen übernommen; optimierende Text-Merges werden bis zum Ende verschoben. **Integritätsvalidierung wird nie abgeschaltet.** Eine native Struktur, die nicht verlustfrei validiert werden kann, führt in Recovery mit gesichertem Text.
 
 Während Composition werden **alle unabhängigen Dokumenttransaktionen**, auch außerhalb des geschützten Bereichs, vor Commit als `CompositionBusy` abgewiesen oder als expliziter Intent mit Bookmark in eine begrenzte Queue gelegt. Erlaubt bleiben zugehörige native Composition-Updates sowie reine Selection-/View-/Effect-Änderungen. Es werden keine bereits berechneten Drafts später angewendet. So kann die Snapshot-History die Composition als eine Gruppe zurücknehmen, ohne unabhängige Änderungen mitzulöschen. Eine spätere Lockerung benötigt selektive History und eigenes Mapping. Schema-/Dokumentwechsel beendet bzw. verwirft die Sitzung nur nach expliziter Recovery-Regel.
 
-Abschluss berücksichtigt sowohl `compositionend` als auch ein mögliches abschließendes `input`; Ereignisse können je Browser verschieden geordnet sein. Ein revisionierter Vergleich des erfassten Textes verhindert doppelte Einfügung. Danach läuft Normalisierung, JFX projiziert den Endzustand, Selection wird nur bei weiterhin editorinternem Fokus restauriert. Blur erfasst noch offene native Änderung; Dispose räumt auf und meldet ggf. nicht abgeschlossene Eingabe an den Host. Ein willkürlicher Timeout ohne reproduzierten Browserfall ist kein Abschlussprotokoll.
+Abschluss berücksichtigt sowohl `compositionend` als auch ein mögliches abschließendes `input`; Ereignisse können je Browser verschieden geordnet sein. Ein revisionierter Vergleich des erfassten Textes verhindert doppelte Einfügung. Danach läuft Normalisierung, UI projiziert den Endzustand, Selection wird nur bei weiterhin editorinternem Fokus restauriert. Blur erfasst noch offene native Änderung; Dispose räumt auf und meldet ggf. nicht abgeschlossene Eingabe an den Host. Ein willkürlicher Timeout ohne reproduzierten Browserfall ist kein Abschlussprotokoll.
 
 ### 15.4 Unbekannte Mutationen und Recovery
 
-Die Runtime darf von nativen Mutationen getrennte oder ersetzte Hosts nicht weiter als gültig behandeln. Der Controller prüft den betroffenen Besitzbereich und importiert entweder ein zulässiges Fragment oder lässt JFX diesen Bereich aus dem gültigen State neu aufbauen. Rohtext bzw. der letzte Source-Draft bleibt für Recovery verfügbar. Keine Plugins schreiben zur Reparatur `innerHTML`.
+Die Runtime darf von nativen Mutationen getrennte oder ersetzte Hosts nicht weiter als gültig behandeln. Der Controller prüft den betroffenen Besitzbereich und importiert entweder ein zulässiges Fragment oder lässt UI diesen Bereich aus dem gültigen State neu aufbauen. Rohtext bzw. der letzte Source-Draft bleibt für Recovery verfügbar. Keine Plugins schreiben zur Reparatur `innerHTML`.
 
 Reparatur hat einen begrenzten Wiederholungsversuch. Bei erneuter Abweichung bleibt ein bedienbarer Source-Fallback mit verständlicher Statusmeldung; keine Endlosschleife aus Observer→Render→Observer. Für Editor-Hosts in iframes werden ownerDocument/defaultView verwendet. Shadow-DOM-Selection ist ein eigener Capability-Test; es wird nicht behauptet, globale `window.getSelection` löse diesen Fall.
 
 ## 16. SSR und Non-JavaScript-Formular
 
-`DocumentView(document, support)` rendert mit den vorhandenen JFX-Cursors semantisches HTML: Paragraphen, h1–h6, Listen, blockquote, strong/em, Links, pre/code und img. SSR erzeugt keine Selection, Toolbar-Autofokus oder browserabhängigen Abmessungen. Absolute Dokumentwerte wie Bildbreite/-höhe können Layoutsprünge reduzieren; sie werden validiert und responsiv dargestellt.
+`DocumentView(document, support)` rendert mit den vorhandenen UI-Cursors semantisches HTML: Paragraphen, h1–h6, Listen, blockquote, strong/em, Links, pre/code und img. SSR erzeugt keine Selection, Toolbar-Autofokus oder browserabhängigen Abmessungen. Absolute Dokumentwerte wie Bildbreite/-höhe können Layoutsprünge reduzieren; sie werden validiert und responsiv dargestellt.
 
 Ein editierbares Feld besteht initial aus zwei getrennt besessenen Bereichen:
 
@@ -546,7 +546,7 @@ Ein editierbares Feld besteht initial aus zwei getrennt besessenen Bereichen:
 </section>
 ```
 
-Das ist eine Strukturillustration; Inhalte werden durch JFX-Host-APIs erzeugt, nicht durch Stringinterpolation oder Literal-Kommentare. Dafür wird ein generischer Textarea-Vertrag ergänzt: kein `jfx:text`-Kommentaranker in leerem RCDATA, sicheres Escaping insbesondere von `&` und `</textarea>`, Erhalt führender Zeilenumbrüche trotz HTML-Parserregel, getrenntes `defaultValue`/aktuelles `.value` und Wertübernahme vor Hydration-Schreibzugriffen. `SsrRawTextNode` für Script/Style ist dafür ungeeignet. Die Textarea ist ohne JavaScript sichtbar, benannt, fokussierbar und normal submitbar. Readonly-Ansichten benötigen keine editierbare Textarea. Form action/method, CSRF, Validation, Persistenz und Fehlerrückgabe liefert die Anwendung.
+Das ist eine Strukturillustration; Inhalte werden durch UI-Host-APIs erzeugt, nicht durch Stringinterpolation oder Literal-Kommentare. Dafür wird ein generischer Textarea-Vertrag ergänzt: kein `ui:text`-Kommentaranker in leerem RCDATA, sicheres Escaping insbesondere von `&` und `</textarea>`, Erhalt führender Zeilenumbrüche trotz HTML-Parserregel, getrenntes `defaultValue`/aktuelles `.value` und Wertübernahme vor Hydration-Schreibzugriffen. `SsrRawTextNode` für Script/Style ist dafür ungeeignet. Die Textarea ist ohne JavaScript sichtbar, benannt, fokussierbar und normal submitbar. Readonly-Ansichten benötigen keine editierbare Textarea. Form action/method, CSRF, Validation, Persistenz und Fehlerrückgabe liefert die Anwendung.
 
 Nach erfolgreicher Aktivierung bleibt **genau ein erfolgreiches benanntes Formularfeld**: dieselbe Textarea erhält die aktuelle Source-Repräsentation und wird für die Rich-Ansicht verborgen, aber nicht disabled. Der Editor-Host hat keinen konkurrierenden Formularnamen. Source-Modus macht die Textarea wieder sichtbar und setzt die Rich-Ansicht readonly. Native `reset` und programmgesteuerter Dokumentwechsel laufen über eine definierte Form-/Session-Operation und aktualisieren Baseline, History und Anzeige gemeinsam.
 
@@ -568,20 +568,20 @@ Hydration ist eine Zustandsübernahme mit Verlustschutz, nicht nur das Finden gl
 2. **Vor dem ersten Claim**, der Werte überschreiben könnte, erfasst die äußere Form-Boundary die tatsächliche `textarea.value`, `selectionStart`, `selectionEnd`, `selectionDirection` und Fokus. Attribute oder `defaultValue` reichen dafür nicht. Eine bereits vor Attach begonnene Composition lässt sich nicht zuverlässig nachträglich abfragen. Deshalb wird ein bereits fokussiertes Source-Feld konservativ erst nach Blur oder einer ausdrücklichen Wechselaktion erweitert; früh registrierte Capture-Listener dürfen später einen engeren getesteten Bootstrap-Vertrag ermöglichen.
 3. Payload wird validiert; Schema und Rendering-Profil müssen passen. Der Fallback liegt außerhalb der austauschbaren Rich-View-Boundary und bleibt bei deren Fehler erhalten.
 4. Falls Source seit SSR geändert wurde, bleibt sie zunächst unangetastet. Das anfängliche Preview wird gegen den Server-Snapshot geclaimt; anschließend wird der erfolgreich geparste Source-Draft als neuer Zustand projiziert. SourceMap übersetzt die Textarea-Auswahl. Parsingfehler lassen den Draft editierbar und verhindern Enhancement.
-5. JFX übernimmt die initiale Struktur. Ein zusätzlicher Editor-Check validiert IDs, Textinhalt und semantisch relevante Attribute gegen das erwartete Profil, **bevor** Binding sie verdeckt. JFX-Strict allein beweist dies heute nicht. Die neue Boundary muss diese Pre-claim-Prüfung unterstützen.
+5. UI übernimmt die initiale Struktur. Ein zusätzlicher Editor-Check validiert IDs, Textinhalt und semantisch relevante Attribute gegen das erwartete Profil, **bevor** Binding sie verdeckt. UI-Strict allein beweist dies heute nicht. Die neue Boundary muss diese Pre-claim-Prüfung unterstützen.
 6. Nach lokal vollständig erfolgreichem Claim und äußerem Hydration-Abschluss werden Controller und `contenteditable` aktiviert. Während bekannter Textarea-Composition oder bei unbekannter Eingabesitzung eines bereits fokussierten Felds wird der Wechsel aufgeschoben; die Aktivierung liest den Draft nochmals, um die Preflight-Zeitlücke zu schließen.
 7. Nur wenn der Nutzer das Feld tatsächlich fokussiert hatte, kann eine übersetzte Selection mit entsprechender Richtung in die Rich-Ansicht übernommen werden. Ansonsten keine Fokus-/Selection-Schreibaktion.
 
 | Abweichung | Festgelegtes Verhalten |
 | --- | --- |
 | Falsche Version, fehlende Extension/Codec | Fallback erhalten, klare Diagnose; keine Interpretation als anderes Node-Schema. |
-| Rich-View-Struktur/ID/Text/Attribute abweichend | Lokale fehlgeschlagene Komponenten disposen; Boundary via JFX aus gültigem State neu mounten; Fallback außerhalb behalten. |
+| Rich-View-Struktur/ID/Text/Attribute abweichend | Lokale fehlgeschlagene Komponenten disposen; Boundary via UI aus gültigem State neu mounten; Fallback außerhalb behalten. |
 | Vor-Hydration-Nutzereingabe | Source-Draft hat Vorrang vor veraltetem Formwert; SourceMap bzw. sichtbarer Fallback erhält Auswahl und Text. |
 | Mismatch während aktiver Source-Composition | Enhancement verschieben, Quelle nicht ersetzen. |
 | Beschädigter Snapshot, lesbares Source vorhanden | Nur bei erfolgreichem validierten Source-Import neue Session beginnen; sonst Source bearbeiten lassen. |
 | Wiederholtes Enhancement | Idempotent; genau ein Controller, keine doppelten Handler oder Observer. |
 
-Die lokale Boundary ist eine geplante JFX-Erweiterung. Der vorhandene Mount-Catch kann bereits geclaimte Hosts entfernen; daher darf das Fallback nicht im selben fehlgeschlagenen Teilbaum liegen. `adoptRange` ist keine Abkürzung zur ungeprüften Editor-Hydration. Die Boundary muss auch Cursor-Registrierungen und noch nicht ausgeführte Hydration-Callbacks fehlgeschlagener Claims entfernen, sonst kann die äußere Session später erneut fehlschlagen.
+Die lokale Boundary ist eine geplante UI-Erweiterung. Der vorhandene Mount-Catch kann bereits geclaimte Hosts entfernen; daher darf das Fallback nicht im selben fehlgeschlagenen Teilbaum liegen. `adoptRange` ist keine Abkürzung zur ungeprüften Editor-Hydration. Die Boundary muss auch Cursor-Registrierungen und noch nicht ausgeführte Hydration-Callbacks fehlgeschlagener Claims entfernen, sonst kann die äußere Session später erneut fehlschlagen.
 
 ## 18. Markdown
 
@@ -590,7 +590,7 @@ Die lokale Boundary ist eine geplante JFX-Erweiterung. Der vorhandene Mount-Catc
 ```text
 Markdown-String <-> Syntax-AST + SourceMap <-> Editor-Document
                                                 |
-                                       JFX-semantisches HTML
+                                       UI-semantisches HTML
 ```
 
 `ember-markdown` enthält einen in Scala geschriebenen Parser und Writer. Er braucht weder Lexical noch DOM noch HTML als Zwischenstufe. Die Syntax-AST ist immutable und nur ein Import-/Exportwert, kein zweiter dauerhaft synchron gehaltener Editorzustand. Typisierte Regeln verbinden Syntax und registrierte NodeTypes; Standardregeln liegen im Integrationsmodul.
@@ -623,7 +623,7 @@ Parser baut zunächst Blockstruktur, dann Inline-Struktur mit Delimiter-/Bracket
 
 ### 19.1 HTML
 
-HTML ist ein Austauschformat und eine semantische Projektion. `HtmlFragment` ist eine begrenzte immutable Import-/Exportbeschreibung mit bekannten Tags, Text und typisierten zulässigen Attributen. Es ist **kein diffbarer View-Baum** und besitzt keine Mount-/Update-API. `ember-jfx` materialisiert semantische Ausgabe ausschließlich über JFX-Hosts. Der Editor enthält keinen konkurrierenden HTML-String-Renderer.
+HTML ist ein Austauschformat und eine semantische Projektion. `HtmlFragment` ist eine begrenzte immutable Import-/Exportbeschreibung mit bekannten Tags, Text und typisierten zulässigen Attributen. Es ist **kein diffbarer View-Baum** und besitzt keine Mount-/Update-API. `ember-ui` materialisiert semantische Ausgabe ausschließlich über UI-Hosts. Der Editor enthält keinen konkurrierenden HTML-String-Renderer.
 
 `HtmlImportRule[N]` definiert Tag-/Attributerkennung, Priorität, Node-Erzeugung sowie Verarbeitung von Kindern. Standardregeln behandeln Paragraphen, Überschriften, Listen, Links, Marks, Quotes, Code und Bilder. Export- und NodeView-Support nutzen dieselben semantischen Entscheidungen; browserseitige Wrapper/Editor-Attribute werden beim Austausch entfernt.
 
@@ -699,14 +699,14 @@ const session = createEditor({
   extensions: [richText(), history(), links(), images({ urlPolicy })]
 });
 session.dispatch(insertText, { text: "Hello" });
-// renderEditor(session, ...) verwendet weiterhin die JFX3-Runtime.
+// renderEditor(session, ...) verwendet weiterhin die UI3-Runtime.
 ```
 
 Die Handles tragen Runtime-Identität und generische Payload-Typen. Fremde oder bereits entsorgte Handles werden an der Grenze abgewiesen. Command-Namen in Diagnosemeldungen sind keine stringbasierte Dispatch-API. JSON-DTOs bleiben die Austauschgrenze über Worker/Server/isolierte Runtime hinweg; ein Handle wird nicht serialisiert.
 
 Für native TypeScript-Erweiterungen ist zunächst eine begrenzte deklarative Contribution-API vorgesehen; beliebige JS-Node-Klassen mit direkten DOM-Hooks werden nicht zugelassen. Callbacks haben Laufzeitvalidierung, klare Fehlersemantik und dürfen einen synchronen Tx nicht mit einem Promise fortsetzen. Die Fassade ist kein zweiter Editor-State.
 
-Es wird genau **eine** verknüpfte Scala.js-Runtime pro Anwendung verwendet. Ein unabhängig gelinktes Editor-npm-Paket mit eigener Kopie von JFX-State/Component-Klassen wäre ungeeignet. Scala-Quellmodularität, Scala.js-Linker-Erreichbarkeit und nachträgliches npm-Tree-Shaking sind unterschiedliche Dinge: explizite Exporte/Registrierungen in einer monolithischen Bridge können Features bereits festhalten. Daher getrennte Messungen für minimale Scala-Anwendung und tatsächlichen npm-Consumer. Falls minimaler npm-Einstieg mehr Linker-Aufteilung benötigt, wird dies in derselben gemeinsamen Linker-Ausgabe umgesetzt und durch Runtime-Identitätstests abgesichert.
+Es wird genau **eine** verknüpfte Scala.js-Runtime pro Anwendung verwendet. Ein unabhängig gelinktes Editor-npm-Paket mit eigener Kopie von UI-State/Component-Klassen wäre ungeeignet. Scala-Quellmodularität, Scala.js-Linker-Erreichbarkeit und nachträgliches npm-Tree-Shaking sind unterschiedliche Dinge: explizite Exporte/Registrierungen in einer monolithischen Bridge können Features bereits festhalten. Daher getrennte Messungen für minimale Scala-Anwendung und tatsächlichen npm-Consumer. Falls minimaler npm-Einstieg mehr Linker-Aufteilung benötigt, wird dies in derselben gemeinsamen Linker-Ausgabe umgesetzt und durch Runtime-Identitätstests abgesichert.
 
 ## 24. Testing Strategy und Abnahme
 
@@ -716,16 +716,16 @@ Es wird genau **eine** verknüpfte Scala.js-Runtime pro Anwendung verwendet. Ein
 | Generative Modelltests | Zufällige gültige Editierfolgen gegen einfaches Referenzmodell; Parent-Index/Tree-Äquivalenz; Selection stets gültig; Split/Merge/Move-/Delete-Mapping. |
 | History | Fake Clock, Typing-Grenzen, Selection-Restore, Composition als ein Schritt, unabhängige Änderung während Composition bleibt nach deren Undo erhalten bzw. wurde bis danach zurückgestellt; Redo-Invalidierung, Import-/Remote-Policy, Retention-Limits. |
 | Formate | JSON-Versionen/Unknown Nodes; Markdown-Profil-Fixtures und Konformitätskorpus; HTML-Allowlist/Fehlformungen; semantische Roundtrips ohne DOM. |
-| JFX Runtime | Move ohne SSR-Duplikat, Parent-Ownership, reaktive Folgeänderungen nach Move, Text-Splice-Identität, genau einmaliges Dispose. |
+| UI Runtime | Move ohne SSR-Duplikat, Parent-Ownership, reaktive Folgeänderungen nach Move, Text-Splice-Identität, genau einmaliges Dispose. |
 | SSR | Import/Render ohne Browserglobals; semantische Tags; Text-/Attribut-/Textarea-/JSON-Escaping; deterministische IDs; Source-Fallback mit korrektem Namen/Wert. |
 | Hydration | DOM-Identität, fremde Attribute/Text/Tags/IDs, fehlende Payloads, doppelte Aktivierung, Cleanup; vorab geänderte Source samt rückwärts gerichteter Auswahl; aktive Source-Composition. |
 | Reale Browser | Chromium/Firefox/WebKit: Caret/Ranges, Bidi, Eingabe/Deletion/Enter, NativeInput, Clipboard, Focus, Undo, Drag/Drop, Observer-Rennen. |
 | Reale Geräte | Desktop-IME CJK, Akzente/Dead Keys, Android/Gboard, iOS/Safari-Autokorrektur, VoiceOver/NVDA. Event-Traces plus manuelle Schritte als versionierte Fixtures. |
 | No-JS | JavaScript deaktiviert: Lesen, Source bearbeiten, POST, Validierungsfehler, Reset, Multipart-Datei, Serverantwort enthält die Eingabe. Textarea leer/führende LF/`&</textarea>`; im JS-Source-Modus kein Überschreiben durch unabhängige Dokumentänderungen. |
 | Media | HTTPS-/relative Quellen, URL-Policy, keine Base64/Blob-Persistenz, async Abbruch/Bookmark/Undo/Dispose, keine SSR-Netzwerkzugriffe. |
-| Packaging | Headless ohne JFX/DOM/UI; Publish-Graph ohne private Dependencies; echter Tarball-Consumer, eine Runtime; Bundles für Text-only, Markdown und vollständiges Profil. |
+| Packaging | Headless ohne UI/DOM/UI; Publish-Graph ohne private Dependencies; echter Tarball-Consumer, eine Runtime; Bundles für Text-only, Markdown und vollständiges Profil. |
 
-Vorhandene Tests wie `RuntimeLifecycleSpec`, `ForeachChildOwnershipSpec`, `SsrTextNodeSpec` und der echte `../scalajs-jfx/../scalajs-jfx/npm/jfx-core/test/bridge.smoke.test.ts` sichern Grundlagen. Viele npm-Core-Tests verwenden einen Stub; jsdom liefert keine belastbare IME-/Selection-Engine. Der neue Browser-Harness muss den tatsächlich gelinkten Scala-Editor ausführen.
+Vorhandene Tests wie `RuntimeLifecycleSpec`, `ForeachChildOwnershipSpec`, `SsrTextNodeSpec` und der echte `../scalajs-ui/npm/scalajs-ui-core/test/bridge.smoke.test.ts` sichern Grundlagen. Viele npm-Core-Tests verwenden einen Stub; jsdom liefert keine belastbare IME-/Selection-Engine. Der neue Browser-Harness muss den tatsächlich gelinkten Scala-Editor ausführen.
 
 Performance wird reproduzierbar erfasst: 1k/10k/100k Nodes, kurze Paragraphen versus sehr langer Textlauf, tiefe Listen, 1k lokale Textänderungen, Block-Move und History-Trim. Gemessen werden berührte Nodes, Mounts/Unmounts, DOM-Schreibvorgänge, Commit-/Projection-p50/p95 und Heap nach Freigabe. Hardware, Browser, Buildmodus und Korpus werden protokolliert. Anfangs keine erfundenen Millisekundenversprechen; ein lokaler Text-Edit darf unabhängig von der Gesamtdokumentgröße keine vollständige NodeMap-Traversierung und keinen Geschwister-Remount verursachen.
 
@@ -736,12 +736,12 @@ sbt --server "Test/testOnly *"
 ```
 
 Die npm-/Bridge-/Browser-Gates gehören zum Nachbar-Repo und laufen dort
-([AGENTS.md](../scalajs-jfx/AGENTS.md), [verify.yml](../scalajs-jfx/.github/workflows/verify.yml)):
+([AGENTS.md](../scalajs-ui/AGENTS.md), [verify.yml](../scalajs-ui/.github/workflows/verify.yml)):
 
 ```powershell
-cd ../scalajs-jfx
+cd ../scalajs-ui
 sbt --server "Test/testOnly *"
-sbt --server "scalajs-jfx-bridge/fullLinkJS"
+sbt --server "scalajs-ui-bridge/fullLinkJS"
 npm run verify --workspaces --if-present
 ```
 
@@ -753,7 +753,7 @@ Die ursprüngliche Aufgabenüberschrift „Migration“ bedeutet nach der Benutz
 
 Neue Module und ein eigener Test-/Demo-Einstieg entstehen unabhängig. Die Namensbelegung durch `EditorSession`, `DocumentView` und `EditorField` bleibt; ob die spätere Komfort-DSL wieder `editor(...)` heißt, ist eine öffentliche API-Entscheidung.
 
-**Zwei getrennte Prototypen, zwei getrennte Schicksale.** Der lokale Prototyp dieses Repositories (`ember.core.Editor` auf `contenteditable`/`execCommand`, HTML-String als Zustand) samt vite-Demo ist bereits gelöscht — er war weder Konsument noch Grundlage, sondern nur ein Vorentwurf. Alles Folgende in diesem Abschnitt betrifft ausschließlich den Editor-Prototyp und `scalajs-lexical` **im Nachbar-Repo `../scalajs-jfx`** (Modul `jfx-editor`, npm-Paket, Bridge-Registrierungen). Dieser bleibt dort bis zur bewussten Umstellung als bestehender Konsument vorhanden.
+**Zwei getrennte Prototypen, zwei getrennte Schicksale.** Der lokale Prototyp dieses Repositories (`ember.core.Editor` auf `contenteditable`/`execCommand`, HTML-String als Zustand) samt vite-Demo ist bereits gelöscht — er war weder Konsument noch Grundlage, sondern nur ein Vorentwurf. Alles Folgende in diesem Abschnitt betrifft ausschließlich den Editor-Prototyp und `scalajs-lexical` **im Nachbar-Repo `../scalajs-ui`** (Modul `ui-editor`, npm-Paket, Bridge-Registrierungen). Dieser bleibt dort bis zur bewussten Umstellung als bestehender Konsument vorhanden.
 
 Erst nach den Abnahmen werden Scala-Demo, Forms-Integration und TypeScript-Fassade auf die neue API umgestellt. Ein eventuell erforderlicher Inhaltsimport richtet sich nach tatsächlich vorhandenen Datenformaten und expliziten Fixtures, nicht nach vermuteter Lexical-Kompatibilität. Ein verlustfreier Import unbekannter Legacy-Daten wird nicht versprochen.
 
@@ -761,12 +761,12 @@ Der letzte Ablösungsschritt entfernt alte Editorquellen sowie `scalajs-lexical`
 
 ## 26. Implementierungsphasen und offene Nachweise
 
-Die Reihenfolge priorisiert das größte Architekturrisiko: einen headless Kern **und** eine kleine funktionierende JFX-Projektion früh beweisen, bevor ein breites Featureangebot gebaut wird.
+Die Reihenfolge priorisiert das größte Architekturrisiko: einen headless Kern **und** eine kleine funktionierende UI-Projektion früh beweisen, bevor ein breites Featureangebot gebaut wird.
 
 | Meilenstein | Ergebnis | Noch ausdrücklich nicht zugesichert |
 | --- | --- | --- |
 | A: Fundament | Modulgraph, Dokument/Selection/Tx/Commands/Extensions und primitive Textoperationen | Rich-UI, Browserediting |
-| B: Rendererbeweis | JFX Text-Splice, beschränkter Move, keyed DocumentView, SSR, erste reale Browseridentitätstests | IME, robuste Hydration-Recovery |
+| B: Rendererbeweis | UI Text-Splice, beschränkter Move, keyed DocumentView, SSR, erste reale Browseridentitätstests | IME, robuste Hydration-Recovery |
 | C: Formate/Fallback | Rich-Text-Grundtypen, JSON, Markdown, semantisches HTML, funktionsfähiges No-JS-Feld | Vollständige Clipboard-/IME-Parität |
 | D: Editing | Logische/DOM-Selection, Input, History, strukturierte Bearbeitung, isolierte Hydration, Composition und Recovery | Tabellen/Kollaboration |
 | E: Medien/Austausch | HTML-Import, Clipboard, externe Bilder und Upload-/Multipart-Integration | Beliebige Embeds oder Storage-Backend |

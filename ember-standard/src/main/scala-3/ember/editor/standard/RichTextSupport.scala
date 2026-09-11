@@ -2,7 +2,7 @@ package ember.editor.standard
 
 import ember.editor.core.*
 import ember.editor.html.*
-import ember.editor.jfx.*
+import ember.editor.ui.*
 import ember.editor.richtext.*
 
 /** The semantic HTML of the rich-text node types that P12 added: headings, quotes and breaks.
@@ -40,7 +40,7 @@ object RichTextSupport:
     * newline, and both need the node to still be there when P18 asks.
     *
     * `<span>` and not nothing: the node needs an element of its own, because
-    * [[jfx.core.statement.KeyedChildren]] orders physical children (see [[HtmlShape.TextRun]]).
+    * [[ui.core.statement.KeyedChildren]] orders physical children (see [[HtmlShape.TextRun]]).
     */
   val lineBreak: HtmlSemantics[BreakNode] = new HtmlSemantics[BreakNode]:
     val nodeType: NodeType[BreakNode] = BreakNode

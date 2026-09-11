@@ -2,10 +2,10 @@ package ember.editor.standard
 
 import ember.editor.core.*
 import ember.editor.html.*
-import ember.editor.jfx.*
+import ember.editor.ui.*
 import ember.editor.link.*
 import ember.editor.richtext.*
-import jfx.core.render.SsrCursor
+import ui.core.render.SsrCursor
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 

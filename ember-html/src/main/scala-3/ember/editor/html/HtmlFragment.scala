@@ -4,9 +4,9 @@ package ember.editor.html
   *
   * §19.1 ist hier ungewoehnlich deutlich: das ist "'''kein diffbarer View-Baum'''" und hat
   * "keine Mount-/Update-API". Der Unterschied ist keine Formsache. Ein Fragment mit
-  * Update-Laufzeit waere ein zweiter Renderer neben JFX -- genau das, was §2 als Non-Goal
+  * Update-Laufzeit waere ein zweiter Renderer neben UI -- genau das, was §2 als Non-Goal
   * fuehrt und was §15.1 mit "Generische DOM-Erzeugung, Besitz, Einfuegen, Verschieben und
-  * Entfernen gehoeren JFX3" ausschliesst.
+  * Entfernen gehoeren UI3" ausschliesst.
   *
   * Ein Fragment entsteht also aus etwas und wird zu etwas. Es lebt nicht.
   *

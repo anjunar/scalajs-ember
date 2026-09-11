@@ -229,7 +229,7 @@ final case class MarkdownDocument(
   * ==Why UTF-16 and not lines and columns==
   *
   * Because everything else in this editor counts in UTF-16 units -- §11 fixes it for text
-  * positions, and `spliceText` in jfx-core takes them. A source map that spoke in lines and
+  * positions, and `spliceText` in ui-core takes them. A source map that spoke in lines and
   * columns would need a conversion at every use, and the conversion is where an off-by-one
   * hides. CommonMark's own reference implementation reports line/column; this is the one place
   * the port deliberately does something else.

@@ -2,10 +2,10 @@ package ember.editor.standard
 
 import ember.editor.core.*
 import ember.editor.html.*
-import ember.editor.jfx.*
+import ember.editor.ui.*
 import ember.editor.list.*
 import ember.editor.richtext.*
-import jfx.core.render.SsrCursor
+import ui.core.render.SsrCursor
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -120,7 +120,7 @@ final class ListProjectionSpec extends AnyFlatSpec with Matchers {
       ): Unit
     }
 
-    html(editor) should include("<ul><!--jfx:KeyedChildren:start--><li>")
+    html(editor) should include("<ul><!--ui:KeyedChildren:start--><li>")
     visible(html(editor)) shouldBe "EinsTief"
   }
 

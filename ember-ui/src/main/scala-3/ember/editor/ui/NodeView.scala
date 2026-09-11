@@ -1,12 +1,12 @@
-package ember.editor.jfx
+package ember.editor.ui
 
 import ember.editor.core.*
 import ember.editor.html.*
-import jfx.core.component.{AbstractComponent, Runtime}
-import jfx.core.layout.TextComponent
-import jfx.core.render.{Cursor, HostElement, HostNode}
+import ui.core.component.{AbstractComponent, Runtime}
+import ui.core.layout.TextComponent
+import ui.core.render.{Cursor, HostElement, HostNode}
 
-/** Eine JFX-Komponente mit semantischem Tag und Attributen.
+/** Eine UI-Komponente mit semantischem Tag und Attributen.
   *
   * Der gemeinsame Nenner fuer alle Dokumentknoten. Ein Adapter braucht dafuer keine eigene
   * Klasse -- und bekommt damit auch keine unbeschraenkten DOM-Schreibrechte (§15.1): er
@@ -32,7 +32,7 @@ sealed abstract class SemanticElement(val tagName: String) extends AbstractCompo
   private def write(attributes: Vector[HtmlAttribute]): Unit =
     attributes.foreach(attribute => host.setAttribute(attribute.name, attribute.value))
 
-/** Ein Container: seine Kinder haelt eine [[jfx.core.statement.KeyedChildren]]-Gruppe.
+/** Ein Container: seine Kinder haelt eine [[ui.core.statement.KeyedChildren]]-Gruppe.
   *
   * Die Gruppe haengt die Projektion vor dem Mount ein ([[attach]]), montiert wird sie hier --
   * waehrend `compose`, also im selben Durchgang wie der Container selbst. Ein Nachtragen
@@ -45,7 +45,7 @@ final class ContainerElement(tagName: String) extends SemanticElement(tagName):
   private var tags = Vector.empty[String]
   private var contentOwner: AbstractComponent = null
 
-  private[jfx] def attach(children: AbstractComponent): Unit =
+  private[ui] def attach(children: AbstractComponent): Unit =
     require(group.isEmpty && !isBound, "Die Kindergruppe steht vor dem Mount fest.")
     group = Some(children)
 
@@ -54,7 +54,7 @@ final class ContainerElement(tagName: String) extends SemanticElement(tagName):
     * Fixed before the mount, like the group. A change would mean rebuilding the chain and with
     * it the children, which is a view replacement (§15.1) and goes through `NodeView.accepts`.
     */
-  private[jfx] def setInner(next: Vector[String]): Unit =
+  private[ui] def setInner(next: Vector[String]): Unit =
     require(!isBound, "Die inneren Tags stehen vor dem Mount fest.")
     tags = next
 
@@ -141,7 +141,7 @@ final class TextRunElement(tagName: String) extends SemanticElement(tagName):
 
   /** Rebuilds this run's DOM from a known-good value.
     *
-    * §15.4's sanctioned repair: "laesst JFX diesen Bereich aus dem gueltigen State neu aufbauen."
+    * §15.4's sanctioned repair: "laesst UI diesen Bereich aus dem gueltigen State neu aufbauen."
     * It exists because a browser can leave more in the wrapper than the one text node the
     * projection owns -- Firefox splits a run into three when an astral character is inserted
     * natively, and a splice afterwards would write into one of them while the others stand.
@@ -177,7 +177,7 @@ private final class MarkElement(val tagName: String, inner: AbstractComponent)
 
   override def compose(cursor: Cursor): Unit = Runtime.mount(inner, cursor, Some(this)): Unit
 
-/** Uebersetzt eine Knotenart in eine JFX-Komponente.
+/** Uebersetzt eine Knotenart in eine UI-Komponente.
   *
   * ==Was ein Adapter bekommt und was nicht==
   *
@@ -185,7 +185,7 @@ private final class MarkElement(val tagName: String, inner: AbstractComponent)
   * unbeschraenkte DOM-Schreibrechte." Deshalb liefert [[create]] eine Komponente und
   * [[update]] fuehrt sie nach -- beides ohne Cursor, ohne Zugriff auf Geschwister, ohne
   * Moeglichkeit, am Baum zu montieren. Wer die Kinder haelt, ist die Projektion, und wer sie
-  * bewegt, ist ausschliesslich die JFX-Runtime.
+  * bewegt, ist ausschliesslich die UI-Runtime.
   *
   * Der Regelfall braucht diesen Vertrag gar nicht selbst: [[NodeView.semantic]] leitet ihn aus
   * einer [[HtmlSemantics]] ab. Eigene Adapter sind fuer Atome gedacht, deren Inneres kein
@@ -281,7 +281,7 @@ final class ViewSupport private (val views: Vector[NodeView[?]]):
 
   def ++(other: ViewSupport): ViewSupport = new ViewSupport(views ++ other.views)
 
-  private[jfx] def create(node: EditorNode, profile: RenderProfile): AbstractComponent =
+  private[ui] def create(node: EditorNode, profile: RenderProfile): AbstractComponent =
     viewFor(node) match
       case Some(view) => build(view, node, profile)
       case None =>
@@ -290,7 +290,7 @@ final class ViewSupport private (val views: Vector[NodeView[?]]):
         )
 
   /** Brings a component to a node. `false` means it no longer fits and must be replaced. */
-  private[jfx] def update(
+  private[ui] def update(
       component: AbstractComponent,
       node: EditorNode,
       profile: RenderProfile

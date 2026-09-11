@@ -3,7 +3,7 @@
 Ein CommonMark-Parser und -Writer in Scala. Kein DOM, kein HTML als Zwischenstufe, keine
 JavaScript-Abhängigkeit.
 
-Verbindlicher Entwurf: [JFX_EDITOR_ARCHITECTURE.md](../JFX_EDITOR_ARCHITECTURE.md) §18.
+Verbindlicher Entwurf: [UI_EDITOR_ARCHITECTURE.md](../UI_EDITOR_ARCHITECTURE.md) §18.
 
 | | |
 | --- | --- |

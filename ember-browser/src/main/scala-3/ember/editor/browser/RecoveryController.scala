@@ -2,7 +2,7 @@ package ember.editor.browser
 
 import ember.editor.core.*
 import ember.editor.html.{HtmlSupport, RenderProfile}
-import ember.editor.jfx.DocumentView
+import ember.editor.ui.DocumentView
 
 /** What a repair came to. */
 enum RecoveryOutcome:
@@ -37,7 +37,7 @@ enum RecoveryOutcome:
   * ==What is being repaired==
   *
   * The '''view''', never the document. §15.4: "Der Controller prueft den betroffenen
-  * Besitzbereich und importiert entweder ein zulaessiges Fragment oder laesst JFX diesen Bereich
+  * Besitzbereich und importiert entweder ein zulaessiges Fragment oder laesst UI diesen Bereich
   * aus dem gueltigen State neu aufbauen." Importing is [[NativeInputReader]]'s job and happens
   * first; this is the other branch, for what cannot be read back as a document change.
   *

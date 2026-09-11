@@ -1,9 +1,9 @@
 # scalajs-ember-core
 
 Headless Kern des Ember-Editors. Dokumentmodell, Selection, Transaktionen, Commands und
-Extensions — ohne DOM, ohne JFX-Runtime, ohne Formular, ohne UI.
+Extensions — ohne DOM, ohne UI-Runtime, ohne Formular, ohne UI.
 
-Verbindlicher Entwurf: [JFX_EDITOR_ARCHITECTURE.md](../JFX_EDITOR_ARCHITECTURE.md) §§5–13.
+Verbindlicher Entwurf: [UI_EDITOR_ARCHITECTURE.md](../UI_EDITOR_ARCHITECTURE.md) §§5–13.
 
 | | |
 | --- | --- |
@@ -226,17 +226,17 @@ auch nicht versuchen.
 
 ## Abhängigkeitsgrenze
 
-Architektur §7: der Kern hat kein `org.scalajs.dom`, keine JFX-Property und keinen
+Architektur §7: der Kern hat kein `org.scalajs.dom`, keine UI-Property und keinen
 Forms-/Viewport-Import. Das ist keine Absichtserklärung, sondern ein Build-Gate.
 
 `boundaryCheck` in [build.sbt](../build.sbt) prüft bei jedem Compile drei Dinge:
 
 1. **Projektabhängigkeiten** gegen eine Allowlist — für diesen Kern ist sie leer.
-2. **Aufgelöste Artefakte** gegen eine Blocklist (`scalajs-dom`, `scalajs-jfx`, `scalajs-lexical`).
+2. **Aufgelöste Artefakte** gegen eine Blocklist (`scalajs-dom`, `scalajs-ui`, `scalajs-lexical`).
    Das ist die eigentliche Garantie: was nicht auf dem Classpath liegt, lässt sich auch voll
    qualifiziert nicht verwenden.
 3. **Imports** gegen verbotene Paketpräfixe — inklusive der Module, die später auf dem Kern
-   aufbauen (`ember.editor.jfx`, `.browser`, `.forms`, `.ui`, `.html`, `.markdown`, `.json`).
+   aufbauen (`ember.editor.ui`, `.browser`, `.forms`, `.toolbar`, `.html`, `.markdown`, `.json`).
    Diese Pakete existieren noch nicht; die Regel steht trotzdem schon.
 
 Der Check hängt an `Compile / sources`, nicht an `Compile / compile`: sbt 2 cached
@@ -246,13 +246,13 @@ Action-Cache genommen. Details stehen als Kommentar in `build.sbt`.
 Verletzungen brechen den Build ab, bevor kompiliert wird:
 
 ```
-Abhaengigkeitsgrenze von scalajs-ember-core verletzt (JFX_EDITOR_ARCHITECTURE.md, Abschnitt 7):
+Abhaengigkeitsgrenze von scalajs-ember-core verletzt (UI_EDITOR_ARCHITECTURE.md, Abschnitt 7):
 Nicht erlaubte Projektabhaengigkeiten:
   probe-dummy
 Verbotene Artefakte auf dem Classpath:
   org.scala-js:scalajs-dom_sjs1_3
 Verbotene Imports:
-  …\ember\editor\core\Probe.scala:3  import org.scalajs.dom  (verboten: org.scalajs.dom)
+  …| `ember-toolbar` | Optionale Toolbarsember| `ember-toolbar` | Optionale Toolbarseditor| `ember-toolbar` | Optionale Toolbarscore| `ember-toolbar` | Optionale ToolbarsProbe.scala:3  import org.scalajs.dom  (verboten: org.scalajs.dom)
 ```
 
 ## Fehlerkonvention

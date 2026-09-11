@@ -26,7 +26,7 @@ enum Operation:
   /** Verschiebt einen Knoten samt Teilbaum.
     *
     * `index` ist die endgueltige Position '''nach''' der Herausnahme aus dem bisherigen Parent --
-    * dieselbe Festlegung wie bei `Runtime.move` in jfx-core. Beim Umsortieren innerhalb desselben
+    * dieselbe Festlegung wie bei `Runtime.move` in ui-core. Beim Umsortieren innerhalb desselben
     * Parents ist das der Unterschied zwischen richtig und um eins daneben.
     */
   case Move(nodeId: NodeId, newParent: NodeId, index: Int)
@@ -473,7 +473,7 @@ private[core] object OperationEngine:
     yield
       val updated = text.text.substring(0, start) + inserted + text.text.substring(end)
 
-      // §-Vertrag von jfx-core: gleicher Text erzeugt keinen Schreibzugriff. Dieselbe Regel
+      // §-Vertrag von ui-core: gleicher Text erzeugt keinen Schreibzugriff. Dieselbe Regel
       // gilt hier eine Ebene hoeher -- ein No-op erzeugt keinen Commit und keine History-Stufe
       // (§10, Schritt 6).
       if updated == text.text then

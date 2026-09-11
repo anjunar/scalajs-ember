@@ -3,18 +3,18 @@ package ember.editor.demo
 import ember.editor.browser.*
 import ember.editor.browsersupport.{CodeBindings, EditorBindings, HistoryBindings}
 import ember.editor.core.*
-import ember.editor.jfx.{DocumentView, EditorProperties}
+import ember.editor.ui.{DocumentView, EditorProperties}
 import ember.editor.richtext.{BreakKind, HeadingLevel, StandardMarks}
-import jfx.core.component.{AbstractComponent, Runtime}
-import jfx.core.dsl.ClassDsl.classes
-import jfx.core.dsl.DslLayer
-import jfx.core.dsl.EventDsl.onClick
-import jfx.core.layout.Button.button
-import jfx.core.layout.Condition.when
-import jfx.core.layout.Div.div
-import jfx.core.layout.TextComponent.text
-import jfx.core.render.{Cursor, DomNodes}
-import jfx.core.state.{Disposable, Property, ReadOnlyProperty}
+import ui.core.component.{AbstractComponent, Runtime}
+import ui.core.dsl.ClassDsl.classes
+import ui.core.dsl.DslLayer
+import ui.core.dsl.EventDsl.onClick
+import ui.core.layout.Button.button
+import ui.core.layout.Condition.when
+import ui.core.layout.Div.div
+import ui.core.layout.TextComponent.text
+import ui.core.render.{Cursor, DomNodes}
+import ui.core.state.{Disposable, Property, ReadOnlyProperty}
 import org.scalajs.dom
 
 /** The demo page.
@@ -35,7 +35,7 @@ import org.scalajs.dom
   *
   * ==Two runtimes, one tree==
   *
-  * The page itself is an ordinary JFX component tree. The editing surface inside it is a
+  * The page itself is an ordinary UI component tree. The editing surface inside it is a
   * [[DocumentView]] -- as a child of the surface component, not as a second root: that way an
   * `Runtime.unmount` of the page clears the view away too.
   */

@@ -1,14 +1,14 @@
-# JFX Editor: ausführbarer Implementierungsplan
+# UI Editor: ausführbarer Implementierungsplan
 
 Status: **Meilenstein A bis D stehen** — P01–P23 abgeschlossen (1089 Scala-Tests und 576
 Browserfälle in Chromium, Firefox und WebKit grün; die reale IME-Abnahme ist eine
 Handprüfung und steht aus), P24–P30 offen. Dieses Repository (`scalajs-ember`) ist das in
-Architektur und Plan gemeinte „eigene Repository“. Die generischen JFX-Core-Anteile aus
-P08/P09, P19a, P20 und P23 sind **nicht hier, sondern im Nachbar-Repo `../scalajs-jfx`**
-implementiert und seit P17 als veröffentlichtes Artefakt `com.anjunar:scalajs-jfx-core:3.0.5`
+Architektur und Plan gemeinte „eigene Repository“. Die generischen UI-Core-Anteile aus
+P08/P09, P19a, P20 und P23 sind **nicht hier, sondern im Nachbar-Repo `../scalajs-ui`**
+implementiert und seit P17 als veröffentlichtes Artefakt `com.anjunar:scalajs-ui-core:1.0.0`
 eingebunden ([build.sbt](build.sbt)), vorher als Quell-Abhängigkeit; der Vertrag steht in
-[JFX_CORE_INTEGRATION.md](JFX_CORE_INTEGRATION.md). Das erledigt nicht die jeweiligen
-Editor-Integrationsphasen — P20 kam mit dem veröffentlichten 3.0.5 ohne jede Änderung dort
+[UI_CORE_INTEGRATION.md](UI_CORE_INTEGRATION.md). Das erledigt nicht die jeweiligen
+Editor-Integrationsphasen — P20 kam mit dem veröffentlichten 1.0.0 ohne jede Änderung dort
 aus. Stand: 11. September 2026.
 
 Eine laufende Demo des jeweils erreichten Standes liegt in
@@ -20,16 +20,16 @@ Kommentare und Scaladoc im Quelltext werden ab dem 10. September 2026 auf **Engl
 geschrieben; die Module bis P11 tragen noch deutsche Kommentare, und die werden nicht
 nachträglich umgestellt. Diese Dokumente bleiben deutsch.
 
-Verbindliche Grundlage ist [JFX_EDITOR_ARCHITECTURE.md](JFX_EDITOR_ARCHITECTURE.md). Der Editor wird neu gebaut. Der Prototyp wird weder analysiert noch intern weiterentwickelt; öffentliche API-Namen können als Inspiration dienen. Bestehende Nutzerdaten und öffentliche Konsumenten werden erst bei der bewussten Ablösung betrachtet.
+Verbindliche Grundlage ist [UI_EDITOR_ARCHITECTURE.md](UI_EDITOR_ARCHITECTURE.md). Der Editor wird neu gebaut. Der Prototyp wird weder analysiert noch intern weiterentwickelt; öffentliche API-Namen können als Inspiration dienen. Bestehende Nutzerdaten und öffentliche Konsumenten werden erst bei der bewussten Ablösung betrachtet.
 
 ### Abweichungen gegenüber dem ursprünglichen Plan
 
-Der Plan entstand in `scalajs-jfx` und wurde beim Umzug hierher angepasst. Was sich geändert hat:
+Der Plan entstand in `scalajs-ui` und wurde beim Umzug hierher angepasst. Was sich geändert hat:
 
 - **Namen.** Verzeichnis `ember-<modul>`, sbt-ID und Artefakt `scalajs-ember-<modul>`,
-  Scala-Paket `ember.editor.<modul>`. Vorher `jfx-editor-*` / `scalajs-jfx-editor-*` / `jfx.editor.*`.
-- **Zwei Repositories.** Pfade ohne Präfix liegen hier, Pfade mit `../scalajs-jfx/` im Nachbar-Repo.
-  Phasen, deren „Ändern“-Liste ausschließlich `../scalajs-jfx/`-Pfade enthält (P08, P19a, der
+  Scala-Paket `ember.editor.<modul>`. Vorher `ui-editor-*` / `scalajs-ui-editor-*` / `ui.editor.*`.
+- **Zwei Repositories.** Pfade ohne Präfix liegen hier, Pfade mit `../scalajs-ui/` im Nachbar-Repo.
+  Phasen, deren „Ändern“-Liste ausschließlich `../scalajs-ui/`-Pfade enthält (P08, P19a, der
   `KeyedChildren`-Anteil von P09, der `HydrationBoundary`-Anteil von P20, der
   `HostMutationGuard`-Anteil von P23), sind dort bereits erledigt und hier nur noch als
   Voraussetzung zu **prüfen**, nicht zu implementieren.
@@ -44,7 +44,7 @@ Der Plan entstand in `scalajs-jfx` und wurde beim Umzug hierher angepasst. Was s
 
 Eine Ausführung bearbeitet eine Phase, prüft deren Dependencies und Abnahme und aktualisiert anschließend den belegten Status. Ist ein Vertrag widerlegt, zuerst Architektur und Plan mit Ursache korrigieren. Kein Ersatzrenderer, keine zweite Property-Runtime und kein Kopieren unverständlicher Lexical-Browserzweige. Kein vorzeitiges Umstellen produktiver Einstiege.
 
-Vor Beginn: [../scalajs-jfx/AGENTS.md](../scalajs-jfx/AGENTS.md) (dieses Repo hat noch keine eigene), Architekturabschnitte der Phase und die tatsächlichen Quelldateien lesen — hier *und*, wo die Phase sie nennt, in `../scalajs-jfx`. Fremde Änderungen bleiben erhalten. Die Editor-Phasen stehen sämtlich auf **offen**; die bereits verfügbaren JFX-Voraussetzungen werden im separaten Core-Vertrag beschrieben. Keine Freigabe durch einen grünen Prototyptest ableiten.
+Vor Beginn: [../scalajs-ui/AGENTS.md](../scalajs-ui/AGENTS.md) (dieses Repo hat noch keine eigene), Architekturabschnitte der Phase und die tatsächlichen Quelldateien lesen — hier *und*, wo die Phase sie nennt, in `../scalajs-ui`. Fremde Änderungen bleiben erhalten. Die Editor-Phasen stehen sämtlich auf **offen**; die bereits verfügbaren UI-Voraussetzungen werden im separaten Core-Vertrag beschrieben. Keine Freigabe durch einen grünen Prototyptest ableiten.
 
 Pfadkonventionen in den Phasen:
 
@@ -52,8 +52,8 @@ Pfadkonventionen in den Phasen:
 - Für Modulkurzname `M` steht `M/Foo.scala` für `ember-M/src/main/scala-3/ember/editor/<paket>/Foo.scala`; Bindestriche entfallen im Scala-Paketnamen (`rich-text` → `richtext`, `browser-support` → `browsersupport`, `code-highlighting` → `codehighlighting`). Die folgenden Dateien ohne erneut angegebenen Präfix liegen jeweils im selben Modul-/Paketverzeichnis wie die erste Datei ihrer Gruppe.
 - Scala-Tests liegen entsprechend unter `src/test/scala-3/ember/editor/<paket>/` und haben die angegebenen Suite-Namen. Dies sind konkrete geplante Pfade, keine bereits existierenden Dateien.
 - `IT` = neues **nicht publiziertes** `ember-integration/` mit Scala-Test-App unter `src/main/scala-3/ember/editor/integration/` und Browser-Harness unter `browser/`. Es wird in P07 eingerichtet.
-- JFX-Core-Pfade und vorhandene npm-Pfade werden vollständig relativ zum Repository angegeben. Modulnamen/Projekt-IDs folgen der Tabelle in Architektur §6.
-- Verkürztes `../scalajs-jfx/jfx-core/.../` bezeichnet in Quelldateigruppen `../scalajs-jfx/jfx-core/src/main/scala-3/jfx/core/`, in Testdateigruppen `../scalajs-jfx/jfx-core/src/test/scala-3/jfx/core/`; ein nachfolgendes `.../` behält den Basispräfix der unmittelbar davor ausgeschriebenen Datei. Geschweifte Dateigruppen sind einzelne Dateien desselben Verzeichnisses.
+- UI-Core-Pfade und vorhandene npm-Pfade werden vollständig relativ zum Repository angegeben. Modulnamen/Projekt-IDs folgen der Tabelle in Architektur §6.
+- Verkürztes `../scalajs-ui/scala/scalajs-ui-core/.../` bezeichnet in Quelldateigruppen `../scalajs-ui/scala/scalajs-ui-core/src/main/scala-3/ui/core/`, in Testdateigruppen `../scalajs-ui/scala/scalajs-ui-core/src/test/scala-3/ui/core/`; ein nachfolgendes `.../` behält den Basispräfix der unmittelbar davor ausgeschriebenen Datei. Geschweifte Dateigruppen sind einzelne Dateien desselben Verzeichnisses.
 
 Beim ersten Anlegen eines Moduls werden `build.sbt`, `dependsOn`, Root-Aggregation, Test- und Publishing-Settings angepasst. Produktionsabhängigkeiten entstehen nur in Pfeilrichtung des Architekturgraphen. Noch nicht benötigte Projekte werden nicht als leere Platzhalter angelegt. Abhängigkeiten auf spätere Browserintegration werden erst in deren Phase ergänzt; §6 beschreibt den endgültigen Graphen.
 
@@ -71,15 +71,15 @@ Vor jedem Commit der vollständige Lauf:
 sbt --server "Test/testOnly *"
 ```
 
-Seit P17 lädt dieser Befehl nur noch **diesen** Build — `jfx-core` kommt als Binärartefakt, das
+Seit P17 lädt dieser Befehl nur noch **diesen** Build — `ui-core` kommt als Binärartefakt, das
 Nachbarverzeichnis wird nicht mehr mitgeladen. Wer dort etwas ändert, führt das Gate im
 Nachbar-Repo aus und veröffentlicht eine neue Version; hier ankommen kann die Änderung erst
 danach:
 
 ```powershell
-cd ../scalajs-jfx
+cd ../scalajs-ui
 sbt --server "Test/testOnly *"
-sbt --server "scalajs-jfx-core-browser-tests/fullLinkJS" "scalajs-jfx-bridge/fullLinkJS"
+sbt --server "scalajs-ui-core-browser-tests/fullLinkJS" "scalajs-ui-bridge/fullLinkJS"
 npm run verify --workspaces --if-present
 ```
 
@@ -99,8 +99,8 @@ kein npm-Gate. Die vite-Demo des Prototyps ist entfernt, `npm run dev` existiert
 | P05 | Commands/Extensions/Transforms | P04 |
 | P06 | Kleiner headless Texteditor | P05 |
 | P07 | Reale Scala.js-Browser-Test-App | P06 |
-| P08 | JFX-Text-Splices und begrenzte Moves | P07 |
-| P09 | Keyed JFX-Projection und semantisches SSR | P08 |
+| P08 | UI-Text-Splices und begrenzte Moves | P07 |
+| P09 | Keyed UI-Projection und semantisches SSR | P08 |
 | P10 | Versioniertes JSON | P05 |
 | P11 | History | P06 |
 | P12 | Marks und Rich-Text-Struktur | P06, P09, P11 |
@@ -110,7 +110,7 @@ kein npm-Gate. Die vite-Demo des Prototyps ist entfernt, `npm run dev` existiert
 | P16 | Image-/Media-Modell | P05, P09, P10 |
 | P17 | Markdown-Blockparser | P06 |
 | P18 | Markdown-Inlineparser/Writer/Adapter | P13–P17, P10 |
-| P19a | Generischer JFX-Textarea-Vertrag | P07, P09 |
+| P19a | Generischer UI-Textarea-Vertrag | P07, P09 |
 | P19b | Source-Formular und No-JS-SSR | P10, P18, P19a |
 | P20 | Isolierte Hydration und Verlustschutz | P07, P09, P19 |
 | P21 | DOM-Selection und Fokus | P09, P20 |
@@ -128,7 +128,7 @@ Meilenstein A: P01–P06. Rendererbeweis B: P07–P09. Format-/Fallback-Meilenst
 
 `P19` bezeichnet im übrigen Plan beide separat ausführbaren Schritte P19a und P19b; abgeschlossen ist P19 erst nach beiden Abnahmen.
 
-P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rendererstrang ausführbar. P13–P16 lassen sich mit getrennten Moduldateien parallel bearbeiten; Änderungen an `build.sbt` und Integrationsregistrierungen werden koordiniert. P20–P23 bilden den wichtigsten Browserpfad. Ein Scheitern der JFX-Ownership-/Composition-Nachweise sperrt P28 und die Ablösung.
+P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rendererstrang ausführbar. P13–P16 lassen sich mit getrennten Moduldateien parallel bearbeiten; Änderungen an `build.sbt` und Integrationsregistrierungen werden koordiniert. P20–P23 bilden den wichtigsten Browserpfad. Ein Scheitern der UI-Ownership-/Composition-Nachweise sperrt P28 und die Ablösung.
 
 ## P01 — Core-Projekt und Abhängigkeitsgrenze
 
@@ -164,7 +164,7 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 - **Neue Dateien:** `ember-core/README.md`, `C/package.scala`; Test `CoreEnvironmentSpec.scala`.
 - **Ändern:** `build.sbt`: neues Projekt `scalajs-ember-core`, Root-Aggregation und eigene Settings ohne die pauschale `scalajs-dom`-Dependency aus `commonLibrarySettings`.
 - **API:** Zunächst nur Paket- und Fehlerkonvention, keine leeren Feature-APIs.
-- **Tests:** Import/Initialisierung im Node-Testprozess ohne `window/document`; Build-/Dependency-Prüfung gegen unerlaubte JFX/DOM/UI-Imports.
+- **Tests:** Import/Initialisierung im Node-Testprozess ohne `window/document`; Build-/Dependency-Prüfung gegen unerlaubte UI/DOM/UI-Imports.
 - **Akzeptanz:** Core kompiliert/testet unabhängig von Forms/Controls/Lexical; veröffentlichbare POM-Dependencies sind auflösbar; der bisherige Build bleibt lauffähig.
 - **Risiken:** Allgemeine sbt-2-Settings gelten für alle Projekte; Änderungen daran können ungewollte Dependencies injizieren.
 - **Dependencies:** Architektur §§5–7 und 24.
@@ -415,7 +415,7 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 >    Zeichen stand als `open("café")` da — mit **vorkomponiertem** é. Das sind vier Zeichen,
 >    nicht fünf, und geprüft worden wäre gar keine Graphemgrenze. Aufgefallen ist es nur, weil
 >    der Caret bei Offset 5 aus dem Bereich fiel. Beide Vorkommen stehen jetzt als ausdrückliches
->    `\u0301`-Escape im Quelltext: die zerlegte und die vorkomponierte Schreibweise sehen im
+>    `| `ember-toolbar` | Optionale Toolbarsu0301`-Escape im Quelltext: die zerlegte und die vorkomponierte Schreibweise sehen im
 >    Editor identisch aus, und genau darauf darf sich ein Test nicht verlassen.
 >
 > **Ergänzungen gegenüber dem Plan:**
@@ -476,7 +476,7 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 
 > **Abgeschlossen.** Neues, nicht publiziertes Modul
 > `ember-integration` (sbt-ID `scalajs-ember-integration`) samt Browser-Harness unter
-> `ember-integration/browser/`. Damit ist die `jfx-core`-Kante zum ersten Mal scharf.
+> `ember-integration/browser/`. Damit ist die `ui-core`-Kante zum ersten Mal scharf.
 >
 > Abnahme:
 >
@@ -522,7 +522,7 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 >    prüfen: dort gibt es die Globals nicht, ein Zugriff würde also werfen statt still
 >    gutzugehen.
 > 3. *`.github/workflows/verify.yml`.* Zwei getrennte Jobs: die headless Gates brauchen weder
->    Browser noch das Nachbar-Repo, die Integration beides. Ein Problem in scalajs-jfx reißt
+>    Browser noch das Nachbar-Repo, die Integration beides. Ein Problem in scalajs-ui reißt
 >    so nicht Kern und rich-text mit. **Hier nicht verifiziert** — der Workflow läuft erst beim
 >    nächsten Push.
 > 4. *Modell und Darstellung getrennt abfragbar.* `read()` liefert das Modell, `rendered()`
@@ -541,9 +541,9 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 >    hier wäre eine keyed Projektion verfrüht und würde den Nachweis vermengen.
 > 7. *Kein `contenteditable`.* Der Container fängt Tastendrücke ab und verhindert die native
 >    Aktion. Native Eingabe mit Composition, Mutation-Observer und Recovery ist P21 bis P23.
-> 8. *Warum dieses Modul an `jfx-core` hängen darf.* Die Publish-Regel aus §6 verlangt, dass
+> 8. *Warum dieses Modul an `ui-core` hängen darf.* Die Publish-Regel aus §6 verlangt, dass
 >    ein **veröffentlichtes** Modul nur auf veröffentlichte Artefakte zeigt. `ember-integration`
->    wird nie veröffentlicht. `ember-jfx` in P09 wird das nicht dürfen und braucht dort einen
+>    wird nie veröffentlicht. `ember-ui` in P09 wird das nicht dürfen und braucht dort einen
 >    eigenen, publizierbaren Vertrag.
 > 9. *String-basierte `@JSExport`-API.* Ein Testtreiber in JavaScript hat nichts anderes. Die
 >    produktive Fassade aus §23 arbeitet mit opaken Handles und validierten DTOs; hier wird
@@ -551,16 +551,16 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 
 
 - **Ziel:** Kleine unabhängige Harness, welche die neue Scala-Engine ausführt und frühe Runtime-Nachweise ermöglicht.
-- **Module:** Neues nicht publiziertes IT; bestehendes jfx-core.
+- **Module:** Neues nicht publiziertes IT; bestehendes ui-core.
 - **Neue Dateien:** `ember-integration/src/main/scala-3/ember/editor/integration/EditorTestApp.scala`, `ember-integration/browser/package.json`, `playwright.config.ts`, `fixtures.ts`, `identity.spec.ts`, `README.md`.
 - **Ändern:** `build.sbt` für `scalajs-ember-integration`; CI zunächst für vorhandene Harness-Tests; Testskripte/Lockfile des isolierten Browserpakets.
 - **API:** Test-only Scala.js-Exports für Mount/Read/Dispatch/Dispose und Testfixtures. Keine produktive Bridge-API einfrieren.
-- **Tests:** Chromium/Firefox/WebKit starten, JFX-Komponente aus echtem Linkeroutput mounten, Event auslösen, Dispose prüfen; Server-Import ohne DOM.
+- **Tests:** Chromium/Firefox/WebKit starten, UI-Komponente aus echtem Linkeroutput mounten, Event auslösen, Dispose prüfen; Server-Import ohne DOM.
 - **Akzeptanz:** Dokumentierter Befehl `sbt --server "scalajs-ember-integration/fullLinkJS"`, danach im Browserpaket `npm ci` und `npm run test:browser`; Testlauf gegen tatsächliche Runtime, kein Stub als Abnahme.
 - **Risiken:** IT darf privat bleiben, aber kein publiziertes Modul darf davon abhängen. Test-App separat gelinkt ist zulässig, weil sie eine isolierte Anwendung ist.
 - **Dependencies:** P06; Architektur §24.
 
-## P08 — JFX Text-Splice und Move physischer Komponenten
+## P08 — UI Text-Splice und Move physischer Komponenten
 
 > **Abgeschlossen als Prüfphase.** Die Implementierung lag bereits im Nachbar-Repo; hier
 > entstanden die Integrationsnachweise. Abnahme:
@@ -570,7 +570,7 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 > **Bewusste Abweichung — keine neuen Scala-Specs im Nachbar-Repo:**
 >
 > 1. Der Plan listet `TextSpliceSpec.scala` und `RuntimeMoveSpec.scala` unter
->    `../scalajs-jfx/jfx-core/src/test/`. Beide wären Duplikate: `HostEditingSpec` deckt dort
+>    `../scalajs-ui/scala/scalajs-ui-core/src/test/`. Beide wären Duplikate: `HostEditingSpec` deckt dort
 >    mit 68 Fällen genau diese Verträge ab — „use UTF-16 offsets and retain the same host",
 >    „reject invalid ranges without changing mounted or pending text", „move existing
 >    references instead of duplicating them", „validate cycles and anchors before removing the
@@ -590,14 +590,14 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 >    Mutation" lässt sich nur so ehrlich prüfen: der Observer sieht **jeden** Schreibzugriff,
 >    auch einen, der denselben Wert setzt. Mit Gegenprobe — eine echte Änderung erzeugt genau
 >    einen Record, sonst wäre der Test auch bei totem Observer grün.
-> 4. *Logische Kindliste synchron zum DOM, black-box belegt.* `_children` ist `private[jfx]`
+> 4. *Logische Kindliste synchron zum DOM, black-box belegt.* `_children` ist `private[ui]`
 >    und von außen nicht lesbar. Stattdessen wird nach einem Move ein weiteres Label über
 >    `contentCursor` montiert: läge die Kindliste der Runtime daneben, landete es an der
 >    falschen Stelle — ohne Fehlermeldung, nur mit falscher Reihenfolge.
 > 5. *Gegen **diese** Linkerausgabe.* Der Nachbar testet seinen eigenen Build. Wir linken
->    `jfx-core` mit unseren Einstellungen — ESModule, ES2021, `fullLinkJS` mit optimierter
+>    `ui-core` mit unseren Einstellungen — ESModule, ES2021, `fullLinkJS` mit optimierter
 >    Semantik. Ein Vertrag kann dort halten und hier brechen; jetzt ist geprüft, dass er es
->    nicht tut. (P17 hat die damalige Quell-Abhängigkeit durch das Artefakt 3.0.5 ersetzt.
+>    nicht tut. (P17 hat die damalige Quell-Abhängigkeit durch das Artefakt 1.0.0 ersetzt.
 >    Das Argument wird dadurch stärker, nicht schwächer: geprüft wird jetzt genau der Stand,
 >    den ein fremder Konsument bekäme.)
 >
@@ -610,9 +610,9 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 
 
 - **Ziel:** Editor braucht eine verlässliche bestehende Runtime, keine eigenen DOM-Writer.
-- **Module:** jfx-core (`../scalajs-jfx`); IT.
-- **Neue Dateien:** Tests `../scalajs-jfx/jfx-core/src/test/scala-3/jfx/core/render/TextSpliceSpec.scala`, `.../component/RuntimeMoveSpec.scala`; IT `move.spec.ts`, `text-splice.spec.ts`.
-- **Ändern:** `../scalajs-jfx/jfx-core/src/main/scala-3/jfx/core/render/{TextNode,DomTextNode,SsrTextNode,SsrNode,SsrHostElement}.scala`, `.../layout/TextComponent.scala`, `.../component/Runtime.scala`; nur tatsächlich benötigte Host-Verträge ergänzen.
+- **Module:** ui-core (`../scalajs-ui`); IT.
+- **Neue Dateien:** Tests `../scalajs-ui/scala/scalajs-ui-core/src/test/scala-3/ui/core/render/TextSpliceSpec.scala`, `.../component/RuntimeMoveSpec.scala`; IT `move.spec.ts`, `text-splice.spec.ts`.
+- **Ändern:** `../scalajs-ui/scala/scalajs-ui-core/src/main/scala-3/ui/core/render/{TextNode,DomTextNode,SsrTextNode,SsrNode,SsrHostElement}.scala`, `.../layout/TextComponent.scala`, `.../component/Runtime.scala`; nur tatsächlich benötigte Host-Verträge ergänzen.
 - **API:** UTF-16 `spliceText` und No-op-Schutz; `Runtime.move` für physische Hosts mit unveränderten editorweiten Services. Unsupported Virtual-Reparenting explizit ablehnen.
 - **Tests:** Identischer Text erzeugt keine Mutation; Splice erhält Textobjekt. Reorder/Cross-parent-Move erhält Host/Listener, stimmt mit logischer Reihenfolge überein; reaktive Folgeänderung im neuen Parent; SSR keine Duplikate; Dispose einmal.
 - **Akzeptanz:** Derselbe Testfall stimmt in SSR und Browser überein; Move benötigt keine editorinterne Manipulation von `_children` oder DOM; Zyklusfehler vor Mutation.
@@ -622,7 +622,7 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 ## P09 — Semantischer Rendervertrag und keyed DocumentView
 
 > **Abgeschlossen.** Drei neue Module: `ember-html` (Semantik-SPI und `HtmlFragment`),
-> `ember-jfx` (keyed Projektion, `DocumentView`, `EditorProperties`) und `ember-standard`
+> `ember-ui` (keyed Projektion, `DocumentView`, `EditorProperties`) und `ember-standard`
 > (die Adapter für Wurzel, Absatz und Textlauf). Abnahme:
 >
 > ```
@@ -639,9 +639,9 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 > | Chromium / Firefox / WebKit | je 42 Fälle grün, davon 13 neu (`projection.spec.mjs`) |
 > | Serverimport ohne Browserglobals | grün |
 >
-> Der POM von `ember-jfx` zeigt auf `com.anjunar:scalajs-jfx-core_sjs1_3:3.0.4` — ein
+> Der POM von `ember-ui` zeigt auf `com.anjunar:scalajs-ui-core_sjs1_3:1.0.0` — ein
 > veröffentlichtes Artefakt, kein Verzeichnis. Die Publish-Regel aus §6 ist damit belegt und
-> nicht nur beabsichtigt (`sbt --server "scalajs-ember-jfx/makePom"`).
+> nicht nur beabsichtigt (`sbt --server "scalajs-ember-ui/makePom"`).
 >
 > **Widerlegt — der Textlauf braucht den Wrapper sofort, nicht erst in P21:**
 >
@@ -686,15 +686,15 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 > `projectedRevision`: wer sich später registriert, hat nichts verpasst.
 >
 > Modulverträge: [ember-html/README.md](ember-html/README.md),
-> [ember-jfx/README.md](ember-jfx/README.md), [ember-standard/README.md](ember-standard/README.md).
+> [ember-ui/README.md](ember-ui/README.md), [ember-standard/README.md](ember-standard/README.md).
 
 - **Ziel:** Kleine Dokumente SSR-rendern und durch gezielte Commits ohne Remount unveränderter Nodes aktualisieren.
-- **Module:** Neue html (zunächst Semantik-SPI), jfx und standard; jfx-core; IT.
-- **Neue Dateien:** `html/HtmlFragment.scala`, `HtmlSemantics.scala`; `jfx/NodeView.scala`, `DocumentView.scala`, `DocumentProjection.scala`, `EditorProperties.scala`; `standard/ParagraphSupport.scala`; ~~`../scalajs-jfx/jfx-core/.../statement/KeyedChildren.scala`~~ (existiert bereits); Tests `ProjectionSpec.scala`, `KeyedChildrenSpec.scala`, IT `projection.spec.ts`.
+- **Module:** Neue html (zunächst Semantik-SPI), ui und standard; ui-core; IT.
+- **Neue Dateien:** `html/HtmlFragment.scala`, `HtmlSemantics.scala`; `ui/NodeView.scala`, `DocumentView.scala`, `DocumentProjection.scala`, `EditorProperties.scala`; `standard/ParagraphSupport.scala`; ~~`../scalajs-ui/scala/scalajs-ui-core/.../statement/KeyedChildren.scala`~~ (existiert bereits); Tests `ProjectionSpec.scala`, `KeyedChildrenSpec.scala`, IT `projection.spec.ts`.
 - **Ändern:** `build.sbt`; Runtime-Move-API aus P08 bei Bedarf; IT-App für DocumentView.
 - **API:** Typisierte NodeView-Registrierung, getrennte Content-/Editor-Renderprofile, KeyedChildren mit Datenupdate statt Neubau, `afterProjection(revision)`; ReadOnlyProperty als Adapter.
 - **Tests:** Ein Textedit schreibt nur betroffenen Leaf; Child-Move erhält Instanz, Remove disposed; gleiche ID mit Typwechsel ersetzt bewusst; SSR-HTML enthält semantische p/Text/Mark-Basis; zwei Editoren verwechselt keine IDs.
-- **Akzeptanz:** Kein zweiter DOM-Renderer/VDOM/Scheduler; Mount/Unmount/Move ausschließlich JFX. Ein 10k-Node-Dokument wird für einen Textedit nicht vollständig traversiert. Gleiches initiales Rendering in SSR und Browser.
+- **Akzeptanz:** Kein zweiter DOM-Renderer/VDOM/Scheduler; Mount/Unmount/Move ausschließlich UI. Ein 10k-Node-Dokument wird für einen Textedit nicht vollständig traversiert. Gleiches initiales Rendering in SSR und Browser.
 - **Risiken:** Eager Sammelregistrierungen halten optionale Module fest. `HtmlFragment` darf keine eigene Update-/Diff-Laufzeit bekommen; rohe benachbarte SSR-Textnodes vermeiden.
 - **Dependencies:** P08; Architektur §§5–7, 15 und 19.
 
@@ -856,7 +856,7 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 
 > **Abgeschlossen.** Marks, Heading, Quote, Breaks, Bereichsformatierung, `TypingMarks` und die
 > Textlauf-Normalisierung — in `ember-rich-text`, mit Adaptern in `ember-standard` und dem
-> Vertrag dafür in `ember-core`, `ember-history`, `ember-html` und `ember-jfx`. Abnahme:
+> Vertrag dafür in `ember-core`, `ember-history`, `ember-html` und `ember-ui`. Abnahme:
 >
 > ```
 > sbt --server "Test/testOnly *"
@@ -1507,7 +1507,7 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 >   Wörter eines Satzes zu verlieren, weil seine Adresse falsch war, wäre der schlechtere
 >   Ausgang. Ein Bild ohne Quelle ist dagegen nichts. Beides meldet einen Verlust.
 > - *Ein weicher Umbruch wird im Dokument ein Leerzeichen*, ein harter ein `BreakNode`. §18.2
->   verlangt den Unterschied erhalten; ein `\n` in einem Absatzlauf wäre ein Dokument, das kein
+>   verlangt den Unterschied erhalten; ein `| `ember-toolbar` | Optionale Toolbarsn` in einem Absatzlauf wäre ein Dokument, das kein
 >   Renderer richtig zeigt — dieselbe Entscheidung wie in P15.
 > - *`StandardJsonCodecs` liegt in `standard`, nicht in `json`.* Sonst zöge die Wahl von JSON
 >   Listen, Links, Code und Bilder mit herein, ob die Anwendung sie hat oder nicht (§6). Jeder
@@ -1529,19 +1529,19 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 - **Risiken:** Parser/Writer-Mehrdeutigkeit und langsame Delimiterfälle; vollständiger Text-Neuimport ist nicht dasselbe wie inkrementelles Rich-Editing.
 - **Dependencies:** P13, P14, P15, P16, P17, P10; Architektur §18.
 
-## P19a — Generischer JFX-Textarea-Vertrag
+## P19a — Generischer UI-Textarea-Vertrag
 
-> **Im Nachbar-Repo erledigt.** `../scalajs-jfx/jfx-core/src/main/scala-3/jfx/core/layout/TextArea.scala`
+> **Im Nachbar-Repo erledigt.** `../scalajs-ui/scala/scalajs-ui-core/src/main/scala-3/ui/core/layout/TextArea.scala`
 > existiert mit `value`/`defaultValue`/`valueProperty`/`setValue`/`reset`/`readNativeValue`;
-> Vertrag und Grenzen in [JFX_CORE_INTEGRATION.md](JFX_CORE_INTEGRATION.md), Abschnitt
+> Vertrag und Grenzen in [UI_CORE_INTEGRATION.md](UI_CORE_INTEGRATION.md), Abschnitt
 > „Native Textarea und SSR“. Hier ist nur noch P19b zu bauen.
 
 - **Ziel:** HTML-/Form-Basis korrekt lösen, bevor der Editor darauf aufbaut.
-- **Module:** jfx-core (`../scalajs-jfx`); optional schlanker jfx-forms-Adapter; IT.
-- **Neue Dateien:** `../scalajs-jfx/jfx-core/src/main/scala-3/jfx/core/layout/TextArea.scala`, `.../render/TextAreaContent.scala`; Tests `.../render/TextAreaSsrSpec.scala`; IT `textarea.spec.ts`.
+- **Module:** ui-core (`../scalajs-ui`); optional schlanker ui-forms-Adapter; IT.
+- **Neue Dateien:** `../scalajs-ui/scala/scalajs-ui-core/src/main/scala-3/ui/core/layout/TextArea.scala`, `.../render/TextAreaContent.scala`; Tests `.../render/TextAreaSsrSpec.scala`; IT `textarea.spec.ts`.
 - **Ändern:** Host-/Cursor-/Hydration-Verträge nur soweit RCDATA und Wertübernahme dies erfordern; nicht `SsrRawTextNode` zu einem ungesicherten Editorweg umdeuten.
 - **API:** Textarea-Default/Baseline getrennt von aktuellem value, Source-Text sicher rendern, Pre-claim-Erfassung und No-rewrite-Hydration-Policy; native reset-Semantik.
-- **Tests:** `""`, `"\nabc"`, CRLF, `"&</textarea>"`; echter HTML-Parser liefert korrekten Wert, kein Literal-`jfx:text`; vor Hydration geänderter value und Backward Selection; Reset auf Baseline.
+- **Tests:** `""`, `"| `ember-toolbar` | Optionale Toolbarsnabc"`, CRLF, `"&</textarea>"`; echter HTML-Parser liefert korrekten Wert, kein Literal-`ui:text`; vor Hydration geänderter value und Backward Selection; Reset auf Baseline.
 - **Akzeptanz:** Leerer Inhalt erzeugt keine Text-Kommentaranker; führende LF geht nicht verloren; sicherer und normal submitbarer SSR-Wert. Die Komponente ist generisch, ohne Editorimporte.
 - **Risiken:** Textarea ist RCDATA, nicht gewöhnlicher Elementtext; `textContent`, `defaultValue` und `.value` haben unterschiedliche Aufgaben.
 - **Dependencies:** P07, P09; Architektur §§4, 16–17.
@@ -1616,8 +1616,8 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 >   dass ein Modulimport weder `window` noch `document` liest. Ohne diese Zusicherung gäbe es
 >   kein serverseitig gerendertes Feld zum Absenden, und der No-JS-Test müsste einen
 >   handgeschriebenen HTML-String prüfen statt den echten.
-> - *`browser` und `jfx-forms` fehlen in den Abhängigkeiten.* §6 führt beide, aber
->   `ember-browser` gibt es erst ab P20 und die Textarea kommt aus jfx-core. Ein Modul auf
+> - *`browser` und `ui-forms` fehlen in den Abhängigkeiten.* §6 führt beide, aber
+>   `ember-browser` gibt es erst ab P20 und die Textarea kommt aus ui-core. Ein Modul auf
 >   Vorrat einzubinden wäre eine Abhängigkeit ohne Nutzer.
 > - *Die Kosten stehen im Scaladoc.* §16 verlangt, die Vollstring-Materialisierung **nicht** als
 >   O(1) darzustellen. Ein Tastendruck fasst in der Projektion eine Handvoll Komponenten an und
@@ -1626,7 +1626,7 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 > Modulvertrag: [ember-forms/README.md](ember-forms/README.md).
 
 - **Ziel:** Neues Editorfeld funktioniert ohne JavaScript und schützt unbestätigten Source-Text.
-- **Module:** Neues forms; jfx; markdown/json; standard; IT.
+- **Module:** Neues forms; ui; markdown/json; standard; IT.
 - **Neue Dateien:** `forms/EditorField.scala`, `FieldCodec.scala`, `EncodedFieldValue.scala`, `SourceDraft.scala`, `EditorFormBinding.scala`, `SubmitPolicy.scala`; IT `source-form.spec.ts`, `nojs-form.spec.ts`, minimaler Testserver `browser/server.ts`.
 - **Ändern:** `build.sbt`; IT-App/Server für native POST-/Validation-/Reset-Routen; diese Routen gehören nur zur Testanwendung.
 - **API:** `MarkdownField(profile)` / `JsonDocumentField(schema)`, genau eine benannte Textarea, readonly Preview, Source-Draft mit Baseline-Revision; `SourceBusy` bzw. Intent-Queue während Source-Bearbeitung. Synchrone Darstellbarkeitsregel/ablehnender `EncodedFieldValue`-Reducer vor Commit; nach Commit nur den bereits geprüften Wert dieser Revision projizieren.
@@ -1651,8 +1651,8 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 > | Gesamtes Scala-Gate | 1002 Tests grün |
 > | Browser-Gate | 249 Fälle grün |
 >
-> **An jfx-core war nichts zu ändern.** Die „Ändern"-Liste unten nennt `HydratingCursor.scala`,
-> `Runtime.scala` und `Cursor.scala` für scoped Claim, Preflight und Callback-Cleanup — 3.0.5
+> **An ui-core war nichts zu ändern.** Die „Ändern"-Liste unten nennt `HydratingCursor.scala`,
+> `Runtime.scala` und `Cursor.scala` für scoped Claim, Preflight und Callback-Cleanup — 1.0.0
 > bringt das alles mit: `HydrationBoundary` mit `capture`/`preflight`/`onRecovery`,
 > `withHydrationBoundary` als isolierter Bereich und `afterHydration` für die aufgeschobenen
 > Callbacks. Die Umstellung auf das veröffentlichte Artefakt in P17 hat sich hier zum ersten Mal
@@ -1708,8 +1708,8 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 > Modulvertrag: [ember-browser/README.md](ember-browser/README.md).
 
 - **Ziel:** Rich-Subtree übernehmen oder lokal ersetzen, ohne Fallback/Nutzereingabe zu zerstören.
-- **Module:** jfx-core; jfx; forms; neues browser mit Hydration-Aktivierung; IT.
-- **Neue Dateien:** ~~`../scalajs-jfx/jfx-core/.../render/HydrationBoundary.scala`~~ (existiert bereits, tatsaechlich unter `component/HydrationBoundary.scala`); `browser/EditorHydration.scala`, `HydrationSnapshot.scala`; Tests `HydrationBoundarySpec.scala`; IT `editor-hydration.spec.ts`.
+- **Module:** ui-core; ui; forms; neues browser mit Hydration-Aktivierung; IT.
+- **Neue Dateien:** ~~`../scalajs-ui/scala/scalajs-ui-core/.../render/HydrationBoundary.scala`~~ (existiert bereits, tatsaechlich unter `component/HydrationBoundary.scala`); `browser/EditorHydration.scala`, `HydrationSnapshot.scala`; Tests `HydrationBoundarySpec.scala`; IT `editor-hydration.spec.ts`.
 - **Ändern:** `HydratingCursor.scala`, `Runtime.scala` und ggf. `Cursor.scala` für scoped Claim/Preflight/Callback-Cleanup; Formkomposition aus P19b. Fallback außerhalb der fehlschlagenden Rich-Boundary halten.
 - **API:** Capture vor Bindung, validierter Payload/Profile/ID-/Semantikabgleich, lokal abgeschlossener Claim plus äußeres afterHydration; Aktivierungsstatus/Fehler. Fokussierte Source mit unbekannter vorangegangener Composition erst nach Blur/Wechselaktion übernehmen.
 - **Tests:** Mismatch in Tag/Text/Attribut/ID, fehlender/alter Payload, partial mount cleanup, keine zurückbleibenden Session-Cursor/Callbacks, Nutzertext vor/nach Preflight, SelectionDirection, doppelte Aktivierung und Fokus.
@@ -1740,7 +1740,7 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 > abgeleitet: `hostOf(child)`, dann dessen tatsächlicher Index. Gruppenanker, Innentags und
 > spätere Platzhalter fallen damit von selbst weg, ohne dass sie jemand aufzählen müsste.
 >
-> Zwei Zugänge in `ember-jfx` machen das möglich: `ContainerElement.contentHost` (bei `<pre><code>`
+> Zwei Zugänge in `ember-ui` machen das möglich: `ContainerElement.contentHost` (bei `<pre><code>`
 > hängen die Kinder im inneren Tag) und `TextRunElement.textHost` (der Textknoten liegt unter der
 > Markkette). Die Komponente weiß beides; von außen wäre es Abzählen nach Tagzahl — eine zweite
 > Beschreibung derselben Struktur, die beim ersten anders gerenderten Mark auseinanderläuft.
@@ -1806,7 +1806,7 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 > Modulvertrag: [ember-browser/README.md](ember-browser/README.md).
 
 - **Ziel:** Logische und Browserauswahl zuverlässig in beide Richtungen abbilden.
-- **Module:** browser; jfx; IT.
+- **Module:** browser; ui; IT.
 - **Neue Dateien:** `browser/SelectionPort.scala`, `DomPositionMap.scala`, `FocusController.scala`, `BrowserScope.scala`; IT `selection.spec.ts`, `focus.spec.ts`.
 - **Ändern:** NodeView-Hostregistrierung/Projection-Abschluss; Browser-Attach-Lifecycle.
 - **API:** Read/write Range und NodeSelection, ownerDocument-scoped Events, Restore-Bookmark, nur nach passender Projection-Revision schreiben; native Control-/Nested-Editor-Ownership beachten.
@@ -1860,7 +1860,7 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 > - *Firefox teilt einen Lauf in drei Textknoten*, wenn nativ ein Zeichen außerhalb der BMP
 >   eingefügt wird: `"Hallo"` + Emoji + `" Welt"`. Der **Text** ist importierbar — ein Lauf ist die
 >   Verkettung, und die Marks haben sich nicht geändert —, die **Ansicht** nicht. `SplitRun` plus
->   `TextRunElement.resetText` ist §15.4s „lässt JFX diesen Bereich aus dem gültigen State neu
+>   `TextRunElement.resetText` ist §15.4s „lässt UI diesen Bereich aus dem gültigen State neu
 >   aufbauen". Der Caret wird dabei gerechnet statt gelesen: ein aufgeteiltes DOM lässt sich mit
 >   der Ein-Textknoten-Annahme der Positionstabelle nicht adressieren. Ohne diesen Weg verlöre
 >   Firefox jedes nativ eingefügte Emoji.
@@ -1907,7 +1907,7 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 >   andere native Änderung.
 > - *Der Controller schreibt nie ins Dokument-DOM und ruft kein `execCommand`.* §15.1: die
 >   Projektion schreibt. Jede Änderung wird ein Command, das Command eine Transaktion, die
->   Transaktion ein Commit — und JFX führt aus.
+>   Transaktion ein Commit — und UI führt aus.
 > - *`onOutcome` ist nicht nur für Tests.* §15.4 verlangt bei Recovery eine „verständliche
 >   Statusmeldung" und §16 eine sichtbare Ablehnung an der Formatgrenze. Beide brauchen jemanden,
 >   der weiß, dass etwas abgelehnt wurde — und das ist der Controller.
@@ -1984,7 +1984,7 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 > - *Das Gate ist eine `PreCommitRule`.* §10s Schritt 5 ist genau der Zeitpunkt, den §15.3 nennt —
 >   „vor Commit" —, und eine Prüfung im Controller hätte nur gesehen, was durch den Controller
 >   geht. Ein Feature-Command, ein Timer, ein eintreffender Upload erreichen die Sitzung direkt.
-> - *Die Schreibsperre ist jfx-cores `HostMutationGuard`.* Ein Lease auf einen Teilbaum, mit
+> - *Die Schreibsperre ist ui-cores `HostMutationGuard`.* Ein Lease auf einen Teilbaum, mit
 >   `HostWriteBlocked` vor jedem Seiteneffekt — im Nachbar-Repo längst vorhanden, hier nur noch
 >   auf Dokumentknoten abgebildet.
 > - *Die Undo-Gruppe ist `History.beginGroup`.* §14 hatte sie für „Composition, Drag, ein
@@ -2045,9 +2045,9 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 > [ember-browser-support/README.md](ember-browser-support/README.md).
 
 - **Ziel:** IME und Browsermutationen als ausdrücklich getesteter Inputvertrag.
-- **Module:** browser; jfx; jfx-core; history; forms; IT.
-- **Neue Dateien:** `browser/CompositionSession.scala`, `NativeMutationObserver.scala`, `ProjectionWriteGuard.scala`, `RecoveryController.scala`, `DeferredIntentQueue.scala`; ~~`../scalajs-jfx/jfx-core/.../render/HostMutationGuard.scala`~~ (existiert bereits); IT `composition.spec.ts`, `mutation-race.spec.ts`, `composition-form.spec.ts`, `manual-ime.md`, versionierte Event-Traces.
-- **Ändern:** Controller aus P22; Tx-Gate für CompositionBusy, History-Gruppenmetadaten, Submit-/Source-Status und Projection-Schutz. JFX-Text-/Child-/Move-/Mount-/Unmount-Pfade prüfen den opt-in HostMutationGuard vor logischer/physischer Mutation; blockierte Writes melden ohne Seiteneffekt, kein eigener Scheduler. Nach Release projiziert der Editor den aktuellen Snapshot.
+- **Module:** browser; ui; ui-core; history; forms; IT.
+- **Neue Dateien:** `browser/CompositionSession.scala`, `NativeMutationObserver.scala`, `ProjectionWriteGuard.scala`, `RecoveryController.scala`, `DeferredIntentQueue.scala`; ~~`../scalajs-ui/scala/scalajs-ui-core/.../render/HostMutationGuard.scala`~~ (existiert bereits); IT `composition.spec.ts`, `mutation-race.spec.ts`, `composition-form.spec.ts`, `manual-ime.md`, versionierte Event-Traces.
+- **Ändern:** Controller aus P22; Tx-Gate für CompositionBusy, History-Gruppenmetadaten, Submit-/Source-Status und Projection-Schutz. UI-Text-/Child-/Move-/Mount-/Unmount-Pfade prüfen den opt-in HostMutationGuard vor logischer/physischer Mutation; blockierte Writes melden ohne Seiteneffekt, kein eigener Scheduler. Nach Release projiziert der Editor den aktuellen Snapshot.
 - **API:** Gesamter anfänglicher Ersetzungsbereich einschließlich aller betroffenen Leaves/Marks/Atoms/Blöcke geschützt; ggf. ganzer Host. CompositionSession-ID, kontrollierte native Zwischencommits, **alle unabhängigen Dokument-Intents während Composition zurückstellen/abweisen**, abschließende Normalisierung. Observer-Records vor/nach eigener Projektion revisioniert abgleichen.
 - **Tests:** compositionend plus letztes input ohne Doppeltext, Cancel/Blur/Dispose, keine Writes im geschützten Bereich, native und eigene Mutation in derselben Zustellung, unerlaubte Strukturänderung, begrenzte Recovery. Zusätzlich Traces für IME ohne Composition-Events, natives Delete trotz preventDefault, mehrere beforeinput vor input und verwaiste Composition-Inputs. Zwischenzeitlicher externer Intent darf durch Composition-Undo nicht verschwinden.
 - **Weitere Abnahmefälle:** Composition-Replacement über Marks/mehrere Leaves/Atomgrenzen/mehrere Blöcke; fremde Property- und Move-/Remount-Versuche werden vor Mutation blockiert. Submit/requestSubmit erhält finalen nativen Text genau einmal oder wird verständlich blockiert; Reset und readonly-Umschaltung folgen expliziter Abschluss-/Verwerfungsregel ohne stillen Datenverlust.
@@ -2094,7 +2094,7 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 ## P27 — Optionale Toolbar und Dialoge
 
 - **Ziel:** Professionell bedienbare UI als austauschbarer Konsument der Editor-API.
-- **Module:** Neues ui; jfx-controls/jfx-viewport; IT.
+- **Module:** Neues ui; ui-controls/ui-viewport; IT.
 - **Neue Dateien:** `ui/EditorToolbar.scala`, `CommandButton.scala`, `EditorDialogService.scala`, `LinkDialog.scala`, `ImageDialog.scala`; Tests `ToolbarStateSpec.scala`; IT `toolbar-a11y.spec.ts`.
 - **Ändern:** `build.sbt`; eigenständige neue Demoansicht, nicht den Prototyp intern erweitern.
 - **API:** Buttons dispatchen typisierte Commands, lesen Selection/Stored-Marks/CanUndo; Dialog-Service und gemappte Restore-Bookmarks; Toolbars frei komponierbar. File-Picking/Upload wird als Callback vom Forms-/Anwendungsadapter eingespeist; UI importiert dafür keinen Forms-Service.
@@ -2117,20 +2117,20 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 
 ## P29 — TypeScript-Fassade und eine Scala.js-Runtime
 
-- **Ziel:** Thin Facade über die neue native Engine in der vorhandenen gemeinsamen JFX-Bridge.
-- **Module:** `../scalajs-jfx`: jfx-bridge, npm/jfx-editor, npm/jfx-demo; native Editor-Module.
-- **Neue Dateien:** `../scalajs-jfx/jfx-bridge/src/main/scala-3/jfx/bridge/EditorSessionHandleBridge.scala`, `EditorCommandHandleBridge.scala`, `EditorExtensionHandleBridge.scala`, `EditorDocumentCodecBridge.scala`; `../scalajs-jfx/npm/jfx-editor/src/session.ts`, `commands.ts`, `extensions.ts`; neue Bridge-/Consumer-Tests.
-- **Ändern:** `build.sbt`, `BridgeRuntime.scala`, neue bzw. umgestellte Editor-Factory, `../scalajs-jfx/npm/jfx-editor/src/index.ts`, Package-Exports und Tests; Demo zunächst mit eigener nativer Seite. Spätere Linkeraufteilung nur innerhalb gemeinsamer Linkerausgabe.
+- **Ziel:** Thin Facade über die neue native Engine in der vorhandenen gemeinsamen UI-Bridge.
+- **Module:** `../scalajs-ui`: ui-bridge, npm/ui-editor, npm/ui-demo; native Editor-Module.
+- **Neue Dateien:** `../scalajs-ui/scala/scalajs-ui-bridge/src/main/scala-3/ui/bridge/EditorSessionHandleBridge.scala`, `EditorCommandHandleBridge.scala`, `EditorExtensionHandleBridge.scala`, `EditorDocumentCodecBridge.scala`; `../scalajs-ui/npm/ui-editor/src/session.ts`, `commands.ts`, `extensions.ts`; neue Bridge-/Consumer-Tests.
+- **Ändern:** `build.sbt`, `BridgeRuntime.scala`, neue bzw. umgestellte Editor-Factory, `../scalajs-ui/npm/ui-editor/src/index.ts`, Package-Exports und Tests; Demo zunächst mit eigener nativer Seite. Spätere Linkeraufteilung nur innerhalb gemeinsamer Linkerausgabe.
 - **API:** Opaque Handles, typed Payloads, validierte DTOs, create/dispatch/subscribe/dispose; Ext-Fabriken statt Plugin-Stringliste. Kein Scala-Objektgraph oder Promise in synchronem Tx-Draft.
 - **Tests:** Falsche Payloads compile/runtime, fremde Runtime-Handles, Dispose, SSR/Hydration/Source, Tarball-Consumer, Client-/SSR-Build und Eine-Runtime-Nachweis; tatsächliche Bundlegrößen der npm-Einstiege.
-- **Akzeptanz:** `npm run verify` der betroffenen Pakete sowie globale Gates grün; kein separat gelinkter Editor mit zweiter JFX-Kopie. Eager Bridge-Exporte dürfen minimale Bundlebehauptungen nicht widerlegen.
+- **Akzeptanz:** `npm run verify` der betroffenen Pakete sowie globale Gates grün; kein separat gelinkter Editor mit zweiter UI-Kopie. Eager Bridge-Exporte dürfen minimale Bundlebehauptungen nicht widerlegen.
 - **Risiken:** Scala.js-Linking und npm-Tree-Shaking haben unterschiedliche Grenzen; Umstellung der Bridge kann bestehende Konsumenten betreffen. Dokumentierte API-Änderung bewusst testen.
 - **Dependencies:** P28; Architektur §23.
 
 ## P30 — Bewusste Ablösung und Lexical entfernen
 
 - **Ziel:** Produktive Anwendungen verwenden den neuen Editor, Lexical ist keine Produktionsabhängigkeit mehr.
-- **Module:** Alter Editor nur als zu entfernender Prototyp; neue Module; application, jfx-bridge, npm-Pakete.
+- **Module:** Alter Editor nur als zu entfernender Prototyp; neue Module; application, ui-bridge, npm-Pakete.
 - **Neue Dateien:** `EDITOR_UPGRADE.md` mit tatsächlicher API-/Datenumstellung; Importfixtures nur für wirklich vorhandene zu übernehmende Formate.
 - **Ändern:** `build.sbt`, produktive Scala-/TS-Editor-Einstiege, README-/Paketdokumentation, `package.json`/weitere betroffene npm-Manifests und über Package-Manager regenerierte Lockfiles; alte Prototypquellen/Tests gezielt entfernen bzw. ablösen.
 - **API:** Neuer öffentlicher Einstieg festlegen; eventuell `editor(...)` als Komfortfunktion über Session/View/Field. Keine pauschale Lexical-JSON-Kompatibilitätszusage.
@@ -2158,10 +2158,10 @@ Diese Pakete gehören zum langfristigen Ausbau, nicht zum Gate für die erste Ab
 ### X02 — Syntax-Highlighting als View-Erweiterung
 
 - **Ziel:** Code lesbarer darstellen, ohne kanonischen Text in Token-Nodes umzubauen.
-- **Module:** Neues code-highlighting; code/jfx; optional Worker-Adapter.
+- **Module:** Neues code-highlighting; code/ui; optional Worker-Adapter.
 - **Neue Dateien:** `ember-code-highlighting/.../Highlighter.scala`, `HighlightResult.scala`, `CodeDecorations.scala`; Tests für Revision/Stale Results; Browserfixtures.
 - **Ändern:** Optionale Code-NodeView; Build-/Preset-Registrierung.
-- **API:** Reiner Text→Tokenbereich-Service, versionierte async Ergebnisse, JFX-Dekorationen als abgeleiteter View-State.
+- **API:** Reiner Text→Tokenbereich-Service, versionierte async Ergebnisse, UI-Dekorationen als abgeleiteter View-State.
 - **Tests:** Text/Selection/IME unverändert, veraltetes Worker-Ergebnis ignoriert, SSR ohne Worker, Cleanup, Code-JSON-/Markdown-Roundtrip.
 - **Akzeptanz:** Highlighting ausblenden ändert kein Dokument/History; kein zweiter Editor im Codeblock und kein unabhängiger DOM-Renderer.
 - **Risiken:** Mehrere Textspans verändern DOM-Offsets; NodeView muss SelectionPort und Composition-Vertrag erfüllen.
@@ -2171,7 +2171,7 @@ Diese Pakete gehören zum langfristigen Ausbau, nicht zum Gate für die erste Ab
 
 - **Ziel:** Operations-/ID-/Undo-Vertrag für konkurrierende Änderungen belegen, bevor Netzwerkfeatures implementiert werden.
 - **Module:** Neues experimentelles collaboration-Testmodul; core/history nur bei nachgewiesenem Vertragsbedarf.
-- **Neue Dateien:** `JFX_EDITOR_COLLABORATION.md`, reines Zwei-Replikat-Testmodell und generative Konvergenztests; noch kein produktiver Server/Transport.
+- **Neue Dateien:** `UI_EDITOR_COLLABORATION.md`, reines Zwei-Replikat-Testmodell und generative Konvergenztests; noch kein produktiver Server/Transport.
 - **Ändern:** Architecture ADRs für CRDT/OT-Auswahl, IDs, Remote Selection, History und Schema-Migration.
 - **API:** Replikatgebundene IDs, remote Operationsmapping, selektives lokales Undo als zunächst experimentelle Schnittstelle.
 - **Tests:** Vertauschte Lieferreihenfolge, Wiederholung, Offline-Rejoin, Selection in gelöschten Bereichen, lokale Undo-Aktion erhält fremde Änderungen; Composition-Konflikte.
@@ -2181,6 +2181,6 @@ Diese Pakete gehören zum langfristigen Ausbau, nicht zum Gate für die erste Ab
 
 ## Vorlage für die spätere Ausführung einer einzelnen Phase
 
-> Implementiere ausschließlich Phase Pxx aus JFX_EDITOR_IMPLEMENTATION.md. Lies zuerst die zugehörigen Architekturabschnitte und aktuellen Quellverträge. Prüfe die angegebenen Dependencies durch vorhandene Implementierung und Tests. Der Editor ist eine Neuentwicklung; den Prototyp nicht als Architekturgrundlage verwenden. Setze Ziel/API/Dateien dieser Phase um, erfülle ihre Tests und Akzeptanzkriterien und ändere keine unabhängigen Bereiche. Dokumentiere widerlegte Annahmen mit Ursache und korrigiertem Vertrag. Verwende sbt und die tatsächlichen Gates aus AGENTS.md; keine kompilierten JavaScript-Sourcen lesen/bearbeiten. Berichte geändertes Verhalten, tatsächliche Testresultate, verbleibende Risiken und den belegten Phasenstatus.
+> Implementiere ausschließlich Phase Pxx aus UI_EDITOR_IMPLEMENTATION.md. Lies zuerst die zugehörigen Architekturabschnitte und aktuellen Quellverträge. Prüfe die angegebenen Dependencies durch vorhandene Implementierung und Tests. Der Editor ist eine Neuentwicklung; den Prototyp nicht als Architekturgrundlage verwenden. Setze Ziel/API/Dateien dieser Phase um, erfülle ihre Tests und Akzeptanzkriterien und ändere keine unabhängigen Bereiche. Dokumentiere widerlegte Annahmen mit Ursache und korrigiertem Vertrag. Verwende sbt und die tatsächlichen Gates aus AGENTS.md; keine kompilierten JavaScript-Sourcen lesen/bearbeiten. Berichte geändertes Verhalten, tatsächliche Testresultate, verbleibende Risiken und den belegten Phasenstatus.
 
 Vor Abschluss jeder Phase werden folgende Artefakte abgelegt: kompakte API-/Vertragsdokumentation, ausführbare Tests mit reproduzierbarem Befehl und tatsächlichem Ergebnis sowie eine aktualisierte Statuszeile. Ein späterer Agent kann damit den nächsten Schritt übernehmen, ohne Gesprächshistorie oder implizite Browserannahmen rekonstruieren zu müssen.

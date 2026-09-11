@@ -1,9 +1,9 @@
 # scalajs-ember-json
 
 Das versionierte JSON-Format des Ember-Editors: Wire-ADT, Node-Codecs, Schema-Migration und die
-vollständige Prüfung fremder Payloads. Headless — kein DOM, keine JFX-Runtime, kein Renderer.
+vollständige Prüfung fremder Payloads. Headless — kein DOM, keine UI-Runtime, kein Renderer.
 
-Verbindlicher Entwurf: [JFX_EDITOR_ARCHITECTURE.md](../JFX_EDITOR_ARCHITECTURE.md) §19.2.
+Verbindlicher Entwurf: [UI_EDITOR_ARCHITECTURE.md](../UI_EDITOR_ARCHITECTURE.md) §19.2.
 
 | | |
 | --- | --- |

@@ -2,7 +2,7 @@
 
 Typisierte Inline-Links mit geprüfter URL-Policy. Headless und optional — kein Dialog nötig.
 
-Verbindlicher Entwurf: [JFX_EDITOR_ARCHITECTURE.md](../JFX_EDITOR_ARCHITECTURE.md) §§8, 19–20.
+Verbindlicher Entwurf: [UI_EDITOR_ARCHITECTURE.md](../UI_EDITOR_ARCHITECTURE.md) §§8, 19–20.
 
 | | |
 | --- | --- |

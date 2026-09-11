@@ -2,8 +2,8 @@ package ember.editor.core
 
 /** Kern des Ember-Editors: Dokument, Selection, Transaktionen, Commands.
   *
-  * Dieses Paket ist headless. Es kennt kein DOM, keine JFX-Runtime, kein Formular und keine UI; die
-  * Abhaengigkeitsgrenze steht in JFX_EDITOR_ARCHITECTURE.md §7 und wird beim Compile durch
+  * Dieses Paket ist headless. Es kennt kein DOM, keine UI-Runtime, kein Formular und keine UI; die
+  * Abhaengigkeitsgrenze steht in UI_EDITOR_ARCHITECTURE.md §7 und wird beim Compile durch
   * `boundaryCheck` in build.sbt erzwungen. Es darf serverseitig ohne Browserglobals geladen werden
   * -- `CoreEnvironmentSpec` prueft genau das.
   *
@@ -58,7 +58,7 @@ trait EditorError:
 /** Verletzung eines Aufrufvertrags: falscher Zustand, abgelaufenes Handle, Reentranz.
   *
   * Kein Datenfehler und deshalb bewusst kein [[EditorError]]. `IllegalStateException` folgt
-  * `jfx.core.render.HostWriteBlocked` im Nachbar-Repo, damit Aufrufer beide Faelle mit derselben
+  * `ui.core.render.HostWriteBlocked` im Nachbar-Repo, damit Aufrufer beide Faelle mit derselben
   * Erwartung behandeln koennen.
   */
 final class EditorContractViolation(message: String) extends IllegalStateException(message)

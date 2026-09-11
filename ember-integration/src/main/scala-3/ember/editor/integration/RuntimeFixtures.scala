@@ -1,13 +1,13 @@
 package ember.editor.integration
 
-import jfx.core.component.{AbstractComponent, Runtime}
-import jfx.core.layout.TextComponent
-import jfx.core.render.{Cursor, DomCursor}
+import ui.core.component.{AbstractComponent, Runtime}
+import ui.core.layout.TextComponent
+import ui.core.render.{Cursor, DomCursor}
 import org.scalajs.dom
 
 import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
 
-/** Fixtures fuer die JFX-Runtime-Vertraege, auf denen P09 aufbaut. Nur fuer Tests.
+/** Fixtures fuer die UI-Runtime-Vertraege, auf denen P09 aufbaut. Nur fuer Tests.
   *
   * ==Warum das hier noch einmal geprueft wird==
   *
@@ -20,7 +20,7 @@ import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
   *      echter Browser beantworten: es ist ein `===`-Vergleich auf DOM-Objekten. Fuer den Editor
   *      haengt daran alles -- ein neu erzeugter Textknoten nimmt Caret, Selection und eine laufende
   *      IME-Eingabe mit ins Grab.
-  *   2. '''Diese Linkerausgabe.''' Der Nachbar testet seinen eigenen Build. Wir binden `jfx-core`
+  *   2. '''Diese Linkerausgabe.''' Der Nachbar testet seinen eigenen Build. Wir binden `ui-core`
   *      als Quell-Abhaengigkeit ein und linken es mit unseren Einstellungen -- ESModule, ES2021,
   *      `fullLinkJS` mit optimierter Semantik. Ein Vertrag kann dort halten und hier brechen.
   *

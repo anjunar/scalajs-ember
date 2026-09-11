@@ -3,13 +3,13 @@
 Die Standardadapter des Ember-Editors: der Ort, an dem Knotenarten und Renderer einander
 kennen. Einzeln wählbar, nicht als Sammelregistrierung.
 
-Verbindlicher Entwurf: [JFX_EDITOR_ARCHITECTURE.md](../JFX_EDITOR_ARCHITECTURE.md) §§6, 15.1, 16.
+Verbindlicher Entwurf: [UI_EDITOR_ARCHITECTURE.md](../UI_EDITOR_ARCHITECTURE.md) §§6, 15.1, 16.
 
 | | |
 | --- | --- |
 | sbt-ID / Artefakt | `scalajs-ember-standard` |
 | Scala-Paket | `ember.editor.standard` |
-| Produktionsabhängigkeiten | `scalajs-ember-core`, `scalajs-ember-rich-text`, `scalajs-ember-list`, `scalajs-ember-link`, `scalajs-ember-code`, `scalajs-ember-image`, `scalajs-ember-markdown`, `scalajs-ember-json`, `scalajs-ember-html`, `scalajs-ember-jfx` |
+| Produktionsabhängigkeiten | `scalajs-ember-core`, `scalajs-ember-rich-text`, `scalajs-ember-list`, `scalajs-ember-link`, `scalajs-ember-code`, `scalajs-ember-image`, `scalajs-ember-markdown`, `scalajs-ember-json`, `scalajs-ember-html`, `scalajs-ember-ui` |
 
 ## Stand
 
@@ -59,7 +59,7 @@ hätte, sondern weil §8.2 die Mark aufzählt.
 ## Warum das ein eigenes Modul ist
 
 §6: „`standard` ist bewusst ein optionales Integrationsmodul: Dadurch kennen die Node-Module
-weder Markdown noch JFX und die Format-SPIs keine konkreten Feature-Nodes."
+weder Markdown noch UI und die Format-SPIs keine konkreten Feature-Nodes."
 
 Hier laufen beide Seiten zusammen — und nur hier. `ember-rich-text` weiß nichts von HTML,
 `ember-html` nichts von Absätzen. Eine Anwendung, die ihr Dokument nur als JSON verarbeitet,
@@ -74,7 +74,7 @@ ParagraphSupport.paragraph  // p
 ParagraphSupport.text       // span mit einem Textkind
 
 ParagraphSupport.semantics  // alle drei als HtmlSupport
-ParagraphSupport.views      // dieselben als ViewSupport für ember-jfx
+ParagraphSupport.views      // dieselben als ViewSupport für ember-ui
 ```
 
 `semantics` und `views` sind eine Bequemlichkeit, kein Zwang. Wer nur Absätze braucht, nimmt

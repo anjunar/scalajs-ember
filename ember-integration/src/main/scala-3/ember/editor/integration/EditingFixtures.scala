@@ -6,11 +6,11 @@ import ember.editor.code.CodeExtension
 import ember.editor.core.*
 import ember.editor.history.History
 import ember.editor.html.RenderProfile
-import ember.editor.jfx.{DocumentView, ViewSupport}
+import ember.editor.ui.{DocumentView, ViewSupport}
 import ember.editor.list.ListExtension
 import ember.editor.richtext.*
 import ember.editor.standard.RichTextSupport
-import jfx.core.render.DomCursor
+import ui.core.render.DomCursor
 import org.scalajs.dom
 
 import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}

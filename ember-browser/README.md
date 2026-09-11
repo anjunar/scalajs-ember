@@ -4,14 +4,14 @@ Der Editor im Browser: eine ausgelieferte Seite übernehmen, ohne zu zerstören,
 logische und Browserauswahl in beide Richtungen abbilden; Tastendrücke zu Commands machen; und
 eine laufende Texteingabe unversehrt lassen, auch wenn das heißt, eine Weile nicht zu schreiben.
 
-Verbindlicher Entwurf: [JFX_EDITOR_ARCHITECTURE.md](../JFX_EDITOR_ARCHITECTURE.md) §§11, 15.2,
+Verbindlicher Entwurf: [UI_EDITOR_ARCHITECTURE.md](../UI_EDITOR_ARCHITECTURE.md) §§11, 15.2,
 15.3, 15.4, 17, 22.
 
 | | |
 | --- | --- |
 | sbt-ID / Artefakt | `scalajs-ember-browser` |
 | Scala-Paket | `ember.editor.browser` |
-| Produktionsabhängigkeiten | `scalajs-ember-core`, `scalajs-ember-rich-text`, `scalajs-ember-html`, `scalajs-ember-jfx`, `com.anjunar:scalajs-jfx-core` |
+| Produktionsabhängigkeiten | `scalajs-ember-core`, `scalajs-ember-rich-text`, `scalajs-ember-html`, `scalajs-ember-ui`, `com.anjunar:scalajs-ui-core` |
 
 ## Stand
 
@@ -47,7 +47,7 @@ mit dokumentiertem Geräteergebnis, und das Formular dafür ist
 | `CompositionSession` | eine laufende Eingabe: ID, Ausgangsrevision, Schutzbereich, erfasster Text |
 | `CompositionRegion` | welche Blöcke eine Composition besitzt — die reine Hälfte des Protokolls |
 | `CompositionGate` | die `PreCommitRule`, die unabhängige Änderungen abweist |
-| `ProjectionWriteGuard` | die Schreibsperre der Ansicht, per jfx-core-Lease |
+| `ProjectionWriteGuard` | die Schreibsperre der Ansicht, per ui-core-Lease |
 | `DeferredIntentQueue` | was warten musste, neu validiert statt abgespielt |
 | `NativeMutationObserver` | dass überhaupt etwas passiert ist |
 | `RecoveryController` | die Ansicht aus dem Dokument neu aufbauen, begrenzt |
@@ -59,7 +59,7 @@ Import eines Features, und das ist der Grund, warum ein Editor ohne Listen bei
 trägt die History-Gruppe einer Composition: der Controller meldet Anfang und Ende, gruppiert
 wird nebenan.
 
-Die austauschbare Boundary selbst kommt aus jfx-core (`HydrationBoundary`, P20s generischer
+Die austauschbare Boundary selbst kommt aus ui-core (`HydrationBoundary`, P20s generischer
 Anteil). Dieses Modul liefert, was der Editor darüber hinaus weiß.
 
 ## Erfassen, bevor geclaimt wird
@@ -88,10 +88,10 @@ Aufschieben. Nicht weil Fokus Composition bedeutet, sondern weil ein fokussierte
 einzige Ort ist, an dem eine laufen könnte — „nein" zu raten hieße, Text mitten in einer
 Composition zu ersetzen.
 
-## Der Abgleich, den JFX-Strict nicht leistet
+## Der Abgleich, den UI-Strict nicht leistet
 
 > Ein zusätzlicher Editor-Check validiert IDs, Textinhalt und semantisch relevante Attribute
-> gegen das erwartete Profil, **bevor** Binding sie verdeckt. JFX-Strict allein beweist dies
+> gegen das erwartete Profil, **bevor** Binding sie verdeckt. UI-Strict allein beweist dies
 > heute nicht.
 
 Der hydrierende Cursor prüft, ob er das Tag findet, das er erwartet. Das ist notwendig und
@@ -108,8 +108,8 @@ Zwei Einschränkungen mit Absicht:
 - **Nur die Attribute, die die Semantik nennt.** Eine Seite darf eigene hinzufügen — eine
   Layoutklasse, ein Analytics-Attribut. Ein Editor, der daran scheiterte, wäre in jeder realen
   Anwendung unbrauchbar.
-- **Nur Elementkinder.** Die JFX-Runtime schreibt Kommentaranker für Gruppen
-  (`<!--jfx:KeyedChildren:start-->`); sie sind keine Dokumentknoten, und sie mitzuzählen ließe
+- **Nur Elementkinder.** Die UI-Runtime schreibt Kommentaranker für Gruppen
+  (`<!--ui:KeyedChildren:start-->`); sie sind keine Dokumentknoten, und sie mitzuzählen ließe
   jeden Container abweichen.
 
 `preflightContent` ist die Variante für einen Container, der die Wurzel **enthält**. Eine
@@ -154,7 +154,7 @@ der sich beim Laden selbst fokussiert, nimmt den Fokus dort weg, wo der Benutzer
 > die explizite Mapping-Tabelle löst dies auf.
 
 Unter einem Container stehen Dinge, für die das Dokument kein Wort hat: die Gruppenanker der
-Runtime (`<!--jfx:KeyedChildren:start-->`), das innere `<code>` eines Codeblocks, später ein
+Runtime (`<!--ui:KeyedChildren:start-->`), das innere `<code>` eines Codeblocks, später ein
 Platzhalter-`<br>`. DOM-Kinder zu zählen und das Ergebnis Kindoffset zu nennen, ist bei jedem
 Knoten um einen anderen Betrag falsch.
 
@@ -168,7 +168,7 @@ jede Auflösung geht über die Projektion:
 | `Children(p, n)` | ebenda, hinter dem Host des letzten Kindes |
 | `Children(p, 0)`, `p` leer | ebenda, Offset 0 — kein Dokumentkind steht davor |
 
-Zwei Zugänge in `ember-jfx` liefern die Ausgangspunkte: `ContainerElement.contentHost` (die
+Zwei Zugänge in `ember-ui` liefern die Ausgangspunkte: `ContainerElement.contentHost` (die
 Kinder eines Codeblocks hängen im `<code>`) und `TextRunElement.textHost` (der Textknoten liegt
 unter der Markkette). Die Komponente weiß beides. Es von außen nach Tagzahl abzuzählen wäre eine
 zweite Beschreibung derselben Struktur — und die läuft beim ersten Mark, das nicht als genau ein
@@ -321,7 +321,7 @@ zeigt:
 | `SplitRun` | der Text stimmt, aber der Browser hat mehrere Textknoten im Wrapper hinterlassen. **Firefox tut das beim nativen Einfügen eines Zeichens außerhalb der BMP.** Der Text ist importierbar, die Ansicht muss neu gebaut werden. |
 | `Unimportable` | Struktur, die kein Splice ausdrückt. Der gefundene Text reist mit (§15.4), der Controller geht in `Recovering`, und niemand rät. |
 
-Bei `SplitRun` folgt auf den Commit `DocumentView.resetRun` — §15.4s „lässt JFX diesen Bereich aus
+Bei `SplitRun` folgt auf den Commit `DocumentView.resetRun` — §15.4s „lässt UI diesen Bereich aus
 dem gültigen State neu aufbauen". Der Caret wird dabei **gerechnet** und nicht gelesen: ein
 aufgeteiltes DOM lässt sich mit der Ein-Textknoten-Annahme der Positionstabelle nicht adressieren.
 
@@ -386,7 +386,7 @@ unterbleiben, wenn die Stelle weg ist.
 
 In dieser Reihenfolge, und jede Zeile hat einen Grund:
 
-1. **Lease lösen.** jfx-core verlangt es, bevor die Projektion wieder läuft.
+1. **Lease lösen.** ui-core verlangt es, bevor die Projektion wieder läuft.
 2. **Einmal lesen, revisioniert.** Auf `compositionend` folgt oft noch ein `input`; der Vergleich
    gegen das Dokument verhindert, dass derselbe Text zweimal ankommt.
 3. **Normalisieren.** Die während der Sitzung aufgeschobenen Merges laufen jetzt — auf einem

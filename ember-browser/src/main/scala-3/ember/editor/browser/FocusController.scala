@@ -1,7 +1,7 @@
 package ember.editor.browser
 
 import ember.editor.core.*
-import ember.editor.jfx.DocumentView
+import ember.editor.ui.DocumentView
 import org.scalajs.dom
 
 import scala.scalajs.js

@@ -2,7 +2,7 @@ package ember.editor.standard
 
 import ember.editor.core.*
 import ember.editor.html.*
-import ember.editor.jfx.*
+import ember.editor.ui.*
 import ember.editor.richtext.ParagraphNode
 
 /** Die semantische Beschreibung der Knotenarten aus dem Rich-Text-Profil.
@@ -10,7 +10,7 @@ import ember.editor.richtext.ParagraphNode
   * ==Warum das ein eigenes Modul ist==
   *
   * §6: "`standard` ist bewusst ein optionales Integrationsmodul: Dadurch kennen die
-  * Node-Module weder Markdown noch JFX und die Format-SPIs keine konkreten Feature-Nodes."
+  * Node-Module weder Markdown noch UI und die Format-SPIs keine konkreten Feature-Nodes."
   *
   * Hier laufen beide Seiten zusammen -- und nur hier. `ember-rich-text` weiss nichts von HTML,
   * `ember-html` nichts von Absaetzen. Eine Anwendung, die ihr Dokument nur als JSON
@@ -66,7 +66,7 @@ object ParagraphSupport:
   /** Alle drei Beschreibungen. */
   val semantics: HtmlSupport = HtmlSupport.of(root, paragraph, text)
 
-  /** Die daraus abgeleiteten JFX-Adapter. */
+  /** Die daraus abgeleiteten UI-Adapter. */
   val views: ViewSupport = ViewSupport.semantic(semantics)
 
   /** Traegt die Knoten-ID nur in der Editieransicht ein.

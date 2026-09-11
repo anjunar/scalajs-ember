@@ -6,7 +6,7 @@ Die laufende Demo des Ember-Editors. **Nicht publiziert** — eine Anwendung, ke
 | --- | --- |
 | sbt-ID | `scalajs-ember-demo` |
 | Scala-Paket | `ember.editor.demo` |
-| Abhängigkeiten | alle Ember-Module plus `jfx-core` |
+| Abhängigkeiten | alle Ember-Module plus `ui-core` |
 
 ## Starten
 
@@ -148,8 +148,8 @@ Hülle. P20 gibt es, diese Demo benutzt es nur nicht.
 
 ## Die Gruppenanker in der HTML-Ausgabe
 
-Beide HTML-Fassungen tragen die Gruppenanker der JFX-Runtime
-(`<!--jfx:KeyedChildren:start-->`). Das ist Absicht und bleibt so: P20 braucht sie zum
+Beide HTML-Fassungen tragen die Gruppenanker der UI-Runtime
+(`<!--ui:KeyedChildren:start-->`). Das ist Absicht und bleibt so: P20 braucht sie zum
 Hydrieren, und ein Kommentarknoten ist im ausgelieferten Dokument weder sichtbar noch
 semantisch. Sie sind der einzige Ort, an dem die Ausgabe verrät, welche Runtime sie erzeugt
 hat.
@@ -160,7 +160,7 @@ hat.
 | --- | --- |
 | `Main.scala` | Einstieg. Kein Initialisierungscode auf oberster Ebene — §15.2. |
 | `DemoSession.scala` | Sitzung, Schema, Codecs und die fünf Ansichten. Die einzige Stelle, an der alle Module vorkommen. |
-| `DemoApp.scala` | Die Seite als JFX-Komponentenbaum. |
+| `DemoApp.scala` | Die Seite als UI-Komponentenbaum. |
 | `dev/` | HTML-Hülle, Stylesheet, Bild, Server. |
 
 Die Editierfläche hängt als **Kind** der Flächenkomponente im Baum, nicht als zweite Wurzel

@@ -137,7 +137,7 @@ test.describe('Hydration im echten Browser', () => {
 
   test('faengt einen abweichenden Text ab', async ({ page }) => {
     // §17.5: "Ein zusaetzlicher Editor-Check validiert IDs, Textinhalt und semantisch relevante
-    // Attribute […]. JFX-Strict allein beweist dies heute nicht." Genau das hier: die Struktur
+    // Attribute […]. UI-Strict allein beweist dies heute nicht." Genau das hier: die Struktur
     // stimmt, der Text nicht.
     await serve(page)
     await page.evaluate(() => {
@@ -196,7 +196,7 @@ test.describe('Hydration im echten Browser', () => {
   })
 
   test('baut nur die Boundary neu auf, und genau einmal', async ({ page }) => {
-    // §17: "Lokale fehlgeschlagene Komponenten disposen; Boundary via JFX aus gueltigem State
+    // §17: "Lokale fehlgeschlagene Komponenten disposen; Boundary via UI aus gueltigem State
     // neu mounten." Ein Neuaufbau, keine Schleife -- und eine Vorschau, keine zwei.
     await serve(page)
     await page.evaluate(() => {

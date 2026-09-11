@@ -3,7 +3,7 @@ package ember.editor.standard
 import ember.editor.code.*
 import ember.editor.core.*
 import ember.editor.html.*
-import ember.editor.jfx.*
+import ember.editor.ui.*
 
 /** Code blocks as HTML.
   *

@@ -6,7 +6,7 @@ import scala.jdk.CollectionConverters.*
 
 /** Abhaengigkeitsgrenze der Editor-Module, geprueft im Build statt im Testprozess.
   *
-  * Architektur §7 verlangt fuer `ember-core`: kein `org.scalajs.dom`, keine JFX-Property, kein
+  * Architektur §7 verlangt fuer `ember-core`: kein `org.scalajs.dom`, keine UI-Property, kein
   * Forms-/Viewport-Import. Ein Scala.js-Test kann das nicht selbst pruefen -- er laeuft im
   * gelinkten Modul und hat weder Dateisystem noch Classpath. Also prueft es der Build.
   *
@@ -32,8 +32,8 @@ object EditorBoundary {
 
   /** Sucht `import`-Anweisungen, deren Ziel unter einem verbotenen Paketpraefix liegt.
     *
-    * Gematcht wird auf Praefixgrenze, nicht auf Teilstring: `jfx.core` trifft
-    * `jfx.core.render.TextNode` und `jfx.core`, aber nicht `ember.jfx.core` oder `jfx.corex`.
+    * Gematcht wird auf Praefixgrenze, nicht auf Teilstring: `ui.core` trifft
+    * `ui.core.render.TextNode` und `ui.core`, aber nicht `ember.ui.core` oder `ui.corex`.
     *
     * Erwartet Quellverzeichnisse, nicht den `sources`-Task. Das hat zwei Gruende: der Lint
     * haengt an `Compile / sources`, ihn von dort auch zu lesen waere ein Taskzyklus; und
@@ -80,10 +80,10 @@ object EditorBoundary {
     * Artefakte* es nicht haben darf, ist es nicht.
     *
     * `allowedModules` ist die Ausnahme von der Blocklist, und sie hat genau einen Anlass:
-    * seit jfx-core als Binaerartefakt eingebunden ist, faengt `scalajs-jfx` als Blockeintrag
-    * auch das eine JFX-Modul ein, das erlaubt ist. Die Alternative waere gewesen, den Eintrag
-    * fuer `ember-jfx` ganz wegzulassen -- dann waere aber auch `scalajs-jfx-forms` erlaubt, und
-    * §7 gibt der JFX-Schicht ausdruecklich nur den Kern. Blocken und einzeln freigeben ist
+    * seit ui-core als Binaerartefakt eingebunden ist, faengt `scalajs-ui` als Blockeintrag
+    * auch das eine UI-Modul ein, das erlaubt ist. Die Alternative waere gewesen, den Eintrag
+    * fuer `ember-ui` ganz wegzulassen -- dann waere aber auch `scalajs-ui-forms` erlaubt, und
+    * §7 gibt der UI-Schicht ausdruecklich nur den Kern. Blocken und einzeln freigeben ist
     * strenger als das, was die frueheren Quell-Abhaengigkeit strukturell hergab.
     */
   def report(
@@ -114,7 +114,7 @@ object EditorBoundary {
       Some(
         // Bewusst ASCII: die Meldung geht durch die Windows-Konsole, und ein "Paragraph"-Zeichen
         // kam dort als Ersetzungszeichen an.
-        (s"Abhaengigkeitsgrenze von $moduleName verletzt (JFX_EDITOR_ARCHITECTURE.md, Abschnitt 7):" +: sections)
+        (s"Abhaengigkeitsgrenze von $moduleName verletzt (UI_EDITOR_ARCHITECTURE.md, Abschnitt 7):" +: sections)
           .mkString("\n")
       )
   }

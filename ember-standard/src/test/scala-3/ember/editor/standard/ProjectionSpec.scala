@@ -2,12 +2,12 @@ package ember.editor.standard
 
 import ember.editor.core.*
 import ember.editor.html.*
-import ember.editor.jfx.*
+import ember.editor.ui.*
 import ember.editor.richtext.*
 import ember.editor.richtext.StandardMarks.Strong
-import jfx.core.component.AbstractComponent
-import jfx.core.layout.TextComponent
-import jfx.core.render.SsrCursor
+import ui.core.component.AbstractComponent
+import ui.core.layout.TextComponent
+import ui.core.render.SsrCursor
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 

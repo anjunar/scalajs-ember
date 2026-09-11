@@ -1,27 +1,27 @@
-# scalajs-ember-jfx
+# scalajs-ember-ui
 
 Die Dokumentansicht des Ember-Editors: eine keyed Projektion des Dokuments auf den
-JFX-Komponentenbaum. Das einzige veröffentlichte Modul, das JFX kennt.
+UI-Komponentenbaum. Das einzige veröffentlichte Modul, das UI kennt.
 
-Verbindlicher Entwurf: [JFX_EDITOR_ARCHITECTURE.md](../JFX_EDITOR_ARCHITECTURE.md) §§5, 15.1.
-Der Vertrag zur Runtime: [JFX_CORE_INTEGRATION.md](../JFX_CORE_INTEGRATION.md).
+Verbindlicher Entwurf: [UI_EDITOR_ARCHITECTURE.md](../UI_EDITOR_ARCHITECTURE.md) §§5, 15.1.
+Der Vertrag zur Runtime: [UI_CORE_INTEGRATION.md](../UI_CORE_INTEGRATION.md).
 
 | | |
 | --- | --- |
-| sbt-ID / Artefakt | `scalajs-ember-jfx` |
-| Scala-Paket | `ember.editor.jfx` |
-| Produktionsabhängigkeiten | `scalajs-ember-core`, `scalajs-ember-html`, `com.anjunar:scalajs-jfx-core:3.0.5` |
+| sbt-ID / Artefakt | `scalajs-ember-ui` |
+| Scala-Paket | `ember.editor.ui` |
+| Produktionsabhängigkeiten | `scalajs-ember-core`, `scalajs-ember-html`, `com.anjunar:scalajs-ui-core:1.0.0` |
 
-`jfx-core` kommt seit P17 als Binärartefakt von Maven Central. Vorher war es eine
-Quell-Abhängigkeit auf `../scalajs-jfx`; §6s Publish-Regel war auch damals gewahrt, weil der
+`ui-core` kommt seit P17 als Binärartefakt von Maven Central. Vorher war es eine
+Quell-Abhängigkeit auf `../scalajs-ui`; §6s Publish-Regel war auch damals gewahrt, weil der
 POM das veröffentlichte Artefakt nannte — jetzt ist sie es ohne Fußnote. Nachprüfbar mit
-`sbt --server "scalajs-ember-jfx/makePom"`.
+`sbt --server "scalajs-ember-ui/makePom"`.
 
-**Nur der Kern, und das steht jetzt im Lint.** Solange jfx-core eine Quell-Abhängigkeit war,
-sagte der Projektgraph, dass kein weiteres JFX-Modul auf dem Classpath liegen kann. Mit einem
-Binärartefakt wäre `jfx-forms` ein `libraryDependencies +=` entfernt, also sagt es der
-Grenz-Lint: die Blocklist verbietet `scalajs-jfx` als Ganzes, und `allowedModules` gibt genau
-`scalajs-jfx-core` wieder frei (§7). Das ist strenger als das, was die Quell-Abhängigkeit
+**Nur der Kern, und das steht jetzt im Lint.** Solange ui-core eine Quell-Abhängigkeit war,
+sagte der Projektgraph, dass kein weiteres UI-Modul auf dem Classpath liegen kann. Mit einem
+Binärartefakt wäre `ui-forms` ein `libraryDependencies +=` entfernt, also sagt es der
+Grenz-Lint: die Blocklist verbietet `scalajs-ui` als Ganzes, und `allowedModules` gibt genau
+`scalajs-ui-core` wieder frei (§7). Das ist strenger als das, was die Quell-Abhängigkeit
 strukturell hergab.
 
 ## Stand
@@ -45,13 +45,13 @@ Element rendert. Die Komponente weiß es; gefragt wird sie.
 ### Was der Browser verlangt (P22, P23)
 
 `TextRunElement.resetText` baut die DOM eines Laufs aus einem bekannten Wert neu auf und räumt
-dabei weg, was die Projektion **nicht** dorthin geschrieben hat. Das ist §15.4s „lässt JFX diesen
+dabei weg, was die Projektion **nicht** dorthin geschrieben hat. Das ist §15.4s „lässt UI diesen
 Bereich aus dem gültigen State neu aufbauen", und es gibt das, weil ein Browser mehr im Wrapper
 hinterlassen kann als den einen Textknoten: Firefox teilt einen Lauf in drei, wenn nativ ein
 Zeichen außerhalb der BMP eingefügt wird.
 
 `DocumentView.rebuild` (P23) ist die größere Reparatur: die Komponenten eines Knotens werden
-abgeräumt und aus dem Dokument neu gebaut. §15.4 nennt sie — „lässt JFX diesen Bereich aus dem
+abgeräumt und aus dem Dokument neu gebaut. §15.4 nennt sie — „lässt UI diesen Bereich aus dem
 gültigen State neu aufbauen" —, und sie liegt hier und nicht im Browsermodul, weil Ab- und
 Anmontieren durch die Runtime läuft und §15.1 das der Projektion allein gibt. Die Wurzel ist
 ausgenommen: sie neu zu bauen wäre eine Ersetzung der ganzen Ansicht.
@@ -66,7 +66,7 @@ unveränderte Knoten verlangt, eine Ebene höher.
 
 Kein zweiter Renderer, kein VDOM, kein Scheduler (§2, §15.1). `DocumentProjection` erzeugt kein
 einziges DOM-Element und bewegt keines — sie ordnet Knoten-IDs Komponenten zu und ruft
-`Runtime`-APIs. Besitz, Einfügen, Verschieben und Entfernen gehören ausschließlich JFX.
+`Runtime`-APIs. Besitz, Einfügen, Verschieben und Entfernen gehören ausschließlich UI.
 
 Der Index ist „eine Zuordnung, keine zweite Ownership-Liste". Er sagt, welche Komponente zu
 welcher ID gehört; er sagt nicht, wer sie besitzt.
@@ -110,7 +110,7 @@ verpasst: `projectedRevision` sagt, was zu sehen ist.
 ## KeyedChildren, und warum der Aufbau eine Rekursion ist
 
 Jeder Container bekommt eine `KeyedChildren`-Gruppe, gekeyt auf `NodeId`. Damit ist die
-Reihenfolgeabstimmung nicht selbst geschrieben, sondern getesteter Code aus `jfx-core`, und ein
+Reihenfolgeabstimmung nicht selbst geschrieben, sondern getesteter Code aus `ui-core`, und ein
 Knoten, dessen Wert gleich geblieben ist, wird gar nicht erst angefasst.
 
 `build` hängt einem Container seine Gruppe **vor** dem Mount ein. Der Container montiert sie in
@@ -164,7 +164,7 @@ schlechtere Auskunft.
 
 ## EditorProperties
 
-Ein lesender Adapter zwischen Sitzungszustand und JFX-Properties — für eine Toolbar, die „kann
+Ein lesender Adapter zwischen Sitzungszustand und UI-Properties — für eine Toolbar, die „kann
 rückgängig machen" anzeigt, oder eine Statuszeile mit der Wortzahl.
 
 ```scala

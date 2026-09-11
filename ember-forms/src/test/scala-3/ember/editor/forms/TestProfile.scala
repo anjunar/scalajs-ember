@@ -6,7 +6,7 @@ import ember.editor.markdown.*
 
 /** A block type this suite invents, so that nothing here needs the rich-text profile.
   *
-  * §6 gives `ember-forms` the core, `markdown`, `json`, `html` and `jfx` -- no node module. If
+  * §6 gives `ember-forms` the core, `markdown`, `json`, `html` and `ui` -- no node module. If
   * the field contracts ever needed a `ParagraphNode`, this file would stop compiling.
   */
 final case class Box(id: NodeId, children: Vector[NodeId]) extends ElementNode

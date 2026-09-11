@@ -8,9 +8,9 @@ Laufzeitabhängigkeit.
 
 | Datei | Inhalt |
 | --- | --- |
-| [JFX_EDITOR_ARCHITECTURE.md](JFX_EDITOR_ARCHITECTURE.md) | Verbindlicher Architekturentwurf, §1–§26. |
-| [JFX_EDITOR_IMPLEMENTATION.md](JFX_EDITOR_IMPLEMENTATION.md) | Ausführbarer Phasenplan P01–P30 plus optionale Folgepakete X01–X03. |
-| [JFX_CORE_INTEGRATION.md](JFX_CORE_INTEGRATION.md) | Vertrag der bereits vorhandenen JFX-Core-Editing-Primitive im Nachbar-Repo. |
+| [UI_EDITOR_ARCHITECTURE.md](UI_EDITOR_ARCHITECTURE.md) | Verbindlicher Architekturentwurf, §1–§26. |
+| [UI_EDITOR_IMPLEMENTATION.md](UI_EDITOR_IMPLEMENTATION.md) | Ausführbarer Phasenplan P01–P30 plus optionale Folgepakete X01–X03. |
+| [UI_CORE_INTEGRATION.md](UI_CORE_INTEGRATION.md) | Vertrag der bereits vorhandenen UI-Core-Editing-Primitive im Nachbar-Repo. |
 
 ## Stand
 
@@ -29,7 +29,7 @@ UAX-29-Graphemgrenzen. Damit lässt sich Text ohne DOM bearbeiten — die Abnahm
 von Meilenstein A.
 
 Seit P09 gibt es die Ansicht dazu. `ember-html` beschreibt, wie eine Knotenart als HTML
-aussieht; `ember-jfx` projiziert das Dokument keyed auf den JFX-Komponentenbaum, ohne
+aussieht; `ember-ui` projiziert das Dokument keyed auf den UI-Komponentenbaum, ohne
 zweiten Renderer und ohne VDOM; `ember-standard` verbindet beide Seiten. Aus **einer**
 Beschreibung entstehen die serverseitige Ausgabe und die Editierfläche im Browser, und ein
 Textedit schreibt genau einen `characterData`-Eintrag — im Browser mit einem
@@ -38,7 +38,7 @@ MutationObserver belegt. Das ist die Abnahmezeile von Meilenstein B.
 Mit P10 kommt die Persistenz dazu. `ember-json` schreibt und liest ein versioniertes
 Dokumentformat -- mit IDs, mit getrennten Format-, Schema- und Codec-Versionen, mit Grenzen
 gegen fremde Payloads und mit reinen Migrationsfunktionen. Es haengt allein am Kern: ein
-Server, der Dokumente speichert, linkt weder JFX noch HTML mit.
+Server, der Dokumente speichert, linkt weder UI noch HTML mit.
 
 P11 bringt Undo und Redo. `ember-history` hält strukturell geteilte Snapshots, gruppiert nach
 den ausdrücklichen Regeln aus §14 -- zusammenhängendes Tippen verschmilzt, Backspace und Delete
@@ -172,9 +172,9 @@ Vorhanden:
 - [`ember-html`](ember-html/README.md) — sbt-ID `scalajs-ember-html`, Paket
   `ember.editor.html`. Der semantische HTML-Vertrag und eine unveränderliche
   Fragmentdarstellung. Headless; der Importparser folgt mit P24.
-- [`ember-jfx`](ember-jfx/README.md) — sbt-ID `scalajs-ember-jfx`, Paket
-  `ember.editor.jfx`. Die keyed Dokumentansicht auf der JFX-Runtime. Einziges
-  **veröffentlichtes** Modul, das JFX kennt.
+- [`ember-ui`](ember-ui/README.md) — sbt-ID `scalajs-ember-ui`, Paket
+  `ember.editor.ui`. Die keyed Dokumentansicht auf der UI-Runtime. Einziges
+  **veröffentlichtes** Modul, das UI kennt.
 - [`ember-browser`](ember-browser/README.md) — sbt-ID `scalajs-ember-browser`, Paket
   `ember.editor.browser`. Hydration mit Verlustschutz, die Brücke zur Browserauswahl und die
   Eingabepipeline: Positionsabbildung, Selection-Port, Fokus, Bookmarks, `beforeinput`/`input`
@@ -191,37 +191,37 @@ Vorhanden:
   `scalajs-ember-integration`. **Nicht publiziert.** Browser-Harness, die die tatsächlich
   gelinkte Anwendung in echten Engines ausführt.
 
-## Abhängigkeit auf scalajs-jfx
+## Abhängigkeit auf scalajs-ui
 
 Die generischen Editing-Primitive (Text-Splices, `Runtime.move`, `KeyedChildren`,
 `TextArea`, `HydrationBoundary`, `HostMutationGuard`) liegen im Nachbar-Repo
-`../scalajs-jfx` und sind dort implementiert und getestet. Sie kommen seit P17 als
+`../scalajs-ui` und sind dort implementiert und getestet. Sie kommen seit P17 als
 veröffentlichtes Artefakt von Maven Central:
 
 ```scala
-libraryDependencies += "com.anjunar" %% "scalajs-jfx-core" % "3.0.5"
+libraryDependencies += "com.anjunar" %% "scalajs-ui-core" % "1.0.0"
 ```
 
 **Das Nachbar-Repo muss also nicht mehr danebenliegen.** Bis P16 war es eine Quell-Abhängigkeit
-(`ProjectRef(file("../scalajs-jfx"), "scalajs-jfx-core")`), und das war richtig, solange
-jfx-core sich unter dem Editor bewegte — er war dessen erster ernsthafter Konsument, und jeder
+(`ProjectRef(file("../scalajs-ui"), "scalajs-ui-core")`), und das war richtig, solange
+ui-core sich unter dem Editor bewegte — er war dessen erster ernsthafter Konsument, und jeder
 Befund musste dort sofort behoben werden können. Der Preis war, dass beide Builds aneinander
 hingen: ein halb gespeicherter Stand nebenan hat diesen Build mehrfach zum Stehen gebracht,
-ohne dass hier etwas falsch war. Mit 3.0.5 ist der Vertrag abgenommen, also endet die Kopplung
+ohne dass hier etwas falsch war. Mit 1.0.0 ist der Vertrag abgenommen, also endet die Kopplung
 — und der Settings-Graph schrumpft dabei von 34403 auf 18552.
 
-`%%` und nicht `%%%`, obwohl das Artefakt `scalajs-jfx-core_sjs1_3` heißt: in einem Projekt mit
+`%%` und nicht `%%%`, obwohl das Artefakt `scalajs-ui-core_sjs1_3` heißt: in einem Projekt mit
 aktiviertem `ScalaJSPlugin` setzt das Plugin das `sjs1_`-Präfix bereits selbst.
 
-Konsumenten sind `ember-jfx`, `ember-standard`, `ember-integration` und `ember-demo`. Für
-`ember-jfx` gilt die Publish-Regel aus §6 — ein veröffentlichtes Modul zeigt ausschließlich auf
+Konsumenten sind `ember-ui`, `ember-standard`, `ember-integration` und `ember-demo`. Für
+`ember-ui` gilt die Publish-Regel aus §6 — ein veröffentlichtes Modul zeigt ausschließlich auf
 veröffentlichte Artefakte —, und sie ist gewahrt; nachprüfbar mit
-`sbt --server "scalajs-ember-jfx/makePom"`.
+`sbt --server "scalajs-ember-ui/makePom"`.
 
 **Nur der Kern, und das steht jetzt im Lint.** Die Quell-Abhängigkeit garantierte strukturell,
-dass kein weiteres JFX-Modul auf dem Classpath liegt; ein Binärartefakt tut das nicht. Der
-Grenz-Lint verbietet deshalb `scalajs-jfx` als Ganzes und gibt über `allowedModules` genau
-`scalajs-jfx-core` wieder frei. Ein versehentliches `jfx-forms` bricht den Build mit einer
+dass kein weiteres UI-Modul auf dem Classpath liegt; ein Binärartefakt tut das nicht. Der
+Grenz-Lint verbietet deshalb `scalajs-ui` als Ganzes und gibt über `allowedModules` genau
+`scalajs-ui-core` wieder frei. Ein versehentliches `ui-forms` bricht den Build mit einer
 klaren Meldung, statt still durchzurutschen.
 
 `ember-core` und `ember-rich-text` bleiben davon unberührt: sie sind headless

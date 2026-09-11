@@ -280,7 +280,7 @@ final class OperationSpec extends AnyFlatSpec with Matchers {
   }
 
   it should "treat a splice with an unchanged result as a no-op" in {
-    // Gleicher Vertrag wie `TextNode.spliceText` in jfx-core: identischer Text, kein
+    // Gleicher Vertrag wie `TextNode.spliceText` in ui-core: identischer Text, kein
     // Schreibzugriff. Eine Ebene hoeher heisst das: kein Commit, keine History-Stufe (§10).
     val result = applied(base, Operation.SpliceText(id("t1"), 2, 1, "l"))
 

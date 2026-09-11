@@ -3,13 +3,13 @@
 Das Editorfeld als Formularfeld: genau eine benannte Textarea, ein geschützter Quelltextentwurf
 und ein Weg, der ohne JavaScript funktioniert.
 
-Verbindlicher Entwurf: [JFX_EDITOR_ARCHITECTURE.md](../JFX_EDITOR_ARCHITECTURE.md) §16.
+Verbindlicher Entwurf: [UI_EDITOR_ARCHITECTURE.md](../UI_EDITOR_ARCHITECTURE.md) §16.
 
 | | |
 | --- | --- |
 | sbt-ID / Artefakt | `scalajs-ember-forms` |
 | Scala-Paket | `ember.editor.forms` |
-| Produktionsabhängigkeiten | `scalajs-ember-core`, `scalajs-ember-markdown`, `scalajs-ember-json`, `scalajs-ember-html`, `scalajs-ember-jfx`, `scalajs-ember-browser` |
+| Produktionsabhängigkeiten | `scalajs-ember-core`, `scalajs-ember-markdown`, `scalajs-ember-json`, `scalajs-ember-html`, `scalajs-ember-ui`, `scalajs-ember-browser` |
 
 ## Stand
 
@@ -17,8 +17,8 @@ Verbindlicher Entwurf: [JFX_EDITOR_ARCHITECTURE.md](../JFX_EDITOR_ARCHITECTURE.m
 samt `EncodedFieldValue`, `SourceDraft`, `EditorFormBinding` und `EditorFieldView` — letzteres
 seit P20 mit der Hydrationsgrenze.
 
-§6 führt außerdem `jfx-forms` als Abhängigkeit. Das fehlt hier mit Absicht: die Textarea kommt
-aus jfx-core (P19a). Der Media-Service aus §6 ist P26.
+§6 führt außerdem `ui-forms` als Abhängigkeit. Das fehlt hier mit Absicht: die Textarea kommt
+aus ui-core (P19a). Der Media-Service aus §6 ist P26.
 
 ## Verwendung
 

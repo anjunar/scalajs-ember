@@ -2,7 +2,7 @@ package ember.editor.browser
 
 import ember.editor.core.*
 import ember.editor.html.HtmlSupport
-import ember.editor.jfx.DocumentView
+import ember.editor.ui.DocumentView
 import org.scalajs.dom
 
 import scala.scalajs.js
@@ -110,7 +110,7 @@ enum CompositionEvent:
   * It does not write to the document DOM, and it does not call `execCommand`. P22's acceptance
   * says so -- "keine direkte Feature-DOM-Manipulation oder execCommand" -- and the reason is
   * §15.1: the projection owns the DOM. Every change here becomes a command, the command becomes
-  * a transaction, the transaction becomes a commit, and JFX does the writing.
+  * a transaction, the transaction becomes a commit, and UI does the writing.
   *
   * ==The three routes in, and why there are three==
   *
@@ -372,7 +372,7 @@ final class BrowserInputController private (
             InputOutcome.Unimported(error.render)
 
       // The text is importable; the view is not what the projection left behind. Repairing the
-      // run is §15.4's "laesst JFX diesen Bereich aus dem gueltigen State neu aufbauen" -- and the
+      // run is §15.4's "laesst UI diesen Bereich aus dem gueltigen State neu aufbauen" -- and the
       // caret is computed rather than read, because the split DOM cannot be addressed with the
       // one-text-node assumption the position map is built on.
       case NativeImport.SplitRun(node, splice) =>
@@ -513,7 +513,7 @@ final class BrowserInputController private (
     *
     * §15.3's completion protocol, in the order it states:
     *
-    *   1. Release the lease -- jfx-core requires it before the projection runs again.
+    *   1. Release the lease -- ui-core requires it before the projection runs again.
     *   1. Read the DOM once, revisioned, so a trailing `input` cannot insert the same text twice.
     *   1. Normalise: the merges deferred during the session run now, on a state nobody is typing
     *      into.

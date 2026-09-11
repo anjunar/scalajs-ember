@@ -15,7 +15,7 @@ import ember.editor.image.{
 import ember.editor.link.{LinkCommands, LinkExtension, LinkTarget, LinkUrlPolicy}
 import ember.editor.list.{ListCommands, ListExtension, ListKind}
 import ember.editor.html.{HtmlSupport, RenderProfile}
-import ember.editor.jfx.{DocumentView, ViewSupport}
+import ember.editor.ui.{DocumentView, ViewSupport}
 import ember.editor.json.*
 import ember.editor.richtext.*
 import ember.editor.markdown.{LossPolicy, MarkdownCodec}
@@ -27,7 +27,7 @@ import ember.editor.standard.{ImageJsonSupport, ImageSupport, MarkdownSupports}
   *
   * An application assembles the modules itself: core, profile, persistence, semantics,
   * projection and adapters. §6 says as much -- `standard` is an '''optional''' integration
-  * module, and whoever needs only JSON links neither JFX nor HTML. This file is the one place
+  * module, and whoever needs only JSON links neither UI nor HTML. This file is the one place
   * in the demo where all six modules appear; the rest knows only what it uses.
   */
 final class DemoSession:

@@ -1,9 +1,9 @@
-package ember.editor.jfx
+package ember.editor.ui
 
 import ember.editor.core.*
-import jfx.core.state.{Disposable, Property, ReadOnlyProperty}
+import ui.core.state.{Disposable, Property, ReadOnlyProperty}
 
-/** Adapter zwischen Sitzungszustand und JFX-Properties.
+/** Adapter zwischen Sitzungszustand und UI-Properties.
   *
   * ==Warum nur lesend==
   *
@@ -14,7 +14,7 @@ import jfx.core.state.{Disposable, Property, ReadOnlyProperty}
   *
   * Diese Properties sind also eine Einbahnstrasse: Commit rein, Anzeige raus. Genau richtig
   * fuer eine Toolbar, die "kann rueckgaengig machen" anzeigt, oder eine Statuszeile mit der
-  * Wortzahl -- die Faelle aus §22, fuer die es einen JFX-nahen Zugang braucht.
+  * Wortzahl -- die Faelle aus §22, fuer die es einen UI-nahen Zugang braucht.
   */
 object EditorProperties:
 

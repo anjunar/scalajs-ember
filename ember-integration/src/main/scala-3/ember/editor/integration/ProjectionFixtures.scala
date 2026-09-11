@@ -2,10 +2,10 @@ package ember.editor.integration
 
 import ember.editor.core.*
 import ember.editor.html.RenderProfile
-import ember.editor.jfx.DocumentView
+import ember.editor.ui.DocumentView
 import ember.editor.richtext.*
 import ember.editor.standard.ParagraphSupport
-import jfx.core.render.DomCursor
+import ui.core.render.DomCursor
 import org.scalajs.dom
 
 import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}

@@ -2,9 +2,9 @@ package ember.editor.core
 
 /** Eine aufkuendbare Registrierung.
   *
-  * Absichtlich schmal: der Kern ist headless und soll `jfx.core.state.Disposable` weder nachbauen
-  * noch importieren. Der JFX-Adapter aus P09 uebersetzt zwischen beiden -- das ist eine Zeile Code
-  * und der Preis dafuer, dass der Kern ohne JFX auskommt (§7).
+  * Absichtlich schmal: der Kern ist headless und soll `ui.core.state.Disposable` weder nachbauen
+  * noch importieren. Der UI-Adapter aus P09 uebersetzt zwischen beiden -- das ist eine Zeile Code
+  * und der Preis dafuer, dass der Kern ohne UI auskommt (§7).
   *
   * [[dispose]] ist idempotent. Wer eine Registrierung zweimal aufkuendigt, hat kein Problem, und
   * wer sie beim Aufraeumen sicherheitshalber noch einmal aufkuendigt, auch nicht.

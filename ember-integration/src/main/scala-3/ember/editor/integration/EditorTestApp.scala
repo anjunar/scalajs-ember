@@ -2,9 +2,9 @@ package ember.editor.integration
 
 import ember.editor.core.*
 import ember.editor.richtext.*
-import jfx.core.component.{AbstractComponent, Runtime}
-import jfx.core.layout.TextComponent
-import jfx.core.render.{Cursor, DomCursor, DomNodes}
+import ui.core.component.{AbstractComponent, Runtime}
+import ui.core.layout.TextComponent
+import ui.core.render.{Cursor, DomCursor, DomNodes}
 import org.scalajs.dom
 
 import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
@@ -13,7 +13,7 @@ import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
   *
   * ==Was sie beweisen soll==
   *
-  * Dass die Ember-Engine und die JFX-Runtime im '''selben, echt gelinkten''' Bundle
+  * Dass die Ember-Engine und die UI-Runtime im '''selben, echt gelinkten''' Bundle
   * zusammenarbeiten -- in einem richtigen Browser, nicht gegen einen Stub. §24 haelt fest, warum
   * das noetig ist: "Viele npm-Core-Tests verwenden einen Stub; jsdom liefert keine belastbare
   * IME-/Selection-Engine. Der neue Browser-Harness muss den tatsaechlich gelinkten Scala-Editor
@@ -44,7 +44,7 @@ import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
 @JSExportTopLevel("emberFixtures")
 object EditorTestApp:
 
-  /** Ein Block als JFX-Komponente: ein `p` mit genau einem Textknoten. */
+  /** Ein Block als UI-Komponente: ein `p` mit genau einem Textknoten. */
   private final class Block(initial: String) extends AbstractComponent:
     val tagName = "p"
     val text    = new TextComponent(initial)
@@ -75,7 +75,7 @@ object EditorTestApp:
   // Lebenszyklus
   // -----------------------------------------------------------------------------------------
 
-  /** Baut Sitzung und JFX-Baum in `container` auf. */
+  /** Baut Sitzung und UI-Baum in `container` auf. */
   @JSExport
   def mount(container: dom.Element): Unit =
     val generator = NodeIdGenerator.sequential("n")
@@ -104,7 +104,7 @@ object EditorTestApp:
     commits = session.onCommit(_ => render())
     attachKeys(container)
 
-  /** Raeumt vollstaendig auf: Listener, Subscription, JFX-Baum, Sitzung. */
+  /** Raeumt vollstaendig auf: Listener, Subscription, UI-Baum, Sitzung. */
   @JSExport
   def dispose(): Unit =
     detachKeys()
@@ -150,7 +150,7 @@ object EditorTestApp:
   @JSExport
   def revision(): Int = session.state.revision.value.toInt
 
-  /** Anzahl der montierten JFX-Bloecke. Fuer den Dispose-Nachweis. */
+  /** Anzahl der montierten UI-Bloecke. Fuer den Dispose-Nachweis. */
   @JSExport
   def mountedBlocks(): Int = blocks.length
 
@@ -189,7 +189,7 @@ object EditorTestApp:
   /** Verbindet echte Tastendruecke mit den Commands.
     *
     * Ueber `DomNodes` -- die dafuer vorgesehene oeffentliche DOM-Anbindung des Kerns
-    * (JFX_CORE_INTEGRATION.md). Ein Playwright-`keyboard.press` laeuft damit durch dieselbe Kette
+    * (UI_CORE_INTEGRATION.md). Ein Playwright-`keyboard.press` laeuft damit durch dieselbe Kette
     * wie eine echte Eingabe: DOM-Ereignis, Command, Transaktion, Commit, Projektion.
     *
     * `preventDefault` fuer alles Behandelte, weil es hier keine native Editierflaeche gibt, die die

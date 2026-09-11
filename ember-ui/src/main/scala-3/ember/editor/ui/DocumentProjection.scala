@@ -1,21 +1,21 @@
-package ember.editor.jfx
+package ember.editor.ui
 
 import ember.editor.core.*
 import ember.editor.html.RenderProfile
-import jfx.core.component.{AbstractComponent, Runtime}
-import jfx.core.render.Cursor
-import jfx.core.statement.KeyedChildren
+import ui.core.component.{AbstractComponent, Runtime}
+import ui.core.render.Cursor
+import ui.core.statement.KeyedChildren
 
 import scala.collection.mutable
 
-/** Projiziert Dokumentaenderungen in den JFX-Komponentenbaum.
+/** Projiziert Dokumentaenderungen in den UI-Komponentenbaum.
   *
   * ==Was hier bewusst nicht steht==
   *
   * Kein zweiter Renderer, kein VDOM, kein Scheduler (§2, §15.1). Diese Klasse erzeugt kein
   * einziges DOM-Element und bewegt keines. Sie ordnet Knoten-IDs Komponenten zu und ruft
   * `Runtime`-APIs -- Besitz, Einfuegen, Verschieben und Entfernen gehoeren ausschliesslich
-  * JFX.
+  * UI.
   *
   * Der Index ist "eine Zuordnung, keine zweite Ownership-Liste" (§15.1). Er sagt, welche
   * Komponente zu welcher ID gehoert; er sagt nicht, wer sie besitzt.
@@ -23,10 +23,10 @@ import scala.collection.mutable
   * ==Warum KeyedChildren==
   *
   * Jeder Container bekommt eine [[KeyedChildren]]-Gruppe, gekeyt auf [[NodeId]]. Damit ist die
-  * Reihenfolgeabstimmung nicht selbst geschrieben, sondern getesteter Code aus `jfx-core`, und
+  * Reihenfolgeabstimmung nicht selbst geschrieben, sondern getesteter Code aus `ui-core`, und
   * ein Knoten, dessen Wert gleich geblieben ist, wird gar nicht erst angefasst. Ein Wechsel
   * des Elternknotens laeuft ueber `transferTo`, damit beide Schluesselindizes konsistent
-  * bleiben (JFX_CORE_INTEGRATION.md).
+  * bleiben (UI_CORE_INTEGRATION.md).
   *
   * ==Der Aufbau ist eine einzige Rekursion==
   *
@@ -53,7 +53,7 @@ import scala.collection.mutable
   * `CharacterData.replaceData` fuer den geaenderten Bereich, ein `setText` den ganzen Lauf.
   * Bei einem langen Absatz ist das der Unterschied, um den es §15.1 geht.
   */
-final class DocumentProjection private[jfx] (
+final class DocumentProjection private[ui] (
     support: ViewSupport,
     profile: RenderProfile
 ):
@@ -74,7 +74,7 @@ final class DocumentProjection private[jfx] (
   def size: Int = components.size
 
   /** Baut die erste Ansicht auf. */
-  private[jfx] def mount(
+  private[ui] def mount(
       document: Document,
       cursor: Cursor,
       parent: Option[AbstractComponent]
@@ -83,7 +83,7 @@ final class DocumentProjection private[jfx] (
     rootComponent = Runtime.mount(build(document.root), cursor, parent)
     rootComponent
 
-  private[jfx] def unmount(): Unit =
+  private[ui] def unmount(): Unit =
     // Der Elternknoten darf denselben Baum abgeraeumt haben -- eine Ansicht, die in einer
     // Komponente haengt, wird mit ihr entsorgt. Ein zweiter Aufruf ist deshalb kein Fehler.
     if rootComponent != null && !rootComponent.isDisposed then Runtime.unmount(rootComponent)
@@ -93,7 +93,7 @@ final class DocumentProjection private[jfx] (
     current = null
 
   /** Traegt einen Commit nach. */
-  private[jfx] def apply(commit: Commit): Unit =
+  private[ui] def apply(commit: Commit): Unit =
     current = commit.current.document
     val changes = commit.changes
 
@@ -266,7 +266,7 @@ final class DocumentProjection private[jfx] (
     *
     * `KeyedChildren` reconciles by key, so a key it already knows is updated, never rebuilt --
     * which is the whole point of it and the reason unchanged siblings survive. There is no
-    * "replace this key" on it, and inventing one in `jfx-core` for a case this rare would be
+    * "replace this key" on it, and inventing one in `ui-core` for a case this rare would be
     * the wrong place to spend the API. So the node is taken out of the item list (the group
     * unmounts it and forgets the key) and put back (the group builds it afresh, at its
     * position). The siblings are moved, not rebuilt: `Runtime.move` keeps them.
@@ -277,12 +277,12 @@ final class DocumentProjection private[jfx] (
   /** Rebuilds one node's view from the current document (§15.4).
     *
     * "Der Controller prueft den betroffenen Besitzbereich und importiert entweder ein zulaessiges
-    * Fragment oder laesst JFX diesen Bereich aus dem gueltigen State neu aufbauen." This is the
+    * Fragment oder laesst UI diesen Bereich aus dem gueltigen State neu aufbauen." This is the
     * second half of that sentence, and the reason it is here rather than in the browser module:
     * rebuilding means unmounting and remounting through the runtime, and §15.1 gives that to the
     * projection alone. A repair that wrote `innerHTML` is ruled out in the same section.
     */
-  private[jfx] def rebuild(nodeId: NodeId): Boolean =
+  private[ui] def rebuild(nodeId: NodeId): Boolean =
     current.node(nodeId) match
       case Some(node) if components.contains(nodeId) =>
         replaceView(nodeId, node)
