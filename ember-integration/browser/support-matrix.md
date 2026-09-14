@@ -16,7 +16,7 @@ Freigabe für physische IMEs oder Screenreader.
 | Strukturänderungen | [UI-Core-Fix](../../benchmarks/runtime-reorder.md): 50000-Absatz-Move in drei Engines mit einem DOM-Move und erhaltener Identität; [1.0.1 veröffentlicht und übernommen](../../benchmarks/ui-core-1.0.1-release.md) | Lokale Einzelmessungen; alter 1.0.0-Stand mit Chromium-Timeout nach 240 s bleibt als Baseline dokumentiert |
 | Import/Roundtrip | CommonMark-Suite, JSON-/HTML-/Markdown-Limits und versionierter Zusatzkorpus | Tabellen werden aufgelöst und als Verlust diagnostiziert; kein Tabellenmodell |
 | NVDA, VoiceOver | Abnahmeanleitung und opt-in Trace-Werkzeug vorhanden | **Offen: keine manuelle Screenreader-Abnahme** |
-| Physische Desktop-CJK-IME, Akzente, Dead Keys | Automatisierte Composition-Zustandsmaschinen und Recovery | **Offen: reale Betriebssystemeingabe** |
+| Physische Desktop-CJK-IME, Akzente, Dead Keys | [Japanische Eingabe/Bestätigung durch Patrick](../../benchmarks/corpora/device-traces/2026-09-14-patrick-w02-review.md) im Windows-Codex-Browser positiv; Undo/Redo danach separat automatisiert bestanden | W02-Teilprüfung; vollständiger manueller W02, W03–W05, weitere IMEs, Akzente und Dead Keys offen |
 | Android/Gboard, iOS/Safari, Autokorrektur, Diktat, Touch | [Manuelle Schritte](accessibility-checklist.md) vorbereitet | **Offen: kein physischer Gerätenachweis** |
 | Linux-CI | Workflow für Scala, Serverimport, drei Browserengines, Korpora und Messungen eingerichtet | Lokaler Windows-Lauf belegt keinen ausgeführten Linux-CI-Run |
 | npm-Consumer und Ablösung | P29/P30 spezifiziert | Noch nicht umgesetzt; P28 erteilt keine Ablösefreigabe |
@@ -31,6 +31,9 @@ begonnen. Ein Cursorfehler bei Leertaste/Enter wurde gemeldet und
 Cursorbewegung nach Leertaste/Enter im Gespräch. Der
 [übernommene W01-Trace samt Nachtrag](../../benchmarks/corpora/device-traces/2026-09-14-patrick-w01-review.md)
 trennt diese Teilbestätigung vom älteren Trace; W01 insgesamt bleibt offen.
+Der [automatisierte Codex-Browser-Folgelauf](../../benchmarks/p28-keyboard-followup.md)
+belegt die restlichen Tastaturabläufe und Toolbarprüfung am aktuellen Build,
+ohne daraus eine manuelle Abnahme abzuleiten.
 
 ## Konfigurierte Standardgrenzen
 

@@ -1,0 +1,216 @@
+{
+  "formatVersion": 1,
+  "kind": "operator-device-trace",
+  "reviewStatus": "requires-human-review",
+  "build": {
+    "capturedAt": "2026-09-14T15:43:37.772Z",
+    "integrationSha256": "0973505cfd8f5239a6e60299887b9d2c02327b983716f273ef90f1dc047e85f4",
+    "revision": "0381575e6c759875a7ee2aa2d80b8a7d13a8a270",
+    "dirty": true,
+    "uiCore": "com.anjunar:scalajs-ui-core_sjs1_3:1.0.1"
+  },
+  "operator": {
+    "tester": "Codex – Undo/Redo-Nachprüfung",
+    "environment": "PC, Windows 11; Codex In-app Browser (UA Chrome/152.0.0.0)",
+    "inputMethod": "Automatisierte Tastenkürzel nach Patricks echter japanischer Composition",
+    "caseId": "ime-confirm",
+    "outcome": "passed",
+    "notes": "Separater automatisierter Nachtest im unveränderten Dokument von Patricks W02-Lauf: Strg+Z entfernt die gesamte bestätigte Composition 日本語, erhält Hello world und das volle Leerzeichen U+3000. Strg+Y stellt 日本語 einmal vollständig wieder her. Keine neue physische IME-Eingabe und keine manuelle Tastaturabnahme."
+  },
+  "startedAt": "2026-09-14T16:58:24.021Z",
+  "stoppedAt": "2026-09-14T16:58:39.631Z",
+  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
+  "language": "de",
+  "truncated": false,
+  "events": [
+    {
+      "time": 4486448.800000012,
+      "type": "focusin",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world日本語　",
+        "modelText": "Hello world日本語　"
+      },
+      "domText": "Hello world日本語　",
+      "modelText": "Hello world日本語　",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 0,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 4486450.300000012,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world日本語　",
+        "modelText": "Hello world日本語　"
+      },
+      "domText": "Hello world日本語　",
+      "modelText": "Hello world日本語　",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 0,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 4486451,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world日本語　",
+        "modelText": "Hello world日本語　"
+      },
+      "domText": "Hello world日本語　",
+      "modelText": "Hello world日本語　",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 0,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 4486711.300000012,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "Control",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world日本語　",
+        "modelText": "Hello world日本語　"
+      },
+      "domText": "Hello world日本語　",
+      "modelText": "Hello world日本語　",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 0,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 4486718.300000012,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "z",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world日本語　",
+        "modelText": "Hello world日本語　"
+      },
+      "domText": "Hello world　",
+      "modelText": "Hello world　",
+      "selection": {
+        "anchorOffset": 11,
+        "focusOffset": 11,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 4486720.400000006,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world　",
+        "modelText": "Hello world　"
+      },
+      "domText": "Hello world　",
+      "modelText": "Hello world　",
+      "selection": {
+        "anchorOffset": 11,
+        "focusOffset": 11,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 4494370.800000012,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "Control",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world　",
+        "modelText": "Hello world　"
+      },
+      "domText": "Hello world　",
+      "modelText": "Hello world　",
+      "selection": {
+        "anchorOffset": 11,
+        "focusOffset": 11,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 4494376.099999994,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "y",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world　",
+        "modelText": "Hello world　"
+      },
+      "domText": "Hello world日本語　",
+      "modelText": "Hello world日本語　",
+      "selection": {
+        "anchorOffset": 11,
+        "focusOffset": 11,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 4502057.300000012,
+      "type": "focusout",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world日本語　",
+        "modelText": "Hello world日本語　"
+      },
+      "domText": "Hello world日本語　",
+      "modelText": "Hello world日本語　",
+      "selection": {
+        "anchorOffset": 11,
+        "focusOffset": 11,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    }
+  ]
+}

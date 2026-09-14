@@ -13,6 +13,13 @@ Der [erste W01-Trace samt Nachtrag](../../benchmarks/corpora/device-traces/2026-
 ist ausgewertet; der Trace stammt noch vor dem Fix. W01 insgesamt und die
 vollständige Geräteabnahme bleiben offen.
 
+Im [automatisierten Folgelauf](../../benchmarks/p28-keyboard-followup.md) sind
+Unicode-Graphemlöschung, Auswahl, Undo/Redo und Toolbar im aktuellen Codex-Browser
+geprüft. Die [erste echte japanische IME-Teilprüfung](../../benchmarks/corpora/device-traces/2026-09-14-patrick-w02-review.md)
+ist laut Patrick bestanden: Eingabe und Bestätigung von `日本語`, konsistente
+Textübernahme in 133 Ereignissen. Undo/Redo am selben Dokument anschließend separat
+automatisiert bestanden. Vollständiger manueller W02 und W03–W05 bleiben offen.
+
 ## Vorbereitung und Beleg
 
 Nach dem Full-Link `node ember-integration/browser/server.mjs` starten und

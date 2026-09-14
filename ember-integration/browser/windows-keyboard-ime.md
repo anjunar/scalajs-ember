@@ -4,6 +4,14 @@ Status: **begonnen; Cursor nach Leertaste/Enter laut Patrick korrekt; W01 insges
 Dieser Lauf betrifft Windows-Tastatur und die tatsächlich verwendete IME.
 NVDA, VoiceOver, Mobilgeräte und Diktat erhalten dadurch keine Freigabe.
 
+Aktueller Stand vom 14. September 2026: **Japanische Eingabe und Bestätigung laut
+Patrick bestanden.** Der [W02-Trace samt Auswertung](../../benchmarks/corpora/device-traces/2026-09-14-patrick-w02-review.md)
+belegt die Eingabe von `日本語`; Undo/Redo am selben Dokument ist ergänzend
+automatisiert bestanden. Die vollständige manuelle W02-Vorgabe und W03–W05 bleiben offen.
+Ein [automatisierter Folgelauf im aktuellen Codex-Browser](../../benchmarks/p28-keyboard-followup.md)
+prüft Unicode, Auswahl, Undo/Redo und Toolbar erfolgreich; er ersetzt die
+menschlichen Restprüfungen nicht.
+
 ## Vorbereitung
 
 1. Die [Testseite](http://127.0.0.1:4188/toolbar?trace=1) im normalen Windows-Browser
@@ -44,6 +52,16 @@ W02–W05 benötigen die echte Windows-Eingabemethode. Fehlt sie, diese Fälle m
 „Nicht durchführbar“ und dem Grund dokumentieren, nicht durch JavaScript ersetzen.
 Dead Keys separat mit dem tatsächlich vorhandenen Tastaturlayout wiederholen.
 
+Für den ersten japanischen W02-Lauf: Trace starten, im Editor mit Win+Leertaste
+Japanisch / Microsoft IME wählen und den Hiragana-Modus (`あ`) aktivieren.
+Mit Romaji-Eingabe `nihon` tippen (`にほん`), mit Leertaste umwandeln, gegebenenfalls
+erneut Leertaste für die Kandidatenliste drücken und `日本` mit Enter bestätigen.
+Danach einmal Strg+Z, dann Strg+Y: Die bestätigte Composition soll als Einheit
+verschwinden und wiederkehren. Anschließend Trace stoppen und herunterladen.
+`にほん` und `日本` sind dafür ebenfalls erlaubter Testinhalt.
+Die Bedienung der Kandidatenliste folgt der
+[Microsoft-IME-Dokumentation](https://support.microsoft.com/en-us/windows/hardware/input-devices/microsoft-japanese-ime).
+
 Nach jedem Fall den Trace zur Auswertung bereitstellen. Der DOM-/Modelltext nach
 bestätigten Eingaben muss übereinstimmen; Unterschiede während einer laufenden
 Composition werden anhand des Ereignisverlaufs bewertet. Screenreader-Ansagen
@@ -64,7 +82,8 @@ ein neuer Trace zum Nachtest und die vollständige W01-Abnahme fehlen weiterhin.
 Geprüfte, auf Testinhalt beschränkte Traces kommen nach
 `benchmarks/corpora/device-traces/`. Die [gesamte Checkliste](accessibility-checklist.md)
 und die [Supportmatrix](support-matrix.md) werden erst nach dem tatsächlichen
-Operatorbericht aktualisiert. Bisher ist keiner der obigen Fälle manuell bestanden.
+Operatorbericht aktualisiert. W01 und W02 haben positive Teilbefunde;
+keiner der obigen Fälle ist bisher in seiner gesamten manuellen Vorgabe abgenommen.
 
 Serverstart, falls erforderlich:
 

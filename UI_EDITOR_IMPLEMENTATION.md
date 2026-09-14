@@ -2386,6 +2386,15 @@ ist übernommen; er stammt noch vor dem Fix, die positive Beobachtung bleibt dav
 getrennt. **P28 bleibt teilweise umgesetzt**: vollständiger W01, Zuordnung des
 Nachtests zu einem neuen Build-Trace und echte IME-/Gerätefreigaben sind offen.
 
+Ein [automatisierter Folgelauf im Codex-Browser](benchmarks/p28-keyboard-followup.md)
+prüft Unicode/Graphemlöschung, Auswahl, Windows-Undo/Redo und Toolbar/Linkdialog
+auf dem aktuellen Build. 121 Ereignisse sind separat als Automatisierungsbeleg
+abgelegt; kein Ersatz für manuelle Gerätefreigaben. Patrick hat anschließend
+Japanisch in Windows installiert und die [erste echte IME-Teilprüfung](benchmarks/corpora/device-traces/2026-09-14-patrick-w02-review.md)
+positiv bestätigt: `日本語` sauber übernommen, 133 Ereignisse ausgewertet.
+Undo/Redo an dieser Composition anschließend separat automatisiert bestanden.
+Vollständiger manueller W02 und W03–W05 bleiben offen. P29 bleibt unverändert offen.
+
 ## P29 — TypeScript-Fassade und eine Scala.js-Runtime
 
 - **Ziel:** Thin Facade über die neue native Engine in der vorhandenen gemeinsamen UI-Bridge.

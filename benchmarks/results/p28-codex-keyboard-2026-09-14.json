@@ -1,0 +1,2568 @@
+{
+  "formatVersion": 1,
+  "kind": "operator-device-trace",
+  "reviewStatus": "requires-human-review",
+  "build": {
+    "capturedAt": "2026-09-14T15:39:34.975Z",
+    "integrationSha256": "0973505cfd8f5239a6e60299887b9d2c02327b983716f273ef90f1dc047e85f4",
+    "revision": "0381575e6c759875a7ee2aa2d80b8a7d13a8a270",
+    "dirty": false,
+    "uiCore": "com.anjunar:scalajs-ui-core_sjs1_3:1.0.1"
+  },
+  "operator": {
+    "tester": "Codex – Browserautomatisierung",
+    "environment": "Windows 11 (laut Benutzer), Codex In-app Browser; UA im Export",
+    "inputMethod": "Automatisierte Browser-Tasten, Unicode-Textinsertion; keine physische IME",
+    "caseId": "keyboard",
+    "outcome": "passed",
+    "notes": "Automatisierte Teilprüfung im Codex In-app Browser, keine manuelle Gerätefreigabe. W01: Emoji und e+Akzent vollständig mit Backspace gelöscht; Undo und Ctrl+Y korrekt; Home/Shift+Pfeil-Auswahl und Ersetzung korrekt; End/Enter/Shift+Enter zeigen Cursorzeilen. Bereichsersetzung bildet gemäß HistoryGrouping eine eigene Undo-Grenze; vollständiger Ausgangstext wiederhergestellt. Zusätzlich W06: Tab/Home/End/Pfeile, Linkdialog Escape/Übernehmen, Fokusrückgabe und Undo der Linksetzung bestanden. Keine physische IME geprüft."
+  },
+  "startedAt": "2026-09-14T15:39:42.728Z",
+  "stoppedAt": "2026-09-14T15:42:50.797Z",
+  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
+  "language": "de",
+  "truncated": false,
+  "events": [
+    {
+      "time": 7969.799999982119,
+      "type": "focusin",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world",
+        "modelText": "Hello world"
+      },
+      "domText": "Hello world",
+      "modelText": "Hello world",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 0,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 7985.299999982119,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world",
+        "modelText": "Hello world"
+      },
+      "domText": "Hello world",
+      "modelText": "Hello world",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 0,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 23695.69999998808,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "Control",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world",
+        "modelText": "Hello world"
+      },
+      "domText": "Hello world",
+      "modelText": "Hello world",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 0,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 23701.59999999404,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "a",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world",
+        "modelText": "Hello world"
+      },
+      "domText": "Hello world",
+      "modelText": "Hello world",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 0,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 23702.79999998212,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world",
+        "modelText": "Hello world"
+      },
+      "domText": "Hello world",
+      "modelText": "Hello world",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 11,
+        "collapsed": false
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 23714.69999998808,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "G",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world",
+        "modelText": "Hello world"
+      },
+      "domText": "Hello world",
+      "modelText": "Hello world",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 11,
+        "collapsed": false
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 23716.09999999404,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "G",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world",
+        "modelText": "Hello world"
+      },
+      "domText": "G",
+      "modelText": "G",
+      "selection": {
+        "anchorOffset": 1,
+        "focusOffset": 1,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 23721.59999999404,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "G",
+        "modelText": "G"
+      },
+      "domText": "G",
+      "modelText": "G",
+      "selection": {
+        "anchorOffset": 1,
+        "focusOffset": 1,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 23723.69999998808,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "r",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "G",
+        "modelText": "G"
+      },
+      "domText": "Gr",
+      "modelText": "Gr",
+      "selection": {
+        "anchorOffset": 2,
+        "focusOffset": 2,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 23726.5,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "ü",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Gr",
+        "modelText": "Gr"
+      },
+      "domText": "Grü",
+      "modelText": "Grü",
+      "selection": {
+        "anchorOffset": 3,
+        "focusOffset": 3,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 23729,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "ß",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Grü",
+        "modelText": "Grü"
+      },
+      "domText": "Grüß",
+      "modelText": "Grüß",
+      "selection": {
+        "anchorOffset": 4,
+        "focusOffset": 4,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 23731,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "e",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Grüß",
+        "modelText": "Grüß"
+      },
+      "domText": "Grüße",
+      "modelText": "Grüße",
+      "selection": {
+        "anchorOffset": 5,
+        "focusOffset": 5,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 23732.69999998808,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": ",",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Grüße",
+        "modelText": "Grüße"
+      },
+      "domText": "Grüße,",
+      "modelText": "Grüße,",
+      "selection": {
+        "anchorOffset": 6,
+        "focusOffset": 6,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 23734.59999999404,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Grüße,",
+        "modelText": "Grüße,"
+      },
+      "domText": "Grüße,",
+      "modelText": "Grüße,",
+      "selection": {
+        "anchorOffset": 6,
+        "focusOffset": 6,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 23735,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": " ",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Grüße,",
+        "modelText": "Grüße,"
+      },
+      "domText": "Grüße, ",
+      "modelText": "Grüße, ",
+      "selection": {
+        "anchorOffset": 7,
+        "focusOffset": 7,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 23737.59999999404,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "e",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Grüße, ",
+        "modelText": "Grüße, "
+      },
+      "domText": "Grüße, e",
+      "modelText": "Grüße, e",
+      "selection": {
+        "anchorOffset": 8,
+        "focusOffset": 8,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 23740,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "́",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Grüße, e",
+        "modelText": "Grüße, e"
+      },
+      "domText": "Grüße, é",
+      "modelText": "Grüße, é",
+      "selection": {
+        "anchorOffset": 9,
+        "focusOffset": 9,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 23742.29999998212,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": ",",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Grüße, é",
+        "modelText": "Grüße, é"
+      },
+      "domText": "Grüße, é,",
+      "modelText": "Grüße, é,",
+      "selection": {
+        "anchorOffset": 10,
+        "focusOffset": 10,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 23744.29999998212,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": " ",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Grüße, é,",
+        "modelText": "Grüße, é,"
+      },
+      "domText": "Grüße, é, ",
+      "modelText": "Grüße, é, ",
+      "selection": {
+        "anchorOffset": 11,
+        "focusOffset": 11,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 23746.19999998808,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "👩",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Grüße, é, ",
+        "modelText": "Grüße, é, "
+      },
+      "domText": "Grüße, é, 👩",
+      "modelText": "Grüße, é, 👩",
+      "selection": {
+        "anchorOffset": 13,
+        "focusOffset": 13,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 23755.19999998808,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Grüße, é, 👩",
+        "modelText": "Grüße, é, 👩"
+      },
+      "domText": "Grüße, é, 👩",
+      "modelText": "Grüße, é, 👩",
+      "selection": {
+        "anchorOffset": 13,
+        "focusOffset": 13,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 23755.79999998212,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "🏽",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Grüße, é, 👩",
+        "modelText": "Grüße, é, 👩"
+      },
+      "domText": "Grüße, é, 👩🏽",
+      "modelText": "Grüße, é, 👩🏽",
+      "selection": {
+        "anchorOffset": 15,
+        "focusOffset": 15,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 23758.09999999404,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "‍",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Grüße, é, 👩🏽",
+        "modelText": "Grüße, é, 👩🏽"
+      },
+      "domText": "Grüße, é, 👩🏽‍",
+      "modelText": "Grüße, é, 👩🏽‍",
+      "selection": {
+        "anchorOffset": 16,
+        "focusOffset": 16,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 23759.69999998808,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "💻",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍",
+        "modelText": "Grüße, é, 👩🏽‍"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻",
+      "modelText": "Grüße, é, 👩🏽‍💻",
+      "selection": {
+        "anchorOffset": 18,
+        "focusOffset": 18,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 23762.59999999404,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": ",",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻",
+        "modelText": "Grüße, é, 👩🏽‍💻"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻,",
+      "modelText": "Grüße, é, 👩🏽‍💻,",
+      "selection": {
+        "anchorOffset": 19,
+        "focusOffset": 19,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 23763.5,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": " ",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻,",
+        "modelText": "Grüße, é, 👩🏽‍💻,"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, ",
+      "modelText": "Grüße, é, 👩🏽‍💻, ",
+      "selection": {
+        "anchorOffset": 20,
+        "focusOffset": 20,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 23764.5,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "中",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, ",
+        "modelText": "Grüße, é, 👩🏽‍💻, "
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中",
+      "selection": {
+        "anchorOffset": 21,
+        "focusOffset": 21,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 23768.79999998212,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中",
+      "selection": {
+        "anchorOffset": 21,
+        "focusOffset": 21,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 23770.19999998808,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "文",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文",
+      "selection": {
+        "anchorOffset": 22,
+        "focusOffset": 22,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 23773,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": ",",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文,",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文,",
+      "selection": {
+        "anchorOffset": 23,
+        "focusOffset": 23,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 23774.79999998212,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": " ",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文,",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文,"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, ",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, ",
+      "selection": {
+        "anchorOffset": 24,
+        "focusOffset": 24,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 23776.59999999404,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "한",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文, ",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文, "
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, 한",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한",
+      "selection": {
+        "anchorOffset": 25,
+        "focusOffset": 25,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 23781.899999976158,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "글",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文, 한",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글",
+      "selection": {
+        "anchorOffset": 26,
+        "focusOffset": 26,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 23784.59999999404,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글",
+      "selection": {
+        "anchorOffset": 26,
+        "focusOffset": 26,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 23785.29999998212,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": ",",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글,",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글,",
+      "selection": {
+        "anchorOffset": 27,
+        "focusOffset": 27,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 23787.29999998212,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": " ",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글,",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글,"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, ",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, ",
+      "selection": {
+        "anchorOffset": 28,
+        "focusOffset": 28,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 23789.09999999404,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "ا",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, ",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, "
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, ا",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, ا",
+      "selection": {
+        "anchorOffset": 29,
+        "focusOffset": 29,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 23791.29999998212,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "ل",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, ا",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, ا"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, ال",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, ال",
+      "selection": {
+        "anchorOffset": 30,
+        "focusOffset": 30,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 23793.19999998808,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "ع",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, ال",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, ال"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, الع",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, الع",
+      "selection": {
+        "anchorOffset": 31,
+        "focusOffset": 31,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 23795.29999998212,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "ر",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, الع",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, الع"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العر",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العر",
+      "selection": {
+        "anchorOffset": 32,
+        "focusOffset": 32,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 23797.19999998808,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "ب",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العر",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العر"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العرب",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العرب",
+      "selection": {
+        "anchorOffset": 33,
+        "focusOffset": 33,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 23799.09999999404,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "ي",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العرب",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العرب"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربي",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربي",
+      "selection": {
+        "anchorOffset": 34,
+        "focusOffset": 34,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 23801.19999998808,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربي",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربي"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربي",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربي",
+      "selection": {
+        "anchorOffset": 34,
+        "focusOffset": 34,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 23801.59999999404,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "ة",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربي",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربي"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 35,
+        "focusOffset": 35,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 23818.19999998808,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 35,
+        "focusOffset": 35,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 32932,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 18,
+        "focusOffset": 18,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 32944.39999997616,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "Backspace",
+      "isComposing": false,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 18,
+        "focusOffset": 18,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 32944.89999997616,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "deleteContentBackward",
+      "data": null,
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "Grüße, é, , 中文, 한글, العربية",
+      "modelText": "Grüße, é, , 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 11,
+        "focusOffset": 11,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 32948.29999998212,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Grüße, é, , 中文, 한글, العربية",
+        "modelText": "Grüße, é, , 中文, 한글, العربية"
+      },
+      "domText": "Grüße, é, , 中文, 한글, العربية",
+      "modelText": "Grüße, é, , 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 11,
+        "focusOffset": 11,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 37808.69999998808,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "Control",
+      "isComposing": false,
+      "before": {
+        "domText": "Grüße, é, , 中文, 한글, العربية",
+        "modelText": "Grüße, é, , 中文, 한글, العربية"
+      },
+      "domText": "Grüße, é, , 中文, 한글, العربية",
+      "modelText": "Grüße, é, , 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 11,
+        "focusOffset": 11,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 37814,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "z",
+      "isComposing": false,
+      "before": {
+        "domText": "Grüße, é, , 中文, 한글, العربية",
+        "modelText": "Grüße, é, , 中文, 한글, العربية"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 18,
+        "focusOffset": 18,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 37817.19999998808,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 18,
+        "focusOffset": 18,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 44213.5,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "Control",
+      "isComposing": false,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 18,
+        "focusOffset": 18,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 44216.5,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "y",
+      "isComposing": false,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "Grüße, é, , 中文, 한글, العربية",
+      "modelText": "Grüße, é, , 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 11,
+        "focusOffset": 11,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 44234,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Grüße, é, , 中文, 한글, العربية",
+        "modelText": "Grüße, é, , 中文, 한글, العربية"
+      },
+      "domText": "Grüße, é, , 中文, 한글, العربية",
+      "modelText": "Grüße, é, , 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 11,
+        "focusOffset": 11,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 48948.59999999404,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "Control",
+      "isComposing": false,
+      "before": {
+        "domText": "Grüße, é, , 中文, 한글, العربية",
+        "modelText": "Grüße, é, , 中文, 한글, العربية"
+      },
+      "domText": "Grüße, é, , 中文, 한글, العربية",
+      "modelText": "Grüße, é, , 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 11,
+        "focusOffset": 11,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 48951.79999998212,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "z",
+      "isComposing": false,
+      "before": {
+        "domText": "Grüße, é, , 中文, 한글, العربية",
+        "modelText": "Grüße, é, , 中文, 한글, العربية"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 18,
+        "focusOffset": 18,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 48953.29999998212,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 18,
+        "focusOffset": 18,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 48959.09999999404,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 9,
+        "focusOffset": 9,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 48965.39999997616,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "Backspace",
+      "isComposing": false,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 9,
+        "focusOffset": 9,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 48965.59999999404,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "deleteContentBackward",
+      "data": null,
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "Grüße, , 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "Grüße, , 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 7,
+        "focusOffset": 7,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 48967.19999998808,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Grüße, , 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "Grüße, , 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "Grüße, , 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "Grüße, , 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 7,
+        "focusOffset": 7,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 62070.39999997616,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "Control",
+      "isComposing": false,
+      "before": {
+        "domText": "Grüße, , 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "Grüße, , 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "Grüße, , 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "Grüße, , 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 7,
+        "focusOffset": 7,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 62073.79999998212,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "z",
+      "isComposing": false,
+      "before": {
+        "domText": "Grüße, , 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "Grüße, , 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 9,
+        "focusOffset": 9,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 62075.09999999404,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 9,
+        "focusOffset": 9,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 62084.5,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "Home",
+      "isComposing": false,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 9,
+        "focusOffset": 9,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 62085,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 0,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 62093.19999998808,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "Shift",
+      "isComposing": false,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 0,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 62098.19999998808,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "ArrowRight",
+      "isComposing": false,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 0,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 62100.19999998808,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 1,
+        "collapsed": false
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 62111.09999999404,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "Shift",
+      "isComposing": false,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 1,
+        "collapsed": false
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 62115.39999997616,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "ArrowRight",
+      "isComposing": false,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 1,
+        "collapsed": false
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 62117.19999998808,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 2,
+        "collapsed": false
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 62128.19999998808,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "Shift",
+      "isComposing": false,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 2,
+        "collapsed": false
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 62131.89999997616,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "ArrowRight",
+      "isComposing": false,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 2,
+        "collapsed": false
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 62133.5,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 3,
+        "collapsed": false
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 62144.29999998212,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "Shift",
+      "isComposing": false,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 3,
+        "collapsed": false
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 62147.29999998212,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "ArrowRight",
+      "isComposing": false,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 3,
+        "collapsed": false
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 62150.09999999404,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 4,
+        "collapsed": false
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 62155.29999998212,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "Shift",
+      "isComposing": false,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 4,
+        "collapsed": false
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 62157.79999998212,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "ArrowRight",
+      "isComposing": false,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 4,
+        "collapsed": false
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 62166.59999999404,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 5,
+        "collapsed": false
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 75673,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "H",
+      "isComposing": false,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 5,
+        "collapsed": false
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 75674.09999999404,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "H",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "H, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "H, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 1,
+        "focusOffset": 1,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 75675.69999998808,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "H, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "H, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "H, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "H, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 1,
+        "focusOffset": 1,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 75677.79999998212,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "a",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "H, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "H, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "Ha, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "Ha, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 2,
+        "focusOffset": 2,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 75679.59999999404,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "l",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Ha, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "Ha, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "Hal, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "Hal, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 3,
+        "focusOffset": 3,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 75681.39999997616,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "l",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hal, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "Hal, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "Hall, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "Hall, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 4,
+        "focusOffset": 4,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 75683.09999999404,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hall, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "Hall, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "Hall, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "Hall, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 4,
+        "focusOffset": 4,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 75683.59999999404,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "o",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hall, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "Hall, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "Hallo, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "Hallo, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 5,
+        "focusOffset": 5,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 75699.79999998212,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hallo, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "Hallo, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "Hallo, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "Hallo, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 5,
+        "focusOffset": 5,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 88471.29999998212,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "Control",
+      "isComposing": false,
+      "before": {
+        "domText": "Hallo, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "Hallo, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "Hallo, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "Hallo, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 5,
+        "focusOffset": 5,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 88474.09999999404,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "z",
+      "isComposing": false,
+      "before": {
+        "domText": "Hallo, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "Hallo, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "H, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "H, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 1,
+        "focusOffset": 1,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 88480.79999998212,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "End",
+      "isComposing": false,
+      "before": {
+        "domText": "H, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "H, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "H, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "H, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 1,
+        "focusOffset": 1,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 88482.79999998212,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "H, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "H, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "H, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "H, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 31,
+        "focusOffset": 31,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 88487.89999997616,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "Enter",
+      "isComposing": false,
+      "before": {
+        "domText": "H, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "H, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "H, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "H, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 31,
+        "focusOffset": 31,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 88488,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertParagraph",
+      "data": null,
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "H, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "H, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "H, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "H, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 0,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 88496.89999997616,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "Shift",
+      "isComposing": false,
+      "before": {
+        "domText": "H, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "H, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "H, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "H, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 0,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 88499.5,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "H, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "H, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "H, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "H, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 0,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 88500.19999998808,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "Enter",
+      "isComposing": false,
+      "before": {
+        "domText": "H, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "H, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "H, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "H, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 0,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 128406.89999997616,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "Control",
+      "isComposing": false,
+      "before": {
+        "domText": "H, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "H, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "H, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "H, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 0,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 128412.29999998212,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "z",
+      "isComposing": false,
+      "before": {
+        "domText": "H, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "H, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "H, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "H, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 0,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 128428.19999998808,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "Control",
+      "isComposing": false,
+      "before": {
+        "domText": "H, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "H, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "H, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "H, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 0,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 128433.79999998212,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "z",
+      "isComposing": false,
+      "before": {
+        "domText": "H, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "H, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "H, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "H, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 31,
+        "focusOffset": 31,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 128436.69999998808,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "H, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "H, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "H, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "H, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 31,
+        "focusOffset": 31,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 128448.5,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "Control",
+      "isComposing": false,
+      "before": {
+        "domText": "H, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "H, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "H, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "H, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 31,
+        "focusOffset": 31,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 128454.89999997616,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "z",
+      "isComposing": false,
+      "before": {
+        "domText": "H, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "H, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 5,
+        "collapsed": false
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 128457.29999998212,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 5,
+        "collapsed": false
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 134247.29999998212,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "Tab",
+      "isComposing": false,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 5,
+        "collapsed": false
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 134247.39999997616,
+      "type": "focusout",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 5,
+        "collapsed": false
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 147049.79999998212,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 1,
+        "focusOffset": 1,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 155107.39999997616,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 1,
+        "focusOffset": 1,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 159151.69999998808,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 1,
+        "focusOffset": 1,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 164448,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 1,
+        "focusOffset": 1,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 164465.29999998212,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 1,
+        "focusOffset": 1,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 175127.79999998212,
+      "type": "focusin",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 0,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 175129.19999998808,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 0,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 175142,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "Control",
+      "isComposing": false,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 0,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 175147,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "z",
+      "isComposing": false,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 5,
+        "collapsed": false
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 175165.29999998212,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 5,
+        "collapsed": false
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 196036.29999998212,
+      "type": "focusout",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+        "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية"
+      },
+      "domText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "modelText": "Grüße, é, 👩🏽‍💻, 中文, 한글, العربية",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 5,
+        "collapsed": false
+      },
+      "defaultPrevented": false
+    }
+  ]
+}
