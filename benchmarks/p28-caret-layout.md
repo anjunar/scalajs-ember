@@ -2,8 +2,9 @@
 
 Am 14. September 2026 meldete Patrick beim ersten Windows-Tastaturlauf:
 Leertaste und Enter lassen den sichtbaren Cursor stehen; beim nächsten Buchstaben
-springt er an die richtige Stelle. Genaue Browser-/IME-Versionen und ein Geräte-Trace
-liegen für diese Rückmeldung noch nicht vor. W01 ist damit noch nicht abgenommen.
+springt er an die richtige Stelle. Zur ersten Meldung lag zunächst kein Geräte-Trace
+vor. Ein Trace und die spätere positive Rückmeldung sind inzwischen im manuellen
+Nachtrag unten verknüpft. W01 insgesamt ist noch nicht abgenommen.
 
 ## Ursache und Korrektur
 
@@ -61,6 +62,9 @@ BiDi-Kanal. Ein vorangegangener Gesamtlauf hatte zusätzlich zu noch anzupassend
 Whitespace-/Geometrie-Erwartungen einen Chromium-Ladefehler `ERR_NO_BUFFER_SPACE`;
 die gezielte Wiederholung und der abschließende Gesamtlauf bestanden.
 
-**Manuelle Nachprüfung offen:** Nach dem Neuladen der Testseite W01 mit den
-ergänzten Leertasten-/Enter-Schritten wiederholen. Der automatische Befund ist
-keine reale IME-, Screenreader- oder Gerätefreigabe.
+**Manueller Nachtrag:** Patrick bestätigt am 14. September 2026 auf Nachfrage zum
+Nachtest von Leertaste und Enter: „Cursor folgt jetzt korrekt“.
+Der [übernommene Trace mit Auswertung](corpora/device-traces/2026-09-14-patrick-w01-review.md)
+stammt noch vor dem Fix; diese positive Beobachtung ist separat dokumentiert und
+keinem neuen Build-Trace zugeordnet. W01 insgesamt sowie IME-, Screenreader- und
+weitere Gerätefreigaben bleiben offen.

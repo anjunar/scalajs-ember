@@ -8,7 +8,10 @@ Als erster gemeinsamer Lauf ist **Windows-Tastatur und IME ohne Screenreader**
 gewählt. Die [konkreten Schritte W01–W06](windows-keyboard-ime.md) sind vorbereitet;
 die erste Rückmeldung meldet einen Cursorfehler bei Leertaste und Enter.
 Der [Befund und Fix](../../benchmarks/p28-caret-layout.md) sind festgehalten;
-die erneute manuelle Prüfung und vollständige Geräteabnahme bleiben offen.
+Patrick hat den Cursor-Nachtest für Leertaste/Enter im Gespräch positiv bestätigt.
+Der [erste W01-Trace samt Nachtrag](../../benchmarks/corpora/device-traces/2026-09-14-patrick-w01-review.md)
+ist ausgewertet; der Trace stammt noch vor dem Fix. W01 insgesamt und die
+vollständige Geräteabnahme bleiben offen.
 
 ## Vorbereitung und Beleg
 

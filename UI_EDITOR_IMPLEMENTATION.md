@@ -2379,8 +2379,12 @@ UI-verwaltete Renderhilfe für leere bzw. abschließende Umbruchzeilen. Sie blei
 außerhalb von Dokument, Content-Export und History. Snapshot-Restores führen die
 Hilfe ebenfalls nach. Layout-, Undo-, Codeblock- und Hydrationstests ergänzen die
 bisherigen Offsetprüfungen. [Befund und Prüfergebnisse](benchmarks/p28-caret-layout.md)
-halten Ursache und Abnahmegrenze fest. **P28 bleibt teilweise umgesetzt**:
-die manuelle Bestätigung des Fixes und echte IME-/Gerätefreigaben fehlen weiterhin.
+halten Ursache und Abnahmegrenze fest. Patrick bestätigt im Gespräch die korrekte
+Cursorbewegung nach Leertaste/Enter. Der
+[erste Geräte-Trace samt Nachtrag](benchmarks/corpora/device-traces/2026-09-14-patrick-w01-review.md)
+ist übernommen; er stammt noch vor dem Fix, die positive Beobachtung bleibt davon
+getrennt. **P28 bleibt teilweise umgesetzt**: vollständiger W01, Zuordnung des
+Nachtests zu einem neuen Build-Trace und echte IME-/Gerätefreigaben sind offen.
 
 ## P29 — TypeScript-Fassade und eine Scala.js-Runtime
 

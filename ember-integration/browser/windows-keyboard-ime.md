@@ -1,6 +1,6 @@
 # P28: erster Windows-Lauf ohne Screenreader
 
-Status: **begonnen, Cursorfehler gemeldet; erneute manuelle Prüfung offen**.
+Status: **begonnen; Cursor nach Leertaste/Enter laut Patrick korrekt; W01 insgesamt offen**.
 Dieser Lauf betrifft Windows-Tastatur und die tatsächlich verwendete IME.
 NVDA, VoiceOver, Mobilgeräte und Diktat erhalten dadurch keine Freigabe.
 
@@ -54,8 +54,12 @@ gehören ausdrücklich nicht zum Ergebnis dieses ersten Laufs.
 Erste Rückmeldung vom 14. September 2026: Leertaste und Enter ließen den sichtbaren
 Cursor stehen; erst ein Buchstabe ließ ihn nachspringen. Der Fehler wurde in allen
 drei Browser-Engines reproduziert. Die Korrektur und ihre automatisierte Prüfung
-stehen im [Cursorbefund](../../benchmarks/p28-caret-layout.md). Ein Geräte-Trace mit
-genauen Browser-/IME-Versionen und die manuelle Bestätigung des Fixes fehlen noch.
+stehen im [Cursorbefund](../../benchmarks/p28-caret-layout.md). Der
+[erste Trace samt Auswertung](../../benchmarks/corpora/device-traces/2026-09-14-patrick-w01-review.md)
+ist übernommen: 213 Ereignisse, noch vor dem Fix; Browserangaben widersprüchlich.
+Patrick bestätigt im Gespräch für den Nachtest von Leertaste/Enter:
+„Cursor folgt jetzt korrekt“. Diese positive Teilprüfung ist separat festgehalten;
+ein neuer Trace zum Nachtest und die vollständige W01-Abnahme fehlen weiterhin.
 
 Geprüfte, auf Testinhalt beschränkte Traces kommen nach
 `benchmarks/corpora/device-traces/`. Die [gesamte Checkliste](accessibility-checklist.md)

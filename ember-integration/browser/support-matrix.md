@@ -27,8 +27,10 @@ die Ablehnung fehlerhafter Stressbelege. Die [Belege mit UI-Core 1.0.1](../../be
 halten diese Zahlen getrennt von den historischen Release-Läufen fest.
 Als erste manuelle Kombination ist [Windows-Tastatur und IME ohne Screenreader](windows-keyboard-ime.md)
 begonnen. Ein Cursorfehler bei Leertaste/Enter wurde gemeldet und
-[korrigiert](../../benchmarks/p28-caret-layout.md); die manuelle Bestätigung und
-ein vollständiger Operatorbericht stehen weiterhin aus.
+[korrigiert](../../benchmarks/p28-caret-layout.md). Patrick bestätigt die sichtbare
+Cursorbewegung nach Leertaste/Enter im Gespräch. Der
+[übernommene W01-Trace samt Nachtrag](../../benchmarks/corpora/device-traces/2026-09-14-patrick-w01-review.md)
+trennt diese Teilbestätigung vom älteren Trace; W01 insgesamt bleibt offen.
 
 ## Konfigurierte Standardgrenzen
 

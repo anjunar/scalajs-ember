@@ -1,8 +1,12 @@
 # Tatsächliche Gerätebelege
 
-Noch keine manuelle Abnahme vorhanden. Hier liegen ausschließlich von einer
-Testperson durchgeführte und anschließend geprüfte Geräte-Traces.
+Erster Tastaturlauf übernommen; noch keine vollständige manuelle Abnahme vorhanden.
+Hier liegen von einer Testperson durchgeführte Geräte-Traces mit gesonderter Auswertung.
 Automatische Browserläufe und Musterdateien werden nicht als Gerätebelege abgelegt.
+
+- [Patrick, W01 vom 14.09.2026](2026-09-14-patrick-w01-review.md): 213 Ereignisse,
+  Textübernahme konsistent, Trace noch vor dem Fix. Sichtbare Cursorbewegung nach
+  Leertaste/Enter im Gespräch positiv bestätigt; vollständiger W01 weiterhin offen.
 
 Der [erste Windows-Lauf](../../../ember-integration/browser/windows-keyboard-ime.md)
 führt durch Tastatur, Unicode und IME ohne Screenreader. Der Opt-in-Exporter
