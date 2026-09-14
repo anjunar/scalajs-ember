@@ -646,6 +646,9 @@ final class BrowserInputController private (
         scope.contains(node) && port.positions.atomAround(node, session.document).isEmpty
       }
 
+  /** Shared by optional input adapters, including clipboard and drag/drop. */
+  def ownsEvent(event: dom.Event): Boolean = owns(event)
+
   private def transferTextOf(event: dom.InputEvent): Option[String] =
     Option(event.dataTransfer).map(_.getData("text/plain")).filter(_.nonEmpty)
 

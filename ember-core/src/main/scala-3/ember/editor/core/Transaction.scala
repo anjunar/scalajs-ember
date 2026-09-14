@@ -43,6 +43,13 @@ final class Transaction private[core] (
   private var assigned         = Set.empty[StateField[?]]
   private var latched          = Option.empty[UpdateError]
   private var alive            = true
+  private var bookmarks        = Vector.empty[DraftBookmark]
+
+  def track(point: Point): DraftBookmark =
+    requireAlive()
+    val bookmark = new DraftBookmark(point, () => requireAlive())
+    bookmarks :+= bookmark
+    bookmark
 
   /** Der Entwurf, wie er nach den bisherigen Operationen aussieht. */
   def document: Document =
@@ -75,6 +82,13 @@ final class Transaction private[core] (
     requireAlive()
     latched.isDefined
 
+  /** Rejects the entire draft, including any earlier successful operations. */
+  def reject(error: EditorError): Either[UpdateError, Unit] =
+    requireAlive()
+    latched match
+      case Some(previous) => Left(previous)
+      case None           => fail(UpdateError.Rejected(error))
+
   // -----------------------------------------------------------------------------------------
   // Primitive
   // -----------------------------------------------------------------------------------------
@@ -90,6 +104,7 @@ final class Transaction private[core] (
             currentDocument = result.document
             changes = changes andThen result.changes
             mapping = mapping andThen result.mapping
+            bookmarks.foreach(_.advance(result.mapping))
             currentSelection =
               currentSelection.flatMap(selectionSupport.map(_, result.mapping, result.document))
             Right(())
@@ -160,6 +175,7 @@ final class Transaction private[core] (
         currentDocument = document
         changes = changes andThen restored
         mapping = mapping andThen positions
+        bookmarks.foreach(_.advance(positions))
         // Erst danach: die Auswahl gehoert zum wiederhergestellten Stand und wird gegen ihn
         // geprueft.
         setSelection(selection)

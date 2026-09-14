@@ -445,12 +445,37 @@ lazy val emberBrowserSupport =
       )
     )
 
+// §6: Clipboard consumes browser ownership and injected format adapters.
+// Standard profiles are exercised through test-only dependencies below.
+lazy val emberClipboard =
+  Project(id = "scalajs-ember-clipboard", base = file("ember-clipboard"))
+    .enablePlugins(ScalaJSPlugin)
+    .dependsOn(emberCore, emberRichText, emberJson, emberHtml, emberBrowser)
+    .settings(
+      name        := "scalajs-ember-clipboard",
+      moduleName  := "scalajs-ember-clipboard",
+      description := "Validated document fragments, clipboard event adapters and structured drag/drop."
+    )
+    .settings(testSettings)
+    .settings(domSettings)
+    .settings(commonJsSettings)
+    .settings(publishSettings)
+    .settings(
+      boundarySettings(
+        allowedProjects = Seq(
+          "scalajs-ember-core",
+          "scalajs-ember-rich-text",
+          "scalajs-ember-json",
+          "scalajs-ember-html",
+          "scalajs-ember-browser"
+        ),
+        forbiddenImports = Seq("ember.editor.forms", "ember.editor.standard", "ember.editor.toolbar"),
+        allowedModules = Seq("scalajs-ui-core")
+      )
+    )
+
 // §6: Markdown-/JSON-Feld, Textarea-Fallback, Submit/Reset, Media-Service-Port und
 // Multipart-Vertrag. P19b baut davon den Feldteil; der Media-Service ist P26.
-//
-// §6 fuehrt ausserdem `browser` und `ui-forms` als Abhaengigkeiten. Beide fehlen hier mit
-// Absicht: `ember-browser` gibt es erst ab P20, und die Textarea kommt aus ui-core (P19a).
-// Ein Modul auf Vorrat einzubinden waere eine Abhaengigkeit ohne Nutzer.
 lazy val emberForms =
   Project(id = "scalajs-ember-forms", base = file("ember-forms"))
     .enablePlugins(ScalaJSPlugin)
@@ -585,6 +610,8 @@ lazy val emberStandard =
   Project(id = "scalajs-ember-standard", base = file("ember-standard"))
     .enablePlugins(ScalaJSPlugin)
     .dependsOn(
+      emberClipboard % "test->compile",
+      emberHistory % "test->compile",
       emberCore,
       emberRichText,
       emberList,
@@ -610,6 +637,8 @@ lazy val emberStandard =
     .settings(
       boundarySettings(
         allowedProjects = Seq(
+          "scalajs-ember-clipboard",
+          "scalajs-ember-history",
           "scalajs-ember-core",
           "scalajs-ember-rich-text",
           "scalajs-ember-list",
@@ -638,6 +667,7 @@ lazy val emberIntegration =
   Project(id = "scalajs-ember-integration", base = file("ember-integration"))
     .enablePlugins(ScalaJSPlugin)
     .dependsOn(
+      emberClipboard,
       emberCore,
       emberRichText,
       emberMarkdown,
@@ -671,6 +701,7 @@ lazy val emberIntegration =
     .settings(
       boundarySettings(
         allowedProjects = Seq(
+          "scalajs-ember-clipboard",
           "scalajs-ember-core",
           "scalajs-ember-rich-text",
           "scalajs-ember-markdown",
@@ -764,6 +795,7 @@ lazy val emberDemo =
 
 lazy val root = Project(id = "scalajs-ember-root", base = file("."))
   .aggregate(
+    emberClipboard,
     emberCore,
     emberRichText,
     emberList,

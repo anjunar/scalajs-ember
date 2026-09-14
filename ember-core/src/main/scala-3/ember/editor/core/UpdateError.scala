@@ -9,6 +9,11 @@ sealed trait UpdateError extends EditorError
 
 object UpdateError:
 
+  /** A feature explicitly rejected the draft with its own typed diagnostic. */
+  final case class Rejected(error: EditorError) extends UpdateError:
+    def message: String               = error.message
+    override def path: DiagnosticPath = error.path
+
   /** Eine primitive Operation war nicht anwendbar. */
   final case class OperationFailed(error: OperationError) extends UpdateError:
     def message: String               = error.message

@@ -15,10 +15,11 @@ Laufzeitabhängigkeit.
 
 ## Stand
 
-**Implementierungsstand: P01–P24 vorhanden, P25–P30 offen.** Das
+**Implementierungsstand: P01–P25 vorhanden, P26–P30 offen.** Das
 [Review vom 14. September 2026](UI_EDITOR_REVIEW.md) dokumentiert 14 behobene Befunde
 und die zugehörigen Regressionstests. Das vollständige Scala-Gate ist grün;
-die reale IME-/Geräte-Abnahme steht weiterhin aus. Der frühere
+die reale IME-/Geräte-Abnahme sowie natives Clipboard unter Windows-WebKit stehen
+weiterhin aus (Details in P25 des Implementierungsplans). Der frühere
 `contenteditable`-Prototyp (`ember.core.Editor` mit `execCommand` und HTML-String als
 Zustand) und seine vite-Demo wurden entfernt — Architektur §2 und §25 schließen diesen
 Ansatz aus.
@@ -141,6 +142,11 @@ dokumentiertem Geräteergebnis
 als nicht erteilt.
 
 ## Module
+
+P25 ergänzt [`ember-clipboard`](ember-clipboard/README.md): markierte Teilbereiche
+und strukturierte Fragmente, validiertes MIME-Fallback, bestätigtes Cut und
+Drag-Move mit Positionsmapping. Dateien werden an einen injizierten Media-Intent
+weitergereicht; Upload und Lifecycle sind das nächste Paket P26.
 
 Konvention: Verzeichnis `ember-<modul>`, sbt-ID und Artefakt `scalajs-ember-<modul>`,
 Scala-Paket `ember.editor.<modul>`. Die vollständige Modultabelle steht in

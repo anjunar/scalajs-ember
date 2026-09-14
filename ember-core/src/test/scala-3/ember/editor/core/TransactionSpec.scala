@@ -36,6 +36,37 @@ final class TransactionSpec extends AnyFlatSpec with Matchers {
   // Ein Commit, mehrere Operationen
   // ---------------------------------------------------------------------------------------
 
+  "A draft bookmark" should "track only operations after it was created" in {
+    val editor = session()
+    committed(editor.update { tx =>
+      tx.spliceText(id("t1"), 0, 0, "X")
+      val at = tx.track(Point.textBefore(id("t1"), 3))
+      tx.spliceText(id("t1"), 0, 1, "")
+      at.current shouldBe MappedPoint.Preserved(Point.textBefore(id("t1"), 2))
+      tx.remove(id("t1"))
+      at.current.isPreserved shouldBe false
+    })
+  }
+
+  it should "expire when the transaction ends" in {
+    val editor               = session()
+    var saved: DraftBookmark = null
+    committed(editor.update(tx => saved = tx.track(Point.textBefore(id("t1"), 2))))
+    intercept[EditorContractViolation](saved.current)
+  }
+
+  "An explicit feature rejection" should "roll back earlier operations and latch the first error" in {
+    val editor = session()
+    val reason = new EditorError { val message = "No clipboard target" }
+    val result = editor.update { tx =>
+      tx.spliceText(id("t1"), 0, 1, "X")
+      tx.reject(reason)
+      tx.spliceText(id("t1"), 0, 1, "Y") shouldBe Left(UpdateError.Rejected(reason))
+    }
+    result shouldBe Left(UpdateError.Rejected(reason))
+    editor.document shouldBe document
+  }
+
   "A transaction" should "turn several operations into a single commit" in {
     val editor = session()
 

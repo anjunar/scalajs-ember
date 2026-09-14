@@ -271,3 +271,35 @@ Android, das trotz `preventDefault` nativ loescht, verwaiste `insertCompositionT
 Dafuer gibt es [manual-ime.md](manual-ime.md): eine Liste von Faellen und eine Tabelle fuer
 Geraet, Betriebssystem, Browser und Eingabemethode. Ohne ausgefuellte Zeilen gilt die
 IME-Unterstuetzung als **nicht abgenommen**, gleich wie viele Tests gruen sind.
+
+## Clipboard und Drag/Drop (P25)
+
+`clipboard.spec.mjs` und `drop.spec.mjs` verwenden die neuen Clipboard-Fixtures.
+Die Protokollfälle erzeugen native Event-Objekte mit explizit angehängtem
+`DataTransfer`: Firefox ignoriert `ClipboardEventInit.clipboardData`, WebKit
+`InputEventInit.dataTransfer`. Das Anhängen ist nur Teil der synthetischen Tests;
+der Editor hat keinen Sonderpfad dafür. Drop-Koordinaten stammen aus einem
+kollabierten Text-Range; ein kollabierter Element-Range liefert nicht in jeder
+Engine ein brauchbares Rechteck.
+
+Prüffälle sind unter anderem formatierter Copy, MIME-Fallback, bestätigtes Cut,
+Paste-/Drop-/Delete-Echos, Readonly/Composition, native Textareas in Atomen und
+File-Intents. Interne Moves behalten ganze Node- und DOM-Identitäten; ein Drop
+in einen zweiten Editor kopiert. Die Drags sind synthetisch und belegen keine
+physische Maus-/Touch-Abnahme.
+
+Zwei weitere Fälle verwenden echte Tastenkombinationen: Copy/Paste im Editor und
+eine unabhängige native Textarea, deren Copy-Handler nur Klartext per `setData`
+setzt. Beide bestehen unter Chromium und Firefox. **Windows-WebKit verliert die
+eventgeschriebenen Daten beim Übergang zum nativen Clipboard**, obwohl `getData`
+im Copy-Event den geschriebenen Wert liefert. Der Fehler tritt auch ohne
+Editoradapter und ohne `stopImmediatePropagation` auf. Copy mit unverändertem
+nativen Standardverhalten funktioniert in der Vergleichsprobe.
+
+Die beiden Tastaturfälle sind ausschließlich für Windows-WebKit mit `test.fail`
+markiert. Ein unerwarteter Erfolg lässt den Lauf fehlschlagen, damit der Status
+nach einer Engine-/Harness-Reparatur angepasst wird. Diese erwarteten Fehler
+müssen im Bericht separat von bestandenen Fällen genannt werden. Die native
+Copy/Cut/Paste-Abnahme bleibt auf dieser Kombination offen, insbesondere ist
+DataTransfer-Readback kein Nachweis, dass ausgeschnittener Inhalt später aus
+der Betriebssystem-Zwischenablage zurückkommt.

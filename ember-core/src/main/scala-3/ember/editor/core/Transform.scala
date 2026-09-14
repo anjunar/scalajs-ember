@@ -17,6 +17,9 @@ final class TransformScope private[core] (private val transaction: Transaction):
 
   def document: Document = transaction.document
 
+  def reject(error: EditorError): Either[UpdateError, Unit] = transaction.reject(error)
+  def track(point: Point): DraftBookmark                    = transaction.track(point)
+
   def apply(operation: Operation): Either[UpdateError, Unit] = transaction.apply(operation)
 
   def insert(

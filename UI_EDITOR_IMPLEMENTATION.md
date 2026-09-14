@@ -1,8 +1,10 @@
 # UI Editor: ausführbarer Implementierungsplan
 
-Status: **Code für P01–P24 vorhanden; P25–P30 offen.** Die 14 Befunde des Reviews vom
+Status: **Code für P01–P25 vorhanden; P26–P30 offen.** Die 14 Befunde des Reviews vom
 14. September 2026 wurden korrigiert und durch reguläre Regressionstests abgesichert;
 Details, Testzahlen und ursprüngliche Repro-Fälle stehen im [Review](UI_EDITOR_REVIEW.md).
+Die native Clipboard-Abnahme für Windows-WebKit ist durch einen unabhängig
+reproduzierten Event-Store-/Betriebssystem-Transferfehler offen (P25 unten).
 Das vollständige Scala-Gate ist grün. Die reale IME-Abnahme bleibt eine
 ausstehende Handprüfung. Dieses Repository (`scalajs-ember`) ist das in
 Architektur und Plan gemeinte „eigene Repository“. Die generischen UI-Core-Anteile aus
@@ -2080,6 +2082,64 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 - **Akzeptanz:** Daten und Selection bleiben strukturell gültig; eigene History-Grenzen; Native-Control-Clipboard wird nicht gestohlen. Dateien werden als Media-Intent weitergereicht, nicht in Nodes eingebettet.
 - **Risiken:** Clipboard-Inhalte sind fremde Eingabe; Browser erlauben nicht jede API identisch. Eventadapter zuerst, Async-API nur mit getestetem Fehlerpfad.
 - **Dependencies:** P10, P23, P24; Architektur §21.
+
+### Umsetzung und Abnahme P25 — 14. September 2026
+
+Die sechs geplanten Quelldateien liegen in `ember-clipboard`, inklusive
+Browsercontroller, injizierbarem Async-Port und File-Intent für P26.
+`ClipboardExtension` nutzt reguläre primitive Operationen und eigene History-Grenzen.
+Die Richtung bleibt clipboard → browser; `BrowserInputController.ownsEvent` gibt
+lediglich die bestehende Ownership-Prüfung frei. Standardadapter werden injiziert.
+
+Zwei notwendige Core-Ergänzungen machen den Transaktionsvertrag konkret:
+`Transaction.reject(EditorError)` verwirft auch zuvor erfolgreiche Draft-Schritte;
+`Transaction.track(Point)` liefert einen transaktionslokalen `DraftBookmark`, der
+nur nachfolgende primitive Mappings verfolgt. Damit benötigt ein partieller Move
+weder Snapshot-Restore noch Dokumentdiff. Beide APIs stehen auch im TransformScope.
+
+Die 33 Tests in `ember-standard/.../{ClipboardSpec,AsyncClipboardSpec}.scala`
+prüfen das reale Standardprofil einschließlich `FragmentSpec`; die Abhängigkeit
+auf clipboard/history ist dort **test-only**, um den Produktionsgraphen zyklusfrei
+zu halten. Drei weitere Core-Tests sichern Draft-Bookmark-Lebensdauer, Mapping ab
+dem aktuellen Draft und atomare explizite Abweisung. Browser-Fixtures liegen in
+`IT/ClipboardFixtures.scala`; die Tests heißen wie im übrigen Harness `.spec.mjs`.
+
+Internes Format, HTML-Fallback, Marks, offene Listen, Bild im Link, ID-Erhalt beim
+Move, neue IDs beim Kopieren, rückwärtige Auswahl, Zeilenumbrüche, Importlimits,
+Commit-Abweisung, Cut-Write-Fehler und verzögerte Konflikte sind geprüft.
+Browserfälle ergänzen Deduplizierung, native Atom-Textareas, Readonly/Composition,
+Dateien als Intent und editorübergreifendes Kopieren. Einzelheiten und API-Verträge:
+[`ember-clipboard/README.md`](ember-clipboard/README.md).
+
+**Offene native Browserabnahme:** Echter Tastatur-Copy/Paste besteht in Chromium
+und Firefox. Im Windows-WebKit des Playwright-Harness sind per `setData` geschriebene
+Daten im Event rücklesbar, bei anschließender nativer Paste jedoch leer. Eine
+unabhängige Textarea ohne Editoradapter reproduziert das bereits mit Klartext.
+Der Editor-Tastaturtest und dieser minimale Repro sind für genau diese Kombination
+als erwartete Fehler markiert; ein unerwarteter Erfolg schlägt das Gate fehl und
+erzwingt Neubewertung. Dies ist keine Freigabe für natives Copy/Cut/Paste unter
+Windows-WebKit. Protokolltests aller drei Engines sowie physische Geräteabnahme
+werden ausdrücklich getrennt; eine echte IME-/Mobil-/Drag-Abnahme folgt weiterhin P28.
+
+Abschließende Regressionen sichern außerdem mehrzeilige Paste am Anfang, in der
+Mitte und am Ende eines Absatzes, den Erhalt des Inline-Kontexts in Überschriften,
+Listen und Links sowie die ID-Reservierung bei einem injizierten Generator, der
+die jeweils erste freie ID wiederverwendet. Das vollständige Scala-Gate umfasst
+**1.222 bestandene Tests**; Full-Link, Serverimport ohne Browserglobals und
+`scalafmtCheckAll` sind erfolgreich.
+
+Das vollständige Browser-Gate umfasst **661 bestandene Tests und zwei erwartete
+Windows-WebKit-Fehler**, keine übersprungenen, instabilen oder unerwartet
+fehlgeschlagenen Fälle. Playwright zählt erwartete Fehler in seiner Zusammenfassung
+mit; die getrennten Zahlen stammen aus dem JSON-Bericht. Firefox lief über den
+bereits dokumentierten Kanal `moz-firefox`. Reproduzierbare Befehle:
+
+```powershell
+sbt --server scalafmtAll "Test/testOnly *" "scalajs-ember-integration/fullLinkJS" scalafmtCheckAll
+# In ember-integration/browser:
+$env:EMBER_FIREFOX_CHANNEL='moz-firefox'
+npm run verify
+```
 
 ## P26 — Medienservice, Upload-Lifecycle und Multipart
 

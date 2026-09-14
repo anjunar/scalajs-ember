@@ -690,6 +690,24 @@ Priorität beim Paste: kompatibles internes MIME `application/x-ember-editor+jso
 
 Copy stellt, soweit der Port erlaubt, internes Format, semantisches HTML und Klartext bereit. Cut löscht den Bereich **erst nach bestätigtem Schreiben**; bei async Schreiben wird das ursprüngliche Bookmark erneut validiert und bei zwischenzeitlicher Änderung nicht blind gelöscht. Paste und Cut bilden eigene History-Grenzen. Ein Operations-Token verhindert doppelte Verarbeitung durch Clipboard-/Input-Events. Interner Drag-Move hat dieselben Fragment-/Mapping-Invarianten, kopiert aber keine IDs unnötig.
 
+P25 konkretisiert den Draft-Vertrag: `Transaction.track(Point)` liefert einen nur
+innerhalb der Transaktion gültigen `DraftBookmark`, der ab dem aktuellen Draft
+nachfolgende primitive Mappings verfolgt. `reject(EditorError)` lässt fachliche
+Fehler atomar einrasten, auch nach bereits erfolgreichen primitiven Schritten.
+Das vermeidet bei partiellen Moves eine zweite Dokumentkonstruktion samt Diff.
+
+Der Event-Claim gilt für das korrespondierende `beforeinput` im selben Dispatch-Turn
+und endet mit einer Microtask. Er sperrt keine spätere Benutzeraktion. Native
+`deleteByDrag`-Echos werden verhindert: lokale Moves haben die Quelle bereits
+geändert, fremde Editoren erhalten eine Kopie. Der lokale Drag-Token ist mit
+Quellauswahl und Dokumentrevision im Controller verbunden, nicht im Fragment.
+
+Die Write-Bestätigung des Eventadapters kann nur den `DataTransfer`-Store prüfen.
+Sie beweist keine spätere Übergabe an die Betriebssystem-Zwischenablage. P25 weist
+deshalb im Browser-Harness einen unabhängigen Windows-WebKit-Repro nach und hält
+die native Clipboard-Abnahme dort offen; synthetische Protokolltests ersetzen
+diese Abnahme nicht (siehe Implementierungsplan P25).
+
 ## 22. Accessibility
 
 - Semantische Tags sind die Basis. Die aktive Editierfläche erhält einen zugänglichen Namen, `role="textbox"` und `aria-multiline="true"`, wenn diese Rolle die Rich-Text-Fläche passend beschreibt; die readonly Ausgabe bleibt normales Dokument-HTML. Placeholder ersetzt kein Label.
