@@ -504,5 +504,18 @@ final class TransactionSpec extends AnyFlatSpec with Matchers {
     val outcome = editor.update(_.restore(editor.document, editor.selection))
 
     committed(outcome).isNoOp shouldBe true
+    committed(outcome).changes.documentReplaced shouldBe false
+  }
+  it should "mark document replacement separately from ordinary text editing" in {
+    val editor   = session()
+    val original = editor.document
+    committed(
+      editor.update(_.spliceText(id("t1"), 0, 0, "X"))
+    ).changes.documentReplaced shouldBe false
+    val restored = committed(editor.update { tx =>
+      tx.restore(original, None)
+      tx.spliceText(id("t3"), 0, 0, "Y")
+    })
+    restored.changes.documentReplaced shouldBe true
   }
 }

@@ -173,7 +173,7 @@ final class Transaction private[core] (
       case None =>
         val (restored, positions) = DocumentDiff.between(currentDocument, document)
         currentDocument = document
-        changes = changes andThen restored
+        changes = changes andThen restored.copy(documentReplaced = restored.nonEmpty)
         mapping = mapping andThen positions
         bookmarks.foreach(_.advance(positions))
         // Erst danach: die Auswahl gehoert zum wiederhergestellten Stand und wird gegen ihn

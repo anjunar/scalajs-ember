@@ -1,5 +1,6 @@
 import { createServer } from 'node:http'
 import { readFile } from 'node:fs/promises'
+import { mediaRequest } from './media-server.mjs'
 
 const output = new URL('../../target/ember-browser-tests/', import.meta.url)
 
@@ -16,7 +17,7 @@ await readFile(new URL('main.js', output)).catch(() => {
 const html = `<!doctype html><html><body>
 <div id="root"></div>
 <script type="module">
-import { emberFixtures, runtimeFixtures, projectionFixtures, formFixtures, selectionFixtures, editingFixtures, clipboardFixtures } from '/main.js'
+import { emberFixtures, runtimeFixtures, projectionFixtures, formFixtures, selectionFixtures, editingFixtures, clipboardFixtures, mediaFixtures } from '/main.js'
 window.fixtures = emberFixtures
 window.runtime = runtimeFixtures
 window.projection = projectionFixtures
@@ -24,6 +25,7 @@ window.form = formFixtures
 window.selection = selectionFixtures
 window.editing = editingFixtures
 window.clipboard = clipboardFixtures
+window.media = mediaFixtures
 window.ready = true
 </script>
 </body></html>`
@@ -31,7 +33,7 @@ window.ready = true
 // Das Modul im Serverprozess laden, um damit zu rendern. Genau das, was §15.2 zusichert -- ein
 // Import darf weder `window` noch `document` lesen --, und ohne diese Zusicherung gaebe es
 // kein serverseitig gerendertes Feld zum Absenden.
-const { formFixtures } = await import(new URL('main.js', output).href)
+const { formFixtures, mediaFixtures } = await import(new URL('main.js', output).href)
 
 /** Die Seite fuer den No-JS-Test: ein echtes Formular um das gerenderte Feld.
  *
@@ -86,6 +88,33 @@ async function readBody(request) {
 const server = createServer(async (request, response) => {
   const url = new URL(request.url, 'http://127.0.0.1')
   const path = url.pathname
+  if (await mediaRequest(request, response, url, mediaFixtures)) return
+
+  if (path === '/toolbar.css') {
+    response.setHeader('Content-Type', 'text/css; charset=utf-8')
+    response.end(await readFile(new URL('../../ember-toolbar/src/main/resources/ember-toolbar.css', import.meta.url)))
+    return
+  }
+  if (path === '/toolbar') {
+    response.setHeader('Content-Type', 'text/html; charset=utf-8')
+    response.end(`<!doctype html><html lang="de"><head><meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <title>Ember – Toolbar und Dialoge</title><link rel="stylesheet" href="/toolbar.css">
+      <style>body{font:1rem/1.6 system-ui;max-width:52rem;margin:3rem auto;padding:0 1rem}#toolbar-editor{min-height:12rem;padding:1rem;border:1px solid currentColor;margin:1rem 0}</style>
+      </head><body><main><h1>Text bearbeiten</h1>
+      <p>Tab wechselt zwischen Text und Werkzeugleiste. In der Leiste führen die Pfeiltasten zu den Aktionen.</p>
+      <div id="toolbar-editor" aria-label="Dokument"></div><div id="toolbar-host"></div>
+      <label><input type="checkbox" id="readonly"> Schreibgeschützt</label>
+      <p><label>Notizen außerhalb des Editors <input id="outside"></label></p>
+      <div id="dialogs"></div><input id="toolbar-file" type="file" hidden accept="image/png,image/jpeg,image/gif,image/webp">
+      <p>Der Demo-Upload nimmt ausschließlich die PNG-Testdatei des Medien-Harness an.</p></main>
+      <script type="module">import { toolbarFixtures } from '/main.js';
+      window.toolbar = toolbarFixtures;
+      toolbarFixtures.mount(document.getElementById('toolbar-editor'),document.getElementById('toolbar-host'),document.getElementById('dialogs'),document.getElementById('toolbar-file'));
+      document.getElementById('readonly').addEventListener('change', event => toolbarFixtures.readonly(event.target.checked));
+      window.ready = true;</script></body></html>`)
+    return
+  }
 
   // P19b: das serverseitig gerenderte Feld, in einem echten Formular.
   if (path === '/form') {

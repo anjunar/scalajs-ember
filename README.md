@@ -15,7 +15,7 @@ Laufzeitabhängigkeit.
 
 ## Stand
 
-**Implementierungsstand: P01–P25 vorhanden, P26–P30 offen.** Das
+**Implementierungsstand: P01–P27 vorhanden, P28–P30 offen.** Das
 [Review vom 14. September 2026](UI_EDITOR_REVIEW.md) dokumentiert 14 behobene Befunde
 und die zugehörigen Regressionstests. Das vollständige Scala-Gate ist grün;
 die reale IME-/Geräte-Abnahme sowie natives Clipboard unter Windows-WebKit stehen
@@ -146,7 +146,12 @@ als nicht erteilt.
 P25 ergänzt [`ember-clipboard`](ember-clipboard/README.md): markierte Teilbereiche
 und strukturierte Fragmente, validiertes MIME-Fallback, bestätigtes Cut und
 Drag-Move mit Positionsmapping. Dateien werden an einen injizierten Media-Intent
-weitergereicht; Upload und Lifecycle sind das nächste Paket P26.
+weitergereicht. P26 ergänzt den [Medienservice und Upload-Lifecycle](ember-forms/MEDIA_SERVICE.md):
+Picker/Paste/Drop, gemappte Ziele, Abbruch, Preview-Freigabe und einen geprüften
+Multipart-Weg ohne JavaScript. P27 ergänzt [`ember-toolbar`](ember-toolbar/README.md):
+komponierbare Commands, zugängliche Link-/Bilddialoge und eine eigenständige
+Demoansicht unter `/toolbar` im Browser-Harness. Als Nächstes folgt P28:
+Geräteabnahme, Korpora, Performance und Packaging.
 
 Konvention: Verzeichnis `ember-<modul>`, sbt-ID und Artefakt `scalajs-ember-<modul>`,
 Scala-Paket `ember.editor.<modul>`. Die vollständige Modultabelle steht in

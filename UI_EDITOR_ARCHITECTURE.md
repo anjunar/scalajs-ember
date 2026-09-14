@@ -190,8 +190,8 @@ Verzeichnisse heißen `ember-*`, sbt-IDs und Artefakte konsistent `scalajs-ember
 | `ember-browser` | Input, SelectionPort, Composition, Mutationen, Fokus und Hydration-Aktivierung | core, rich-text, ui |
 | `ember-browser-support` | Optionale konkrete Key-/Input-Bindings für History, Listen, Links und Code; getrennt vom Browsermechanismus | browser, history, list, link, code |
 | `ember-clipboard` | Copy/Cut/Paste, Dokumentfragmente, Clipboard-Port | core, rich-text, json, html, browser |
-| `ember-forms` | Markdown-/JSON-Feld, Textarea-Fallback, Submit/Reset, Media-Service-Port und Multipart-Vertrag | core, ui, browser, markdown, json, image, ui-forms |
-| `ember-toolbar` | Optionale Toolbars, Link-/Image-Dialoge, Commands/Status anzeigen | core, rich-text, history, link, image, ui, browser, ui-controls, ui-viewport |
+| `ember-forms` | Markdown-/JSON-Feld, Textarea-Fallback, Submit/Reset, Media-Service-Port und Multipart-Vertrag | core, ui, browser, clipboard, markdown, json, html, image; ui-forms bei benötigter Integration |
+| `ember-toolbar` | Optionale Toolbars, Link-/Image-Dialoge, Commands/Status anzeigen | core, rich-text, history, link, image, clipboard, ui, browser; ui-core |
 | `ember-table` (später) | Table/Row/Cell, Zellbereichsselection, Editing und eigene Adapter | core, rich-text; Adapter gezielt zusätzlich json/html/ui |
 
 `standard` ist bewusst ein optionales Integrationsmodul: Dadurch kennen die Node-Module weder Markdown noch UI und die Format-SPIs keine konkreten Feature-Nodes. Seine einzelnen Adapter sind eigene Fabriken/Objekte ohne eager globale Sammelregistrierung. Eine reine Paragraph-Anwendung wählt nur Paragraph-/Text-Support. Eine Fremderweiterung liefert ihre Adapter in ihrem eigenen Modul und ändert `standard` nicht.
@@ -214,7 +214,9 @@ flowchart TD
   Forms --> MD[editor-markdown]
   Forms --> JSON[editor-json]
   Forms --> Image[editor-image]
-  Clip[editor-clipboard] --> Browser
+  Forms --> Clip[editor-clipboard]
+  Toolbar --> Clip
+  Clip --> Browser
   Clip --> JSON
   Clip --> HTML[editor-html]
   Browser --> UI
@@ -680,6 +682,30 @@ Picker, Paste und Drop verwenden denselben Service-Port und dieselbe Ergebnisval
 
 Non-JS-Multipart: Die Anwendung empfängt Source und File, validiert/speichert das File, erzeugt die Referenz und importiert/ändert das Document serverseitig über dieselben Core-Operationen. Ein serverseitiger Einfügeparameter ist eine validierte fachliche Position oder „am Ende“, niemals ein ungesicherter Browser-DOM-Offset. Fehler geben Source und übrige Formularwerte wieder aus; Upload und Editor teilen weder Backend-Code noch Storage-Lifecycle.
 
+P26 konkretisiert dies durch den generischen `MediaService[F]` und einen
+`MediaCoordinator[F]` in forms. `MediaTarget` ist an Coordinator, Revision und
+Dokumentgeneration gebunden. Laufende Aufträge mappen ihre Punkte bei jedem Commit;
+ein verlorener Punkt oder geänderter ausgewählter Inhalt verhindert die Einfügung.
+`ChangeSet.documentReplaced` kennzeichnet einen nichttrivialen Restore, auch bei
+überlebenden IDs. Restore-/Import-/History-Commits verwerfen laufende Aufträge;
+ein inhaltlicher No-op bleibt ein No-op. Ein expliziter Datensatzwechsel ohne
+Inhaltsänderung ruft `invalidate()` auf.
+
+SourceBusy/CompositionBusy halten eine fertige Referenz außerhalb des Dokuments.
+Nach Zustandsfreigabe führt `resume()` eine neue Ziel-/Zustandsprüfung und erst dann
+eine neue atomare Transaktion aus. Alt-Text ist Pflichtargument, darf aber ausdrücklich
+leer sein. Ein File-Batch ersetzt den Bereich höchstens mit der ersten Datei;
+weitere Dateien fügen unabhängig am gemappten hinteren Rand ein. Abbruch, verspätete
+Completion und Preview-Freigabe werden einmalig behandelt. Standardlimits sind acht
+aktive Aufträge und 32 aufbewahrte terminale Statuswerte.
+
+Der Forms-Adapter konsumiert `ClipboardFileIntent` direkt; dafür ist die bisher
+nur im Text beschriebene Kante forms → clipboard nun auch in der Modultabelle
+ausdrücklich enthalten. Es gibt keine Rückkante. Standardadapter bleiben injiziert.
+Die Darstellung von Fortschritt und Fehlern sowie Aufrufe bei Moduswechsel und
+Abbau gehören der Anwendung; der Einbindungsvertrag steht in
+[`ember-forms/MEDIA_SERVICE.md`](ember-forms/MEDIA_SERVICE.md).
+
 ## 21. Clipboard
 
 `ClipboardPort` kapselt Lesen/Schreiben; eventbasierter DataTransfer ist der erste Browseradapter. Optionale Async-Clipboard-APIs sind zusätzliche Adapter mit demselben Ergebnis-/Fehlervertrag. Headless-Tests verwenden reine MIME-Daten.
@@ -709,6 +735,22 @@ die native Clipboard-Abnahme dort offen; synthetische Protokolltests ersetzen
 diese Abnahme nicht (siehe Implementierungsplan P25).
 
 ## 22. Accessibility
+
+P27 setzt diese UI in `ember-toolbar` als optionales Modul um. Toolbar, Buttons und
+native `<dialog>`-Elemente werden in derselben UI-Core-Runtime gerendert. Das
+vorhandene `ui-viewport.Window` hat keine modale Fokusführung; daher benötigt diese
+Ausführung weder ui-controls noch ui-viewport. Das ist eine Präzisierung des
+ursprünglichen Modulplans. `toolbar → clipboard` ermöglicht die atomare Ersetzung
+einer Auswahl durch ein Bild mit dem vorhandenen DeleteSelection-Command. Es gibt
+keine Rückkante aus Forms oder den unteren Schichten.
+
+Dialogpositionen sind sitzungsgebundene, einmalige Targets mit zwei strikt gemappten
+Bookmarks. History, Dokumentersetzung und explizites `invalidate()` verwerfen sie;
+gelöschte oder abgelaufene Positionen führen zu einem sichtbaren Fehler. Ein
+Datei-Callback überträgt die aufgelöste Range noch während der Benutzeraktivierung
+an einen anwendungseigenen P26-MediaTarget. Ein erfolgreicher Upload besitzt damit
+keine Abhängigkeit von einem bereits geschlossenen Dialog. Der vollständige
+Lifecycle- und Einbindungsvertrag steht in [`ember-toolbar/README.md`](ember-toolbar/README.md).
 
 - Semantische Tags sind die Basis. Die aktive Editierfläche erhält einen zugänglichen Namen, `role="textbox"` und `aria-multiline="true"`, wenn diese Rolle die Rich-Text-Fläche passend beschreibt; die readonly Ausgabe bleibt normales Dokument-HTML. Placeholder ersetzt kein Label.
 - Readonly-Policy verhindert auch programmgesteuerte User-Editing-Commands; Fokusfähigkeit und Editierbarkeit sind getrennte Entscheidungen.

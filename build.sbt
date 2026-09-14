@@ -479,7 +479,7 @@ lazy val emberClipboard =
 lazy val emberForms =
   Project(id = "scalajs-ember-forms", base = file("ember-forms"))
     .enablePlugins(ScalaJSPlugin)
-    .dependsOn(emberCore, emberMarkdown, emberJson, emberHtml, emberUi, emberBrowser)
+    .dependsOn(emberCore, emberMarkdown, emberJson, emberHtml, emberUi, emberBrowser, emberImage, emberClipboard, emberHistory % "test->compile")
     .settings(
       name        := "scalajs-ember-forms",
       moduleName  := "scalajs-ember-forms",
@@ -496,7 +496,10 @@ lazy val emberForms =
           "scalajs-ember-json",
           "scalajs-ember-html",
           "scalajs-ember-ui",
-          "scalajs-ember-browser"
+          "scalajs-ember-browser",
+          "scalajs-ember-image",
+          "scalajs-ember-clipboard",
+          "scalajs-ember-history"
         ),
         // `ui` und `browser` fehlen hier mit Absicht: ein Formularfeld traegt eine Vorschau
         // (eine DocumentView) und aktiviert sie per Hydration (P20). `ui` bleibt verboten.
@@ -657,12 +660,32 @@ lazy val emberStandard =
       )
     )
 
-// Nicht publiziert: eine Testanwendung, keine Bibliothek. Die Publish-Regel aus Architektur §6
-// beruehrt es damit gar nicht erst -- und `ember-ui`, das sie sehr wohl beruehrt, haelt sie
-// ein (siehe dort).
-//
-// Separat gelinkt ist ebenfalls zulaessig (P07, Risiken): die Test-App ist eine isolierte
-// Anwendung, keine Bibliothek, und teilt sich mit niemandem eine Runtime.
+// Optional command UI. Native dialogs use ui-core; no forms service or viewport runtime.
+lazy val emberToolbar =
+  Project(id = "scalajs-ember-toolbar", base = file("ember-toolbar"))
+    .enablePlugins(ScalaJSPlugin)
+    .dependsOn(
+      emberCore, emberRichText, emberHistory, emberLink,
+      emberImage, emberClipboard, emberUi, emberBrowser
+    )
+    .settings(
+      name := "scalajs-ember-toolbar",
+      moduleName := "scalajs-ember-toolbar",
+      description := "Optional accessible command toolbar and native editor dialogs."
+    )
+    .settings(testSettings)
+    .settings(domSettings)
+    .settings(uiCoreSettings)
+    .settings(commonJsSettings)
+    .settings(publishSettings)
+    .settings(boundarySettings(
+      allowedProjects = Seq("scalajs-ember-core", "scalajs-ember-rich-text", "scalajs-ember-history",
+        "scalajs-ember-link", "scalajs-ember-image", "scalajs-ember-clipboard", "scalajs-ember-ui", "scalajs-ember-browser"),
+      forbiddenImports = Seq("ember.editor.forms", "ui.forms", "ui.control", "ui.viewport"),
+      allowedModules = Seq("scalajs-ui-core")
+    ))
+
+// Unpublished browser test application with its own linked output.
 lazy val emberIntegration =
   Project(id = "scalajs-ember-integration", base = file("ember-integration"))
     .enablePlugins(ScalaJSPlugin)
@@ -676,6 +699,7 @@ lazy val emberIntegration =
       emberBrowser,
       emberBrowserSupport,
       emberForms,
+      emberToolbar,
       emberStandard
     )
     .settings(
@@ -710,6 +734,7 @@ lazy val emberIntegration =
           "scalajs-ember-browser",
           "scalajs-ember-browser-support",
           "scalajs-ember-forms",
+          "scalajs-ember-toolbar",
           "scalajs-ember-standard",
           "scalajs-ember-list",
           "scalajs-ember-link",
@@ -722,7 +747,7 @@ lazy val emberIntegration =
         // Formularfeld -- der Harness liegt ueber allen Modulen, nicht unter ihnen.
         forbiddenImports = forbiddenUpwardImports.filterNot(name =>
           name == "ember.editor.ui" || name == "ember.editor.forms" ||
-            name == "ember.editor.browser"
+            name == "ember.editor.browser" || name == "ember.editor.toolbar"
         ),
         allowedModules = Seq("scalajs-ui-core")
       )
@@ -810,6 +835,7 @@ lazy val root = Project(id = "scalajs-ember-root", base = file("."))
     emberBrowser,
     emberBrowserSupport,
     emberForms,
+    emberToolbar,
     emberStandard,
     emberIntegration,
     emberDemo

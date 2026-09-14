@@ -1,0 +1,21 @@
+.ember-toolbar { display: flex; flex-wrap: wrap; gap: .4rem; padding: .6rem; border: 1px solid currentColor; }
+.ember-toolbar button, .ember-dialog button { padding: .5rem .8rem; font: inherit; border: 1px solid currentColor; border-radius: .25rem; cursor: pointer; }
+.ember-toolbar button[aria-pressed="true"] { font-weight: bold; border-width: 3px; text-decoration: underline; }
+.ember-toolbar button[aria-pressed="mixed"] { border-style: dashed; text-decoration: underline dotted; }
+.ember-toolbar button:disabled { cursor: default; opacity: .6; }
+.ember-toolbar-status { flex-basis: 100%; }
+.ember-toolbar :focus-visible, .ember-dialog :focus-visible, #toolbar-editor:focus-visible { outline: 3px solid Highlight; outline-offset: 3px; }
+.ember-dialog { max-width: min(30rem, calc(100vw - 4rem)); color: CanvasText; background: Canvas; border: 2px solid currentColor; padding: 1.5rem; }
+.ember-dialog::backdrop { background: rgb(0 0 0 / 40%); }
+.ember-dialog label { display: block; margin-block: 1rem; }
+.ember-dialog input { display: block; box-sizing: border-box; width: 100%; font: inherit; padding: .5rem; }
+.ember-dialog button { margin-inline-end: .5rem; }
+.ember-dialog [role="alert"]:empty { display: none; }
+@media (forced-colors: active) {
+  .ember-toolbar, .ember-dialog, .ember-toolbar button, .ember-dialog button { border-color: ButtonText; }
+  .ember-toolbar button[aria-pressed="true"] { border-color: Highlight; }
+  .ember-toolbar button:disabled { color: GrayText; opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ember-toolbar *, .ember-dialog, .ember-dialog * { animation: none; transition: none; scroll-behavior: auto; }
+}

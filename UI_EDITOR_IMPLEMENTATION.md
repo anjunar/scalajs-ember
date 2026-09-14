@@ -1,6 +1,6 @@
 # UI Editor: ausführbarer Implementierungsplan
 
-Status: **Code für P01–P25 vorhanden; P26–P30 offen.** Die 14 Befunde des Reviews vom
+Status: **Code für P01–P27 vorhanden; P28–P30 offen.** Die 14 Befunde des Reviews vom
 14. September 2026 wurden korrigiert und durch reguläre Regressionstests abgesichert;
 Details, Testzahlen und ursprüngliche Repro-Fälle stehen im [Review](UI_EDITOR_REVIEW.md).
 Die native Clipboard-Abnahme für Windows-WebKit ist durch einen unabhängig
@@ -2153,17 +2153,113 @@ npm run verify
 - **Risiken:** Backendvalidierung, CSRF, Storage und Orphan-Cleanup gehören der Anwendung. Der Testserver ist kein neu einzuführendes produktives Uploadsystem.
 - **Dependencies:** P16, P19, P23, P25; Architektur §20.
 
+### Umsetzung und Abnahme P26 — 14. September 2026
+
+`MediaService.scala`, `MediaCoordinator.scala`, `MediaStatus.scala` und
+`BrowserMediaPicker.scala` liegen in forms. Die tatsächlichen Browser-Dateien
+heißen wie im vorhandenen Harness `media.spec.mjs` und `multipart.spec.mjs`.
+Die Produktionsabhängigkeiten auf image und clipboard sind ergänzt; history ist
+nur Testabhängigkeit. Die Richtung bleibt forms → clipboard/browser.
+
+Der generische Service-Port liefert eine `Future[MediaReference]`; Cancellation,
+Fortschritt, begrenzte Statushistorie und Object-URL-Previews liegen ausschließlich
+im Effect-State. Picker, Clipboard-Dateien und Drop verwenden denselben Coordinator.
+Externe Referenzen durchlaufen dieselbe Empfangs-Policy ohne Upload. Auswahltext
+wird erst im erfolgreichen Einfüge-Commit ersetzt; Scheitern oder eine
+Formatablehnung verwirft auch die geplante Löschung.
+
+`ChangeSet.documentReplaced` ergänzt den notwendigen Generation-Vertrag für
+Restore: gleiche Node-IDs bedeuten nach Dokumentersatz nicht dasselbe asynchrone
+Ziel. Der Marker wird durch Operationskomposition erhalten; ein echter No-op-Restore
+erzeugt weiterhin keinen Commit. Aktive Ziele werden bei jedem Commit gemappt,
+statt die globale Mapping-Retention unbegrenzt zu verlängern. History-/Import-
+oder Restore-Commits verwerfen ausstehende Aufträge. Für einen Datensatzwechsel
+mit identischem Inhalt existiert `invalidate()`.
+
+**21 neue headless Tests** prüfen Lifecycle, Fortschritt, Abbruch, Ressourcenfreigabe,
+beide Dispose-Wege, spät eintreffende und doppelte Completions, parallele Aufträge,
+Kapazität, Statuslimits, schwächere Service-Policies, SourceBusy/CompositionBusy,
+geänderte Auswahl und fremde Picker-Ziele. Ein zusätzlicher Core-Test sichert den
+Restore-Marker. **57 neue Browserfälle** bestehen in Chromium, Firefox und WebKit:
+darunter echte Dateidialoge, HTTP-Uploads, Object-URL-Revoke, Mehrfachauswahl, separate
+Undo-Schritte, Source-Import, Composition-Ende und Formateinschränkungen.
+
+Der No-JS-Test sendet Source und Datei per echtem Multipart und POST/303/GET.
+Der Server importiert Source und verwendet reguläre Core-/Image-Operationen;
+DOM-Offsets werden abgewiesen. Bei Fehlern bleiben Source, Alt und weitere Werte
+erhalten. Der lokale Testserver akzeptiert ausschließlich eine bekannte PNG-Fixture
+und speichert sie unter einem Inhaltshash in `target/p26-media/`. Er ist ausdrücklich
+kein produktiver Uploadserver. Vertrag und Limits:
+[`media-service-contract.md`](ember-integration/browser/media-service-contract.md).
+
+Eine im Browser bestätigte Formatgrenze bleibt streng: CommonMark kann eine separate
+`MediaId` nicht verlustfrei speichern. Die Markdown-Testanwendung verwendet daher
+die dauerhafte, inhaltsadressierte URL als vollständige Referenz. Ein eigener Test
+belegt weiterhin die atomare Ablehnung einer unrepräsentierbaren MediaId; die
+Feldregel wurde nicht gelockert. Vollständige Einbindung, Resume-/Dispose-Vertrag
+und Batch-Semantik stehen in [`MEDIA_SERVICE.md`](ember-forms/MEDIA_SERVICE.md).
+
+Das vollständige Scala-Gate umfasst **1.244 bestandene Tests**. Full-Link,
+Serverimport ohne Browserglobals und `scalafmtCheckAll` sind erfolgreich.
+Der vollständige Browserlauf umfasst **718 bestandene Tests** und die zwei bereits
+in P25 dokumentierten erwarteten Windows-WebKit-Fehler. Es gibt keine unerwarteten
+Fehler, übersprungenen oder instabilen Tests.
+
 ## P27 — Optionale Toolbar und Dialoge
 
 - **Ziel:** Professionell bedienbare UI als austauschbarer Konsument der Editor-API.
-- **Module:** Neues ui; ui-controls/ui-viewport; IT.
-- **Neue Dateien:** `ui/EditorToolbar.scala`, `CommandButton.scala`, `EditorDialogService.scala`, `LinkDialog.scala`, `ImageDialog.scala`; Tests `ToolbarStateSpec.scala`; IT `toolbar-a11y.spec.ts`.
+- **Module:** Neues optionales `ember-toolbar` auf ui-core; IT. Native Dialoge statt ui-controls/ui-viewport, siehe Abschlussprotokoll.
+- **Neue Dateien:** `ember-toolbar/.../EditorToolbar.scala`, `CommandButton.scala`, `ToolbarState.scala`, `EditorDialogService.scala`, `EditorDialog.scala`, `LinkDialog.scala`, `ImageDialog.scala`; Tests `ToolbarStateSpec.scala`; IT `toolbar-a11y.spec.mjs`.
 - **Ändern:** `build.sbt`; eigenständige neue Demoansicht, nicht den Prototyp intern erweitern.
 - **API:** Buttons dispatchen typisierte Commands, lesen Selection/Stored-Marks/CanUndo; Dialog-Service und gemappte Restore-Bookmarks; Toolbars frei komponierbar. File-Picking/Upload wird als Callback vom Forms-/Anwendungsadapter eingespeist; UI importiert dafür keinen Forms-Service.
 - **Tests:** Tastaturführung, aria-pressed/disabled/name, Fokus vor/nach Dialog, verlorenes/abgelaufenes Bookmark, leere Alt-Eingabe, readonly, High Contrast/reduced motion.
 - **Akzeptanz:** Editor funktioniert ohne ui/controls/viewport; Dialoge schreiben keine Document-DOM-Nodes; Statusmeldung verständlich und nicht nur visuell.
 - **Risiken:** Toolbar-Mousedown und Tastaturaktivierung benötigen unterschiedliche Fokusbehandlung. Kein pauschales preventDefault auf allen UI-Ereignissen.
 - **Dependencies:** P11, P14, P21, P26; Architektur §22.
+
+### P27 abgeschlossen (14. September 2026)
+
+`ember-toolbar` enthält komponierbare `ToolbarAction`-/`CommandButton`-Bausteine,
+`EditorToolbar`, einen getrennt ohne Browser ausführbaren `EditorDialogService`
+und Link-/Bilddialoge. Commands und Status lesen die tatsächliche Session,
+TypingMarks und History. Auswahlersetzung durch Bilder verwendet den vorhandenen
+Clipboard-Command in derselben Transaktion; die Grenze erlaubt dafür ausdrücklich
+`toolbar → clipboard`, verbietet jedoch Forms. Keine untere Schicht hängt an Toolbar.
+
+Die Dialoge verwenden native `<dialog>`-Modalität und UI-Core-Komponenten. Das
+vorhandene Viewport-Fenster bringt keine Modal-/Fokusführung mit; ui-controls und
+ui-viewport werden deshalb nicht als ungenutzte Abhängigkeiten hinzugefügt.
+Der Browserlauf zeigte, dass natives Tab am Rand die Browseroberfläche erreichen
+kann: Nur die beiden Dialoggrenzen erhalten eine explizite Tab-Weiterführung.
+Die restliche Eingabe und die Button-Aktivierung bleiben nativ. Mausaktionen aus
+dem Editor erhalten dessen Fokus; Tastaturdialoge geben ihn an den auslösenden
+Button zurück. Hintergrund-Commits stehlen keinen Fokus.
+
+Dialog-Targets sind sitzungsgebunden, strikt gemappt und einmalig. Gelöschte oder
+abgelaufene Positionen, History, Dokumentersetzung und expliziter Datensatzwechsel
+werden vor einer Änderung abgefangen. Readonly-/Composition-Freigabe wird auch beim
+Übernehmen geprüft. URL-Fehler behalten Eingaben und zeigen eine Alert-Meldung.
+Bilddialoge akzeptieren leeren Alt, ersetzen Auswahlen atomar und bearbeiten
+vorhandene Bilder unter Erhalt der ID. Datei-Callbacks übertragen das Target vor
+dem Schließen an den anwendungseigenen P26-MediaCoordinator.
+
+Die neue, eigenständige Demoansicht `/toolbar` im Integration-Server enthält diese
+Verdrahtung einschließlich tatsächlichem Picker und Multipart-Upload. Sie verändert
+keinen alten Prototyp. Das Stylesheet enthält Forced-Colors-/Reduced-Motion-Regeln
+und wird als Modulressource mitgeführt. Einbindung, Callback- und Dispose-Vertrag:
+[`ember-toolbar/README.md`](ember-toolbar/README.md).
+
+14 neue Scala-Tests prüfen Zustandsabfragen und Dialogoperationen. Die Browserfälle
+prüfen Maus, Tastatur, modalen Fokus, fehlerhafte Targets, Link-/Bildänderungen,
+Dateiauswahl mit HTTP-Upload, Readonly, Composition-Protokoll, Systemfarben und
+schmale Fenster. Reale Screenreader-, mobile IME- und Touch-Abnahme bleiben P28.
+
+Abnahme: **1.258 bestandene Scala-Tests**, Full-Link, Serverimport ohne Browserglobals
+und `scalafmtCheckAll` erfolgreich. Der vollständige Browserlauf enthält **787
+bestandene Tests** einschließlich aller **69 P27-Fälle**, dazu unverändert die zwei
+in P25 dokumentierten erwarteten Windows-WebKit-Clipboard-Fehler. Keine unerwarteten
+Fehler, übersprungenen oder instabilen Tests. Desktopansicht und schmaler Dialog
+wurden zusätzlich anhand der erzeugten Screenshots visuell geprüft.
 
 ## P28 — Produktreife: Geräte, Korpora, Performance und Packaging
 

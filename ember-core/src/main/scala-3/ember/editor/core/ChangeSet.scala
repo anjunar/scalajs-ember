@@ -31,7 +31,9 @@ final case class ChangeSet(
     moved: Set[NodeId] = Set.empty,
     childListChanged: Set[NodeId] = Set.empty,
     textSplices: Map[NodeId, Vector[TextSplice]] = Map.empty,
-    touchedAncestors: Set[NodeId] = Set.empty
+    touchedAncestors: Set[NodeId] = Set.empty,
+    // A successful nontrivial restore starts a new effect generation even if IDs survive.
+    documentReplaced: Boolean = false
 ):
 
   /** Keine Dokumentaenderung. Erzeugt weder einen Commit noch eine History-Stufe (§10). */
@@ -62,7 +64,8 @@ final case class ChangeSet(
       moved = ((moved ++ next.moved) -- next.removed) -- createdThenRemoved,
       childListChanged = (childListChanged ++ next.childListChanged) -- next.removed,
       textSplices = mergeSplices(next),
-      touchedAncestors = (touchedAncestors ++ next.touchedAncestors) -- next.removed
+      touchedAncestors = (touchedAncestors ++ next.touchedAncestors) -- next.removed,
+      documentReplaced = documentReplaced || next.documentReplaced
     )
 
   /** Splices desselben Knotens bleiben in Reihenfolge; ihre Koordinaten sind aufeinander bezogen.

@@ -9,16 +9,19 @@ Verbindlicher Entwurf: [UI_EDITOR_ARCHITECTURE.md](../UI_EDITOR_ARCHITECTURE.md)
 | --- | --- |
 | sbt-ID / Artefakt | `scalajs-ember-forms` |
 | Scala-Paket | `ember.editor.forms` |
-| Produktionsabhängigkeiten | `scalajs-ember-core`, `scalajs-ember-markdown`, `scalajs-ember-json`, `scalajs-ember-html`, `scalajs-ember-ui`, `scalajs-ember-browser` |
+| Produktionsabhängigkeiten | `scalajs-ember-core`, `scalajs-ember-markdown`, `scalajs-ember-json`, `scalajs-ember-html`, `scalajs-ember-ui`, `scalajs-ember-browser`, `scalajs-ember-image`, `scalajs-ember-clipboard` |
 
 ## Stand
 
-**P19b und der Feldanteil von P20 abgeschlossen.** Vorhanden: `FieldCodec`, `EditorField`
+**P19b, der Feldanteil von P20 und P26 implementiert.** Vorhanden: `FieldCodec`, `EditorField`
 samt `EncodedFieldValue`, `SourceDraft`, `EditorFormBinding` und `EditorFieldView` — letzteres
 seit P20 mit der Hydrationsgrenze.
 
 §6 führt außerdem `ui-forms` als Abhängigkeit. Das fehlt hier mit Absicht: die Textarea kommt
-aus ui-core (P19a). Der Media-Service aus §6 ist P26.
+aus ui-core (P19a). P26 ergänzt `MediaService`, `MediaCoordinator`, `MediaStatus`
+und `BrowserMediaPicker`: gemeinsamer Uploadpfad für Picker/Paste/Drop, gemappte
+Ziele, Abbruch und Ressourcenfreigabe. Der vollständige Vertrag und die Einbindung
+stehen in [MEDIA_SERVICE.md](MEDIA_SERVICE.md).
 
 ## Verwendung
 

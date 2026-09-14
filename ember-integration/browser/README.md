@@ -303,3 +303,40 @@ müssen im Bericht separat von bestandenen Fällen genannt werden. Die native
 Copy/Cut/Paste-Abnahme bleibt auf dieser Kombination offen, insbesondere ist
 DataTransfer-Readback kein Nachweis, dass ausgeschnittener Inhalt später aus
 der Betriebssystem-Zwischenablage zurückkommt.
+
+## Medien und Multipart (P26)
+
+`media.spec.mjs` prüft den gemeinsamen Picker-/Paste-/Drop-Pfad einschließlich
+asynchroner Race-Fälle, nativer Object-URL-Freigabe und tatsächlicher HTTP-Uploads.
+Dateidialoge werden mit echten Button-Klicks geöffnet; insbesondere bei erneutem
+Öffnen benötigt Firefox eine neue Benutzeraktivierung. Clipboard-/Drop- und
+Composition-Races bleiben ausdrücklich Protokolltests.
+
+`multipart.spec.mjs` schaltet JavaScript aus und sendet ein serverseitig über
+`EditorFieldView` gerendertes Formular. Erfolgreiche Dateiannahme führt über echte
+Core-/Image-Operationen zum Formwert; eine ungültige Datei erhält Source und andere
+Werte. Ein direkter Request beweist die Ablehnung eines Browser-DOM-Offsets.
+
+Alle 57 neuen Fälle bestehen in den drei Engines. Der begrenzte Fixture-Server,
+die dauerhaften Testreferenzen und die Strict-Markdown-Entscheidung sind im
+[Testserver-Vertrag](media-service-contract.md) beschrieben. Es werden weder eine
+reale mobile IME noch physische Touch-Drags oder ein produktives Uploadbackend
+als abgenommen behauptet.
+
+## Toolbar und Dialoge (P27)
+
+Nach dem Full-Link startet `node ember-integration/browser/server.mjs` vom Repo-Root
+eine eigenständige Demo unter `http://127.0.0.1:4188/toolbar`. Die Seite verwendet
+`ember-toolbar`, die regulären Browseradapter und für Dateiauswahl/Upload den
+P26-MediaCoordinator. Der begrenzte Uploadserver akzeptiert weiterhin nur die
+bekannte Fixture-PNG. Die Styles stammen aus der Toolbar-Modulressource.
+
+`toolbar-a11y.spec.mjs` prüft 23 Szenarien in drei Engines: native Maus-/Tastatur-
+Aktivierung, einen Tabstopp mit Pfeilnavigation, gespeicherte und gemischte Marks,
+modale Fokusführung und Rückgabe, Link-/Bildänderungen und Undo, gelöschte oder
+abgelaufene Targets, Readonly, echte Dateidialoge mit HTTP-Upload sowie Forced Colors,
+Reduced Motion und schmale Fenster. Screenshots für Standardansicht und schmalen
+Dialog werden im jeweiligen Test-Output abgelegt. Der Composition-Fall ist ein
+Protokolltest; Screenreader und physische mobile Eingabe bleiben in P28 offen.
+
+API und Lifecycle stehen im [Toolbar-Vertrag](../../ember-toolbar/README.md).
