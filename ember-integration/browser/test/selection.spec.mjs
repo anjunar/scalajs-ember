@@ -123,6 +123,22 @@ test.describe('Selection im echten Browser', () => {
     expect(await page.evaluate(() => document.getSelection().anchorNode.tagName)).toBe('CODE')
   })
 
+  test('gibt leeren Codezeilen eine Renderhilfe im inneren code-Host', async ({ page }) => {
+    await open(page)
+    await page.evaluate(() => window.selection.splice('t3', 0, 5, ''))
+    const helper = page.locator('pre > code > br[data-ember-caret]')
+    await expect(helper).toHaveCount(1)
+    // Chromium can give a BR inside PRE a zero rectangle despite creating a line.
+    // Check the actual block line box instead of the helper element's own rect.
+    expect((await page.locator('pre').boundingBox()).height).toBeGreaterThan(10)
+    await page.evaluate(() => window.selection.splice('t3', 0, 0, 'x\n'))
+    await expect(helper).toHaveCount(1)
+    const height = await page.locator('pre').evaluate(node => node.getBoundingClientRect().height)
+    await page.evaluate(() => window.selection.splice('t3', 1, 1, ''))
+    await expect(helper).toHaveCount(0)
+    expect(await page.locator('pre').evaluate(node => node.getBoundingClientRect().height)).toBeLessThan(height)
+  })
+
   test('spannt eine Auswahl ueber zwei Blocke', async ({ page }) => {
     await open(page)
 

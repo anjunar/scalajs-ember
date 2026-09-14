@@ -102,6 +102,22 @@ test.describe('Hydration im echten Browser', () => {
     expect(await page.evaluate(() => window.form.activationState)).toBe('active')
   })
 
+  for (const source of ['#', '##']) {
+    test(`claims empty caret lines without replacing SSR hosts: ${JSON.stringify(source)}`, async ({ page }) => {
+      await serve(page, source)
+      await page.evaluate(() => {
+        window.caretHosts = [...document.querySelectorAll('[data-ember-caret]')]
+      })
+      await hydrate(page, source)
+      expect(await page.evaluate(() => window.form.claimSucceeded)).toBe(true)
+      expect(await page.evaluate(() => {
+        const current = [...document.querySelectorAll('[data-ember-caret]')]
+        return current.length > 0 && current.length === window.caretHosts.length &&
+          current.every((node, index) => node === window.caretHosts[index])
+      })).toBe(true)
+    })
+  }
+
   test('verbirgt die Textarea erst bei der Aktivierung', async ({ page }) => {
     // §16/§17: ohne JavaScript sichtbar, verborgen erst nach erfolgreicher Aktivierung.
     await serve(page)

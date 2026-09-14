@@ -15,9 +15,9 @@ test.afterEach(async ({ page }) => {
 
 test('word deletion keeps the requested granularity', async ({ page }) => {
   await page.keyboard.press('Control+Backspace')
-  // Native contenteditable preserves the newly trailing space as NBSP in all
-  // three engines. The import keeps that DOM text instead of rewriting it.
-  expect(await page.evaluate(() => window.editing.text())).toBe('Hallo\u00a0\nZweite Zeile')
+  // With preserved editor whitespace, native word deletion retains the ordinary
+  // trailing space; it no longer needs an NBSP to keep that space visible.
+  expect(await page.evaluate(() => window.editing.text())).toBe('Hallo \nZweite Zeile')
 })
 
 for (const beforeInput of [true, false]) {

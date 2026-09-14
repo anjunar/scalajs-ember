@@ -2366,6 +2366,22 @@ das bereits bestandene Scala-Release-Gate ist über seinen expliziten Logpfad
 referenziert. An Scala-Sourcen wurde in diesem Schritt nichts geändert.
 Ein neuer Linux-CI-Lauf ist damit noch nicht behauptet.
 
+### P28: sichtbarer Cursor nach Leertaste und Enter korrigiert
+
+Der erste Windows-Tastaturbefund meldet einen stehenbleibenden Cursor nach
+Leertaste und Enter. Die native Selection war bereits korrekt; kollabierter
+Whitespace und leere Absätze ohne Zeilenbox machten die Position unsichtbar.
+Auch Shift+Enter am Absatzende war betroffen. Der Befund ist in allen drei
+Browser-Engines reproduziert.
+
+Das Editor-Renderprofil erhält für Textblöcke Whitespace-Erhaltung und eine
+UI-verwaltete Renderhilfe für leere bzw. abschließende Umbruchzeilen. Sie bleibt
+außerhalb von Dokument, Content-Export und History. Snapshot-Restores führen die
+Hilfe ebenfalls nach. Layout-, Undo-, Codeblock- und Hydrationstests ergänzen die
+bisherigen Offsetprüfungen. [Befund und Prüfergebnisse](benchmarks/p28-caret-layout.md)
+halten Ursache und Abnahmegrenze fest. **P28 bleibt teilweise umgesetzt**:
+die manuelle Bestätigung des Fixes und echte IME-/Gerätefreigaben fehlen weiterhin.
+
 ## P29 — TypeScript-Fassade und eine Scala.js-Runtime
 
 - **Ziel:** Thin Facade über die neue native Engine in der vorhandenen gemeinsamen UI-Bridge.

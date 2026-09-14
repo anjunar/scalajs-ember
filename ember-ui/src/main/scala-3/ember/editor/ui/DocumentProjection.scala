@@ -112,6 +112,20 @@ final class DocumentProjection private[ui] (
       // destination group would build the runs afresh. The groups themselves are cleared by
       // their parent's reorder either way; this only tidies the index.
       forget(changes.removed)
+      // Snapshot restores can report a changed leaf without touchedAncestors.
+      // Follow parent links as well; never scan unrelated blocks on each edit.
+      val caretBlocks = mutable.HashSet.from(changes.changedNodes ++ changes.touchedAncestors)
+      changes.changedNodes.foreach { id =>
+        var parent = current.parentOf(id)
+        while parent.nonEmpty do
+          caretBlocks += parent.get
+          parent = current.parentOf(parent.get)
+      }
+      caretBlocks.foreach { id =>
+        components.get(id).collect { case container: ContainerElement =>
+          container.refreshCaretPlaceholder()
+        }
+      }
     finally incoming = Set.empty
 
   /** Mounts containers that were created in this commit, before anything is transferred.
@@ -169,14 +183,34 @@ final class DocumentProjection private[ui] (
     node match
       case element: ElementNode =>
         component match
-          case container: ContainerElement => container.attach(newGroup(element))
-          case _                           =>
+          case container: ContainerElement =>
+            container.attach(newGroup(element))
+            container.setCaretProbe(() => terminalLine(element.id).getOrElse(true))
+          case _ =>
             throw EditorContractViolation(
               s"`${node.id.value}` hat Kinder, seine NodeView liefert aber keinen Container. " +
                 "Ein Knoten mit Kindern braucht ein Element, an dem sie haengen koennen (§15.1)."
             )
       case _ => ()
     component
+
+  /** Scan backwards to the last visible leaf. Empty runs and inline wrappers must not hide an
+    * earlier break; normal typing stops at the final nonempty run.
+    */
+  private def terminalLine(id: NodeId): Option[Boolean] =
+    current.node(id) match
+      case Some(text: TextNode) =>
+        Option.when(text.text.nonEmpty)(text.text.endsWith("\n"))
+      case Some(element: ElementNode) =>
+        element.children.reverseIterator.map(terminalLine).collectFirst { case Some(value) =>
+          value
+        }
+      case Some(_) =>
+        components.get(id) match
+          case Some(element: ContainerElement) if element.tagName == "br"   => Some(true)
+          case Some(element: ContainerElement) if element.tagName == "span" => None
+          case _                                                            => Some(false)
+      case _ => None
 
   /** Die Kindergruppe eines Containers.
     *

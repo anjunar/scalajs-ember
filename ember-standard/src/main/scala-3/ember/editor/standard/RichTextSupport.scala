@@ -23,7 +23,7 @@ object RichTextSupport:
     val nodeType: NodeType[HeadingNode] = HeadingNode
 
     def shapeOf(node: HeadingNode, profile: RenderProfile): HtmlShape =
-      HtmlShape.Element(s"h${node.level.level}", Identity.of(node.id, profile))
+      HtmlShape.Element(s"h${node.level.level}", Identity.of(node.id, profile), textBlock = true)
 
   val quote: HtmlSemantics[QuoteNode] = new HtmlSemantics[QuoteNode]:
     val nodeType: NodeType[QuoteNode] = QuoteNode

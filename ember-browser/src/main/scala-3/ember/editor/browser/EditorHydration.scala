@@ -92,7 +92,7 @@ object EditorHydration:
 
     def compare(node: EditorNode, shape: HtmlShape, element: dom.Element): Unit =
       val expectedTag = shape match
-        case HtmlShape.Element(tag, _, _)    => tag
+        case HtmlShape.Element(tag, _, _, _) => tag
         case HtmlShape.TextRun(tag, _, _, _) => tag
 
       val actualTag = element.tagName.toLowerCase
@@ -101,7 +101,7 @@ object EditorHydration:
         fail(HydrationProblem.TagMismatch(node.id, expectedTag, actualTag))
       else
         val attributes = shape match
-          case HtmlShape.Element(_, given_, _)    => given_
+          case HtmlShape.Element(_, given_, _, _) => given_
           case HtmlShape.TextRun(_, _, given_, _) => given_
 
         // Nur die Attribute pruefen, die die Semantik '''nennt'''. Ein Server darf eigene
@@ -128,9 +128,18 @@ object EditorHydration:
             if actual != expected then
               fail(HydrationProblem.TextMismatch(node.id, expected, actual))
 
-          case HtmlShape.Element(_, _, _) =>
+          case HtmlShape.Element(_, _, inner, textBlock) =>
             val children = childrenOf(node, document)
-            val elements = elementChildren(element)
+            var content  = element
+            inner.foreach { tag =>
+              elementChildren(content).headOption match
+                case Some(child) if child.tagName.equalsIgnoreCase(tag) => content = child
+                case _ => fail(HydrationProblem.TagMismatch(node.id, tag, content.tagName))
+            }
+            val elements = elementChildren(content).filterNot(child =>
+              profile == RenderProfile.Editor && textBlock &&
+                child.tagName.equalsIgnoreCase("br") && child.hasAttribute("data-ember-caret")
+            )
 
             if children.length != elements.length then
               fail(HydrationProblem.ChildCount(node.id, children.length, elements.length))

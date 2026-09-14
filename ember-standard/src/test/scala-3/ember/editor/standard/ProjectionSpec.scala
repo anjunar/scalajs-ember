@@ -135,6 +135,34 @@ final class ProjectionSpec extends AnyFlatSpec with Matchers {
     html should include("data-ember-node=\"p0\"")
   }
 
+  it should "keep empty-line helpers out of content HTML and document state" in {
+    val (editor, _)    = open("")
+    val (view, cursor) = mounted(editor)
+    val original       = editor.state
+    val run            = view.componentFor(id("t0")).get
+    cursor.collectHtml() should include("data-ember-caret")
+    cursor.collectHtml() should include("white-space: pre-wrap")
+    editor.state shouldBe original
+    val content = DocumentView.renderToHtml(editor.document, ParagraphSupport.views)
+    content should not include "data-ember-caret"
+    content should not include "<br"
+    content should not include "style="
+
+    edit(editor)(_.spliceText(id("t0"), 0, 0, " "): Unit)
+    cursor.collectHtml() should not include "data-ember-caret"
+    val filled = editor.state
+    edit(editor)(_.spliceText(id("t0"), 0, 1, ""): Unit)
+    cursor.collectHtml() should include("data-ember-caret")
+    edit(editor)(_.restore(filled.document, filled.selection): Unit)
+    cursor.collectHtml() should not include "data-ember-caret"
+    edit(editor)(_.restore(original.document, original.selection): Unit)
+    cursor.collectHtml() should include("data-ember-caret")
+    (view.componentFor(id("t0")).get eq run) shouldBe true
+    view.size shouldBe 3
+    view.dispose()
+    cursor.collectHtml() shouldBe ""
+  }
+
   // ---------------------------------------------------------------------------------------
   // Gezielte Aktualisierung
   // ---------------------------------------------------------------------------------------

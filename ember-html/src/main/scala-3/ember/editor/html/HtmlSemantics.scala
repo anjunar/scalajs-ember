@@ -105,7 +105,9 @@ enum HtmlShape:
   case Element(
       tag: String,
       attributes: Vector[HtmlAttribute] = Vector.empty,
-      inner: Vector[String] = Vector.empty
+      inner: Vector[String] = Vector.empty,
+      // Rendering metadata: inline-content blocks need spaces and empty caret lines.
+      textBlock: Boolean = false
   )
 
   /** Ein Textlauf in seinem eigenen Wrapper.

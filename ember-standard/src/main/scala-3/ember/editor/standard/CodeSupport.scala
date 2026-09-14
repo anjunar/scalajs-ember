@@ -38,7 +38,8 @@ object CodeSupport:
       HtmlShape.Element(
         "pre",
         Identity.of(node.id, profile) ++ language(node),
-        Vector("code")
+        Vector("code"),
+        textBlock = true
       )
 
   private def language(node: CodeBlockNode): Vector[HtmlAttribute] =

@@ -40,11 +40,30 @@ sealed abstract class SemanticElement(val tagName: String) extends AbstractCompo
   * waere nicht nur umstaendlich, es waere falsch: der Cursor steht dann nicht mehr dort, wo die
   * Kinder hingehoeren.
   */
-final class ContainerElement(tagName: String) extends SemanticElement(tagName):
+final class ContainerElement(tagName: String, val editingTextBlock: Boolean = false)
+    extends SemanticElement(tagName):
 
-  private var group: Option[AbstractComponent] = None
-  private var tags                             = Vector.empty[String]
-  private var contentOwner: AbstractComponent  = null
+  private var group: Option[AbstractComponent]     = None
+  private var tags                                 = Vector.empty[String]
+  private var contentOwner: AbstractComponent      = null
+  private var caretPlaceholder: AbstractComponent  = null
+  private var needsCaretPlaceholder: () => Boolean = () => false
+
+  private[ui] def setCaretProbe(probe: () => Boolean): Unit = needsCaretPlaceholder = probe
+
+  /** A render-only BR supplies the line box of an empty block or trailing newline. It follows the
+    * document children and belongs to their UI content container.
+    */
+  private[ui] def refreshCaretPlaceholder(): Unit =
+    if editingTextBlock && isBound then
+      if needsCaretPlaceholder() then
+        if caretPlaceholder == null then
+          val owner = if contentOwner == null then this else contentOwner
+          caretPlaceholder =
+            Runtime.mount(new CaretPlaceholder(), Runtime.contentCursor(owner), Some(owner))
+      else if caretPlaceholder != null then
+        Runtime.unmount(caretPlaceholder)
+        caretPlaceholder = null
 
   private[ui] def attach(children: AbstractComponent): Unit =
     require(group.isEmpty && !isBound, "Die Kindergruppe steht vor dem Mount fest.")
@@ -72,6 +91,7 @@ final class ContainerElement(tagName: String) extends SemanticElement(tagName):
 
   override def compose(cursor: Cursor): Unit =
     super.compose(cursor)
+    if editingTextBlock then host.setAttribute("style", "white-space: pre-wrap")
     group.foreach { children =>
       // Wie ein `foldRight`, behaelt aber den innersten Wrapper. Den kennt sonst niemand
       // wieder: er traegt keine Identitaet, und von aussen liesse er sich nur durch Abzaehlen
@@ -84,6 +104,12 @@ final class ContainerElement(tagName: String) extends SemanticElement(tagName):
       }
       Runtime.mount(nested, cursor, Some(this)): Unit
     }
+    refreshCaretPlaceholder()
+
+private final class CaretPlaceholder extends AbstractComponent:
+  val tagName: String                        = "br"
+  override def compose(cursor: Cursor): Unit =
+    host.setAttribute("data-ember-caret", "")
 
 /** Ein Textlauf mit stabilem Wrapper (§15.1).
   *
@@ -248,8 +274,8 @@ object NodeView:
 
       def create(node: N, profile: RenderProfile): AbstractComponent =
         semantics.shapeOf(node, profile) match
-          case HtmlShape.Element(tag, attributes, inner) =>
-            val element = new ContainerElement(tag)
+          case HtmlShape.Element(tag, attributes, inner, textBlock) =>
+            val element = new ContainerElement(tag, profile == RenderProfile.Editor && textBlock)
             element.setAttributes(attributes)
             element.setInner(inner)
             element
@@ -262,14 +288,15 @@ object NodeView:
 
       def accepts(component: AbstractComponent, node: N, profile: RenderProfile): Boolean =
         (semantics.shapeOf(node, profile), component) match
-          case (HtmlShape.Element(tag, _, inner), element: ContainerElement) =>
-            tag == element.tagName && inner == element.innerTags
+          case (HtmlShape.Element(tag, _, inner, textBlock), element: ContainerElement) =>
+            tag == element.tagName && inner == element.innerTags &&
+            element.editingTextBlock == (profile == RenderProfile.Editor && textBlock)
           case (HtmlShape.TextRun(tag, _, _, _), element: TextRunElement) => tag == element.tagName
           case _                                                          => false
 
       def update(component: AbstractComponent, node: N, profile: RenderProfile): Unit =
         (semantics.shapeOf(node, profile), component) match
-          case (HtmlShape.Element(_, attributes, _), element: ContainerElement) =>
+          case (HtmlShape.Element(_, attributes, _, _), element: ContainerElement) =>
             element.setAttributes(attributes)
           case (HtmlShape.TextRun(_, value, attributes, marks), element: TextRunElement) =>
             element.setAttributes(attributes)

@@ -174,7 +174,7 @@ final class ClipboardCodec(
           values(node.id) = marks.foldRight[HtmlFragment](HtmlFragment.Text(value))((tag, inner) =>
             HtmlFragment.Element(tag, children = Vector(inner))
           )
-        case Some(HtmlShape.Element(tag, attributes, inner)) =>
+        case Some(HtmlShape.Element(tag, attributes, inner, _)) =>
           val content = document.childrenOf(node.id).flatMap(values.get)
           val wrapped = inner.foldRight(content)((tag, children) =>
             Vector(HtmlFragment.Element(tag, children = children))

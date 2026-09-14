@@ -1,6 +1,6 @@
 # P28: erster Windows-Lauf ohne Screenreader
 
-Status: **vorbereitet, noch nicht durch eine Testperson abgenommen**.
+Status: **begonnen, Cursorfehler gemeldet; erneute manuelle Prüfung offen**.
 Dieser Lauf betrifft Windows-Tastatur und die tatsächlich verwendete IME.
 NVDA, VoiceOver, Mobilgeräte und Diktat erhalten dadurch keine Freigabe.
 
@@ -32,7 +32,7 @@ Bewertung nicht. Bei `truncated: true` den Schritt in kürzeren Läufen wiederho
 
 | Schritt | Bedienung | Erwartete Beobachtung |
 | --- | --- | --- |
-| W01 – Tastatur, Auswahl und Unicode | `Hello world` im Editor vollständig markieren und durch den Testtext ersetzen. Mit Pfeilen, Home/End und Shift navigieren/auswählen. Das Emoji und das kombinierte `é` jeweils mit Backspace löschen; Undo/Redo ausführen. | Keine halben Grapheme, verschwundenen Nachbarzeichen oder springende Auswahl. Undo/Redo stellt Text und Auswahl nachvollziehbar wieder her. |
+| W01 – Tastatur, Auswahl und Unicode | Am Ende von `Hello world` dreimal Leertaste, dann dreimal Enter drücken; die Cursorposition jeweils **vor** dem nächsten Buchstaben beobachten. Auch Shift+Enter und eine Leertaste in der leeren Zeile prüfen. Danach vollständig durch den Testtext ersetzen. Mit Pfeilen, Home/End und Shift navigieren/auswählen. Das Emoji und das kombinierte `é` jeweils mit Backspace löschen; Undo/Redo ausführen. | Jede Leertaste rückt den Cursor sichtbar weiter; Enter/Shift+Enter zeigen sofort eine neue Cursorzeile. Keine halben Grapheme, verschwundenen Nachbarzeichen oder springende Auswahl. Undo/Redo stellt Text und Auswahl nachvollziehbar wieder her. |
 | W02 – IME bestätigen und Undo | Mit der tatsächlich installierten CJK-IME mitten in `Hello world` Testzeichen eingeben, Kandidaten wechseln und bestätigen. Danach einmal Ctrl+Z, dann Ctrl+Y. | Zwischenstände werden nicht doppelt übernommen. Ein Undo entfernt die gesamte bestätigte Composition; Redo stellt sie einmal wieder her. |
 | W03 – IME abbrechen | Mitten im Fixture-Text eine Composition beginnen und vor der Bestätigung Escape drücken. Danach ein normales Zeichen eingeben. | Der Abbruch hinterlässt keine halbfertigen Zeichen; normale Eingabe funktioniert anschließend. |
 | W04 – Fokuswechsel während IME | Während einer offenen Composition das Feld „Notizen außerhalb des Editors“ anklicken. Danach in den Editor zurückkehren und weiter schreiben. | Keine verlorenen oder doppelten Zeichen, kein dauerhaft blockierter Editor. Den tatsächlichen Bestätigungs-/Abbruchentscheid der IME notieren. |
@@ -50,6 +50,12 @@ Composition werden anhand des Ereignisverlaufs bewertet. Screenreader-Ansagen
 gehören ausdrücklich nicht zum Ergebnis dieses ersten Laufs.
 
 ## Ergebnisablage
+
+Erste Rückmeldung vom 14. September 2026: Leertaste und Enter ließen den sichtbaren
+Cursor stehen; erst ein Buchstabe ließ ihn nachspringen. Der Fehler wurde in allen
+drei Browser-Engines reproduziert. Die Korrektur und ihre automatisierte Prüfung
+stehen im [Cursorbefund](../../benchmarks/p28-caret-layout.md). Ein Geräte-Trace mit
+genauen Browser-/IME-Versionen und die manuelle Bestätigung des Fixes fehlen noch.
 
 Geprüfte, auf Testinhalt beschränkte Traces kommen nach
 `benchmarks/corpora/device-traces/`. Die [gesamte Checkliste](accessibility-checklist.md)

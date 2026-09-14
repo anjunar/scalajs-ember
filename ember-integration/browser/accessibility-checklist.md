@@ -6,7 +6,9 @@ Ein fehlendes Gerät oder ein grüner Protokolltest ersetzt kein ausgefülltes E
 
 Als erster gemeinsamer Lauf ist **Windows-Tastatur und IME ohne Screenreader**
 gewählt. Die [konkreten Schritte W01–W06](windows-keyboard-ime.md) sind vorbereitet;
-noch kein Schritt hat ein tatsächliches Operatorergebnis.
+die erste Rückmeldung meldet einen Cursorfehler bei Leertaste und Enter.
+Der [Befund und Fix](../../benchmarks/p28-caret-layout.md) sind festgehalten;
+die erneute manuelle Prüfung und vollständige Geräteabnahme bleiben offen.
 
 ## Vorbereitung und Beleg
 

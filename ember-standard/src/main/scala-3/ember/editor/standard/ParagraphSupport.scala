@@ -40,7 +40,7 @@ object ParagraphSupport:
     val nodeType: NodeType[ParagraphNode] = ParagraphNode
 
     def shapeOf(node: ParagraphNode, profile: RenderProfile): HtmlShape =
-      HtmlShape.Element("p", identify(node.id, profile))
+      HtmlShape.Element("p", identify(node.id, profile), textBlock = true)
 
   /** Ein Textlauf wird zu einem `span` mit einem Textkind.
     *

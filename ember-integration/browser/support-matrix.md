@@ -26,7 +26,9 @@ erwartete Fehler**, 15 Messfälle und drei große Move-Fälle; acht Node-Tests p
 die Ablehnung fehlerhafter Stressbelege. Die [Belege mit UI-Core 1.0.1](../../benchmarks/results/p28-ci-1.0.1.json)
 halten diese Zahlen getrennt von den historischen Release-Läufen fest.
 Als erste manuelle Kombination ist [Windows-Tastatur und IME ohne Screenreader](windows-keyboard-ime.md)
-vorbereitet. Ein tatsächliches Operatorergebnis steht weiterhin aus.
+begonnen. Ein Cursorfehler bei Leertaste/Enter wurde gemeldet und
+[korrigiert](../../benchmarks/p28-caret-layout.md); die manuelle Bestätigung und
+ein vollständiger Operatorbericht stehen weiterhin aus.
 
 ## Konfigurierte Standardgrenzen
 
