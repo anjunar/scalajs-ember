@@ -117,7 +117,6 @@ jobs:
         uses: actions/upload-pages-artifact@v4
         with:
           path: target/ember-pages
-          include-hidden-files: true
 
   deploy:
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
