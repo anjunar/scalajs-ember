@@ -5,6 +5,10 @@ abgenommen**. Die automatisierten Belege und ihre Umgebung stehen im
 [Messbericht](../../benchmarks/report.md). Eine grüne Protokollprüfung ist keine
 Freigabe für physische IMEs oder Screenreader.
 
+Patrick lässt alle weiteren IME-Prüfungen überspringen und meldet „Das funktioniert
+alles“. Positive Gesamtrückmeldung dokumentiert; verbleibende IME-Einzelabnahmen
+werden nicht weiter verfolgt. Die vorhandenen Belege und ihre Grenzen bleiben erhalten.
+
 | Bereich | Tatsächlicher Nachweis | Grenze |
 | --- | --- | --- |
 | Core, History, Formate und Forms ohne Browser | Vollständiges Scala-Gate; echte Scala.js-Ausführung | Kein DOM nötig; Vollstring-Felder serialisieren synchron |
@@ -16,7 +20,7 @@ Freigabe für physische IMEs oder Screenreader.
 | Strukturänderungen | [UI-Core-Fix](../../benchmarks/runtime-reorder.md): 50000-Absatz-Move in drei Engines mit einem DOM-Move und erhaltener Identität; [1.0.1 veröffentlicht und übernommen](../../benchmarks/ui-core-1.0.1-release.md) | Lokale Einzelmessungen; alter 1.0.0-Stand mit Chromium-Timeout nach 240 s bleibt als Baseline dokumentiert |
 | Import/Roundtrip | CommonMark-Suite, JSON-/HTML-/Markdown-Limits und versionierter Zusatzkorpus | Tabellen werden aufgelöst und als Verlust diagnostiziert; kein Tabellenmodell |
 | NVDA, VoiceOver | Abnahmeanleitung und opt-in Trace-Werkzeug vorhanden | **Offen: keine manuelle Screenreader-Abnahme** |
-| Physische Desktop-CJK-IME, Akzente, Dead Keys | [Japanische Eingabe/Bestätigung durch Patrick](../../benchmarks/corpora/device-traces/2026-09-14-patrick-w02-review.md) im Windows-Codex-Browser positiv; Undo/Redo danach separat automatisiert bestanden | W02-Teilprüfung; vollständiger manueller W02, W03–W05, weitere IMEs, Akzente und Dead Keys offen |
+| Physische Desktop-CJK-IME, Akzente, Dead Keys | [Japanische Eingabe/Bestätigung durch Patrick](../../benchmarks/corpora/device-traces/2026-09-14-patrick-w02-review.md) im Windows-Codex-Browser positiv; Undo/Redo danach separat automatisiert bestanden; [W03: Abbruch und Folgetippen bestanden](../../benchmarks/corpora/device-traces/2026-09-14-patrick-w03-review.md) | W02-Teilprüfung; vollständiger manueller W02, W04–W05, weitere IMEs, Akzente und Dead Keys offen |
 | Android/Gboard, iOS/Safari, Autokorrektur, Diktat, Touch | [Manuelle Schritte](accessibility-checklist.md) vorbereitet | **Offen: kein physischer Gerätenachweis** |
 | Linux-CI | Workflow für Scala, Serverimport, drei Browserengines, Korpora und Messungen eingerichtet | Lokaler Windows-Lauf belegt keinen ausgeführten Linux-CI-Run |
 | npm-Consumer und Ablösung | P29/P30 spezifiziert | Noch nicht umgesetzt; P28 erteilt keine Ablösefreigabe |

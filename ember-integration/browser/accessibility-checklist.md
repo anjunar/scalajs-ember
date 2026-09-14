@@ -1,6 +1,6 @@
 # P28: manuelle Accessibility- und Geräteabnahme
 
-Stand: vorbereitet, **noch keine manuelle Kombination abgenommen**. Automatische
+Stand: **W03 bestanden; noch keine Kombination vollständig abgenommen**. Automatische
 Browsertests sind separat in [support-matrix.md](support-matrix.md) aufgeführt.
 Ein fehlendes Gerät oder ein grüner Protokolltest ersetzt kein ausgefülltes Ergebnis.
 
@@ -18,7 +18,14 @@ Unicode-Graphemlöschung, Auswahl, Undo/Redo und Toolbar im aktuellen Codex-Brow
 geprüft. Die [erste echte japanische IME-Teilprüfung](../../benchmarks/corpora/device-traces/2026-09-14-patrick-w02-review.md)
 ist laut Patrick bestanden: Eingabe und Bestätigung von `日本語`, konsistente
 Textübernahme in 133 Ereignissen. Undo/Redo am selben Dokument anschließend separat
-automatisiert bestanden. Vollständiger manueller W02 und W03–W05 bleiben offen.
+automatisiert bestanden. Vollständiger manueller W02 und W04–W05 bleiben offen.
+Patrick beendet anschließend alle weiteren IME-Prüfungen mit der positiven
+Gesamtrückmeldung „Das funktioniert alles“. Der verbleibende IME-Abnahmeumfang
+wird auf seinen Wunsch übersprungen; W05-Aufzeichnung gestoppt. Die Einzelfallbelege
+werden nicht nachträglich erweitert. Keine weiteren IME-Prüfungen ohne neuen Auftrag.
+Für [W03](../../benchmarks/corpora/device-traces/2026-09-14-patrick-w03-review.md)
+liegen Patricks positiver Bericht und der gesicherte Wiederholungstrace mit
+77 Ereignissen vor: Abbruch und normale Folgeeingabe bestanden, Endtext `Hello aworld`.
 
 ## Vorbereitung und Beleg
 

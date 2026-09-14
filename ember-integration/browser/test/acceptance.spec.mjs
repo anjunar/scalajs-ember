@@ -31,6 +31,11 @@ test('manual report exports operator observations and the actual linked build wi
   expect(trace.build.uiCore).toContain('com.anjunar:scalajs-ui-core_')
   expect(Date.parse(trace.stoppedAt)).toBeGreaterThanOrEqual(Date.parse(trace.startedAt))
   expect(trace.events.some(event => event.modelText?.includes('abc'))).toBe(true)
+  await expect(page.getByLabel('Trace-JSON zum Kopieren')).toHaveValue(JSON.stringify(trace, null, 2))
+  // The fallback link must still work after the automatic download has completed.
+  const secondDownload = page.waitForEvent('download')
+  await page.getByRole('link', { name: 'Trace-Datei speichern' }).click()
+  expect(await readFile(await (await secondDownload).path(), 'utf8')).toBe(JSON.stringify(trace, null, 2))
 })
 
 test('starting another manual run clears the prior verdict and observations', async ({ page }) => {
@@ -43,4 +48,36 @@ test('starting another manual run clears the prior verdict and observations', as
   await page.getByRole('button', { name: 'Trace starten' }).click()
   await expect(page.getByLabel('Ergebnis', { exact: true })).toHaveValue('open')
   await expect(page.getByLabel('Beobachtung / Abweichung')).toHaveValue('')
+})
+
+test('blocked automatic download retains copyable evidence even if build metadata never responds', async ({ page }) => {
+  await page.clock.install()
+  await page.route('**/acceptance-build.json', () => {})
+  // Model a host that declines the programmatic download without throwing.
+  await page.addInitScript(() => { HTMLAnchorElement.prototype.click = function () {} })
+  await page.goto('/toolbar?trace=1')
+  await page.waitForFunction(() => window.ready)
+  await page.getByLabel('Prüfschritt').selectOption('ime-cancel')
+  await page.getByRole('button', { name: 'Trace starten' }).click()
+  await page.keyboard.press('End')
+  await page.keyboard.type('abc')
+  await page.getByRole('button', { name: 'Trace herunterladen' }).click()
+  await expect(page.getByRole('button', { name: 'Trace starten' })).toBeDisabled()
+  // Changing the form while metadata is pending must not rename the captured case.
+  await page.getByLabel('Prüfschritt').selectOption('ime-blur')
+  await page.clock.fastForward(5001)
+  const json = page.getByLabel('Trace-JSON zum Kopieren')
+  await expect(json).toBeVisible()
+  const trace = JSON.parse(await json.inputValue())
+  expect(trace.build).toBeNull()
+  expect(trace.buildError).toContain('5 Sekunden')
+  expect(trace.reviewStatus).toBe('requires-human-review')
+  expect(trace.operator.caseId).toBe('ime-cancel')
+  expect(trace.events.some(event => event.modelText?.endsWith('abc'))).toBe(true)
+  await expect(page.getByRole('link', { name: 'Trace-Datei speichern' })).toHaveAttribute('download', /ember-device-ime-cancel-/)
+  await expect(page.getByRole('status').filter({ hasText: 'Trace bereit;' })).toContainText('Build-Nachweis fehlt')
+  await page.getByRole('button', { name: 'Trace starten' }).click()
+  await expect(json).toBeHidden()
+  await expect(json).toHaveValue('')
+  await expect(page.locator('a').filter({ hasText: 'Trace-Datei speichern' })).not.toHaveAttribute('href')
 })

@@ -36,6 +36,33 @@ final class RangeFormattingSpec extends AnyFlatSpec with Matchers {
     f.textOf() shouldBe "Hallo Welt!"
   }
 
+  it should "format a whole paragraph selected through container boundaries in either direction" in {
+    for backward <- Vector(false, true) do
+      val f     = hallo
+      val start = Point.childrenBefore(NodeId("p0"), 0)
+      val end   = Point.childrenBefore(NodeId("p0"), 1)
+      val range = if backward then RangeSelection(end, start) else RangeSelection(start, end)
+      f.session.update(_.select(range))
+      RangeFormatting.runsIn(f.document, range).map(_.text) shouldBe Vector("Hallo Welt!")
+      f.toggle(Strong) shouldBe true
+      marksOf(f, "Hallo Welt!") shouldBe Vector("strong")
+      f.session.selection.get.asInstanceOf[RangeSelection].direction(f.document) shouldBe
+        (if backward then SelectionDirection.Backward else SelectionDirection.Forward)
+  }
+
+  it should "format mixed text and block endpoints without affecting unselected paragraphs" in {
+    val f = new RichTextFixture("First", "Second", "Last")
+    f.session.update(
+      _.select(
+        RangeSelection(Point.textBefore(NodeId("t0"), 2), Point.childrenBefore(NodeId("root"), 2))
+      )
+    )
+    f.toggle(Strong) shouldBe true
+    f.shape("p0") shouldBe Vector(("Fi", Vector.empty), ("rst", Vector("strong")))
+    f.shape("p1") shouldBe Vector(("Second", Vector("strong")))
+    f.shape("p2") shouldBe Vector(("Last", Vector.empty))
+  }
+
   // ---------------------------------------------------------------------------------------
   // Partially covered runs
   // ---------------------------------------------------------------------------------------

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="430" viewBox="0 0 1000 430" role="img" aria-label="Abstrakte Landschaft in warmen Abendfarben">
+  <defs><linearGradient id="sky" x2="0" y2="1"><stop stop-color="#f1dcc4"/><stop offset="1" stop-color="#efd0a7"/></linearGradient></defs>
+  <path fill="url(#sky)" d="M0 0h1000v430H0z"/>
+  <circle cx="730" cy="138" r="65" fill="#c56736"/>
+  <path d="M0 245Q165 135 330 244T660 220T1000 255V430H0Z" fill="#bbb99b"/>
+  <path d="M0 310Q160 211 350 320T730 282T1000 290V430H0Z" fill="#7f9077"/>
+  <path d="M0 353Q200 300 480 382T1000 348V430H0Z" fill="#435d4d"/>
+</svg>

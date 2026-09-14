@@ -3,17 +3,16 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Ember — Demo</title>
-    <link rel="stylesheet" href="/style.css" />
+    <meta name="description" content="Der Ember Editor: Artikel, Notizen, Code und Medien. Eine interaktive Scala.js UI Demo." />
+    <title>Ember — Editor Showcase</title>
+    <link rel="icon" href="./ember.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="./style.css" />
   </head>
   <body>
-    <!--
-      Bewusst eine leere Huelle. Die Seite entsteht vollstaendig als UI-Komponentenbaum;
-      hier steht nichts, was der Editor spaeter hydrieren muesste. Hydration ist P20.
-    -->
     <div id="root"></div>
+    <noscript>Diese interaktive Demo benötigt JavaScript.</noscript>
     <script type="module">
-      import { boot } from '/main.js'
+      import { boot } from './main.js'
       boot()
     </script>
   </body>

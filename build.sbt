@@ -806,6 +806,8 @@ lazy val emberDemo =
       emberUi,
       emberBrowser,
       emberBrowserSupport,
+      emberClipboard,
+      emberToolbar,
       emberStandard
     )
     .settings(
@@ -814,6 +816,7 @@ lazy val emberDemo =
       description                     := "Runnable demo of the Ember editor. Never published.",
       scalaJSUseMainModuleInitializer := false,
       publish / skip                  := true,
+      libraryDependencies += "com.anjunar" %% "scalajs-ui-viewport" % "1.0.1",
       // Der Dev-Server liest genau hier. `fastLinkJS` fuer die Schleife, `fullLinkJS` fuer
       // einen Blick auf die tatsaechlich ausgelieferte Groesse.
       Compile / fastLinkJS / scalaJSLinkerOutputDirectory :=
@@ -841,11 +844,13 @@ lazy val emberDemo =
           "scalajs-ember-ui",
           "scalajs-ember-browser",
           "scalajs-ember-browser-support",
+          "scalajs-ember-clipboard",
+          "scalajs-ember-toolbar",
           "scalajs-ember-standard"
         ),
         forbiddenImports = forbiddenUpwardImports
-          .filterNot(name => name == "ember.editor.ui" || name == "ember.editor.browser"),
-        allowedModules = Seq("scalajs-ui-core")
+          .filterNot(name => name == "ember.editor.ui" || name == "ember.editor.browser" || name == "ember.editor.toolbar"),
+        allowedModules = Seq("scalajs-ui-core", "scalajs-ui-viewport")
       )
     )
 

@@ -153,26 +153,35 @@ object RangeFormatting:
     * text as a forward one.
     */
   private def boundsOf(document: DocumentRead, range: RangeSelection): Option[Bounds] =
+    val (start, end) = range.ordered(document)
+    (start, end) match
+      case (Point.Text(first, from, _), Point.Text(last, to, _)) =>
+        return Some(Bounds(first, from, last, to))
+      case _ => ()
+    // Native select-all and paragraph selections use container boundaries. They cover the
+    // same text as text endpoints, including ranges that begin/end beside inline atoms.
+    val covered = runOrder(document).flatMap(id =>
+      document.node(id).collect {
+        case run: TextNode
+            if run.text.nonEmpty &&
+              document.comparePoints(start, Point.textBefore(id, run.text.length)) < 0 &&
+              document.comparePoints(Point.textBefore(id, 0), end) < 0 =>
+          run
+      }
+    )
     for
-      anchor <- textPointOf(range.anchor)
-      focus  <- textPointOf(range.focus)
-      order        = runOrder(document)
-      (start, end) =
-        if precedes(order, anchor, focus) then (anchor, focus) else (focus, anchor)
-    yield Bounds(start._1, start._2, end._1, end._2)
+      first <- covered.headOption
+      last  <- covered.lastOption
+    yield Bounds(
+      first.id,
+      textPointOf(start).filter(_._1 == first.id).map(_._2).getOrElse(0),
+      last.id,
+      textPointOf(end).filter(_._1 == last.id).map(_._2).getOrElse(last.text.length)
+    )
 
   private def textPointOf(point: Point): Option[(NodeId, Int)] = point match
     case Point.Text(node, offset, _) => Some((node, offset))
     case _                           => None
-
-  private def precedes(
-      order: Vector[NodeId],
-      left: (NodeId, Int),
-      right: (NodeId, Int)
-  ): Boolean =
-    val leftIndex  = order.indexOf(left._1)
-    val rightIndex = order.indexOf(right._1)
-    if leftIndex == rightIndex then left._2 <= right._2 else leftIndex < rightIndex
 
   /** Every text run in document order. The order §11 means -- tree order, never ID order. */
   private def runOrder(document: DocumentRead): Vector[NodeId] =

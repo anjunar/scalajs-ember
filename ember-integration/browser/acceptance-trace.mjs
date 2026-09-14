@@ -7,6 +7,16 @@ const status = document.createElement('p'); status.setAttribute('role', 'status'
 const start = document.createElement('button'); start.textContent = 'Trace starten'
 const stop = document.createElement('button'); stop.textContent = 'Trace stoppen'
 const download = document.createElement('button'); download.textContent = 'Trace herunterladen'
+const exportPanel = document.createElement('section'); exportPanel.hidden = true
+const exportHelp = document.createElement('p')
+exportHelp.textContent = 'Falls kein Download erscheint: den Dateilink verwenden oder das vollständige JSON aus dem Textfeld kopieren und als .json speichern.'
+const exportLink = document.createElement('a'); exportLink.textContent = 'Trace-Datei speichern'
+const exportLabel = document.createElement('label'); exportLabel.textContent = 'Trace-JSON zum Kopieren'
+const exportText = document.createElement('textarea'); exportText.id = 'acceptance-export-json'
+exportText.readOnly = true; exportText.rows = 12; exportText.style.width = '100%'
+exportLabel.htmlFor = exportText.id
+exportPanel.append(exportHelp, exportLink, exportLabel, exportText)
+let exportUrl = null
 const fields = document.createElement('fieldset')
 const legend = document.createElement('legend'); legend.textContent = 'Manuelles Ergebnisprotokoll'
 fields.append(legend)
@@ -34,13 +44,17 @@ const caseId = field('case', 'Prüfschritt', [
 const outcome = field('outcome', 'Ergebnis', [['open', 'Offen / noch nicht geprüft'],
   ['passed', 'Bestanden (Beobachtung eintragen)'], ['failed', 'Fehlgeschlagen'], ['blocked', 'Nicht durchführbar']])
 const notes = field('notes', 'Beobachtung / Abweichung')
-panel.append(title, help, fields, start, stop, download, status); document.querySelector('main').append(panel)
+panel.append(title, help, fields, start, stop, download, status, exportPanel); document.querySelector('main').append(panel)
 let events = [], active = false, startedAt = null, stoppedAt = null, truncated = false
 let build = null
-const buildReady = fetch('/acceptance-build.json', { cache: 'no-store' })
+let buildError = null
+const buildAbort = new AbortController()
+const buildTimeout = setTimeout(() => buildAbort.abort(), 5000)
+const buildReady = fetch('/acceptance-build.json', { cache: 'no-store', signal: buildAbort.signal })
   .then(response => { if (!response.ok) throw new Error('Build evidence unavailable'); return response.json() })
   .then(value => { build = value })
-  .catch(() => { status.textContent = 'Build-Nachweis fehlt; vor einer Abnahme den Testserver prüfen.' })
+  .catch(() => { buildError = 'Build-Nachweis nicht verfügbar (Anfrage fehlgeschlagen oder nach 5 Sekunden abgebrochen).' })
+  .finally(() => clearTimeout(buildTimeout))
 const pending = new WeakMap()
 const types = ['beforeinput', 'input', 'compositionstart', 'compositionupdate', 'compositionend', 'keydown', 'selectionchange', 'focusin', 'focusout']
 function record(event) {
@@ -63,7 +77,9 @@ function afterDispatch(event) {
   }
 }
 start.onclick = () => {
-  if (active) return
+  if (active || download.disabled) return
+  exportPanel.hidden = true; exportText.value = ''; exportLink.removeAttribute('href')
+  if (exportUrl) { URL.revokeObjectURL(exportUrl); exportUrl = null }
   events = []; truncated = false; startedAt = new Date().toISOString(); stoppedAt = null; active = true
   outcome.value = 'open'; notes.value = ''
   // Bubble runs after the editor's handlers. A capture-listener microtask can run
@@ -85,16 +101,35 @@ stop.onclick = () => {
   status.textContent = `${events.length} Ereignisse aufgezeichnet.`
 }
 download.onclick = async () => {
+  if (download.disabled) return
   stop.click()
-  const data = { formatVersion: 1, kind: 'operator-device-trace', reviewStatus: 'requires-human-review',
-    build, operator: { tester: tester.value.trim(), environment: environment.value.trim(),
-      inputMethod: inputMethod.value.trim(), caseId: caseId.value, outcome: outcome.value, notes: notes.value.trim() },
-    startedAt, stoppedAt, userAgent: navigator.userAgent, language: navigator.language, truncated, events: structuredClone(events) }
-  await buildReady
-  data.build = build
-  const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }))
-  const anchor = document.createElement('a'); anchor.href = url
-  anchor.download = `ember-device-${caseId.value}-${(startedAt ?? 'not-started').replaceAll(':', '-')}.json`; anchor.click()
-  setTimeout(() => URL.revokeObjectURL(url), 0)
+  download.disabled = true; start.disabled = true
+  status.textContent = 'Export wird vorbereitet …'
+  try {
+    const data = { formatVersion: 1, kind: 'operator-device-trace', reviewStatus: 'requires-human-review',
+      build, operator: { tester: tester.value.trim(), environment: environment.value.trim(),
+        inputMethod: inputMethod.value.trim(), caseId: caseId.value, outcome: outcome.value, notes: notes.value.trim() },
+      startedAt, stoppedAt, userAgent: navigator.userAgent, language: navigator.language, truncated, events: structuredClone(events) }
+    await buildReady
+    data.build = build
+    if (buildError) data.buildError = buildError
+    // Keep a visible, copyable snapshot even when the browser blocks downloads.
+    exportText.value = JSON.stringify(data, null, 2)
+    exportPanel.hidden = false
+    if (exportUrl) URL.revokeObjectURL(exportUrl)
+    exportLink.removeAttribute('href')
+    exportUrl = URL.createObjectURL(new Blob([exportText.value], { type: 'application/json' }))
+    exportLink.href = exportUrl
+    exportLink.download = `ember-device-${data.operator.caseId}-${(data.startedAt ?? 'not-started').replaceAll(':', '-')}.json`
+    status.textContent = buildError
+      ? 'Trace bereit; Build-Nachweis fehlt, Geräteabnahme bleibt offen. JSON kann gesichert werden.'
+      : 'Trace bereit. Falls kein Download erscheint, Dateilink oder JSON-Textfeld verwenden.'
+    // Retain the URL until the next export/run; downloads need not consume it synchronously.
+    exportLink.click()
+  } catch {
+    status.textContent = 'Download konnte nicht vorbereitet werden. Vorhandenes JSON aus dem Textfeld sichern; die Seite nicht neu laden.'
+  } finally {
+    download.disabled = false; start.disabled = false
+  }
 }
 window.addEventListener('pagehide', () => stop.click(), { once: true })

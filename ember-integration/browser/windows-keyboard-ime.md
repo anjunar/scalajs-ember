@@ -7,7 +7,19 @@ NVDA, VoiceOver, Mobilgeräte und Diktat erhalten dadurch keine Freigabe.
 Aktueller Stand vom 14. September 2026: **Japanische Eingabe und Bestätigung laut
 Patrick bestanden.** Der [W02-Trace samt Auswertung](../../benchmarks/corpora/device-traces/2026-09-14-patrick-w02-review.md)
 belegt die Eingabe von `日本語`; Undo/Redo am selben Dokument ist ergänzend
-automatisiert bestanden. Die vollständige manuelle W02-Vorgabe und W03–W05 bleiben offen.
+automatisiert bestanden. Die vollständige manuelle W02-Vorgabe und W04–W05 bleiben offen.
+Für [W03](../../benchmarks/corpora/device-traces/2026-09-14-patrick-w03-review.md)
+sind Abbruch und Folgetippen bestanden (`Hello aworld`): Patricks positiver Bericht
+und der gesicherte Wiederholungstrace mit 77 Ereignissen sind ausgewertet.
+Der [erste W04-Lauf](../../benchmarks/corpora/device-traces/2026-09-14-patrick-w04-review.md)
+zeigt übernommene japanische Eingabe und normales Folgetippen, jedoch kein Focusout
+während Composition. **Patrick lässt W04 überspringen; keine Freigabe.**
+Anschließend beendet Patrick die weiteren IME-Prüfungen ausdrücklich:
+**„Überspringe mal komplett IME. Das funktioniert alles“**.
+Diese positive Gesamtrückmeldung ist festgehalten. Die verbliebenen IME-Prüfungen
+(W02-Restumfang, W04, W05) werden übersprungen; der vorbereitete W05-Trace ist
+gestoppt. Vorhandene Einzelfallbelege bleiben erhalten; keine weiteren IME-Läufe
+oder IME-Rückfragen ohne neuen Auftrag.
 Ein [automatisierter Folgelauf im aktuellen Codex-Browser](../../benchmarks/p28-keyboard-followup.md)
 prüft Unicode, Auswahl, Undo/Redo und Toolbar erfolgreich; er ersetzt die
 menschlichen Restprüfungen nicht.
@@ -25,6 +37,13 @@ menschlichen Restprüfungen nicht.
    Ergebnis und Beobachtung eintragen und **Trace herunterladen** drücken.
 4. Vor dem nächsten Fall die Seite neu laden. Die Beobachtung benennt die
    tatsächlich ausgeführten Eingaben und das Ergebnis, nicht nur „geht“.
+
+Falls kein Download erscheint: Nach „Trace herunterladen“ den sichtbaren Link
+„Trace-Datei speichern“ oder das Feld „Trace-JSON zum Kopieren“ verwenden.
+Erst nach Sicherung des JSON neu laden. Fehlende Build-Angaben werden ausdrücklich
+gemeldet; der Trace kann trotzdem gesichert werden, die Geräteabnahme bleibt offen.
+Diese [Exportkorrektur](../../benchmarks/p28-trace-export.md) gilt für neu geladene Seiten;
+den alten W03-Tab mit ungesicherter Aufzeichnung deshalb vorerst erhalten.
 
 Erlaubter Testinhalt: der Fixture-Text `Hello world` sowie
 `Grüße, é, 👩🏽‍💻, 中文, 한글, العربية`. Für Linktests `https://example.com/`
@@ -83,7 +102,7 @@ Geprüfte, auf Testinhalt beschränkte Traces kommen nach
 `benchmarks/corpora/device-traces/`. Die [gesamte Checkliste](accessibility-checklist.md)
 und die [Supportmatrix](support-matrix.md) werden erst nach dem tatsächlichen
 Operatorbericht aktualisiert. W01 und W02 haben positive Teilbefunde;
-keiner der obigen Fälle ist bisher in seiner gesamten manuellen Vorgabe abgenommen.
+W03 ist für die dokumentierte Windows-/Codex-Browser-Kombination bestanden.
 
 Serverstart, falls erforderlich:
 

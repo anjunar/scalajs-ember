@@ -8,7 +8,8 @@ final case class ToolbarAction(
     id: String,
     label: String,
     state: () => CommandState,
-    activate: () => Either[EditorError, Unit]
+    activate: () => Either[EditorError, Unit],
+    shortLabel: Option[String] = None
 )
 
 object ToolbarAction:

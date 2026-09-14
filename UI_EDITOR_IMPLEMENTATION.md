@@ -1,12 +1,12 @@
 # UI Editor: ausführbarer Implementierungsplan
 
-Status: **Code für P01–P27 vorhanden; P28 teilweise umgesetzt; P29–P30 offen.** Die 14 Befunde des Reviews vom
+Status: **Code für P01–P27 vorhanden; P28 teilweise umgesetzt; native Anwendungseinbindung aus P29/P30 lokal umgesetzt; weitergehende Handle-API und Produktfreigaben offen.** Die 14 Befunde des Reviews vom
 14. September 2026 wurden korrigiert und durch reguläre Regressionstests abgesichert;
 Details, Testzahlen und ursprüngliche Repro-Fälle stehen im [Review](UI_EDITOR_REVIEW.md).
 Die native Clipboard-Abnahme für Windows-WebKit ist durch einen unabhängig
 reproduzierten Event-Store-/Betriebssystem-Transferfehler offen (P25 unten).
-Das vollständige Scala-Gate ist grün. Die reale IME-Abnahme bleibt eine
-ausstehende Handprüfung. Dieses Repository (`scalajs-ember`) ist das in
+Das vollständige Scala-Gate ist grün. Weitere manuelle IME-Prüfungen wurden auf
+Nutzerwunsch beendet; offene Geräte-/Screenreader-Abnahmen bleiben dokumentiert. Dieses Repository (`scalajs-ember`) ist das in
 Architektur und Plan gemeinte „eigene Repository“. Die generischen UI-Core-Anteile aus
 P08/P09, P19a, P20 und P23 sind **nicht hier, sondern im Nachbar-Repo `../scalajs-ui`**
 implementiert und seit P17 als veröffentlichtes Artefakt `com.anjunar:scalajs-ui-core:1.0.0`
@@ -14,6 +14,13 @@ eingebunden ([build.sbt](build.sbt)), vorher als Quell-Abhängigkeit; der Vertra
 [UI_CORE_INTEGRATION.md](UI_CORE_INTEGRATION.md). Das erledigt nicht die jeweiligen
 Editor-Integrationsphasen — P20 kam mit dem veröffentlichten 1.0.0 ohne jede Änderung dort
 aus. Status aktualisiert: 14. September 2026; die Phasenprotokolle dokumentieren ihren jeweiligen damaligen Stand.
+
+**Aktueller Anwendungsauftrag:** Der Nutzer hat die native Ablösung des Prototyps in
+`scalajs-ui-editor` und `simplicity-blog` ausdrücklich vorgezogen und direkte
+Viewport-Dialoge vorgegeben. Die frühere Beschränkung auf P28 gilt für diesen Auftrag
+nicht mehr. Umfang, tatsächliche Gates, Formatgrenzen und verbleibende Freigaben
+stehen in [EDITOR_UPGRADE.md](EDITOR_UPGRADE.md). Der Komfort-Einstieg läuft jetzt auf
+Ember; eine vollständige öffentliche P29-Handle-API wird dadurch nicht behauptet.
 
 Eine laufende Demo des jeweils erreichten Standes liegt in
 [ember-demo/](ember-demo/README.md) -- nicht publiziert, ohne Bundler, `node
@@ -2393,7 +2400,24 @@ abgelegt; kein Ersatz für manuelle Gerätefreigaben. Patrick hat anschließend
 Japanisch in Windows installiert und die [erste echte IME-Teilprüfung](benchmarks/corpora/device-traces/2026-09-14-patrick-w02-review.md)
 positiv bestätigt: `日本語` sauber übernommen, 133 Ereignisse ausgewertet.
 Undo/Redo an dieser Composition anschließend separat automatisiert bestanden.
-Vollständiger manueller W02 und W03–W05 bleiben offen. P29 bleibt unverändert offen.
+Vollständiger manueller W02 und W04–W05 bleiben offen. P29 bleibt unverändert offen.
+Patrick bestätigt auch [W03: Abbruch und Folgetippen](benchmarks/corpora/device-traces/2026-09-14-patrick-w03-review.md)
+positiv. Der Wiederholungstrace mit 77 Ereignissen ist unverändert gesichert und
+ausgewertet: Abbruch und normale Folgeeingabe zu `Hello aworld` bestanden.
+Der auch manuell nicht funktionierende Download führte zu einer
+[Exportkorrektur](benchmarks/p28-trace-export.md): sichtbarer Dateilink, kopierbares
+JSON und begrenztes Warten auf Build-Angaben. 12 gezielte Browserfälle und ein
+separater Export im Codex-Browser bestanden; der alte W03-Trace bleibt ungesichert.
+Der [erste W04-Gerätelauf](benchmarks/corpora/device-traces/2026-09-14-patrick-w04-review.md)
+zeigt konsistente Textübernahme und normale Folgeeingabe (`a`), aber kein Focusout
+während Composition. Originaldatei mit 108 Ereignissen unverändert übernommen,
+SHA-Abgleich und Auswertung abgeschlossen. Keine W04-Freigabe und kein daraus
+abgeleiteter Editorfehler.
+Patrick lässt zunächst W04, anschließend **alle weiteren IME-Prüfungen** ausdrücklich
+überspringen: „Überspringe mal komplett IME. Das funktioniert alles“.
+Positive Gesamtrückmeldung festgehalten; W05-Aufzeichnung gestoppt. Verbliebene
+IME-Einzelabnahmen werden übersprungen, vorhandene Belege bleiben erhalten.
+Keine weiteren IME-Läufe oder IME-Rückfragen ohne neuen Auftrag. P29 bleibt offen.
 
 ## P29 — TypeScript-Fassade und eine Scala.js-Runtime
 

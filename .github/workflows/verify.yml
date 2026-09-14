@@ -5,6 +5,9 @@ on:
     branches: [master]
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   scala:
     runs-on: ubuntu-latest
@@ -83,3 +86,51 @@ jobs:
         with:
           name: editor-acceptance
           path: target/p28/
+
+  pages:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: sbt
+      - uses: sbt/setup-sbt@v1
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: ember-demo/package-lock.json
+      - name: Demo und Browser einrichten
+        working-directory: ember-demo
+        run: |
+          npm ci --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: GitHub-Pages-Ausgabe bauen und prüfen
+        run: npm --prefix ember-demo run verify:pages
+      - name: GitHub Pages konfigurieren
+        if: github.event_name == 'push'
+        uses: actions/configure-pages@v5
+      - name: GitHub-Pages-Artefakt hochladen
+        if: github.event_name == 'push'
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: target/ember-pages
+          include-hidden-files: true
+
+  deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    needs: [scala, browser, pages]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: GitHub Pages veröffentlichen
+        id: deployment
+        uses: actions/deploy-pages@v4

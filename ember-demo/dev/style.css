@@ -1,233 +1,159 @@
-/* Handgeschrieben und ohne Abhaengigkeiten -- die Demo soll `node dev/server.mjs` sein und
-   sonst nichts. Ein Build-Schritt fuer CSS waere mehr Werkzeug als Editor. */
-
 :root {
-  color-scheme: light dark;
-
-  --ink: #16181d;
-  --ink-soft: #5c6270;
-  --ink-faint: #8b909c;
-  --paper: #fbfbfc;
-  --panel: #ffffff;
-  --line: #e3e5ea;
-  --accent: #b4451f;
-  --accent-soft: #fdf1ec;
-  --code: #f6f7f9;
+  color-scheme: light;
+  --canvas: #f7f6f2;
+  --panel: #fffefa;
+  --sidebar: #efeee8;
+  --ink: #2c302d;
+  --muted: #747b72;
+  --line: #dedfd6;
+  --accent: #af491f;
+  --accent-soft: #f8e9dc;
+  --code: #f0f1eb;
+  --shadow: 0 5px 22px #28352208;
 }
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --ink: #e9eaee;
-    --ink-soft: #a3a8b4;
-    --ink-faint: #71767f;
-    --paper: #14161a;
-    --panel: #1b1e23;
-    --line: #2b2f36;
-    --accent: #e8794b;
-    --accent-soft: #2a1d17;
-    --code: #101216;
-  }
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --canvas: #1d211f;
+  --panel: #252a27;
+  --sidebar: #181d1a;
+  --ink: #e5e8df;
+  --muted: #a1aa9e;
+  --line: #3b443d;
+  --accent: #f0a276;
+  --accent-soft: #423125;
+  --code: #1b211d;
+  --shadow: 0 5px 22px #0002;
 }
-
-* {
-  box-sizing: border-box;
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--canvas); color: var(--ink); font: 14px/1.6 "Segoe UI", system-ui, sans-serif; }
+button, input { font: inherit; }
+button, a { -webkit-tap-highlight-color: transparent; }
+button { cursor: pointer; border: 1px solid var(--line); border-radius: 6px; color: var(--ink); background: var(--panel); padding: 7px 12px; transition: background .12s; }
+button:hover:not(:disabled) { background: var(--accent-soft); }
+button:disabled { cursor: default; opacity: .34; }
+button:focus-visible, a:focus-visible, input:focus-visible, [tabindex="0"]:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+a { color: var(--accent); text-underline-offset: 3px; }
+.demo-shell { display: grid; grid-template-columns: 240px minmax(0,1fr); min-height: 100vh; }
+.demo-sidebar { padding: 36px 22px; background: var(--sidebar); border-right: 1px solid var(--line); position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; }
+.demo-brand { display: flex; align-items: center; gap: 13px; margin-bottom: 62px; }
+.demo-brand__symbol { width: 39px; height: 44px; border-radius: 14px 14px 14px 2px; color: #fff6ed; background: #af491f; font: italic 36px/40px Georgia, serif; text-align: center; }
+.demo-brand__name { font-size: 28px; line-height: 1; letter-spacing: -.8px; font-weight: 650; }
+.demo-brand__caption { color: var(--muted); font-size: 9px; letter-spacing: 1.8px; margin-top: 7px; }
+.nav-caption { font-size: 10px; letter-spacing: 1.5px; color: var(--muted); font-weight: 650; margin-bottom: 14px; }
+.demo-navigation { display: grid; gap: 5px; }
+.demo-nav-link { color: var(--ink); padding: 12px 10px; border-radius: 7px; display: flex; gap: 12px; text-decoration: none; font-size: 13px; }
+.demo-nav-link:hover { background: var(--panel); }
+.demo-nav-link.is-active { background: var(--panel); box-shadow: var(--shadow); color: var(--accent); font-weight: 650; }
+.demo-nav-number { font-size: 10px; color: var(--muted); padding-top: 3px; }
+.demo-nav-link.is-active .demo-nav-number { color: var(--accent); }
+.demo-sidebar-note { margin-top: auto; padding-top: 70px; color: var(--muted); font-size: 12px; }
+.demo-session-note { border-top: 1px solid var(--line); margin-top: 20px; padding-top: 16px; font-size: 11px; }
+.demo-main { padding: 0 44px; min-width: 0; max-width: 1600px; width: 100%; margin: 0 auto; }
+.demo-topbar { min-height: 80px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); }
+.demo-breadcrumb { font-size: 12px; color: var(--muted); }
+.subtle-button { background: transparent; font-size: 12px; }
+.demo-intro { padding: 42px 0 30px; max-width: 820px; }
+.eyebrow { color: var(--accent); font-size: 10px; font-weight: 700; letter-spacing: 2px; }
+.demo-intro h1 { font: 400 clamp(30px,3vw,44px)/1.2 Georgia, "Times New Roman", serif; letter-spacing: -1.1px; margin: 14px 0; }
+.demo-description { color: var(--muted); max-width: 650px; font-size: 14px; }
+.demo-workspace { display: grid; grid-template-columns: minmax(0,1fr); gap: 20px; align-items: start; }
+.demo-workspace.has-inspector { grid-template-columns: minmax(0,1fr) 340px; }
+.editor-card, .inspector-card { border: 1px solid var(--line); background: var(--panel); border-radius: 10px; box-shadow: var(--shadow); overflow: hidden; min-width: 0; }
+.editor-card__heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px 20px; border-bottom: 1px solid var(--line); }
+.editor-document-name { font-size: 12px; font-weight: 650; }
+.editor-document-name::before { content: "▤"; margin-right: 10px; color: var(--accent); }
+.editor-view-options { display: flex; gap: 6px; }
+.editor-view-options button { font-size: 11px; padding: 4px 9px; border-color: transparent; }
+.editor-view-options button[aria-pressed="true"], .editor-view-options button[aria-expanded="true"] { background: var(--accent-soft); color: var(--accent); }
+.editor-ribbon-host { background: var(--canvas); border-bottom: 1px solid var(--line); overflow: auto; }
+.ember-toolbar { display: flex; position: relative; padding: 11px 12px 7px; min-width: max-content; gap: 10px; }
+.ember-ribbon-group { display: flex; flex-direction: column; border-right: 1px solid var(--line); padding-right: 10px; gap: 5px; }
+.ember-ribbon-group:last-of-type { border-right: 0; padding-right: 0; }
+.ember-ribbon-group__controls { display: grid; grid-template-rows: repeat(2,30px); grid-auto-flow: column; grid-auto-columns: max-content; gap: 3px; }
+.ember-toolbar button { border: 1px solid transparent; padding: 3px 8px; background: transparent; font-size: 12px; min-width: 30px; border-radius: 4px; }
+.ember-toolbar button[aria-pressed="true"] { color: var(--accent); background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 30%, transparent); }
+.ember-toolbar button[aria-pressed="mixed"] { background: var(--accent-soft); border-style: dashed; border-color: var(--accent); }
+.ember-toolbar button[data-command="bold"] { font-weight: 750; }
+.ember-toolbar button[data-command="italic"] { font-style: italic; }
+.ember-toolbar button[data-command="undo"], .ember-toolbar button[data-command="redo"] { font-size: 21px; line-height: 1; }
+.ember-ribbon-group__caption { text-align: center; color: var(--muted); font-size: 10px; }
+.ember-toolbar-status:empty { display: none; }
+.ember-toolbar-status:not(:empty) { background: var(--accent-soft); color: var(--accent); white-space: normal; max-width: 230px; padding: 5px; font-size: 12px; }
+.editor-paper { padding: 38px 9% 50px; min-height: 520px; }
+.editor-surface { outline: none; font-size: 15px; line-height: 1.85; caret-color: var(--accent); overflow-wrap: anywhere; min-height: 420px; }
+.editor-surface:focus-visible { outline: none; }
+.editor-surface p { min-height: 1.85em; margin: 0 0 18px; }
+.editor-surface [data-ember-node] { white-space: pre-wrap; }
+.editor-surface h1, .editor-surface h2, .editor-surface h3 { line-height: 1.25; letter-spacing: -.5px; }
+.editor-surface h1 { font: 500 29px/1.3 Georgia, serif; margin: 0 0 25px; }
+.editor-surface h2 { font-size: 21px; margin: 30px 0 14px; font-weight: 600; }
+.editor-surface h3 { font-size: 17px; margin: 28px 0 12px; font-weight: 650; }
+.editor-surface ul, .editor-surface ol { padding-left: 25px; margin: 12px 0 20px; }
+.editor-surface li p { margin-bottom: 4px; }
+.editor-surface blockquote { border-left: 3px solid var(--accent); margin: 24px 0; padding: 5px 0 5px 22px; color: var(--muted); font-family: Georgia, serif; font-style: italic; }
+.editor-surface blockquote p { margin: 0; }
+.editor-surface pre { padding: 22px; background: var(--code); border: 1px solid var(--line); border-radius: 6px; white-space: pre-wrap; }
+.editor-surface code { font: 13px/1.7 Consolas, monospace; background: var(--code); border-radius: 3px; padding: 2px 4px; }
+.editor-surface pre code { padding: 0; }
+.editor-surface img { max-width: 100%; height: auto; border-radius: 6px; }
+.editor-surface hr { border: 0; border-top: 1px solid var(--line); margin: 30px 0; }
+.editor-surface [data-ember-selected] { outline: 2px solid var(--accent); }
+.editor-surface[aria-readonly="true"] { caret-color: transparent; }
+.editor-status { display: flex; gap: 8px; justify-content: space-between; padding: 11px 20px; border-top: 1px solid var(--line); color: var(--muted); font-size: 10px; }
+.inspector-heading { padding: 17px 16px 10px; font-size: 12px; font-weight: 650; }
+.inspector-tabs { display: flex; padding: 0 12px; gap: 3px; }
+.inspector-tabs button { border: none; padding: 5px 9px; font-size: 11px; }
+.inspector-tabs button.is-active { background: var(--accent-soft); color: var(--accent); }
+.inspector-description { padding: 12px 16px; color: var(--muted); font-size: 11px; }
+.inspector-code { white-space: pre-wrap; overflow-wrap: anywhere; overflow: auto; max-height: 650px; padding: 16px; margin: 0; background: var(--code); font: 11px/1.8 Consolas, monospace; border-block: 1px solid var(--line); }
+.inspector-actions { display: flex; flex-wrap: wrap; gap: 6px; padding: 12px; }
+.inspector-actions button { font-size: 10px; }
+.demo-notice { color: var(--accent); font-size: 13px; }
+.demo-notice:not(:empty) { padding-top: 15px; }
+.demo-tips { display: flex; align-items: center; gap: 14px; color: var(--muted); font-size: 11px; padding: 22px 0; }
+.demo-tips__title { font-weight: 650; color: var(--ink); white-space: nowrap; }
+.demo-tips button { margin-left: auto; white-space: nowrap; }
+.demo-footer { display: flex; justify-content: space-between; gap: 15px; padding: 28px 0; color: var(--muted); font-size: 11px; }
+.demo-footer a { color: var(--muted); }
+/* Viewport supplies the windows and their lifecycle; this application supplies their theme. */
+.ui-window { position: fixed !important; max-width: calc(100vw - 24px); max-height: calc(100vh - 24px); z-index: 100 !important; }
+.ui-window.is-hidden { display: none; }
+.ui-window__surface { height: 100%; display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); box-shadow: 0 20px 80px #0004, 0 0 0 1px #0001; overflow: hidden; }
+.ui-window__header { display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; border-bottom: 1px solid var(--line); cursor: move; background: var(--canvas); }
+.ui-window__title { font-weight: 650; font-size: 14px; }
+.ui-window__chrome-button { font-size: 0; width: 30px; height: 30px; padding: 0; border: 0; background: transparent; }
+.ui-window__chrome-button::after { content: "×"; font-size: 23px; }
+.ui-window__container { padding: 20px; overflow: auto; flex: 1; min-height: 0; }
+.demo-dialog { font-size: 13px; }
+.demo-dialog label { display: grid; gap: 5px; margin-bottom: 13px; font-size: 12px; color: var(--muted); }
+.demo-dialog input { padding: 9px 10px; background: var(--canvas); color: var(--ink); border: 1px solid var(--line); border-radius: 5px; min-width: 0; width: 100%; }
+.demo-dialog button { margin-right: 7px; margin-top: 5px; }
+.demo-dialog button[type="submit"] { background: var(--accent); color: var(--panel); border-color: var(--accent); }
+.demo-dialog p[role="alert"] { color: var(--accent); font-size: 12px; }
+.demo-dialog p:empty { display: none; }
+@media (min-width: 1500px) { .editor-paper { padding-inline: 12%; } }
+@media (max-width: 1250px) { .demo-workspace.has-inspector { grid-template-columns: minmax(0,1fr); } .inspector-code { max-height: 350px; } .demo-main { padding-inline: 28px; } }
+@media (max-width: 850px) {
+  .demo-shell { grid-template-columns: minmax(0,1fr); }
+  .demo-sidebar { position: static; height: auto; padding: 18px 22px; border-right: none; border-bottom: 1px solid var(--line); }
+  .demo-brand { margin-bottom: 20px; }
+  .demo-navigation { display: flex; overflow: auto; }
+  .demo-nav-link { white-space: nowrap; padding: 9px 11px; }
+  .demo-nav-number, .demo-sidebar > .nav-caption, .demo-sidebar-note { display: none; }
+  .demo-brand__name { font-size: 24px; }
+  .demo-brand__symbol { height: 36px; width: 34px; font-size: 29px; line-height: 34px; }
+  .demo-topbar { min-height: 58px; }
+  .demo-intro { padding-top: 30px; }
+  .demo-tips { flex-wrap: wrap; }
+  .demo-tips button { margin-left: 0; }
 }
-
-body {
-  margin: 0;
-  background: var(--paper);
-  color: var(--ink);
-  font: 15px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-}
-
-.ember-demo {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 40px 24px 64px;
-}
-
-/* -- Kopf ---------------------------------------------------------------- */
-
-.ember-demo__header {
-  margin-bottom: 28px;
-}
-
-.ember-demo__wordmark {
-  font-size: 30px;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  color: var(--accent);
-}
-
-.ember-demo__tagline {
-  color: var(--ink-soft);
-}
-
-/* -- Spalten ------------------------------------------------------------- */
-
-.ember-demo__columns {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 20px;
-  align-items: start;
-}
-
-@media (max-width: 900px) {
-  .ember-demo__columns {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-
-.ember-demo__panel {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 18px;
-}
-
-.ember-demo__panel-title {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  margin-bottom: 12px;
-}
-
-.ember-demo__panel-name {
-  font-weight: 600;
-}
-
-.ember-demo__panel-hint {
-  color: var(--ink-faint);
-  font-size: 13px;
-}
-
-/* -- Die Flaeche --------------------------------------------------------- */
-
-.ember-demo__surface {
-  min-height: 220px;
-  padding: 16px 18px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--code);
-  outline-offset: 2px;
-}
-
-.ember-demo__surface:focus-visible {
-  outline: 2px solid var(--accent);
-}
-
-.ember-demo__surface article > p {
-  margin: 0 0 0.85em;
-}
-
-.ember-demo__surface article > p:last-child {
-  margin-bottom: 0;
-}
-
-/* Ein leerer Block hat sonst keine Hoehe.
-
-   Ein Absatz ohne Text enthaelt nur einen leeren Textlauf, und ein leeres Inline-Element erzeugt
-   keine Zeilenbox -- der Block faellt auf 0px zusammen, ist unsichtbar und nicht anklickbar. Wer
-   Enter drueckt, sieht dann nichts passieren, obwohl das Dokument einen neuen Absatz hat.
-
-   Architektur §11 sieht dafuer langfristig einen Platzhalter-<br> in der Editieransicht vor --
-   "ein Platzhalter-`br` ist kein persistentes Dokumentzeichen". Den gibt es noch nicht; er
-   beruehrt Positionsabbildung, Hydration und Projektion und braucht einen eigenen Entwurf. Bis
-   dahin ist die Hoehe das, was eine Anwendung ohnehin selbst setzt. */
-.ember-demo__surface article :is(p, h1, h2, h3, h4, h5, h6, blockquote, li) {
-  min-height: 1.4em;
-}
-
-/* Der Textlauf, in dem der Modellcaret steht. Neben der echten Browserauswahl (P21), nicht
-   statt ihrer: die Markierung laeuft ueber DocumentView.componentFor und zeigt den Modellwert. */
-.ember-caret-run {
-  background: var(--accent-soft);
-  box-shadow: inset 0 -1px 0 var(--accent);
-}
-
-/* -- Aktionen ------------------------------------------------------------ */
-
-.ember-demo__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 14px;
-}
-
-.ember-demo__action {
-  font: inherit;
-  font-size: 13px;
-  padding: 6px 12px;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: var(--panel);
-  color: var(--ink);
-  cursor: pointer;
-}
-
-.ember-demo__action:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-.ember-demo__status {
-  margin-top: 12px;
-  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
-  font-size: 12px;
-  color: var(--ink-faint);
-}
-
-/* -- Inspektor ----------------------------------------------------------- */
-
-.ember-demo__tabs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 12px;
-}
-
-.ember-demo__tab {
-  font: inherit;
-  font-size: 13px;
-  padding: 5px 11px;
-  border: 1px solid transparent;
-  border-radius: 999px;
-  background: transparent;
-  color: var(--ink-soft);
-  cursor: pointer;
-}
-
-.ember-demo__tab:hover {
-  color: var(--ink);
-}
-
-.ember-demo__tab[aria-selected="true"] {
-  background: var(--accent-soft);
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-.ember-demo__code {
-  margin-top: 10px;
-  padding: 14px;
-  max-height: 420px;
-  overflow: auto;
-  border-radius: 8px;
-  background: var(--code);
-  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
-  font-size: 12px;
-  line-height: 1.55;
-  white-space: pre-wrap;
-  word-break: break-word;
-  color: var(--ink);
-}
-
-/* -- Fuss ---------------------------------------------------------------- */
-
-.ember-demo__footer {
-  margin-top: 24px;
-  padding-top: 16px;
-  border-top: 1px solid var(--line);
-  color: var(--ink-faint);
-  font-size: 13px;
+@media (max-width: 520px) {
+  .demo-main { padding-inline: 16px; }
+  .demo-sidebar { padding-inline: 16px; }
+  .demo-intro h1 { font-size: 33px; }
+  .editor-paper { padding: 24px 20px; }
+  .editor-card__heading { padding: 10px 12px; flex-wrap: wrap; gap: 6px; }
+  .editor-surface h1 { font-size: 25px; }
+  .editor-status { flex-wrap: wrap; padding: 10px 12px; }
+  .demo-footer { flex-wrap: wrap; }
 }

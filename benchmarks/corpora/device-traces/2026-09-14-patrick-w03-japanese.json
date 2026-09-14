@@ -1,0 +1,1644 @@
+{
+  "formatVersion": 1,
+  "kind": "operator-device-trace",
+  "reviewStatus": "requires-human-review",
+  "build": {
+    "capturedAt": "2026-09-14T17:12:26.602Z",
+    "integrationSha256": "0973505cfd8f5239a6e60299887b9d2c02327b983716f273ef90f1dc047e85f4",
+    "revision": "d048dddce17a4369d57cd600f2b7a5e561e15b84",
+    "dirty": true,
+    "uiCore": "com.anjunar:scalajs-ui-core_sjs1_3:1.0.1"
+  },
+  "operator": {
+    "tester": "patrick",
+    "environment": "PC, Windows 11; Codex In-app Browser (UA Chrome/152.0.0.0)",
+    "inputMethod": "Japanisch unter Windows; Hiragana, danach deutsches Layout",
+    "caseId": "ime-cancel",
+    "outcome": "open",
+    "notes": ""
+  },
+  "startedAt": "2026-09-14T17:12:26.727Z",
+  "stoppedAt": "2026-09-14T17:15:10.332Z",
+  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
+  "language": "de",
+  "truncated": false,
+  "events": [
+    {
+      "time": 300.90000000596046,
+      "type": "focusin",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world",
+        "modelText": "Hello world"
+      },
+      "domText": "Hello world",
+      "modelText": "Hello world",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 0,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 314.5,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world",
+        "modelText": "Hello world"
+      },
+      "domText": "Hello world",
+      "modelText": "Hello world",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 0,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 11121.90000000596,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world",
+        "modelText": "Hello world"
+      },
+      "domText": "Hello world",
+      "modelText": "Hello world",
+      "selection": {
+        "anchorOffset": 6,
+        "focusOffset": 6,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 21470.80000001192,
+      "type": "focusout",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world",
+        "modelText": "Hello world"
+      },
+      "domText": "Hello world",
+      "modelText": "Hello world",
+      "selection": {
+        "anchorOffset": 6,
+        "focusOffset": 6,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 141348.30000001192,
+      "type": "focusin",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world",
+        "modelText": "Hello world"
+      },
+      "domText": "Hello world",
+      "modelText": "Hello world",
+      "selection": {
+        "anchorOffset": 6,
+        "focusOffset": 6,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 143967.30000001192,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "h",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world",
+        "modelText": "Hello world"
+      },
+      "domText": "Hello world",
+      "modelText": "Hello world",
+      "selection": {
+        "anchorOffset": 6,
+        "focusOffset": 6,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 143968.09999999404,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "h",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world",
+        "modelText": "Hello world"
+      },
+      "domText": "Hello hworld",
+      "modelText": "Hello hworld",
+      "selection": {
+        "anchorOffset": 7,
+        "focusOffset": 7,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 143974.19999998808,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello hworld",
+        "modelText": "Hello hworld"
+      },
+      "domText": "Hello hworld",
+      "modelText": "Hello hworld",
+      "selection": {
+        "anchorOffset": 7,
+        "focusOffset": 7,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 144525.40000000596,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "Backspace",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello hworld",
+        "modelText": "Hello hworld"
+      },
+      "domText": "Hello hworld",
+      "modelText": "Hello hworld",
+      "selection": {
+        "anchorOffset": 7,
+        "focusOffset": 7,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 144525.90000000596,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "deleteContentBackward",
+      "data": null,
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello hworld",
+        "modelText": "Hello hworld"
+      },
+      "domText": "Hello world",
+      "modelText": "Hello world",
+      "selection": {
+        "anchorOffset": 6,
+        "focusOffset": 6,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 144543.69999998808,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world",
+        "modelText": "Hello world"
+      },
+      "domText": "Hello world",
+      "modelText": "Hello world",
+      "selection": {
+        "anchorOffset": 6,
+        "focusOffset": 6,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 145432.69999998808,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "n",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world",
+        "modelText": "Hello world"
+      },
+      "domText": "Hello world",
+      "modelText": "Hello world",
+      "selection": {
+        "anchorOffset": 6,
+        "focusOffset": 6,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 145433.19999998808,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "n",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world",
+        "modelText": "Hello world"
+      },
+      "domText": "Hello nworld",
+      "modelText": "Hello nworld",
+      "selection": {
+        "anchorOffset": 7,
+        "focusOffset": 7,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 145436.5,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello nworld",
+        "modelText": "Hello nworld"
+      },
+      "domText": "Hello nworld",
+      "modelText": "Hello nworld",
+      "selection": {
+        "anchorOffset": 7,
+        "focusOffset": 7,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 145636.09999999404,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "i",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello nworld",
+        "modelText": "Hello nworld"
+      },
+      "domText": "Hello nworld",
+      "modelText": "Hello nworld",
+      "selection": {
+        "anchorOffset": 7,
+        "focusOffset": 7,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 145636.5,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "i",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello nworld",
+        "modelText": "Hello nworld"
+      },
+      "domText": "Hello niworld",
+      "modelText": "Hello niworld",
+      "selection": {
+        "anchorOffset": 8,
+        "focusOffset": 8,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 145641,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello niworld",
+        "modelText": "Hello niworld"
+      },
+      "domText": "Hello niworld",
+      "modelText": "Hello niworld",
+      "selection": {
+        "anchorOffset": 8,
+        "focusOffset": 8,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 146577.80000001192,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "h",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello niworld",
+        "modelText": "Hello niworld"
+      },
+      "domText": "Hello niworld",
+      "modelText": "Hello niworld",
+      "selection": {
+        "anchorOffset": 8,
+        "focusOffset": 8,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 146578.19999998808,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "h",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello niworld",
+        "modelText": "Hello niworld"
+      },
+      "domText": "Hello nihworld",
+      "modelText": "Hello nihworld",
+      "selection": {
+        "anchorOffset": 9,
+        "focusOffset": 9,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 146582.80000001192,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello nihworld",
+        "modelText": "Hello nihworld"
+      },
+      "domText": "Hello nihworld",
+      "modelText": "Hello nihworld",
+      "selection": {
+        "anchorOffset": 9,
+        "focusOffset": 9,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 146900.5,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "o",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello nihworld",
+        "modelText": "Hello nihworld"
+      },
+      "domText": "Hello nihworld",
+      "modelText": "Hello nihworld",
+      "selection": {
+        "anchorOffset": 9,
+        "focusOffset": 9,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 146901,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "o",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello nihworld",
+        "modelText": "Hello nihworld"
+      },
+      "domText": "Hello nihoworld",
+      "modelText": "Hello nihoworld",
+      "selection": {
+        "anchorOffset": 10,
+        "focusOffset": 10,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 146905.5,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello nihoworld",
+        "modelText": "Hello nihoworld"
+      },
+      "domText": "Hello nihoworld",
+      "modelText": "Hello nihoworld",
+      "selection": {
+        "anchorOffset": 10,
+        "focusOffset": 10,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 147257.09999999404,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "n",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello nihoworld",
+        "modelText": "Hello nihoworld"
+      },
+      "domText": "Hello nihoworld",
+      "modelText": "Hello nihoworld",
+      "selection": {
+        "anchorOffset": 10,
+        "focusOffset": 10,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 147257.69999998808,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "n",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello nihoworld",
+        "modelText": "Hello nihoworld"
+      },
+      "domText": "Hello nihonworld",
+      "modelText": "Hello nihonworld",
+      "selection": {
+        "anchorOffset": 11,
+        "focusOffset": 11,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 147261.80000001192,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello nihonworld",
+        "modelText": "Hello nihonworld"
+      },
+      "domText": "Hello nihonworld",
+      "modelText": "Hello nihonworld",
+      "selection": {
+        "anchorOffset": 11,
+        "focusOffset": 11,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 152600.80000001192,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "Backspace",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello nihonworld",
+        "modelText": "Hello nihonworld"
+      },
+      "domText": "Hello nihonworld",
+      "modelText": "Hello nihonworld",
+      "selection": {
+        "anchorOffset": 11,
+        "focusOffset": 11,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 152601.30000001192,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "deleteContentBackward",
+      "data": null,
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello nihonworld",
+        "modelText": "Hello nihonworld"
+      },
+      "domText": "Hello nihoworld",
+      "modelText": "Hello nihoworld",
+      "selection": {
+        "anchorOffset": 10,
+        "focusOffset": 10,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 152610.09999999404,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello nihoworld",
+        "modelText": "Hello nihoworld"
+      },
+      "domText": "Hello nihoworld",
+      "modelText": "Hello nihoworld",
+      "selection": {
+        "anchorOffset": 10,
+        "focusOffset": 10,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 152769,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "Backspace",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello nihoworld",
+        "modelText": "Hello nihoworld"
+      },
+      "domText": "Hello nihoworld",
+      "modelText": "Hello nihoworld",
+      "selection": {
+        "anchorOffset": 10,
+        "focusOffset": 10,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 152769.5,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "deleteContentBackward",
+      "data": null,
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello nihoworld",
+        "modelText": "Hello nihoworld"
+      },
+      "domText": "Hello nihworld",
+      "modelText": "Hello nihworld",
+      "selection": {
+        "anchorOffset": 9,
+        "focusOffset": 9,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 152774,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello nihworld",
+        "modelText": "Hello nihworld"
+      },
+      "domText": "Hello nihworld",
+      "modelText": "Hello nihworld",
+      "selection": {
+        "anchorOffset": 9,
+        "focusOffset": 9,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 152922.40000000596,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "Backspace",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello nihworld",
+        "modelText": "Hello nihworld"
+      },
+      "domText": "Hello nihworld",
+      "modelText": "Hello nihworld",
+      "selection": {
+        "anchorOffset": 9,
+        "focusOffset": 9,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 152922.80000001192,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "deleteContentBackward",
+      "data": null,
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello nihworld",
+        "modelText": "Hello nihworld"
+      },
+      "domText": "Hello niworld",
+      "modelText": "Hello niworld",
+      "selection": {
+        "anchorOffset": 8,
+        "focusOffset": 8,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 152927,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello niworld",
+        "modelText": "Hello niworld"
+      },
+      "domText": "Hello niworld",
+      "modelText": "Hello niworld",
+      "selection": {
+        "anchorOffset": 8,
+        "focusOffset": 8,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 153053,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "Backspace",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello niworld",
+        "modelText": "Hello niworld"
+      },
+      "domText": "Hello niworld",
+      "modelText": "Hello niworld",
+      "selection": {
+        "anchorOffset": 8,
+        "focusOffset": 8,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 153053.19999998808,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "deleteContentBackward",
+      "data": null,
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello niworld",
+        "modelText": "Hello niworld"
+      },
+      "domText": "Hello nworld",
+      "modelText": "Hello nworld",
+      "selection": {
+        "anchorOffset": 7,
+        "focusOffset": 7,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 153054.30000001192,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello nworld",
+        "modelText": "Hello nworld"
+      },
+      "domText": "Hello nworld",
+      "modelText": "Hello nworld",
+      "selection": {
+        "anchorOffset": 7,
+        "focusOffset": 7,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 153848.30000001192,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "Backspace",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello nworld",
+        "modelText": "Hello nworld"
+      },
+      "domText": "Hello nworld",
+      "modelText": "Hello nworld",
+      "selection": {
+        "anchorOffset": 7,
+        "focusOffset": 7,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 153848.80000001192,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "deleteContentBackward",
+      "data": null,
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello nworld",
+        "modelText": "Hello nworld"
+      },
+      "domText": "Hello world",
+      "modelText": "Hello world",
+      "selection": {
+        "anchorOffset": 6,
+        "focusOffset": 6,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 153852.80000001192,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world",
+        "modelText": "Hello world"
+      },
+      "domText": "Hello world",
+      "modelText": "Hello world",
+      "selection": {
+        "anchorOffset": 6,
+        "focusOffset": 6,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 154761,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "Process",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world",
+        "modelText": "Hello world"
+      },
+      "domText": "Hello world",
+      "modelText": "Hello world",
+      "selection": {
+        "anchorOffset": 6,
+        "focusOffset": 6,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 154761.19999998808,
+      "type": "compositionstart",
+      "trusted": true,
+      "inputType": null,
+      "data": "",
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world",
+        "modelText": "Hello world"
+      },
+      "domText": "Hello world",
+      "modelText": "Hello world",
+      "selection": {
+        "anchorOffset": 6,
+        "focusOffset": 6,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 154762.69999998808,
+      "type": "compositionupdate",
+      "trusted": true,
+      "inputType": null,
+      "data": "ｎ",
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world",
+        "modelText": "Hello world"
+      },
+      "domText": "Hello world",
+      "modelText": "Hello world",
+      "selection": {
+        "anchorOffset": 6,
+        "focusOffset": 6,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 154762.90000000596,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertCompositionText",
+      "data": "ｎ",
+      "key": null,
+      "isComposing": true,
+      "before": {
+        "domText": "Hello world",
+        "modelText": "Hello world"
+      },
+      "domText": "Hello world",
+      "modelText": "Hello world",
+      "selection": {
+        "anchorOffset": 6,
+        "focusOffset": 6,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 154775.19999998808,
+      "type": "input",
+      "trusted": true,
+      "inputType": "insertCompositionText",
+      "data": "ｎ",
+      "key": null,
+      "isComposing": true,
+      "before": {
+        "domText": "Hello ｎworld",
+        "modelText": "Hello world"
+      },
+      "domText": "Hello ｎworld",
+      "modelText": "Hello ｎworld",
+      "selection": {
+        "anchorOffset": 7,
+        "focusOffset": 7,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 154778,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello ｎworld",
+        "modelText": "Hello ｎworld"
+      },
+      "domText": "Hello ｎworld",
+      "modelText": "Hello ｎworld",
+      "selection": {
+        "anchorOffset": 7,
+        "focusOffset": 7,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 155036.59999999404,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "Process",
+      "isComposing": true,
+      "before": {
+        "domText": "Hello ｎworld",
+        "modelText": "Hello ｎworld"
+      },
+      "domText": "Hello ｎworld",
+      "modelText": "Hello ｎworld",
+      "selection": {
+        "anchorOffset": 7,
+        "focusOffset": 7,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 155037.69999998808,
+      "type": "compositionupdate",
+      "trusted": true,
+      "inputType": null,
+      "data": "に",
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello ｎworld",
+        "modelText": "Hello ｎworld"
+      },
+      "domText": "Hello ｎworld",
+      "modelText": "Hello ｎworld",
+      "selection": {
+        "anchorOffset": 6,
+        "focusOffset": 7,
+        "collapsed": false
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 155037.80000001192,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertCompositionText",
+      "data": "に",
+      "key": null,
+      "isComposing": true,
+      "before": {
+        "domText": "Hello ｎworld",
+        "modelText": "Hello ｎworld"
+      },
+      "domText": "Hello ｎworld",
+      "modelText": "Hello ｎworld",
+      "selection": {
+        "anchorOffset": 6,
+        "focusOffset": 7,
+        "collapsed": false
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 155041.5,
+      "type": "input",
+      "trusted": true,
+      "inputType": "insertCompositionText",
+      "data": "に",
+      "key": null,
+      "isComposing": true,
+      "before": {
+        "domText": "Hello にworld",
+        "modelText": "Hello ｎworld"
+      },
+      "domText": "Hello にworld",
+      "modelText": "Hello にworld",
+      "selection": {
+        "anchorOffset": 7,
+        "focusOffset": 7,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 155042.40000000596,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello にworld",
+        "modelText": "Hello にworld"
+      },
+      "domText": "Hello にworld",
+      "modelText": "Hello にworld",
+      "selection": {
+        "anchorOffset": 7,
+        "focusOffset": 7,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 155420.59999999404,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "Process",
+      "isComposing": true,
+      "before": {
+        "domText": "Hello にworld",
+        "modelText": "Hello にworld"
+      },
+      "domText": "Hello にworld",
+      "modelText": "Hello にworld",
+      "selection": {
+        "anchorOffset": 7,
+        "focusOffset": 7,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 155426,
+      "type": "compositionupdate",
+      "trusted": true,
+      "inputType": null,
+      "data": "にｈ",
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello にworld",
+        "modelText": "Hello にworld"
+      },
+      "domText": "Hello にworld",
+      "modelText": "Hello にworld",
+      "selection": {
+        "anchorOffset": 6,
+        "focusOffset": 7,
+        "collapsed": false
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 155426.30000001192,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertCompositionText",
+      "data": "にｈ",
+      "key": null,
+      "isComposing": true,
+      "before": {
+        "domText": "Hello にworld",
+        "modelText": "Hello にworld"
+      },
+      "domText": "Hello にworld",
+      "modelText": "Hello にworld",
+      "selection": {
+        "anchorOffset": 6,
+        "focusOffset": 7,
+        "collapsed": false
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 155427.5,
+      "type": "input",
+      "trusted": true,
+      "inputType": "insertCompositionText",
+      "data": "にｈ",
+      "key": null,
+      "isComposing": true,
+      "before": {
+        "domText": "Hello にｈworld",
+        "modelText": "Hello にworld"
+      },
+      "domText": "Hello にｈworld",
+      "modelText": "Hello にｈworld",
+      "selection": {
+        "anchorOffset": 8,
+        "focusOffset": 8,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 155430.5,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello にｈworld",
+        "modelText": "Hello にｈworld"
+      },
+      "domText": "Hello にｈworld",
+      "modelText": "Hello にｈworld",
+      "selection": {
+        "anchorOffset": 8,
+        "focusOffset": 8,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 155723.5,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "Process",
+      "isComposing": true,
+      "before": {
+        "domText": "Hello にｈworld",
+        "modelText": "Hello にｈworld"
+      },
+      "domText": "Hello にｈworld",
+      "modelText": "Hello にｈworld",
+      "selection": {
+        "anchorOffset": 8,
+        "focusOffset": 8,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 155728.19999998808,
+      "type": "compositionupdate",
+      "trusted": true,
+      "inputType": null,
+      "data": "にほ",
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello にｈworld",
+        "modelText": "Hello にｈworld"
+      },
+      "domText": "Hello にｈworld",
+      "modelText": "Hello にｈworld",
+      "selection": {
+        "anchorOffset": 6,
+        "focusOffset": 8,
+        "collapsed": false
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 155728.40000000596,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertCompositionText",
+      "data": "にほ",
+      "key": null,
+      "isComposing": true,
+      "before": {
+        "domText": "Hello にｈworld",
+        "modelText": "Hello にｈworld"
+      },
+      "domText": "Hello にｈworld",
+      "modelText": "Hello にｈworld",
+      "selection": {
+        "anchorOffset": 6,
+        "focusOffset": 8,
+        "collapsed": false
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 155730.40000000596,
+      "type": "input",
+      "trusted": true,
+      "inputType": "insertCompositionText",
+      "data": "にほ",
+      "key": null,
+      "isComposing": true,
+      "before": {
+        "domText": "Hello にほworld",
+        "modelText": "Hello にｈworld"
+      },
+      "domText": "Hello にほworld",
+      "modelText": "Hello にほworld",
+      "selection": {
+        "anchorOffset": 8,
+        "focusOffset": 8,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 155733.40000000596,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello にほworld",
+        "modelText": "Hello にほworld"
+      },
+      "domText": "Hello にほworld",
+      "modelText": "Hello にほworld",
+      "selection": {
+        "anchorOffset": 8,
+        "focusOffset": 8,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 155930.69999998808,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "Process",
+      "isComposing": true,
+      "before": {
+        "domText": "Hello にほworld",
+        "modelText": "Hello にほworld"
+      },
+      "domText": "Hello にほworld",
+      "modelText": "Hello にほworld",
+      "selection": {
+        "anchorOffset": 8,
+        "focusOffset": 8,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 155937,
+      "type": "compositionupdate",
+      "trusted": true,
+      "inputType": null,
+      "data": "にほｎ",
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello にほworld",
+        "modelText": "Hello にほworld"
+      },
+      "domText": "Hello にほworld",
+      "modelText": "Hello にほworld",
+      "selection": {
+        "anchorOffset": 6,
+        "focusOffset": 8,
+        "collapsed": false
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 155937.09999999404,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertCompositionText",
+      "data": "にほｎ",
+      "key": null,
+      "isComposing": true,
+      "before": {
+        "domText": "Hello にほworld",
+        "modelText": "Hello にほworld"
+      },
+      "domText": "Hello にほworld",
+      "modelText": "Hello にほworld",
+      "selection": {
+        "anchorOffset": 6,
+        "focusOffset": 8,
+        "collapsed": false
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 155937.90000000596,
+      "type": "input",
+      "trusted": true,
+      "inputType": "insertCompositionText",
+      "data": "にほｎ",
+      "key": null,
+      "isComposing": true,
+      "before": {
+        "domText": "Hello にほｎworld",
+        "modelText": "Hello にほworld"
+      },
+      "domText": "Hello にほｎworld",
+      "modelText": "Hello にほｎworld",
+      "selection": {
+        "anchorOffset": 9,
+        "focusOffset": 9,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 155940.80000001192,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello にほｎworld",
+        "modelText": "Hello にほｎworld"
+      },
+      "domText": "Hello にほｎworld",
+      "modelText": "Hello にほｎworld",
+      "selection": {
+        "anchorOffset": 9,
+        "focusOffset": 9,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 158233.90000000596,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "Process",
+      "isComposing": true,
+      "before": {
+        "domText": "Hello にほｎworld",
+        "modelText": "Hello にほｎworld"
+      },
+      "domText": "Hello にほｎworld",
+      "modelText": "Hello にほｎworld",
+      "selection": {
+        "anchorOffset": 9,
+        "focusOffset": 9,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 158240.59999999404,
+      "type": "compositionupdate",
+      "trusted": true,
+      "inputType": null,
+      "data": "",
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello にほｎworld",
+        "modelText": "Hello にほｎworld"
+      },
+      "domText": "Hello にほｎworld",
+      "modelText": "Hello にほｎworld",
+      "selection": {
+        "anchorOffset": 6,
+        "focusOffset": 9,
+        "collapsed": false
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 158240.90000000596,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertCompositionText",
+      "data": "",
+      "key": null,
+      "isComposing": true,
+      "before": {
+        "domText": "Hello にほｎworld",
+        "modelText": "Hello にほｎworld"
+      },
+      "domText": "Hello にほｎworld",
+      "modelText": "Hello にほｎworld",
+      "selection": {
+        "anchorOffset": 6,
+        "focusOffset": 9,
+        "collapsed": false
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 158241.90000000596,
+      "type": "input",
+      "trusted": true,
+      "inputType": "insertCompositionText",
+      "data": "にほｎ",
+      "key": null,
+      "isComposing": true,
+      "before": {
+        "domText": "Hello world",
+        "modelText": "Hello にほｎworld"
+      },
+      "domText": "Hello world",
+      "modelText": "Hello world",
+      "selection": {
+        "anchorOffset": 6,
+        "focusOffset": 6,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 158243.59999999404,
+      "type": "compositionend",
+      "trusted": false,
+      "inputType": null,
+      "data": "",
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world",
+        "modelText": "Hello world"
+      },
+      "domText": "Hello world",
+      "modelText": "Hello world",
+      "selection": {
+        "anchorOffset": 6,
+        "focusOffset": 6,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 158247.80000001192,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world",
+        "modelText": "Hello world"
+      },
+      "domText": "Hello world",
+      "modelText": "Hello world",
+      "selection": {
+        "anchorOffset": 6,
+        "focusOffset": 6,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 161835.59999999404,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "a",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world",
+        "modelText": "Hello world"
+      },
+      "domText": "Hello world",
+      "modelText": "Hello world",
+      "selection": {
+        "anchorOffset": 6,
+        "focusOffset": 6,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 161835.69999998808,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "a",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world",
+        "modelText": "Hello world"
+      },
+      "domText": "Hello aworld",
+      "modelText": "Hello aworld",
+      "selection": {
+        "anchorOffset": 7,
+        "focusOffset": 7,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 161836.90000000596,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello aworld",
+        "modelText": "Hello aworld"
+      },
+      "domText": "Hello aworld",
+      "modelText": "Hello aworld",
+      "selection": {
+        "anchorOffset": 7,
+        "focusOffset": 7,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 163796.69999998808,
+      "type": "focusout",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello aworld",
+        "modelText": "Hello aworld"
+      },
+      "domText": "Hello aworld",
+      "modelText": "Hello aworld",
+      "selection": {
+        "anchorOffset": 7,
+        "focusOffset": 7,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    }
+  ]
+}

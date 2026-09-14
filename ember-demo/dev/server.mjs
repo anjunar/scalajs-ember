@@ -1,11 +1,5 @@
-// Der Dev-Server der Demo. Node und sonst nichts.
-//
-// Kein vite, kein Bundler, keine npm-Abhaengigkeit: die Demo besteht aus einer HTML-Huelle, einem
-// Stylesheet und der Linkerausgabe. Ein Build-Schritt dafuer waere mehr Werkzeug als Editor --
-// und ein Werkzeug, das jemand pflegen muss, bevor er den Editor sehen kann.
-//
-// Gebraucht wird er trotzdem: `main.js` ist ein ES-Modul, und ein Modulimport ueber `file://`
-// scheitert an der Origin-Pruefung des Browsers.
+// Local showcase server: source CSS/assets plus the selected Scala.js linker output.
+// No npm runtime dependency; Playwright is only needed for the browser tests.
 
 import { createServer } from 'node:http'
 import { readFile } from 'node:fs/promises'
@@ -63,8 +57,8 @@ const server = createServer(async (request, response) => {
   // Das Bild der Demo (P16). Es liegt hier und nicht im Linkerverzeichnis, weil es kein
   // Linkeroutput ist -- und es ist eine echte Datei unter einem relativen Pfad, weil genau das
   // die Quelle ist, die `MediaUrlPolicy.default` zulaesst.
-  if (path === '/ember.svg') {
-    await send(response, new URL('ember.svg', here), types['.svg'])
+  if (path === '/ember.svg' || path === '/landscape.svg') {
+    await send(response, new URL(path.slice(1), here), types['.svg'])
     return
   }
 

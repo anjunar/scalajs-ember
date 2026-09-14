@@ -207,7 +207,8 @@ Vorhanden:
   `ember.editor.standard`. Die einzeln wählbaren Standardadapter — der Ort, an dem
   Knotenarten und Renderer einander kennen.
 - [`ember-demo`](ember-demo/README.md) — sbt-ID `scalajs-ember-demo`. **Nicht publiziert.**
-  Die laufende Demo: Editierfläche links, derselbe Stand als Baum, JSON und HTML rechts.
+  Eigenständige Showcase mit vier Beispielen, Ribbon, Viewport-Dialogen, Hell/Dunkel,
+  Lesemodus und zuschaltbaren Live-Ansichten für Markdown, JSON, HTML und Dokumentbaum.
 - [`ember-integration`](ember-integration/browser/README.md) — sbt-ID
   `scalajs-ember-integration`. **Nicht publiziert.** Browser-Harness, die die tatsächlich
   gelinkte Anwendung in echten Engines ausführt.
@@ -260,18 +261,16 @@ Markdown-Dokumente bleiben deutsch.
 sbt --server "Test/testOnly *"
 ```
 
-Die Demo ansehen:
+Die Demo ansehen (baut die lokalen Ember-Quellen und startet den Server):
 
 ```bash
-sbt --server "scalajs-ember-demo/fastLinkJS"
+npm --prefix ember-demo run dev
 ```
 
-```bash
-node ember-demo/dev/server.mjs
-```
-
-Dann [http://127.0.0.1:4200](http://127.0.0.1:4200). Was dort zu sehen ist -- und was
-ausdrücklich noch fehlt -- steht in [ember-demo/README.md](ember-demo/README.md).
+Dann [http://127.0.0.1:4200](http://127.0.0.1:4200). Bedienung, Entwicklungsablauf,
+Browser-Tests und Formatgrenzen stehen in [ember-demo/README.md](ember-demo/README.md).
+Der `master`-Workflow veröffentlicht denselben optimierten Build unter
+[anjunar.github.io/scalajs-ember](https://anjunar.github.io/scalajs-ember/).
 
 Die Harness läuft getrennt, weil sie den Linkeroutput braucht:
 
