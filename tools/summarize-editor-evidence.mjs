@@ -1,8 +1,11 @@
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { parseArgs } from 'node:util'
+import { largeMoveEvidence } from './large-move-evidence.mjs'
 
 const root = fileURLToPath(new URL('../', import.meta.url))
+const { values: options } = parseArgs({ options: { record: { type: 'boolean' }, 'scala-log': { type: 'string' } } })
 const load = async name => JSON.parse(await readFile(resolve(root, 'target/p28', name), 'utf8'))
 function tests(suite) {
   return [...(suite.specs ?? []).flatMap(spec => spec.tests.map(test => ({ title: spec.title, ...test }))),
@@ -16,28 +19,31 @@ function counts(report) {
     unexpected: all.filter(t => t.status === 'unexpected').length,
     flaky: all.filter(t => t.status === 'flaky').length, skipped: all.filter(t => t.status === 'skipped').length }
 }
-const [node, bundles, corpus, boundaries, browserReport, functionalReport] = await Promise.all(
-  ['node.json', 'bundles.json', 'corpora.json', 'boundaries.json', 'browser-report.json', 'full-browser-report.json'].map(load))
+const [node, bundles, corpus, boundaries, browserReport, functionalReport, stressReport] = await Promise.all(
+  ['node.json', 'bundles.json', 'corpora.json', 'boundaries.json', 'browser-report.json', 'full-browser-report.json', 'large-move-report.json'].map(load))
 const functional = counts(functionalReport), benchmark = counts(browserReport)
+const largeMove = largeMoveEvidence(stressReport)
+if (browserReport.errors?.length || functionalReport.errors?.length) throw new Error('Browser runner reported global errors')
 for (const [name, result] of Object.entries({ functional, benchmark })) {
-  if (!result.total || result.unexpected || result.flaky || result.skipped) throw new Error(`${name}: incomplete/failed evidence ${JSON.stringify(result)}`)
+  if (!result.total || result.unexpected || result.flaky || result.skipped || result.passed + result.expectedFailures !== result.total)
+    throw new Error(`${name}: incomplete/failed evidence ${JSON.stringify(result)}`)
 }
 const browser = tests(browserReport).map(test => {
   const attachment = test.results.at(-1).attachments.find(a => a.name === 'measurements')
   if (!attachment?.body) throw new Error(`Missing measurement: ${test.title}`)
   return JSON.parse(Buffer.from(attachment.body, 'base64').toString('utf8'))
 })
-// The local full gate is logged separately; CI runs Scala in its own job.
+// Opt in to a specific Scala run. Never silently mix in an old local release log.
 let scala = null
-try {
-  const log = await readFile(resolve(root, 'target/p28-final-all.log'), 'utf8')
+if (options['scala-log']) {
+  const log = await readFile(resolve(root, options['scala-log']), 'utf8')
   const passed = [...log.matchAll(/Total number of tests run: (\d+)/g)].reduce((n, match) => n + Number(match[1]), 0)
   if (!passed || /\[error\]|\*\*\*.*FAILED|OutOfMemoryError/.test(log)) throw new Error('Scala gate log is incomplete or failed')
-  scala = { passed, command: 'sbt --server scalafmtAll "Test/testOnly *" + four fullLinkJS + editorMetadata + scalafmtCheckAll',
+  scala = { passed, log: options['scala-log'], command: 'sbt --server "Test/testOnly *"',
     runtime: /welcome to sbt ([^\r\n]+)/.exec(log)?.[1] ?? null }
-} catch (error) { if (error.code !== 'ENOENT') throw error }
+}
 const summary = { node, bundles, corpus, boundaries, browser, functional, benchmark, scala,
-  recordedAt: new Date().toISOString(), largeMove: 'Separate version-specific stress evidence: see large-move-timeout.json and runtime-reorder.json',
+  recordedAt: new Date().toISOString(), largeMove,
   devices: 'No physical device, IME or screenreader acceptance recorded' }
 const ms = value => value == null ? '—' : value.toFixed(3)
 const mib = value => value == null ? '—' : (value / 1048576).toFixed(2)
@@ -76,6 +82,15 @@ Alle lokalen Fälle: ein geänderter Modellknoten, **0 Mounts/Unmounts**, 1050
 Textmutationen einschließlich Warmup, **0 ChildList-/Attributmutationen**.
 Die gemessenen Moves behalten die Host-Identität ohne Mount/Unmount.
 
+## Großer Block-Move als Pflichtprüfung
+
+${largeMove.nodes} Modellknoten, ${largeMove.paragraphSiblings} Absätze: erstes Kind ans Ende.
+Jede Engine muss im ersten Versuch bestehen. Genau ein Host wird entfernt und wieder
+eingefügt; Identität und Reihenfolge stimmen, Mounts/Unmounts bleiben null.
+Die Zeit ist eine Einzelmessung; die CI setzt keine hardwareabhängige Millisekundengrenze.
+
+${table(['Engine / Version', 'Move ms'], largeMove.measurements.map(r => [r.browser + ' ' + r.version, ms(r.elapsedMs)]))}
+
 ## Chromium-Heap
 
 CDP mit angefordertem GC. Firefox/WebKit bieten hier keine vergleichbare Heap-API;
@@ -93,16 +108,16 @@ ${table(['Profil', 'JS Bytes', 'gzip Bytes', 'Brotli Bytes'], bundles.profiles.m
 ${scala ? `${scala.passed} bestandene Scala-Tests; ${scala.runtime}.` : 'Scala läuft in einem getrennten CI-Job; in diesem Artefakt liegt kein Scala-Log vor.'}
 ${functional.passed} tatsächliche Browserpässe, ${functional.expectedFailures} erwartete Fehler,
 ${functional.unexpected} unerwartete Fehler, ${functional.flaky} instabile und ${functional.skipped} übersprungene Fälle.
-Separat ${benchmark.passed} bestandene Browser-Messfälle, ${corpus.results.length} Korpusfälle,
+Separat ${benchmark.passed} bestandene Browser-Messfälle, ${largeMove.passed} große Move-Stressfälle, ${corpus.results.length} Korpusfälle,
 ${boundaries.projects} geprüfte Projekte und ${boundaries.errors.length} Modulgrenzenfehler.
 Die zwei erwarteten Clipboard-Fehler zählen nicht als bestanden.
 `
 await mkdir(resolve(root, 'target/p28'), { recursive: true })
 await writeFile(resolve(root, 'target/p28/summary.json'), JSON.stringify(summary, null, 2))
 await writeFile(resolve(root, 'target/p28/measurements.md'), markdown)
-if (process.argv.includes('--record')) {
+if (options.record) {
   await mkdir(resolve(root, 'benchmarks/results'), { recursive: true })
   await writeFile(resolve(root, 'benchmarks/results/acceptance.json'), JSON.stringify(summary, null, 2))
   await writeFile(resolve(root, 'benchmarks/results/measurements.md'), markdown)
 }
-console.log(JSON.stringify({ functional, benchmark, corpora: corpus.results.length, projects: boundaries.projects }))
+console.log(JSON.stringify({ functional, benchmark, largeMove, corpora: corpus.results.length, projects: boundaries.projects }))

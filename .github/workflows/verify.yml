@@ -24,6 +24,8 @@ jobs:
         run: sbt --server scalafmtCheckAll
       - name: Tests
         run: sbt --server "Test/testOnly *"
+      - name: Belegpruefung testen
+        run: node --test tools/test/*.test.mjs
       - name: Aufgeloeste Modul- und Publish-Grenzen
         run: |
           sbt --server editorMetadata
@@ -70,6 +72,9 @@ jobs:
       - name: Lokale Projektion, Move und Freigabe messen
         working-directory: ember-integration/browser
         run: npm run test:bench
+      - name: Grossen Block-Move in drei Engines pruefen
+        working-directory: ember-integration/browser
+        run: npm run test:bench:stress
       - name: Belege zusammenfassen
         run: node tools/summarize-editor-evidence.mjs
       - name: Abnahmebelege sichern

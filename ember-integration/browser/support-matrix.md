@@ -21,6 +21,13 @@ Freigabe für physische IMEs oder Screenreader.
 | Linux-CI | Workflow für Scala, Serverimport, drei Browserengines, Korpora und Messungen eingerichtet | Lokaler Windows-Lauf belegt keinen ausgeführten Linux-CI-Run |
 | npm-Consumer und Ablösung | P29/P30 spezifiziert | Noch nicht umgesetzt; P28 erteilt keine Ablösefreigabe |
 
+Aktueller lokaler P28-Folgelauf: **808 bestandene Browserfälle plus zwei bekannte
+erwartete Fehler**, 15 Messfälle und drei große Move-Fälle; acht Node-Tests prüfen
+die Ablehnung fehlerhafter Stressbelege. Die [Belege mit UI-Core 1.0.1](../../benchmarks/results/p28-ci-1.0.1.json)
+halten diese Zahlen getrennt von den historischen Release-Läufen fest.
+Als erste manuelle Kombination ist [Windows-Tastatur und IME ohne Screenreader](windows-keyboard-ime.md)
+vorbereitet. Ein tatsächliches Operatorergebnis steht weiterhin aus.
+
 ## Konfigurierte Standardgrenzen
 
 Zeichenangaben sind UTF-16-Einheiten; Modellgröße und DOM-Größe sind verschiedene

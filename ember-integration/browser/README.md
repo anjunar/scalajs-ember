@@ -364,3 +364,12 @@ der [lokale UI-Core-Kandidat](../../benchmarks/runtime-reorder.md) besteht alle
 drei Fälle mit 95–132 ms. Die Korrektur ist inzwischen als
 [veröffentlichte Version 1.0.1 im Standardbuild](../../benchmarks/ui-core-1.0.1-release.md)
 übernommen. Der separate Stresslauf unterscheidet diese Versionen.
+
+Der große Move läuft inzwischen verpflichtend in der CI. Die Zusammenfassung
+lehnt unvollständige oder fehlgeschlagene Stressbelege ab; acht Node-Tests sichern
+diese Ablehnungen. Alle Rohreports bleiben im CI-Artefakt `editor-acceptance`.
+
+Für die erste reale Abnahme ist [Windows-Tastatur und IME ohne Screenreader](windows-keyboard-ime.md)
+vorbereitet. `/toolbar?trace=1` exportiert das ausgefüllte Ergebnisformular
+zusammen mit Ereignissen und Build-Nachweis. Die automatisierten Exporttests
+vergeben keine manuelle Gerätefreigabe.

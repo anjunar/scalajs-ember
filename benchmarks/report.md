@@ -8,6 +8,12 @@ Der anschließende [Runtime-Fix](runtime-reorder.md) besteht den 50000-Absatz-Mo
 in allen drei Engines mit 95–132 ms. Die anschließend veröffentlichte Version
 1.0.1 ist inzwischen die Standardabhängigkeit; siehe [Release-Nachweis](ui-core-1.0.1-release.md).
 
+Der folgende CI-/Gerätevorbereitungsschritt hat Node-, Profil- und Browsermessungen
+mit 1.0.1 erneut ausgeführt und den großen Move als Pflichtprüfung aufgenommen.
+Die [aktuellen Rohbelege](results/p28-ci-1.0.1.json) enthalten 808 Browserpässe,
+zwei bekannte erwartete Fehler, 15 Messfälle und drei große Move-Fälle.
+Die nachstehenden Baseline-Tabellen bleiben zum Vergleich unverändert.
+
 Alle Zahlen, Browser-Versionen, Heap- und Bundlewerte stehen in den
 [Messtabellen](results/measurements.md), die Rohwerte in
 [acceptance.json](results/acceptance.json). Dies ist eine Arbeitsbaum-Messung auf
@@ -130,7 +136,11 @@ Tarball-Messungen folgen erst mit P29.
 Publishstatus und die bestehenden Grenzregeln. Der Prüfer verwendet diese Fakten
 für Zyklen, verbotene Imports/Module und private Publish-Abhängigkeiten.
 Die CI führt die regulären Scala-/Browser-/No-JS-Gates, Korpora, Bundle- und
-Performance-Messungen aus und archiviert `target/p28`.
+Performance-Messungen aus und archiviert `target/p28`. Seit UI-Core 1.0.1 gehört
+der große Move in **allen drei Engines** als verpflichtender Schritt dazu.
+Der Zusammenfasser verlangt drei erfolgreiche Erstversuche mit vollständigen
+100001-Node-/Identitäts-/DOM-Mutationsbelegen. Fehlende Engines, erwartete Fehler,
+Retries, kleinere Dokumente oder fehlende Messwerte ergeben keinen grünen Nachweis.
 
 Vier Full-Link-Anwendungen nach allen Tests überstiegen den bisherigen 2-GB-Buildheap.
 Der Build erhält 4 GB und verwendet für Full-Link den Batchmodus, der den jeweiligen
@@ -145,6 +155,7 @@ Kanal `moz-firefox`; in Linux-CI bleibt der gebündelte Firefox voreingestellt.
 
 ```powershell
 sbt --server scalafmtCheckAll "Test/testOnly *"
+node --test tools/test/*.test.mjs
 sbt --server "scalajs-ember-integration/fullLinkJS" "scalajs-ember-profile-text/fullLinkJS" "scalajs-ember-profile-markdown/fullLinkJS" "scalajs-ember-profile-standard/fullLinkJS" editorMetadata
 node tools/verify-editor-boundaries.mjs
 node tools/verify-editor-corpora.mjs
@@ -163,18 +174,21 @@ Pop-Location
 node --expose-gc benchmarks/run.mjs
 Push-Location ember-integration/browser
 npm run test:bench
+npm run test:bench:stress
 Pop-Location
 node tools/summarize-editor-evidence.mjs
 ```
 
 Mit `--record` übernimmt der letzte Befehl tatsächlich gemessene Belege nach
 `benchmarks/results/`. Ohne diese Option schreibt er ausschließlich nach `target/p28`.
+Ein lokales Scala-Protokoll wird nur mit `--scala-log <Pfad>` aufgenommen;
+ohne diese Option wird kein älteres Log stillschweigend wiederverwendet.
 Großer Move, separat; mit der alten Version 1.0.0 mit erwartetem
 **nicht erfolgreichen Exitcode**, mit dem Kandidaten und der neuen Standardversion 1.0.1 bestanden:
 
 ```powershell
 Push-Location ember-integration/browser
-npm run test:bench:stress -- --project=chromium
+npm run test:bench:stress
 Pop-Location
 ```
 

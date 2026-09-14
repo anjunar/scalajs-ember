@@ -2341,6 +2341,31 @@ Der [Release-Nachweis](benchmarks/ui-core-1.0.1-release.md) dokumentiert Veröff
 und Consumer-Abnahme. **P28 bleibt teilweise umgesetzt**, weil reale
 Geräte-/IME-/Screenreader-Nachweise fehlen; P29/P30 wurden nicht begonnen.
 
+### P28: dauerhafte Move-Prüfung und erster Geräte-Lauf vorbereitet
+
+Der große 50000-Absatz-Move wird mit UI-Core 1.0.1 jetzt verpflichtend in allen
+drei CI-Engines ausgeführt. Die Belegprüfung verlangt erfolgreiche Erstversuche,
+die richtige Dokumentgröße, erhaltene Identität und genau einen DOM-Move;
+acht Node-Tests prüfen ausdrücklich die Ablehnung unvollständiger/falscher Belege.
+Ein lokales Scala-Log wird nur noch über einen expliziten Parameter eingebunden.
+
+Auf Wunsch bleibt die Arbeit bei **P28 und der Geräteabnahme**; P29 wird nicht
+vorgezogen. Für den ersten Lauf ist **Windows-Tastatur und IME ohne Screenreader**
+gewählt. [W01–W06](ember-integration/browser/windows-keyboard-ime.md) und das
+Ergebnisformular im Opt-in-Trace sind vorbereitet. Build-Hash, Versionen und
+Operatorbericht werden gemeinsam exportiert. Die manuelle Ergebnislage bleibt
+offen, bis die Testperson diese Schritte tatsächlich durchführt und die Belege
+ausgewertet sind. Automatische Exporttests ersetzen diese Abnahme nicht.
+
+Lokale Prüfung dieses Paketstands: **808 Browserfälle bestanden**, zusätzlich
+zwei bekannte erwartete Windows-WebKit-Clipboard-Fehler; keine unerwarteten,
+übersprungenen oder instabilen Fälle. Die acht Node-Prüfungen, 15 Messfälle und
+drei großen Move-Fälle bestehen. Node-/Profilgrößen wurden mit UI-Core 1.0.1
+neu gemessen. [Belege](benchmarks/results/p28-ci-1.0.1.json) enthalten die Ergebnisse;
+das bereits bestandene Scala-Release-Gate ist über seinen expliziten Logpfad
+referenziert. An Scala-Sourcen wurde in diesem Schritt nichts geändert.
+Ein neuer Linux-CI-Lauf ist damit noch nicht behauptet.
+
 ## P29 — TypeScript-Fassade und eine Scala.js-Runtime
 
 - **Ziel:** Thin Facade über die neue native Engine in der vorhandenen gemeinsamen UI-Bridge.

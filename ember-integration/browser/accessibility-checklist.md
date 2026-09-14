@@ -4,6 +4,10 @@ Stand: vorbereitet, **noch keine manuelle Kombination abgenommen**. Automatische
 Browsertests sind separat in [support-matrix.md](support-matrix.md) aufgeführt.
 Ein fehlendes Gerät oder ein grüner Protokolltest ersetzt kein ausgefülltes Ergebnis.
 
+Als erster gemeinsamer Lauf ist **Windows-Tastatur und IME ohne Screenreader**
+gewählt. Die [konkreten Schritte W01–W06](windows-keyboard-ime.md) sind vorbereitet;
+noch kein Schritt hat ein tatsächliches Operatorergebnis.
+
 ## Vorbereitung und Beleg
 
 Nach dem Full-Link `node ember-integration/browser/server.mjs` starten und
@@ -12,12 +16,17 @@ Testseite durch die Testumgebung erreichbar sein; der lokale Loopback-Link allei
 ist kein Gerätezugang. Keine Änderung an Firewall oder öffentlichem Hosting ist
 Teil dieses Pakets.
 
-Nur den Testtext „Grüße, é, 👩🏽‍💻, 中文, 한글, العربية“ verwenden. Die Trace-Leiste
+Nur den Fixture-Text „Hello world“ und den Testtext „Grüße, é, 👩🏽‍💻, 中文, 한글, العربية“ verwenden. Die Trace-Leiste
 zeichnet nach **Trace starten** höchstens 2000 native Ereignisse mit Browser-UA,
 Eingabetyp, Composition-Status, DOM-/Modelltext und Selection-Offsets auf. Nach
 **Trace stoppen** den Trace herunterladen. `trusted: true` allein bestätigt weder
 eine Eingabemethode noch einen Screenreader; zusätzlich ist der Operatorbericht nötig.
 Traces mit `truncated: true` werden in kürzeren Einzelläufen wiederholt.
+
+Die Trace-Leiste enthält ein Ergebnisformular für Testperson, Geräteversionen,
+Eingabemethode, Prüfschritt und Beobachtung. Neue Läufe setzen das Ergebnis auf
+„Offen“. Der Export ergänzt Build-Hash, Revision/Dirty-Status und die aufgelöste
+UI-Core-Version; `reviewStatus` bleibt bis zur externen Prüfung unverändert.
 
 Pro Abnahme eine Datei nach `benchmarks/corpora/device-traces/` übernehmen und mit
 Gerät, Betriebssystem, Browser-/AT-Version, Eingabemethode, Git-Revision, Datum,

@@ -1,5 +1,8 @@
 import { createServer } from 'node:http'
 import { readFile } from 'node:fs/promises'
+import { createHash } from 'node:crypto'
+import { execFileSync } from 'node:child_process'
+import { fileURLToPath } from 'node:url'
 import { mediaRequest } from './media-server.mjs'
 
 const output = new URL('../../target/ember-browser-tests/', import.meta.url)
@@ -108,6 +111,21 @@ const server = createServer(async (request, response) => {
     return
   }
   if (await mediaRequest(request, response, url, mediaFixtures)) return
+  if (path === '/acceptance-build.json') {
+    const root = fileURLToPath(new URL('../../', import.meta.url))
+    let metadata = null
+    try { metadata = JSON.parse(await readFile(new URL('../../target/editor-metadata/scalajs-ember-integration.json', import.meta.url), 'utf8')) }
+    catch (error) { if (error.code !== 'ENOENT') throw error }
+    // Hash linked bytes for provenance only; never inspect generated source.
+    const integrationSha256 = createHash('sha256').update(await readFile(new URL('main.js', output))).digest('hex')
+    response.setHeader('Content-Type', 'application/json; charset=utf-8')
+    response.setHeader('Cache-Control', 'no-store')
+    response.end(JSON.stringify({ capturedAt: new Date().toISOString(), integrationSha256,
+      revision: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim(),
+      dirty: !!execFileSync('git', ['status', '--porcelain'], { cwd: root, encoding: 'utf8' }).trim(),
+      uiCore: metadata?.compileModules.find(module => module.startsWith('com.anjunar:scalajs-ui-core_')) ?? null }))
+    return
+  }
   if (path === '/acceptance-trace.mjs') {
     response.setHeader('Content-Type', 'text/javascript; charset=utf-8')
     response.end(await readFile(new URL('acceptance-trace.mjs', import.meta.url)))
