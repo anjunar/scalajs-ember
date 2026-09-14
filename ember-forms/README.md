@@ -182,3 +182,9 @@ Was nur eine echte Engine beantwortet, steht im Browser-Gate:
 `source-form.spec.mjs` und `editor-hydration.spec.mjs`. Der Testserver rendert das Feld dabei **im Serverprozess** durch
 denselben `EditorFieldView` — möglich nur, weil §15.2 zusichert, dass ein Modulimport weder
 `window` noch `document` liest.
+
+P28 weist den synchronen Formstring-Pfad getrennt von lokalen Core-Edits aus:
+Validierung und Vollserialisierung wachsen mit dem Dokument. Sehr große Felder
+sind damit keine freigegebenen interaktiven Einsatzfälle. Tatsächliche Messungen
+und No-JS-/Gerätefreigaben: [Messbericht](../benchmarks/report.md),
+[Supportmatrix](../ember-integration/browser/support-matrix.md).

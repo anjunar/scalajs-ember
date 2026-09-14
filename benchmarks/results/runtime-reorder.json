@@ -1,0 +1,815 @@
+{
+  "recordedAt": "2026-09-14T10:51:02.338Z",
+  "runtime": "com.anjunar:scalajs-ui-core_sjs1_3:1.0.1-p28-SNAPSHOT",
+  "defaultRuntime": "1.0.0 (published, unchanged)",
+  "environment": {
+    "platform": "win32 10.0.26200",
+    "cpu": "Intel(R) Core(TM) i7-14700KF",
+    "node": "v26.4.0"
+  },
+  "editorCommit": "ab06a60f3b0f67f9fa9cfb52d1940f16c319eab5",
+  "uiCommit": "455725c9dc2f6a1c39a9c2072ea284889a02d168",
+  "workingTreeCandidate": true,
+  "sourceHashes": [
+    {
+      "file": "scala/scalajs-ui-core/src/main/scala-3/ui/core/component/Runtime.scala",
+      "sha256": "bd560bd4c920c9a1e19e7b5049448cc830896a97e12432e5713f6694487a039d"
+    },
+    {
+      "file": "scala/scalajs-ui-core/src/main/scala-3/ui/core/statement/KeyedChildren.scala",
+      "sha256": "007426174a62effa8605281baba46ac4ba95bb08d3bd78eecd43dcf63c42cf78"
+    },
+    {
+      "file": "scala/scalajs-ui-core/src/test/scala-3/ui/core/render/KeyedReorderSpec.scala",
+      "sha256": "868ba4c69cda2dcd949f85eef59e66238ac7cde949bff96684bff52f6558452b"
+    }
+  ],
+  "baselineFile": "benchmarks/results/acceptance.json",
+  "stressCase": {
+    "nodes": 100001,
+    "paragraphSiblings": 50000,
+    "operation": "first paragraph to end"
+  },
+  "integrationSha256": "0a1e8ce7067b8c3ab17cd8d12ae2e421b9e5adca63de9017969bfa6c78746d21",
+  "gates": {
+    "uiScala": {
+      "passed": 452
+    },
+    "editorScala": {
+      "passed": 1266
+    },
+    "uiBrowser": {
+      "passed": 57,
+      "expectedFailures": 0
+    },
+    "editorBrowser": {
+      "passed": 802,
+      "expectedFailures": 2
+    },
+    "benchmark": {
+      "passed": 15,
+      "expectedFailures": 0
+    },
+    "stress": {
+      "passed": 3,
+      "expectedFailures": 0
+    },
+    "coreFormat": "passed",
+    "uiGlobalFormat": "failed: parallel TableView.scala changes are not formatted",
+    "npmCore": [
+      114,
+      8
+    ],
+    "npmDemo": "passed: typecheck, client, SSR, pages, one runtime"
+  },
+  "largeMoves": [
+    {
+      "browser": "chromium",
+      "version": "153.0.8010.12",
+      "elapsedMs": 95.09999999999991,
+      "identity": true,
+      "mounts": 0,
+      "unmounts": 0,
+      "firstIsLast": true,
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "browser": "firefox",
+      "version": "155.0.1",
+      "elapsedMs": 118,
+      "identity": true,
+      "mounts": 0,
+      "unmounts": 0,
+      "firstIsLast": true,
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "browser": "webkit",
+      "version": "26.6",
+      "elapsedMs": 132,
+      "identity": true,
+      "mounts": 0,
+      "unmounts": 0,
+      "firstIsLast": true,
+      "added": 1,
+      "removed": 1
+    }
+  ],
+  "measurements": [
+    {
+      "browser": "chromium",
+      "version": "153.0.8010.12",
+      "nodes": 1000,
+      "shape": "paragraphs",
+      "edits": {
+        "commitIncludingProjection": {
+          "samples": 1000,
+          "p50Ms": 0,
+          "p95Ms": 0.10000000000002274,
+          "maxMs": 0.6000000000000227
+        },
+        "commitToProjected": {
+          "samples": 1000,
+          "p50Ms": 0,
+          "p95Ms": 0.10000000000002274,
+          "maxMs": 0.6000000000000227
+        },
+        "mounts": 0,
+        "unmounts": 0,
+        "maxChangedNodes": 1
+      },
+      "writes": {
+        "text": 1050,
+        "children": 0,
+        "attributes": 0
+      },
+      "mount": {
+        "nodes": 1001,
+        "mountMs": 13.799999999999997,
+        "mounts": 1001
+      },
+      "move": {
+        "elapsedMs": 3.6000000000000227,
+        "identity": true,
+        "mounts": 0,
+        "unmounts": 0
+      },
+      "release": {
+        "disposeMs": 3,
+        "remainingNodes": 0
+      },
+      "heap": {
+        "beforeGcBytes": 6892888,
+        "mountedGcBytes": 11351620,
+        "afterDisposeGcBytes": 8532972
+      }
+    },
+    {
+      "browser": "chromium",
+      "version": "153.0.8010.12",
+      "nodes": 10000,
+      "shape": "paragraphs",
+      "edits": {
+        "commitIncludingProjection": {
+          "samples": 1000,
+          "p50Ms": 0,
+          "p95Ms": 0.10000100000002021,
+          "maxMs": 0.40000099999997474
+        },
+        "commitToProjected": {
+          "samples": 1000,
+          "p50Ms": 0,
+          "p95Ms": 0.10000000000002274,
+          "maxMs": 0.40000099999997474
+        },
+        "mounts": 0,
+        "unmounts": 0,
+        "maxChangedNodes": 1
+      },
+      "writes": {
+        "text": 1050,
+        "children": 0,
+        "attributes": 0
+      },
+      "mount": {
+        "nodes": 10001,
+        "mountMs": 60.60000099999999,
+        "mounts": 10001
+      },
+      "move": {
+        "elapsedMs": 14,
+        "identity": true,
+        "mounts": 0,
+        "unmounts": 0
+      },
+      "release": {
+        "disposeMs": 12.699999988079071,
+        "remainingNodes": 0
+      },
+      "heap": {
+        "beforeGcBytes": 6892888,
+        "mountedGcBytes": 34304852,
+        "afterDisposeGcBytes": 9133652
+      }
+    },
+    {
+      "browser": "chromium",
+      "version": "153.0.8010.12",
+      "nodes": 100000,
+      "shape": "paragraphs",
+      "edits": {
+        "commitIncludingProjection": {
+          "samples": 1000,
+          "p50Ms": 0,
+          "p95Ms": 0.10000000000013642,
+          "maxMs": 0.5
+        },
+        "commitToProjected": {
+          "samples": 1000,
+          "p50Ms": 0,
+          "p95Ms": 0.10000000000013642,
+          "maxMs": 0.40000000000009095
+        },
+        "mounts": 0,
+        "unmounts": 0,
+        "maxChangedNodes": 1
+      },
+      "writes": {
+        "text": 1050,
+        "children": 0,
+        "attributes": 0
+      },
+      "mount": {
+        "nodes": 100001,
+        "mountMs": 507.80000000000007,
+        "mounts": 100001
+      },
+      "move": null,
+      "release": {
+        "disposeMs": 90.69999998807907,
+        "remainingNodes": 0
+      },
+      "heap": {
+        "beforeGcBytes": 6892888,
+        "mountedGcBytes": 267176188,
+        "afterDisposeGcBytes": 8534856
+      }
+    },
+    {
+      "browser": "chromium",
+      "version": "153.0.8010.12",
+      "nodes": 3,
+      "shape": "long-leaf",
+      "edits": {
+        "commitIncludingProjection": {
+          "samples": 1000,
+          "p50Ms": 0.5,
+          "p95Ms": 0.7000000000000455,
+          "maxMs": 1.0999990000000253
+        },
+        "commitToProjected": {
+          "samples": 1000,
+          "p50Ms": 0.5,
+          "p95Ms": 0.7000000000000455,
+          "maxMs": 1.0999990000000253
+        },
+        "mounts": 0,
+        "unmounts": 0,
+        "maxChangedNodes": 1
+      },
+      "writes": {
+        "text": 1050,
+        "children": 0,
+        "attributes": 0
+      },
+      "mount": {
+        "nodes": 3,
+        "mountMs": 5.5,
+        "mounts": 3
+      },
+      "move": null,
+      "release": {
+        "disposeMs": 0.4000000059604645,
+        "remainingNodes": 0
+      },
+      "heap": {
+        "beforeGcBytes": 6892888,
+        "mountedGcBytes": 12169284,
+        "afterDisposeGcBytes": 8009440
+      }
+    },
+    {
+      "browser": "chromium",
+      "version": "153.0.8010.12",
+      "nodes": 129,
+      "shape": "deep-list",
+      "edits": {
+        "commitIncludingProjection": {
+          "samples": 1000,
+          "p50Ms": 0.09999999999999432,
+          "p95Ms": 0.2000009999999861,
+          "maxMs": 0.7000009999999861
+        },
+        "commitToProjected": {
+          "samples": 1000,
+          "p50Ms": 0.09999999999999432,
+          "p95Ms": 0.2000009999999861,
+          "maxMs": 0.7000009999999861
+        },
+        "mounts": 0,
+        "unmounts": 0,
+        "maxChangedNodes": 1
+      },
+      "writes": {
+        "text": 1050,
+        "children": 0,
+        "attributes": 0
+      },
+      "mount": {
+        "nodes": 129,
+        "mountMs": 4.900000000000006,
+        "mounts": 129
+      },
+      "move": null,
+      "release": {
+        "disposeMs": 1,
+        "remainingNodes": 0
+      },
+      "heap": {
+        "beforeGcBytes": 6892888,
+        "mountedGcBytes": 8887264,
+        "afterDisposeGcBytes": 8359788
+      }
+    },
+    {
+      "browser": "firefox",
+      "version": "155.0.1",
+      "nodes": 1000,
+      "shape": "paragraphs",
+      "edits": {
+        "commitIncludingProjection": {
+          "samples": 1000,
+          "p50Ms": 0,
+          "p95Ms": 0,
+          "maxMs": 1
+        },
+        "commitToProjected": {
+          "samples": 1000,
+          "p50Ms": 0,
+          "p95Ms": 0,
+          "maxMs": 1
+        },
+        "mounts": 0,
+        "unmounts": 0,
+        "maxChangedNodes": 1
+      },
+      "writes": {
+        "text": 1050,
+        "children": 0,
+        "attributes": 0
+      },
+      "mount": {
+        "nodes": 1001,
+        "mountMs": 28,
+        "mounts": 1001
+      },
+      "move": {
+        "elapsedMs": 3,
+        "identity": true,
+        "mounts": 0,
+        "unmounts": 0
+      },
+      "release": {
+        "disposeMs": 3,
+        "remainingNodes": 0
+      },
+      "heap": {
+        "beforeGcBytes": null,
+        "mountedGcBytes": null,
+        "afterDisposeGcBytes": null
+      }
+    },
+    {
+      "browser": "firefox",
+      "version": "155.0.1",
+      "nodes": 10000,
+      "shape": "paragraphs",
+      "edits": {
+        "commitIncludingProjection": {
+          "samples": 1000,
+          "p50Ms": 0,
+          "p95Ms": 0,
+          "maxMs": 3
+        },
+        "commitToProjected": {
+          "samples": 1000,
+          "p50Ms": 0,
+          "p95Ms": 0,
+          "maxMs": 3
+        },
+        "mounts": 0,
+        "unmounts": 0,
+        "maxChangedNodes": 1
+      },
+      "writes": {
+        "text": 1050,
+        "children": 0,
+        "attributes": 0
+      },
+      "mount": {
+        "nodes": 10001,
+        "mountMs": 129,
+        "mounts": 10001
+      },
+      "move": {
+        "elapsedMs": 13,
+        "identity": true,
+        "mounts": 0,
+        "unmounts": 0
+      },
+      "release": {
+        "disposeMs": 19,
+        "remainingNodes": 0
+      },
+      "heap": {
+        "beforeGcBytes": null,
+        "mountedGcBytes": null,
+        "afterDisposeGcBytes": null
+      }
+    },
+    {
+      "browser": "firefox",
+      "version": "155.0.1",
+      "nodes": 100000,
+      "shape": "paragraphs",
+      "edits": {
+        "commitIncludingProjection": {
+          "samples": 1000,
+          "p50Ms": 0,
+          "p95Ms": 0,
+          "maxMs": 8
+        },
+        "commitToProjected": {
+          "samples": 1000,
+          "p50Ms": 0,
+          "p95Ms": 0,
+          "maxMs": 8
+        },
+        "mounts": 0,
+        "unmounts": 0,
+        "maxChangedNodes": 1
+      },
+      "writes": {
+        "text": 1050,
+        "children": 0,
+        "attributes": 0
+      },
+      "mount": {
+        "nodes": 100001,
+        "mountMs": 1013,
+        "mounts": 100001
+      },
+      "move": null,
+      "release": {
+        "disposeMs": 156,
+        "remainingNodes": 0
+      },
+      "heap": {
+        "beforeGcBytes": null,
+        "mountedGcBytes": null,
+        "afterDisposeGcBytes": null
+      }
+    },
+    {
+      "browser": "firefox",
+      "version": "155.0.1",
+      "nodes": 3,
+      "shape": "long-leaf",
+      "edits": {
+        "commitIncludingProjection": {
+          "samples": 1000,
+          "p50Ms": 3,
+          "p95Ms": 9,
+          "maxMs": 13
+        },
+        "commitToProjected": {
+          "samples": 1000,
+          "p50Ms": 3,
+          "p95Ms": 9,
+          "maxMs": 13
+        },
+        "mounts": 0,
+        "unmounts": 0,
+        "maxChangedNodes": 1
+      },
+      "writes": {
+        "text": 1050,
+        "children": 0,
+        "attributes": 0
+      },
+      "mount": {
+        "nodes": 3,
+        "mountMs": 12,
+        "mounts": 3
+      },
+      "move": null,
+      "release": {
+        "disposeMs": 1,
+        "remainingNodes": 0
+      },
+      "heap": {
+        "beforeGcBytes": null,
+        "mountedGcBytes": null,
+        "afterDisposeGcBytes": null
+      }
+    },
+    {
+      "browser": "firefox",
+      "version": "155.0.1",
+      "nodes": 129,
+      "shape": "deep-list",
+      "edits": {
+        "commitIncludingProjection": {
+          "samples": 1000,
+          "p50Ms": 0,
+          "p95Ms": 1,
+          "maxMs": 6
+        },
+        "commitToProjected": {
+          "samples": 1000,
+          "p50Ms": 0,
+          "p95Ms": 1,
+          "maxMs": 6
+        },
+        "mounts": 0,
+        "unmounts": 0,
+        "maxChangedNodes": 1
+      },
+      "writes": {
+        "text": 1050,
+        "children": 0,
+        "attributes": 0
+      },
+      "mount": {
+        "nodes": 129,
+        "mountMs": 16,
+        "mounts": 129
+      },
+      "move": null,
+      "release": {
+        "disposeMs": 2,
+        "remainingNodes": 0
+      },
+      "heap": {
+        "beforeGcBytes": null,
+        "mountedGcBytes": null,
+        "afterDisposeGcBytes": null
+      }
+    },
+    {
+      "browser": "webkit",
+      "version": "26.6",
+      "nodes": 1000,
+      "shape": "paragraphs",
+      "edits": {
+        "commitIncludingProjection": {
+          "samples": 1000,
+          "p50Ms": 0,
+          "p95Ms": 0,
+          "maxMs": 1
+        },
+        "commitToProjected": {
+          "samples": 1000,
+          "p50Ms": 0,
+          "p95Ms": 0,
+          "maxMs": 1
+        },
+        "mounts": 0,
+        "unmounts": 0,
+        "maxChangedNodes": 1
+      },
+      "writes": {
+        "text": 1050,
+        "children": 0,
+        "attributes": 0
+      },
+      "mount": {
+        "nodes": 1001,
+        "mountMs": 20,
+        "mounts": 1001
+      },
+      "move": {
+        "elapsedMs": 7,
+        "identity": true,
+        "mounts": 0,
+        "unmounts": 0
+      },
+      "release": {
+        "disposeMs": 8,
+        "remainingNodes": 0
+      },
+      "heap": {
+        "beforeGcBytes": null,
+        "mountedGcBytes": null,
+        "afterDisposeGcBytes": null
+      }
+    },
+    {
+      "browser": "webkit",
+      "version": "26.6",
+      "nodes": 10000,
+      "shape": "paragraphs",
+      "edits": {
+        "commitIncludingProjection": {
+          "samples": 1000,
+          "p50Ms": 0,
+          "p95Ms": 0,
+          "maxMs": 1
+        },
+        "commitToProjected": {
+          "samples": 1000,
+          "p50Ms": 0,
+          "p95Ms": 0,
+          "maxMs": 1
+        },
+        "mounts": 0,
+        "unmounts": 0,
+        "maxChangedNodes": 1
+      },
+      "writes": {
+        "text": 1050,
+        "children": 0,
+        "attributes": 0
+      },
+      "mount": {
+        "nodes": 10001,
+        "mountMs": 73,
+        "mounts": 10001
+      },
+      "move": {
+        "elapsedMs": 19,
+        "identity": true,
+        "mounts": 0,
+        "unmounts": 0
+      },
+      "release": {
+        "disposeMs": 20,
+        "remainingNodes": 0
+      },
+      "heap": {
+        "beforeGcBytes": null,
+        "mountedGcBytes": null,
+        "afterDisposeGcBytes": null
+      }
+    },
+    {
+      "browser": "webkit",
+      "version": "26.6",
+      "nodes": 100000,
+      "shape": "paragraphs",
+      "edits": {
+        "commitIncludingProjection": {
+          "samples": 1000,
+          "p50Ms": 0,
+          "p95Ms": 0,
+          "maxMs": 1
+        },
+        "commitToProjected": {
+          "samples": 1000,
+          "p50Ms": 0,
+          "p95Ms": 0,
+          "maxMs": 1
+        },
+        "mounts": 0,
+        "unmounts": 0,
+        "maxChangedNodes": 1
+      },
+      "writes": {
+        "text": 1050,
+        "children": 0,
+        "attributes": 0
+      },
+      "mount": {
+        "nodes": 100001,
+        "mountMs": 587,
+        "mounts": 100001
+      },
+      "move": null,
+      "release": {
+        "disposeMs": 193,
+        "remainingNodes": 0
+      },
+      "heap": {
+        "beforeGcBytes": null,
+        "mountedGcBytes": null,
+        "afterDisposeGcBytes": null
+      }
+    },
+    {
+      "browser": "webkit",
+      "version": "26.6",
+      "nodes": 3,
+      "shape": "long-leaf",
+      "edits": {
+        "commitIncludingProjection": {
+          "samples": 1000,
+          "p50Ms": 0,
+          "p95Ms": 1,
+          "maxMs": 3
+        },
+        "commitToProjected": {
+          "samples": 1000,
+          "p50Ms": 0,
+          "p95Ms": 1,
+          "maxMs": 3
+        },
+        "mounts": 0,
+        "unmounts": 0,
+        "maxChangedNodes": 1
+      },
+      "writes": {
+        "text": 1050,
+        "children": 0,
+        "attributes": 0
+      },
+      "mount": {
+        "nodes": 3,
+        "mountMs": 10,
+        "mounts": 3
+      },
+      "move": null,
+      "release": {
+        "disposeMs": 1,
+        "remainingNodes": 0
+      },
+      "heap": {
+        "beforeGcBytes": null,
+        "mountedGcBytes": null,
+        "afterDisposeGcBytes": null
+      }
+    },
+    {
+      "browser": "webkit",
+      "version": "26.6",
+      "nodes": 129,
+      "shape": "deep-list",
+      "edits": {
+        "commitIncludingProjection": {
+          "samples": 1000,
+          "p50Ms": 0,
+          "p95Ms": 1,
+          "maxMs": 5
+        },
+        "commitToProjected": {
+          "samples": 1000,
+          "p50Ms": 0,
+          "p95Ms": 1,
+          "maxMs": 5
+        },
+        "mounts": 0,
+        "unmounts": 0,
+        "maxChangedNodes": 1
+      },
+      "writes": {
+        "text": 1050,
+        "children": 0,
+        "attributes": 0
+      },
+      "mount": {
+        "nodes": 129,
+        "mountMs": 8,
+        "mounts": 129
+      },
+      "move": null,
+      "release": {
+        "disposeMs": 2,
+        "remainingNodes": 0
+      },
+      "heap": {
+        "beforeGcBytes": null,
+        "mountedGcBytes": null,
+        "afterDisposeGcBytes": null
+      }
+    }
+  ],
+  "comparison": [
+    {
+      "browser": "chromium",
+      "nodes": 1001,
+      "beforeMs": 78.900001,
+      "afterMs": 3.6000000000000227
+    },
+    {
+      "browser": "chromium",
+      "nodes": 10001,
+      "beforeMs": 14062.4,
+      "afterMs": 14
+    },
+    {
+      "browser": "firefox",
+      "nodes": 1001,
+      "beforeMs": 29,
+      "afterMs": 3
+    },
+    {
+      "browser": "firefox",
+      "nodes": 10001,
+      "beforeMs": 2585,
+      "afterMs": 13
+    },
+    {
+      "browser": "webkit",
+      "nodes": 1001,
+      "beforeMs": 36,
+      "afterMs": 7
+    },
+    {
+      "browser": "webkit",
+      "nodes": 10001,
+      "beforeMs": 1159,
+      "afterMs": 19
+    }
+  ]
+}

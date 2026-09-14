@@ -27,7 +27,10 @@ lazy val commonJsSettings = Seq(
   scalaJSLinkerConfig := scalaJSLinkerConfig.value
     .withModuleKind(ModuleKind.ESModule)
     .withESFeatures(_.withESVersion(ESVersion.ES2021))
-    .withSourceMap(true)
+    .withSourceMap(true),
+  // Full links are CI/release measurements. Release each optimizer after linking so
+  // independent profile applications do not retain four incremental optimizer heaps.
+  Compile / fullLinkJS / scalaJSLinkerConfig ~= (_.withBatchMode(true))
 )
 
 // Nur ScalaTest, Test-Scope. Landet nicht im POM der Kompilierabhaengigkeiten.
@@ -84,7 +87,10 @@ lazy val publishSettings = Seq(
 // Publish-Regel aus §6 schon vorher gewahrt (der POM nannte das veroeffentlichte Artefakt);
 // jetzt ist sie es ohne Fussnote. `ember-core` und `ember-rich-text` bleiben headless (§7).
 lazy val uiCoreSettings = Seq(
-  libraryDependencies += "com.anjunar" %% "scalajs-ui-core" % "1.0.0"
+  // A uniquely versioned local candidate can be verified without replacing the
+  // released artifact. CI/default consumers use 1.0.1 with batched keyed reordering.
+  libraryDependencies += "com.anjunar" %% "scalajs-ui-core" %
+    sys.props.getOrElse("ember.uiCore.version", "1.0.1")
 )
 
 // Grenze aus Architektur §7 als Compile-Gate.
@@ -104,6 +110,26 @@ lazy val uiCoreSettings = Seq(
 // Der Lint selbst ist bewusst uncached: er liest `update` und `thisProject`, deren Werte sbt
 // nicht hashen kann, und ein Lint, der wegen eines Cache-Treffers stumm bleibt, ist wertlos.
 lazy val boundaryCheck = taskKey[Unit]("Prueft die Abhaengigkeitsgrenze dieses Moduls.")
+lazy val editorMetadata = taskKey[File]("Exports resolved editor dependency and source boundaries.")
+lazy val editorAllowedProjects = settingKey[Seq[String]]("Allowed editor project edges.")
+lazy val editorForbiddenImports = settingKey[Seq[String]]("Forbidden source imports.")
+lazy val editorForbiddenModules = settingKey[Seq[String]]("Forbidden resolved modules.")
+lazy val editorAllowedModules = settingKey[Seq[String]]("Explicit module exceptions.")
+
+editorAllowedProjects := Seq.empty
+editorForbiddenImports := Seq.empty
+editorForbiddenModules := Seq.empty
+editorAllowedModules := Seq.empty
+editorMetadata := Def.uncached {
+  EditorMetadata.write(
+    (LocalRootProject / baseDirectory).value / "target" / "editor-metadata" / s"${thisProject.value.id}.json",
+    thisProject.value.id,
+    thisProject.value.dependencies.map(d => d.project.project -> d.configuration.getOrElse("compile->compile")),
+    update.value.configuration(sbt.librarymanagement.ConfigRef("compile")).toSeq.flatMap(_.modules).map(m => s"${m.module.organization}:${m.module.name}:${m.module.revision}"),
+    editorAllowedProjects.value, editorForbiddenImports.value, editorForbiddenModules.value,
+    editorAllowedModules.value, (Compile / unmanagedSources).value, (publish / skip).value
+  )
+}
 
 // Artefakte, die in keinem Editor-Modul etwas zu suchen haben. Die Editor-Module sind
 // allesamt headless oder haengen hoechstens an ui-core -- `scalajs-lexical` gehoert zum
@@ -141,6 +167,10 @@ def boundarySettings(
     forbiddenModules: Seq[String] = forbiddenArtifacts,
     allowedModules: Seq[String] = Seq.empty
 ): Seq[Setting[?]] = Seq(
+  editorAllowedProjects := allowedProjects,
+  editorForbiddenImports := forbiddenImports,
+  editorForbiddenModules := forbiddenModules,
+  editorAllowedModules := allowedModules,
   boundaryCheck := Def.uncached {
     val log      = streams.value.log
     val moduleId = thisProject.value.id
@@ -708,6 +738,7 @@ lazy val emberIntegration =
       description                     := "Browser harness for the Ember editor. Never published.",
       scalaJSUseMainModuleInitializer := false,
       publish / skip                  := true,
+      Compile / unmanagedSources += (LocalRootProject / baseDirectory).value / "benchmarks" / "EditorBench.scala",
       // Der Harness-Server liest genau hier. `fullLinkJS`, weil die Abnahme gegen die
       // tatsaechlich ausgelieferte Linkerausgabe laufen soll und nicht gegen einen Dev-Build.
       Compile / fullLinkJS / scalaJSLinkerOutputDirectory :=
@@ -818,6 +849,24 @@ lazy val emberDemo =
       )
     )
 
+def editorProfile(profile: String): Project =
+  Project(id = s"scalajs-ember-profile-$profile", base = file(s"benchmarks/profiles/$profile"))
+    .enablePlugins(ScalaJSPlugin)
+    .dependsOn(emberCore, emberRichText, emberHistory, emberStandard, emberUi, emberBrowser, emberBrowserSupport)
+    .settings(commonJsSettings)
+    .settings(uiCoreSettings)
+    .settings(domSettings)
+    .settings(
+      publish / skip := true,
+      Compile / unmanagedSourceDirectories += (LocalRootProject / baseDirectory).value / "benchmarks" / "profiles" / "shared",
+      Compile / fullLinkJS / scalaJSLinkerOutputDirectory :=
+        (LocalRootProject / baseDirectory).value / "target" / "editor-profiles" / profile
+    )
+
+lazy val editorTextProfile = editorProfile("text")
+lazy val editorMarkdownProfile = editorProfile("markdown")
+lazy val editorStandardProfile = editorProfile("standard")
+
 lazy val root = Project(id = "scalajs-ember-root", base = file("."))
   .aggregate(
     emberClipboard,
@@ -836,6 +885,9 @@ lazy val root = Project(id = "scalajs-ember-root", base = file("."))
     emberBrowserSupport,
     emberForms,
     emberToolbar,
+    editorTextProfile,
+    editorMarkdownProfile,
+    editorStandardProfile,
     emberStandard,
     emberIntegration,
     emberDemo

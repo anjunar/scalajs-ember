@@ -111,3 +111,7 @@ Fokus-Rückgabe, echte Dateiauswahl/HTTP, Readonly, Forced Colors, Reduced Motio
 und schmale Fenster. Der Composition-Fall prüft das Controller-Protokoll.
 Eine physische mobile IME-/Touch- oder Screenreader-Abnahme folgt daraus nicht;
 diese Geräteprüfungen bleiben Teil von P28.
+
+Die [P28-Supportmatrix](../ember-integration/browser/support-matrix.md) hält den
+aktuellen Status fest. Die [Gerätecheckliste](../ember-integration/browser/accessibility-checklist.md)
+erläutert die manuelle Abnahme und das opt-in Trace-Werkzeug unter `/toolbar?trace=1`.

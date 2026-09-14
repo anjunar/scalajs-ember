@@ -1,6 +1,6 @@
 # UI Editor: ausführbarer Implementierungsplan
 
-Status: **Code für P01–P27 vorhanden; P28–P30 offen.** Die 14 Befunde des Reviews vom
+Status: **Code für P01–P27 vorhanden; P28 teilweise umgesetzt; P29–P30 offen.** Die 14 Befunde des Reviews vom
 14. September 2026 wurden korrigiert und durch reguläre Regressionstests abgesichert;
 Details, Testzahlen und ursprüngliche Repro-Fälle stehen im [Review](UI_EDITOR_REVIEW.md).
 Die native Clipboard-Abnahme für Windows-WebKit ist durch einen unabhängig
@@ -2272,6 +2272,74 @@ wurden zusätzlich anhand der erzeugten Screenshots visuell geprüft.
 - **Akzeptanz:** Keine Vollbaumtraversierung oder Geschwister-Remounts für lokale Core-/Projection-Edits; Formstring-Kosten separat ausgewiesen. p50/p95/Heap/Bundlegrößen mit reproduzierbarer Umgebung; keine unbestätigte Browser-/IME-Freigabe. Abhängigkeitsgraph ohne Zyklus/UI-Leak.
 - **Risiken:** Manueller Gerätezugang ist ein echter externer Abnahmebedarf. Offene Ergebnisse bleiben offen und sperren die entsprechende Supportbehauptung/Ablösung; keine synthetischen Tests als Ersatz deklarieren.
 - **Dependencies:** P18–P27; Architektur §24.
+
+### P28: automatisierte Grundlage umgesetzt, Freigabe offen (14. September 2026)
+
+Der [Messbericht](benchmarks/report.md), die
+[Supportmatrix](ember-integration/browser/support-matrix.md) und die
+[Gerätecheckliste](ember-integration/browser/accessibility-checklist.md) halten
+belegte und offene Bereiche getrennt fest. Ein versionierter Zusatzkorpus ergänzt
+CommonMark sowie vorhandene JSON-/HTML-/Markdown-Limittests. sbt-Metadaten sichern
+Projekt-/Publish-Grenzen; reale Full-Link-Apps messen Text, Markdown und Standard
+ohne optionale Registrierungen in den beiden kleinen Profilen. Diese getrennten
+Messanwendungen sind keine vorgezogene P29-npm-Bridge.
+
+Die Messungen führten zu konkreten Korrekturen: History schätzt lokale Änderungen
+über Commit-Deltas statt voller NodeMap-Durchläufe und gibt bei Session-Dispose
+ihre Snapshots frei. Die Dirty-Queue ermittelt Tiefe ohne Geschwistersuche.
+HTML-Unwrap meldet bislang unbemerkten Strukturverlust, insbesondere Tabellen.
+Kontrollierte Browser-Eingaben übernehmen den aktuellen DOM-Caret auch vor einem
+noch ausstehenden `selectionchange`; eigene Selection-Echos bleiben unterdrückt,
+damit NodeSelection unverändert funktioniert. Regressionen prüfen alle Pfade.
+
+Die CI enthält die regulären Browser-/No-JS-Gates, Korpora, Modulgrenzen und
+reproduzierbare Core-/History-/Formstring-/Browser-/Bundle-Messungen. Der Build
+verwendet 4 GB Heap und gibt Full-Link-Optimizer im Batchmodus wieder frei.
+Die vollständige Scala-Abnahme umfasst **1.266 bestandene Tests**;
+Full-Link, `scalafmtCheckAll` und Serverimport ohne Browserglobals sind erfolgreich.
+Der vollständige Browserlauf umfasst **802 tatsächliche Pässe** und die zwei
+unveränderten erwarteten Windows-WebKit-Clipboard-Fehler. Keine unerwarteten,
+übersprungenen oder instabilen Fälle. Alle 11 neuen Korpusfälle und die Grenzen
+der 23 sbt-Projekte bestehen. Browser-Messwerte und Zählungen sind separat in den
+[versionierten Messtabellen](benchmarks/results/measurements.md) festgehalten.
+Alle **15 Browser-Messfälle** bestehen. Die große Move-Stressprobe ist separat
+und mit der hier gemessenen Version 1.0.0 fehlgeschlagen; die Folgekorrektur steht unten.
+
+**P28-Baseline mit 1.0.0:** Beim Verschieben innerhalb von 50000 Absatz-Geschwistern
+überschreitet der verwendete UI-Core in Chromium 240 Sekunden. Ein separater
+roter Stress-Reproduktionstest und der
+[UI-Core-Folgebedarf](UI_CORE_INTEGRATION.md#p28-offener-performancebefund-beim-editor-consumer)
+dokumentieren die Grenze. Lokale Textänderungen und Formstring-Kosten werden
+getrennt davon gemessen. Reale NVDA-/VoiceOver-, Desktop-CJK-/Android-/iOS-/Diktat-
+und Touch-Prüfungen fehlen weiterhin. Die Trace-Hilfe unter `/toolbar?trace=1`
+ist implementiert und getestet; es wurden keine physischen Gerätetraces erfunden.
+Diese offenen Nachweise verhindern eine uneingeschränkte Freigabe sowie den
+Beginn von P29/P30.
+
+### P28: große Umordnungen im UI-Core korrigiert (14. September 2026)
+
+Die Ursache ist im Nachbar-Repo behoben: Runtime plant die Kindpermutation einmal
+und versetzt nur die Hosts außerhalb einer längsten steigenden Teilfolge.
+Ownership, Guard-Prüfung, virtuelle Grenzen und Retry nach Backendfehler sind
+durch generische Regressionen belegt. Der Editor verwendet für die Abnahme
+explizit den nur lokal veröffentlichten `1.0.1-p28-SNAPSHOT`.
+
+Bei 5000 Absätzen sinkt die Move-Zeit von 1,16–14,06 s auf 13–19 ms; bei 50000
+bestehen alle drei Engines mit 95–132 ms und genau einem DOM-Move. 452 UI- und
+1266 Editor-Scala-Tests, 57 UI-Browserfälle, 802 Editor-Browserfälle plus zwei
+bekannte erwartete Fehler, 15 Messfälle und 3 Stressfälle sind geprüft.
+Die npm-UI-Core-/Demo-Gates bestehen; der globale UI-Formatcheck meldet die
+parallel bearbeitete `TableView.scala`, während die Core-Formatchecks bestehen.
+[Bericht, Rohwerte und Reproduktion](benchmarks/runtime-reorder.md) dokumentieren
+den Kandidaten getrennt von der unveränderten 1.0.0-Baseline.
+
+**Release-Fortschritt:** Die Korrektur wurde anschließend als UI-Core **1.0.1**
+auf Maven Central veröffentlicht und als Standardabhängigkeit übernommen.
+454 UI-Scala-Tests, globaler Formatcheck und alle npm-Verifies bestehen;
+die neun veröffentlichten JARs stimmen mit dem geprüften Staging überein.
+Der [Release-Nachweis](benchmarks/ui-core-1.0.1-release.md) dokumentiert Veröffentlichung
+und Consumer-Abnahme. **P28 bleibt teilweise umgesetzt**, weil reale
+Geräte-/IME-/Screenreader-Nachweise fehlen; P29/P30 wurden nicht begonnen.
 
 ## P29 — TypeScript-Fassade und eine Scala.js-Runtime
 

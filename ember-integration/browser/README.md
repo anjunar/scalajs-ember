@@ -340,3 +340,27 @@ Dialog werden im jeweiligen Test-Output abgelegt. Der Composition-Fall ist ein
 Protokolltest; Screenreader und physische mobile Eingabe bleiben in P28 offen.
 
 API und Lifecycle stehen im [Toolbar-Vertrag](../../ember-toolbar/README.md).
+
+## P28: Support und reproduzierbare Messungen
+
+Die [Supportmatrix](support-matrix.md) führt die tatsächlich geprüften Pfade und
+offenen Freigaben. Physische Geräte werden nach der
+[Accessibility-Checkliste](accessibility-checklist.md) geprüft; `/toolbar?trace=1`
+stellt dafür eine ausdrücklich zu startende, auf 2000 Ereignisse begrenzte
+Aufzeichnung bereit. Automatisierte Eingaben testen das Werkzeug, keine reale IME.
+
+Drei separat gelinkte Testanwendungen unter `/profile?name=text`, `markdown` und
+`standard` prüfen ihre eigenen Registrierungen und Eingabe-/Dispose-Pfade. Sie
+werden nie gemeinsam in einer Seite geladen. Es sind Messanwendungen für P28;
+die npm-Fassade und gemeinsame Bridge folgen in P29.
+
+`npm run test:bench` misst die drei Engines mit einem Worker. Core/History/Formstring,
+Korpora, Modulgraph und Bundlegrößen haben separate Skripte; sämtliche Befehle und
+Ergebnisse stehen im [Messbericht](../../benchmarks/report.md).
+`npm run test:bench:stress` prüft das Verschieben innerhalb von 50000 Geschwistern
+in allen drei Engines, einschließlich genau eines DOM-Moves und erhaltener Identität.
+Mit der alten Abhängigkeit 1.0.0 reproduziert Chromium den 240-s-Timeout;
+der [lokale UI-Core-Kandidat](../../benchmarks/runtime-reorder.md) besteht alle
+drei Fälle mit 95–132 ms. Die Korrektur ist inzwischen als
+[veröffentlichte Version 1.0.1 im Standardbuild](../../benchmarks/ui-core-1.0.1-release.md)
+übernommen. Der separate Stresslauf unterscheidet diese Versionen.

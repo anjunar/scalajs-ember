@@ -45,7 +45,9 @@ final case class HistoryEntry(
     marks: MarkSet,
     at: Long,
     label: Option[String],
-    estimatedBytes: Int
+    estimatedBytes: Int,
+    // None supports caller-created entries and restore-plus-edit paths without a usable delta.
+    changedNodes: Option[Set[NodeId]] = None
 )
 
 object HistoryEntry:
@@ -65,7 +67,10 @@ object HistoryEntry:
     * tatsaechlich waechst.
     */
   def estimate(before: Document, after: Document): Int =
-    val ids = before.ids.toSet ++ after.ids.toSet
+    estimate(before, after, before.ids.toSet ++ after.ids.toSet)
+
+  /** Commit deltas bound the work independently of the document's total node count. */
+  def estimate(before: Document, after: Document, ids: Set[NodeId]): Int =
     ids.foldLeft(0) { (total, id) =>
       (before.node(id), after.node(id)) match
         case (Some(left), Some(right)) if left == right => total
@@ -114,12 +119,19 @@ final case class HistoryState(
     undo.lastOption match
       case None           => push(entry, limits)
       case Some(previous) =>
+        val changed = for
+          before <- previous.changedNodes
+          after  <- entry.changedNodes
+        yield before ++ after
         val merged = previous.copy(
           after = entry.after,
           kind = entry.kind,
           marks = entry.marks,
           at = entry.at,
-          estimatedBytes = HistoryEntry.estimate(previous.before.document, entry.after.document)
+          estimatedBytes = changed.fold(
+            HistoryEntry.estimate(previous.before.document, entry.after.document)
+          )(HistoryEntry.estimate(previous.before.document, entry.after.document, _)),
+          changedNodes = changed
         )
         HistoryState(undo.init :+ merged, Vector.empty, open = true).trimmed(limits)
 

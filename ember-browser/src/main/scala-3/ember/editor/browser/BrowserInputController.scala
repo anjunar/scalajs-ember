@@ -618,6 +618,10 @@ final class BrowserInputController private (
   private def run(
       candidates: Vector[EditorSession => Either[UpdateError, DispatchOutcome]]
   ): Outcome =
+    // Native selectionchange is asynchronous and may still be queued after a click
+    // or navigation key. Controlled input must use the caret that is visible now.
+    // Absent/foreign selections are left alone by the port; composition never runs here.
+    port.importPendingNative()
     var index           = 0
     var result: Outcome = Outcome.Passed
     while index < candidates.length && result == Outcome.Passed do

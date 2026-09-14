@@ -228,6 +228,20 @@ final class HtmlImportSpec extends AnyFlatSpec with Matchers {
   "An unknown wrapper" should "dissolve with its text kept" in {
     // §19.1: "unbekannte harmlose Wrapper werden mit erhaltenem Text aufgeloest."
     outline("<p><wibble>a</wibble></p>") shouldBe """p["a"]"""
+    imported("<p><wibble>a</wibble></p>").diagnostics.exists(
+      _.kind == HtmlLoss.UnwrappedElement
+    ) shouldBe true
+  }
+
+  "Unsupported table structure" should "retain text and report its loss" in {
+    val result = imported("<table><tr><td>Cell A</td><td>Cell B</td></tr></table>")
+    result.document.inDocumentOrder.collect { case t: TextNode =>
+      t.text
+    }.mkString shouldBe "Cell ACell B"
+    result.diagnostics.exists(d =>
+      d.kind == HtmlLoss.UnwrappedElement && d.detail.contains("<table>")
+    ) shouldBe true
+    imported("<p><span>ordinary text</span></p>").lossless shouldBe true
   }
 
   "A block inside inline content" should "be reported and flattened" in {

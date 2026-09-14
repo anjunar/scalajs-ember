@@ -1,4 +1,4 @@
 -Xms512M
--Xmx2G
+-Xmx4G
 -Xss2M
 -Dfile.encoding=UTF-8

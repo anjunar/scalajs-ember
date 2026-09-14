@@ -147,6 +147,15 @@ die expliziten Gruppen. `HistoryRetentionSpec` prüft Trimmen, Budget und Freiga
 Die Uhr ist injiziert (`HistoryClock.Fake`) — §14 verlangt es, und ohne sie wäre kein Zeitfenster
 prüfbar: ein Test, der auf echte Millisekunden wartet, prüft die Systemuhr und nicht die Regel.
 
-Eine Heapmessung gibt es unter Scala.js nicht, und eine erfundene wäre schlechter als keine.
-`HistoryRetentionSpec` prüft deshalb das Beobachtbare: dass getrimmte Stufen verschwunden sind, dass
-die Schätzung mitfällt, und dass nach einem Reset kein Snapshot mehr referenziert wird.
+`HistoryRetentionSpec` prüft, dass getrimmte Stufen verschwinden und ihre Schätzung
+mitfällt. `LocalHistoryCostSpec` beobachtet die tatsächlichen NodeMap-Iteratoren:
+lokales Push, Merge und explizite Gruppen traversieren auch bei 100001 Knoten
+keine vollständige Map. Die Budgetschätzung verwendet die vereinigten Commit-Deltas;
+Undo plus weitere Änderung in derselben Transaktion benötigt weiterhin einen
+vollständigen Vergleich. Session-Dispose gibt Stapel, offene Gruppe und
+Session-Referenz frei. Ein danach erneut installiertes History-Objekt startet leer.
+
+P28 misst zusätzlich den tatsächlichen Node-/Chromium-Heap nach Dispose und GC;
+dies ist vom geschätzten History-Budget getrennt. Umgebung, Retention-Messung und
+Grenzen stehen im [Messbericht](../benchmarks/report.md) und in der
+[Supportmatrix](../ember-integration/browser/support-matrix.md).

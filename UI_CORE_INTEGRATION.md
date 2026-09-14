@@ -10,7 +10,7 @@ Dieses Repository (`scalajs-ember`) ist der Konsument. Die Einbindung erfolgt se
 das veröffentlichte Artefakt:
 
 ```scala
-libraryDependencies += "com.anjunar" %% "scalajs-ui-core" % "1.0.0"
+libraryDependencies += "com.anjunar" %% "scalajs-ui-core" % "1.0.1"
 ```
 
 Bis dahin war es eine Quell-Abhängigkeit auf das Verzeichnis
@@ -175,3 +175,55 @@ WebKit bestanden. Der Firefox-Lauf scheitert vor dem ersten Test am Start des vo
 Playwright gelieferten Browsers (`SideBySide`: abhängige Assembly `mozglue` fehlt),
 auch nach erneuter Installation. Die Firefox-Projekte bleiben im Standardlauf und
 in der CI aktiviert; die vollständige Browserabnahme ist deshalb noch offen.
+
+## P28: offener Performancebefund beim Editor-Consumer
+
+Am 14. September 2026 überschreitet der Editor mit dem veröffentlichten UI-Core
+1.0.0 beim Verschieben des ersten von 50000 Absatz-Geschwistern ans Ende das
+Chromium-Zeitlimit von 240 Sekunden. Mount und lokale Edits sind vorher beendet.
+Schon 5000 Geschwister benötigen im abschließenden Messlauf 1,16–14,06 Sekunden
+je nach Engine; bestandene Identitätsassertions belegen hier keine interaktive Eignung.
+[Beleg und Reproduktion](benchmarks/report.md) liegen im Editor-Repo; dieser Befund
+ändert die obigen historischen UI-Core-Abnahmezahlen nicht.
+
+Der vorhandene Quellstand von `KeyedChildren.reconcile` ruft `Runtime.move` für
+jedes bestehende Kind auf; `Runtime.move` baut und durchsucht erneut eine lineare
+Kinderliste. Eine Korrektur gehört in diese gemeinsame Runtime. Dabei müssen
+Guard-Prüfung, Ownership, SSR-/DOM-Reihenfolge, Context-Grenzen, Transfer und
+Instanzerhalt bestehen bleiben. Editor-seitige parallele Ownership oder direkte
+DOM-Verschiebung sind kein Ersatz. Vor einer großen Move-Freigabe werden ein
+generischer Regressionstest, eine geprüfte UI-Core-Version und der erneute
+Editor-Stresslauf benötigt. Dieser Paketstand ändert die binäre Abhängigkeit nicht.
+
+### P28-Folgekorrektur: lokaler Runtime-Kandidat geprüft
+
+Der Arbeitsbaum von `../scalajs-ui` korrigiert die Ursache in `Runtime` und
+`KeyedChildren`: eine gemeinsame Permutationsplanung mit längster steigender
+Teilfolge ersetzt die einzelnen Geschwister-Moves. Runtime behält Ownership,
+prüft Guards vor den Inserts und hält nach einem abgelehnten Backend-Insert
+die logische Reihenfolge entsprechend der bereits erfolgten Mutationen fest.
+Sieben neue Regressionen prüfen Minimal-Inserts, 50000 Geschwister, Guard-/Fehler-
+und Retry-Pfade sowie virtuelle Grenzen.
+
+Der ausschließlich lokal veröffentlichte **1.0.1-p28-SNAPSHOT** besteht 452 UI-
+und 1266 Editor-Scala-Tests, 57 UI-Browserfälle sowie 802 Editor-Browserfälle
+(zusätzlich die zwei erwarteten Windows-WebKit-Clipboard-Fehler). Der neue
+optionale Firefox-Kanal im UI-Harness ermöglicht lokal auch dessen 19 Fälle.
+UI-Core-npm und Demo bestehen ihre Verifies. Der globale UI-Formatcheck meldet
+eine parallel geänderte `TableView.scala`; die Core-Formatchecks bestehen.
+
+Der Move von 50000 Absätzen benötigt jetzt 95–132 ms in den drei Engines bei
+genau einem DOM-Move. [Messwerte, Quellhashes und Reproduktion](benchmarks/runtime-reorder.md)
+grenzen diesen Arbeitsbaum-Nachweis vom veröffentlichten Stand ab.
+`-Dember.uiCore.version=1.0.1-p28-SNAPSHOT` wählt den lokalen Kandidaten explizit;
+ohne Property verwendete diese Kandidatenprüfung noch 1.0.0.
+
+### UI-Core 1.0.1 veröffentlicht und übernommen
+
+Am 14. September 2026 wurde die geprüfte Korrektur mit allen neun UI-Maven-Modulen
+als 1.0.1 veröffentlicht. Sonatype bestätigt `PUBLISHED`; die neun direkt von
+Maven Central bezogenen JARs stimmen mit dem signierten Staging überein.
+Der Editor verwendet nun ohne Property **1.0.1**. Der globale UI-Formatcheck und
+454 Scala-Tests sowie sämtliche npm-Verifies einschließlich 57 Browserfällen
+bestehen für das Release. [Release- und Consumer-Nachweis](benchmarks/ui-core-1.0.1-release.md)
+halten diese Ergebnisse getrennt von der historischen Snapshot-Messung fest.

@@ -222,7 +222,15 @@ object HtmlImport:
     private def decide(element: HtmlFragment.Element): HtmlImportDecision =
       support.ruleFor(element) match
         case Some(rule) => rule.decide(element, scope)
-        case None       => HtmlImportDecision.Unwrap
+        case None       =>
+          // An attribute-free span is a transparent text wrapper. Other unclaimed tags
+          // (notably tables and cells) lose structure and must report that loss.
+          if element.tag != "span" then
+            diagnostics += HtmlDiagnostic(
+              HtmlLoss.UnwrappedElement,
+              s"<${element.tag}> hat keine Importregel"
+            )
+          HtmlImportDecision.Unwrap
 
     private def emit(node: EditorNode): NodeId =
       nodes.update(node.id, node)

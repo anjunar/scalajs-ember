@@ -1,0 +1,2113 @@
+{
+  "node": {
+    "measuredAt": "2026-09-14T10:05:34.749Z",
+    "node": "v26.4.0",
+    "platform": "win32 10.0.26200",
+    "cpu": "Intel(R) Core(TM) i7-14700KF",
+    "logicalCpus": 28,
+    "memoryBytes": 34112573440,
+    "commit": "ab06a60f3b0f67f9fa9cfb52d1940f16c319eab5",
+    "dirty": true,
+    "integrationSha256": "41e943cc4d6df1808c900174d9e89b1443f6d0ceeacd3fe54bbec3faa3b3da4c",
+    "warmup": 50,
+    "iterations": {
+      "core": 1000,
+      "history": 1000,
+      "form": 30
+    },
+    "results": [
+      {
+        "requestedNodes": 1000,
+        "actualNodes": 1001,
+        "shape": "paragraphs",
+        "mode": "core",
+        "buildMs": 21.46520000000001,
+        "commit": {
+          "samples": 1000,
+          "p50Ms": 0.014399999999994861,
+          "p95Ms": 0.03450000000000841,
+          "maxMs": 0.4789000000000101
+        },
+        "serialize": {
+          "samples": 5,
+          "p50Ms": 3.5919000000000096,
+          "p95Ms": 10.67949999999999,
+          "maxMs": 10.67949999999999
+        },
+        "maxChangedNodes": 1,
+        "undoEntries": 0,
+        "estimatedHistoryBytes": 0,
+        "heapBeforeBytes": 15130560,
+        "heapBeforeGcBytes": 25200664,
+        "heapAfterDisposeGcBytes": 18011024
+      },
+      {
+        "requestedNodes": 1000,
+        "actualNodes": 1001,
+        "shape": "paragraphs",
+        "mode": "history",
+        "buildMs": 12.456199999999995,
+        "commit": {
+          "samples": 1000,
+          "p50Ms": 0.032700000000033924,
+          "p95Ms": 0.05720000000002301,
+          "maxMs": 0.4994000000000369
+        },
+        "serialize": {
+          "samples": 5,
+          "p50Ms": 5.541899999999998,
+          "p95Ms": 7.394400000000019,
+          "maxMs": 7.394400000000019
+        },
+        "maxChangedNodes": 1,
+        "undoEntries": 32,
+        "estimatedHistoryBytes": 6400,
+        "heapBeforeBytes": 17097416,
+        "heapBeforeGcBytes": 24215560,
+        "heapAfterDisposeGcBytes": 17714104
+      },
+      {
+        "requestedNodes": 1000,
+        "actualNodes": 1001,
+        "shape": "paragraphs",
+        "mode": "form",
+        "buildMs": 11.96289999999999,
+        "commit": {
+          "samples": 30,
+          "p50Ms": 2.114500000000021,
+          "p95Ms": 2.524599999999964,
+          "maxMs": 2.7725000000000364
+        },
+        "serialize": {
+          "samples": 5,
+          "p50Ms": 1.859199999999987,
+          "p95Ms": 1.9955999999999676,
+          "maxMs": 1.9955999999999676
+        },
+        "maxChangedNodes": 1,
+        "undoEntries": 0,
+        "estimatedHistoryBytes": 0,
+        "heapBeforeBytes": 17301312,
+        "heapBeforeGcBytes": 22501152,
+        "heapAfterDisposeGcBytes": 17933248
+      },
+      {
+        "requestedNodes": 10000,
+        "actualNodes": 10001,
+        "shape": "paragraphs",
+        "mode": "core",
+        "buildMs": 73.11399999999992,
+        "commit": {
+          "samples": 1000,
+          "p50Ms": 0.018399999999928696,
+          "p95Ms": 0.030099999999947613,
+          "maxMs": 0.41279999999994743
+        },
+        "serialize": {
+          "samples": 5,
+          "p50Ms": 27.14829999999995,
+          "p95Ms": 42.15100000000007,
+          "maxMs": 42.15100000000007
+        },
+        "maxChangedNodes": 1,
+        "undoEntries": 0,
+        "estimatedHistoryBytes": 0,
+        "heapBeforeBytes": 17432968,
+        "heapBeforeGcBytes": 39285088,
+        "heapAfterDisposeGcBytes": 18154776
+      },
+      {
+        "requestedNodes": 10000,
+        "actualNodes": 10001,
+        "shape": "paragraphs",
+        "mode": "history",
+        "buildMs": 73.36520000000007,
+        "commit": {
+          "samples": 1000,
+          "p50Ms": 0.028299999999944703,
+          "p95Ms": 0.04110000000002856,
+          "maxMs": 1.0564000000000533
+        },
+        "serialize": {
+          "samples": 5,
+          "p50Ms": 28.86800100000005,
+          "p95Ms": 38.9751,
+          "maxMs": 38.9751
+        },
+        "maxChangedNodes": 1,
+        "undoEntries": 32,
+        "estimatedHistoryBytes": 6400,
+        "heapBeforeBytes": 17489832,
+        "heapBeforeGcBytes": 43694352,
+        "heapAfterDisposeGcBytes": 18302416
+      },
+      {
+        "requestedNodes": 10000,
+        "actualNodes": 10001,
+        "shape": "paragraphs",
+        "mode": "form",
+        "buildMs": 72.53070000000002,
+        "commit": {
+          "samples": 30,
+          "p50Ms": 20.11779999999999,
+          "p95Ms": 23.3725000000004,
+          "maxMs": 24.63799999999992
+        },
+        "serialize": {
+          "samples": 5,
+          "p50Ms": 18.550700000000234,
+          "p95Ms": 19.74850000000015,
+          "maxMs": 19.74850000000015
+        },
+        "maxChangedNodes": 1,
+        "undoEntries": 0,
+        "estimatedHistoryBytes": 0,
+        "heapBeforeBytes": 17558880,
+        "heapBeforeGcBytes": 59470792,
+        "heapAfterDisposeGcBytes": 18311768
+      },
+      {
+        "requestedNodes": 100000,
+        "actualNodes": 100001,
+        "shape": "paragraphs",
+        "mode": "core",
+        "buildMs": 1471.5790000000002,
+        "commit": {
+          "samples": 1000,
+          "p50Ms": 0.054500000000189175,
+          "p95Ms": 0.0826999999999316,
+          "maxMs": 4.063000000000102
+        },
+        "serialize": {
+          "samples": 5,
+          "p50Ms": 669.1538,
+          "p95Ms": 723.3449999999993,
+          "maxMs": 723.3449999999993
+        },
+        "maxChangedNodes": 1,
+        "undoEntries": 0,
+        "estimatedHistoryBytes": 0,
+        "heapBeforeBytes": 17588336,
+        "heapBeforeGcBytes": 223245432,
+        "heapAfterDisposeGcBytes": 18617016
+      },
+      {
+        "requestedNodes": 100000,
+        "actualNodes": 100001,
+        "shape": "paragraphs",
+        "mode": "history",
+        "buildMs": 1480.433,
+        "commit": {
+          "samples": 1000,
+          "p50Ms": 0.07929999999942083,
+          "p95Ms": 0.21520000000055006,
+          "maxMs": 1.7893999999996595
+        },
+        "serialize": {
+          "samples": 5,
+          "p50Ms": 524.4267999999993,
+          "p95Ms": 760.3019000000004,
+          "maxMs": 760.3019000000004
+        },
+        "maxChangedNodes": 1,
+        "undoEntries": 32,
+        "estimatedHistoryBytes": 6400,
+        "heapBeforeBytes": 17739624,
+        "heapBeforeGcBytes": 215275016,
+        "heapAfterDisposeGcBytes": 18654560
+      },
+      {
+        "requestedNodes": 100000,
+        "actualNodes": 100001,
+        "shape": "paragraphs",
+        "mode": "form",
+        "buildMs": 1391.5640000000003,
+        "commit": {
+          "samples": 30,
+          "p50Ms": 535.2229000000007,
+          "p95Ms": 612.1570999999967,
+          "maxMs": 614.6428000000014
+        },
+        "serialize": {
+          "samples": 5,
+          "p50Ms": 608.8943999999974,
+          "p95Ms": 618.527399999999,
+          "maxMs": 618.527399999999
+        },
+        "maxChangedNodes": 1,
+        "undoEntries": 0,
+        "estimatedHistoryBytes": 0,
+        "heapBeforeBytes": 17707624,
+        "heapBeforeGcBytes": 201381256,
+        "heapAfterDisposeGcBytes": 15642960
+      },
+      {
+        "requestedNodes": 3,
+        "actualNodes": 3,
+        "shape": "long-leaf",
+        "mode": "core",
+        "buildMs": 8.580500000003667,
+        "commit": {
+          "samples": 1000,
+          "p50Ms": 0.22000000000116415,
+          "p95Ms": 0.524199999999837,
+          "maxMs": 1.647899999996298
+        },
+        "serialize": {
+          "samples": 5,
+          "p50Ms": 77.90320000000065,
+          "p95Ms": 122.73660000000382,
+          "maxMs": 122.73660000000382
+        },
+        "maxChangedNodes": 1,
+        "undoEntries": 0,
+        "estimatedHistoryBytes": 0,
+        "heapBeforeBytes": 14702472,
+        "heapBeforeGcBytes": 111498408,
+        "heapAfterDisposeGcBytes": 14916096
+      },
+      {
+        "requestedNodes": 3,
+        "actualNodes": 3,
+        "shape": "long-leaf",
+        "mode": "history",
+        "buildMs": 7.012300000002142,
+        "commit": {
+          "samples": 1000,
+          "p50Ms": 0.2927999999956228,
+          "p95Ms": 0.8761000000013155,
+          "maxMs": 8.539500000006228
+        },
+        "serialize": {
+          "samples": 5,
+          "p50Ms": 79.90999999999622,
+          "p95Ms": 91.35629999999946,
+          "maxMs": 91.35629999999946
+        },
+        "maxChangedNodes": 1,
+        "undoEntries": 2,
+        "estimatedHistoryBytes": 8000256,
+        "heapBeforeBytes": 14726200,
+        "heapBeforeGcBytes": 163434016,
+        "heapAfterDisposeGcBytes": 14925088
+      },
+      {
+        "requestedNodes": 3,
+        "actualNodes": 3,
+        "shape": "long-leaf",
+        "mode": "form",
+        "buildMs": 6.441899999997986,
+        "commit": {
+          "samples": 30,
+          "p50Ms": 81.630799999999,
+          "p95Ms": 104.3127999999997,
+          "maxMs": 119.48279999999795
+        },
+        "serialize": {
+          "samples": 5,
+          "p50Ms": 91.18269999999029,
+          "p95Ms": 109.67470000000321,
+          "maxMs": 109.67470000000321
+        },
+        "maxChangedNodes": 1,
+        "undoEntries": 0,
+        "estimatedHistoryBytes": 0,
+        "heapBeforeBytes": 14736072,
+        "heapBeforeGcBytes": 75974512,
+        "heapAfterDisposeGcBytes": 14823480
+      },
+      {
+        "requestedNodes": 129,
+        "actualNodes": 129,
+        "shape": "deep-list",
+        "mode": "core",
+        "buildMs": 6.662299999996321,
+        "commit": {
+          "samples": 1000,
+          "p50Ms": 0.17200000000593718,
+          "p95Ms": 0.40220000001136214,
+          "maxMs": 2.4602999999915482
+        },
+        "serialize": {
+          "samples": 5,
+          "p50Ms": 2.0561000000016065,
+          "p95Ms": 3.6529000000009546,
+          "maxMs": 3.6529000000009546
+        },
+        "maxChangedNodes": 1,
+        "undoEntries": 0,
+        "estimatedHistoryBytes": 0,
+        "heapBeforeBytes": 14730672,
+        "heapBeforeGcBytes": 24492928,
+        "heapAfterDisposeGcBytes": 15221304
+      },
+      {
+        "requestedNodes": 129,
+        "actualNodes": 129,
+        "shape": "deep-list",
+        "mode": "history",
+        "buildMs": 4.874500000005355,
+        "commit": {
+          "samples": 1000,
+          "p50Ms": 0.19030000000202563,
+          "p95Ms": 0.47849999999743886,
+          "maxMs": 8.674499999993714
+        },
+        "serialize": {
+          "samples": 5,
+          "p50Ms": 1.4190999999991618,
+          "p95Ms": 2.4481999999989057,
+          "maxMs": 2.4481999999989057
+        },
+        "maxChangedNodes": 1,
+        "undoEntries": 32,
+        "estimatedHistoryBytes": 6400,
+        "heapBeforeBytes": 14872688,
+        "heapBeforeGcBytes": 31654232,
+        "heapAfterDisposeGcBytes": 15240368
+      },
+      {
+        "requestedNodes": 129,
+        "actualNodes": 129,
+        "shape": "deep-list",
+        "mode": "form",
+        "buildMs": 4.981400000004214,
+        "commit": {
+          "samples": 30,
+          "p50Ms": 1.174700000003213,
+          "p95Ms": 1.409799999993993,
+          "maxMs": 1.7739999999903375
+        },
+        "serialize": {
+          "samples": 5,
+          "p50Ms": 0.7798000000038883,
+          "p95Ms": 0.9066000000020722,
+          "maxMs": 0.9066000000020722
+        },
+        "maxChangedNodes": 1,
+        "undoEntries": 0,
+        "estimatedHistoryBytes": 0,
+        "heapBeforeBytes": 14889568,
+        "heapBeforeGcBytes": 22800120,
+        "heapAfterDisposeGcBytes": 15241232
+      }
+    ]
+  },
+  "bundles": {
+    "measuredAt": "2026-09-14T10:02:56.051Z",
+    "node": "v26.4.0",
+    "commit": "ab06a60f3b0f67f9fa9cfb52d1940f16c319eab5",
+    "dirty": true,
+    "build": "Scala.js fullLinkJS, ES2021, ESModule, source maps excluded",
+    "profiles": [
+      {
+        "profile": "text",
+        "registrations": [
+          "ember.rich-text"
+        ],
+        "files": [
+          {
+            "file": "main.js",
+            "bytes": 1988308,
+            "gzipBytes": 278695,
+            "brotliBytes": 196827,
+            "sha256": "44fadba7456ddb9fedadd56351b6f991f1727830d293a3afd3921ef480e4aed6"
+          }
+        ],
+        "bytes": 1988308,
+        "gzipBytes": 278695,
+        "brotliBytes": 196827
+      },
+      {
+        "profile": "markdown",
+        "registrations": [
+          "ember.rich-text"
+        ],
+        "files": [
+          {
+            "file": "main.js",
+            "bytes": 2548672,
+            "gzipBytes": 356777,
+            "brotliBytes": 252577,
+            "sha256": "9750e7bc51c2d0dc0c7d510958d532657fca7125264f5fe167f780c7d5ef36e5"
+          }
+        ],
+        "bytes": 2548672,
+        "gzipBytes": 356777,
+        "brotliBytes": 252577
+      },
+      {
+        "profile": "standard",
+        "registrations": [
+          "ember.rich-text",
+          "ember.image",
+          "ember.history",
+          "ember.list",
+          "ember.link",
+          "ember.code"
+        ],
+        "files": [
+          {
+            "file": "main.js",
+            "bytes": 2921675,
+            "gzipBytes": 403674,
+            "brotliBytes": 281840,
+            "sha256": "c08f189f12f1840226fc921c8973a09067da94fc33baeeeaacaf254dfe834ca5"
+          }
+        ],
+        "bytes": 2921675,
+        "gzipBytes": 403674,
+        "brotliBytes": 281840
+      }
+    ]
+  },
+  "corpus": {
+    "sha256": "9c0660ab78b81a28a25dd7758633d000d2855b2c765290ecf53545ba4ce68318",
+    "results": [
+      {
+        "name": "unicode-bidi",
+        "passed": true
+      },
+      {
+        "name": "marks",
+        "passed": true
+      },
+      {
+        "name": "nested-list",
+        "passed": true
+      },
+      {
+        "name": "quote-break",
+        "passed": true
+      },
+      {
+        "name": "fenced-code",
+        "passed": true
+      },
+      {
+        "name": "media-links",
+        "passed": true
+      },
+      {
+        "name": "raw-html-as-text",
+        "passed": true
+      },
+      {
+        "name": "escaped-delimiters",
+        "passed": true
+      },
+      {
+        "name": "html-active-content",
+        "passed": true
+      },
+      {
+        "name": "html-wrappers",
+        "passed": true
+      },
+      {
+        "name": "html-table-loss",
+        "passed": true
+      }
+    ]
+  },
+  "boundaries": {
+    "projects": 23,
+    "errors": [],
+    "graph": [
+      {
+        "id": "scalajs-ember-browser-support",
+        "publishSkip": false,
+        "dependencies": [
+          {
+            "id": "scalajs-ember-core",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-rich-text",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-list",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-link",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-code",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-history",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-ui",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-browser",
+            "configuration": "compile->compile"
+          }
+        ],
+        "compileModules": [
+          "com.anjunar:scala-reflect_sjs1_3:1.1.3",
+          "com.anjunar:scalajs-ember-browser_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-code_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-core_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-history_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-html_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-link_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-list_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-rich-text_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-ui_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ui-core_sjs1_3:1.0.0",
+          "org.scala-js:scalajs-dom_sjs1_3:2.8.1",
+          "org.scala-js:scalajs-javalib:1.22.0",
+          "org.scala-js:scalajs-library_2.13:1.22.0",
+          "org.scala-js:scalajs-scalalib_2.13:2.13.18+1.22.0",
+          "org.scala-lang:scala-library:2.13.18",
+          "org.scala-lang:scala3-library_sjs1_3:3.3.8"
+        ]
+      },
+      {
+        "id": "scalajs-ember-browser",
+        "publishSkip": false,
+        "dependencies": [
+          {
+            "id": "scalajs-ember-core",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-rich-text",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-html",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-ui",
+            "configuration": "compile->compile"
+          }
+        ],
+        "compileModules": [
+          "com.anjunar:scala-reflect_sjs1_3:1.1.3",
+          "com.anjunar:scalajs-ember-core_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-html_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-rich-text_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-ui_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ui-core_sjs1_3:1.0.0",
+          "org.scala-js:scalajs-dom_sjs1_3:2.8.1",
+          "org.scala-js:scalajs-javalib:1.22.0",
+          "org.scala-js:scalajs-library_2.13:1.22.0",
+          "org.scala-js:scalajs-scalalib_2.13:2.13.18+1.22.0",
+          "org.scala-lang:scala-library:2.13.18",
+          "org.scala-lang:scala3-library_sjs1_3:3.3.8"
+        ]
+      },
+      {
+        "id": "scalajs-ember-clipboard",
+        "publishSkip": false,
+        "dependencies": [
+          {
+            "id": "scalajs-ember-core",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-rich-text",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-json",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-html",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-browser",
+            "configuration": "compile->compile"
+          }
+        ],
+        "compileModules": [
+          "com.anjunar:scala-reflect_sjs1_3:1.1.3",
+          "com.anjunar:scalajs-ember-browser_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-core_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-html_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-json_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-rich-text_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-ui_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ui-core_sjs1_3:1.0.0",
+          "org.scala-js:scalajs-dom_sjs1_3:2.8.1",
+          "org.scala-js:scalajs-javalib:1.22.0",
+          "org.scala-js:scalajs-library_2.13:1.22.0",
+          "org.scala-js:scalajs-scalalib_2.13:2.13.18+1.22.0",
+          "org.scala-lang:scala-library:2.13.18",
+          "org.scala-lang:scala3-library_sjs1_3:3.3.8"
+        ]
+      },
+      {
+        "id": "scalajs-ember-code",
+        "publishSkip": false,
+        "dependencies": [
+          {
+            "id": "scalajs-ember-core",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-rich-text",
+            "configuration": "compile->compile"
+          }
+        ],
+        "compileModules": [
+          "com.anjunar:scalajs-ember-core_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-rich-text_sjs1_3:0.1.0-SNAPSHOT",
+          "org.scala-js:scalajs-javalib:1.22.0",
+          "org.scala-js:scalajs-library_2.13:1.22.0",
+          "org.scala-js:scalajs-scalalib_2.13:2.13.18+1.22.0",
+          "org.scala-lang:scala-library:2.13.18",
+          "org.scala-lang:scala3-library_sjs1_3:3.3.8"
+        ]
+      },
+      {
+        "id": "scalajs-ember-core",
+        "publishSkip": false,
+        "dependencies": [],
+        "compileModules": [
+          "org.scala-js:scalajs-javalib:1.22.0",
+          "org.scala-js:scalajs-library_2.13:1.22.0",
+          "org.scala-js:scalajs-scalalib_2.13:2.13.18+1.22.0",
+          "org.scala-lang:scala-library:2.13.18",
+          "org.scala-lang:scala3-library_sjs1_3:3.3.8"
+        ]
+      },
+      {
+        "id": "scalajs-ember-demo",
+        "publishSkip": true,
+        "dependencies": [
+          {
+            "id": "scalajs-ember-core",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-rich-text",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-list",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-link",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-code",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-image",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-json",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-history",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-html",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-ui",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-browser",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-browser-support",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-standard",
+            "configuration": "compile->compile"
+          }
+        ],
+        "compileModules": [
+          "com.anjunar:scala-reflect_sjs1_3:1.1.3",
+          "com.anjunar:scalajs-ember-browser-support_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-browser_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-clipboard_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-code_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-core_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-history_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-html_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-image_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-json_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-link_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-list_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-markdown_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-rich-text_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-standard_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-ui_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ui-core_sjs1_3:1.0.0",
+          "org.scala-js:scalajs-dom_sjs1_3:2.8.1",
+          "org.scala-js:scalajs-javalib:1.22.0",
+          "org.scala-js:scalajs-library_2.13:1.22.0",
+          "org.scala-js:scalajs-scalalib_2.13:2.13.18+1.22.0",
+          "org.scala-lang:scala-library:2.13.18",
+          "org.scala-lang:scala3-library_sjs1_3:3.3.8"
+        ]
+      },
+      {
+        "id": "scalajs-ember-forms",
+        "publishSkip": false,
+        "dependencies": [
+          {
+            "id": "scalajs-ember-core",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-markdown",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-json",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-html",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-ui",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-browser",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-image",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-clipboard",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-history",
+            "configuration": "test->compile"
+          }
+        ],
+        "compileModules": [
+          "com.anjunar:scala-reflect_sjs1_3:1.1.3",
+          "com.anjunar:scalajs-ember-browser_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-clipboard_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-core_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-history_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-html_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-image_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-json_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-markdown_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-rich-text_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-ui_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ui-core_sjs1_3:1.0.0",
+          "org.scala-js:scalajs-dom_sjs1_3:2.8.1",
+          "org.scala-js:scalajs-javalib:1.22.0",
+          "org.scala-js:scalajs-library_2.13:1.22.0",
+          "org.scala-js:scalajs-scalalib_2.13:2.13.18+1.22.0",
+          "org.scala-lang:scala-library:2.13.18",
+          "org.scala-lang:scala3-library_sjs1_3:3.3.8"
+        ]
+      },
+      {
+        "id": "scalajs-ember-history",
+        "publishSkip": false,
+        "dependencies": [
+          {
+            "id": "scalajs-ember-core",
+            "configuration": "compile->compile"
+          }
+        ],
+        "compileModules": [
+          "com.anjunar:scalajs-ember-core_sjs1_3:0.1.0-SNAPSHOT",
+          "org.scala-js:scalajs-javalib:1.22.0",
+          "org.scala-js:scalajs-library_2.13:1.22.0",
+          "org.scala-js:scalajs-scalalib_2.13:2.13.18+1.22.0",
+          "org.scala-lang:scala-library:2.13.18",
+          "org.scala-lang:scala3-library_sjs1_3:3.3.8"
+        ]
+      },
+      {
+        "id": "scalajs-ember-html",
+        "publishSkip": false,
+        "dependencies": [
+          {
+            "id": "scalajs-ember-core",
+            "configuration": "compile->compile"
+          }
+        ],
+        "compileModules": [
+          "com.anjunar:scalajs-ember-core_sjs1_3:0.1.0-SNAPSHOT",
+          "org.scala-js:scalajs-javalib:1.22.0",
+          "org.scala-js:scalajs-library_2.13:1.22.0",
+          "org.scala-js:scalajs-scalalib_2.13:2.13.18+1.22.0",
+          "org.scala-lang:scala-library:2.13.18",
+          "org.scala-lang:scala3-library_sjs1_3:3.3.8"
+        ]
+      },
+      {
+        "id": "scalajs-ember-image",
+        "publishSkip": false,
+        "dependencies": [
+          {
+            "id": "scalajs-ember-core",
+            "configuration": "compile->compile"
+          }
+        ],
+        "compileModules": [
+          "com.anjunar:scalajs-ember-core_sjs1_3:0.1.0-SNAPSHOT",
+          "org.scala-js:scalajs-javalib:1.22.0",
+          "org.scala-js:scalajs-library_2.13:1.22.0",
+          "org.scala-js:scalajs-scalalib_2.13:2.13.18+1.22.0",
+          "org.scala-lang:scala-library:2.13.18",
+          "org.scala-lang:scala3-library_sjs1_3:3.3.8"
+        ]
+      },
+      {
+        "id": "scalajs-ember-integration",
+        "publishSkip": true,
+        "dependencies": [
+          {
+            "id": "scalajs-ember-clipboard",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-core",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-rich-text",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-markdown",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-html",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-ui",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-browser",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-browser-support",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-forms",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-toolbar",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-standard",
+            "configuration": "compile->compile"
+          }
+        ],
+        "compileModules": [
+          "com.anjunar:scala-reflect_sjs1_3:1.1.3",
+          "com.anjunar:scalajs-ember-browser-support_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-browser_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-clipboard_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-code_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-core_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-forms_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-history_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-html_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-image_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-json_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-link_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-list_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-markdown_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-rich-text_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-standard_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-toolbar_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-ui_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ui-core_sjs1_3:1.0.0",
+          "org.scala-js:scalajs-dom_sjs1_3:2.8.1",
+          "org.scala-js:scalajs-javalib:1.22.0",
+          "org.scala-js:scalajs-library_2.13:1.22.0",
+          "org.scala-js:scalajs-scalalib_2.13:2.13.18+1.22.0",
+          "org.scala-lang:scala-library:2.13.18",
+          "org.scala-lang:scala3-library_sjs1_3:3.3.8"
+        ]
+      },
+      {
+        "id": "scalajs-ember-json",
+        "publishSkip": false,
+        "dependencies": [
+          {
+            "id": "scalajs-ember-core",
+            "configuration": "compile->compile"
+          }
+        ],
+        "compileModules": [
+          "com.anjunar:scalajs-ember-core_sjs1_3:0.1.0-SNAPSHOT",
+          "org.scala-js:scalajs-javalib:1.22.0",
+          "org.scala-js:scalajs-library_2.13:1.22.0",
+          "org.scala-js:scalajs-scalalib_2.13:2.13.18+1.22.0",
+          "org.scala-lang:scala-library:2.13.18",
+          "org.scala-lang:scala3-library_sjs1_3:3.3.8"
+        ]
+      },
+      {
+        "id": "scalajs-ember-link",
+        "publishSkip": false,
+        "dependencies": [
+          {
+            "id": "scalajs-ember-core",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-rich-text",
+            "configuration": "compile->compile"
+          }
+        ],
+        "compileModules": [
+          "com.anjunar:scalajs-ember-core_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-rich-text_sjs1_3:0.1.0-SNAPSHOT",
+          "org.scala-js:scalajs-javalib:1.22.0",
+          "org.scala-js:scalajs-library_2.13:1.22.0",
+          "org.scala-js:scalajs-scalalib_2.13:2.13.18+1.22.0",
+          "org.scala-lang:scala-library:2.13.18",
+          "org.scala-lang:scala3-library_sjs1_3:3.3.8"
+        ]
+      },
+      {
+        "id": "scalajs-ember-list",
+        "publishSkip": false,
+        "dependencies": [
+          {
+            "id": "scalajs-ember-core",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-rich-text",
+            "configuration": "compile->compile"
+          }
+        ],
+        "compileModules": [
+          "com.anjunar:scalajs-ember-core_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-rich-text_sjs1_3:0.1.0-SNAPSHOT",
+          "org.scala-js:scalajs-javalib:1.22.0",
+          "org.scala-js:scalajs-library_2.13:1.22.0",
+          "org.scala-js:scalajs-scalalib_2.13:2.13.18+1.22.0",
+          "org.scala-lang:scala-library:2.13.18",
+          "org.scala-lang:scala3-library_sjs1_3:3.3.8"
+        ]
+      },
+      {
+        "id": "scalajs-ember-markdown",
+        "publishSkip": false,
+        "dependencies": [
+          {
+            "id": "scalajs-ember-core",
+            "configuration": "compile->compile"
+          }
+        ],
+        "compileModules": [
+          "com.anjunar:scalajs-ember-core_sjs1_3:0.1.0-SNAPSHOT",
+          "org.scala-js:scalajs-javalib:1.22.0",
+          "org.scala-js:scalajs-library_2.13:1.22.0",
+          "org.scala-js:scalajs-scalalib_2.13:2.13.18+1.22.0",
+          "org.scala-lang:scala-library:2.13.18",
+          "org.scala-lang:scala3-library_sjs1_3:3.3.8"
+        ]
+      },
+      {
+        "id": "scalajs-ember-profile-markdown",
+        "publishSkip": true,
+        "dependencies": [
+          {
+            "id": "scalajs-ember-core",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-rich-text",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-history",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-standard",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-ui",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-browser",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-browser-support",
+            "configuration": "compile->compile"
+          }
+        ],
+        "compileModules": [
+          "com.anjunar:scala-reflect_sjs1_3:1.1.3",
+          "com.anjunar:scalajs-ember-browser-support_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-browser_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-clipboard_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-code_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-core_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-history_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-html_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-image_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-json_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-link_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-list_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-markdown_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-rich-text_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-standard_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-ui_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ui-core_sjs1_3:1.0.0",
+          "org.scala-js:scalajs-dom_sjs1_3:2.8.1",
+          "org.scala-js:scalajs-javalib:1.22.0",
+          "org.scala-js:scalajs-library_2.13:1.22.0",
+          "org.scala-js:scalajs-scalalib_2.13:2.13.18+1.22.0",
+          "org.scala-lang:scala-library:2.13.18",
+          "org.scala-lang:scala3-library_sjs1_3:3.3.8"
+        ]
+      },
+      {
+        "id": "scalajs-ember-profile-standard",
+        "publishSkip": true,
+        "dependencies": [
+          {
+            "id": "scalajs-ember-core",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-rich-text",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-history",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-standard",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-ui",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-browser",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-browser-support",
+            "configuration": "compile->compile"
+          }
+        ],
+        "compileModules": [
+          "com.anjunar:scala-reflect_sjs1_3:1.1.3",
+          "com.anjunar:scalajs-ember-browser-support_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-browser_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-clipboard_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-code_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-core_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-history_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-html_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-image_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-json_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-link_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-list_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-markdown_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-rich-text_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-standard_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-ui_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ui-core_sjs1_3:1.0.0",
+          "org.scala-js:scalajs-dom_sjs1_3:2.8.1",
+          "org.scala-js:scalajs-javalib:1.22.0",
+          "org.scala-js:scalajs-library_2.13:1.22.0",
+          "org.scala-js:scalajs-scalalib_2.13:2.13.18+1.22.0",
+          "org.scala-lang:scala-library:2.13.18",
+          "org.scala-lang:scala3-library_sjs1_3:3.3.8"
+        ]
+      },
+      {
+        "id": "scalajs-ember-profile-text",
+        "publishSkip": true,
+        "dependencies": [
+          {
+            "id": "scalajs-ember-core",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-rich-text",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-history",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-standard",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-ui",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-browser",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-browser-support",
+            "configuration": "compile->compile"
+          }
+        ],
+        "compileModules": [
+          "com.anjunar:scala-reflect_sjs1_3:1.1.3",
+          "com.anjunar:scalajs-ember-browser-support_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-browser_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-clipboard_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-code_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-core_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-history_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-html_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-image_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-json_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-link_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-list_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-markdown_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-rich-text_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-standard_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-ui_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ui-core_sjs1_3:1.0.0",
+          "org.scala-js:scalajs-dom_sjs1_3:2.8.1",
+          "org.scala-js:scalajs-javalib:1.22.0",
+          "org.scala-js:scalajs-library_2.13:1.22.0",
+          "org.scala-js:scalajs-scalalib_2.13:2.13.18+1.22.0",
+          "org.scala-lang:scala-library:2.13.18",
+          "org.scala-lang:scala3-library_sjs1_3:3.3.8"
+        ]
+      },
+      {
+        "id": "scalajs-ember-rich-text",
+        "publishSkip": false,
+        "dependencies": [
+          {
+            "id": "scalajs-ember-core",
+            "configuration": "compile->compile"
+          }
+        ],
+        "compileModules": [
+          "com.anjunar:scalajs-ember-core_sjs1_3:0.1.0-SNAPSHOT",
+          "org.scala-js:scalajs-javalib:1.22.0",
+          "org.scala-js:scalajs-library_2.13:1.22.0",
+          "org.scala-js:scalajs-scalalib_2.13:2.13.18+1.22.0",
+          "org.scala-lang:scala-library:2.13.18",
+          "org.scala-lang:scala3-library_sjs1_3:3.3.8"
+        ]
+      },
+      {
+        "id": "scalajs-ember-root",
+        "publishSkip": true,
+        "dependencies": [],
+        "compileModules": [
+          "org.scala-lang:scala-library:2.13.18",
+          "org.scala-lang:scala3-library_3:3.3.8"
+        ]
+      },
+      {
+        "id": "scalajs-ember-standard",
+        "publishSkip": false,
+        "dependencies": [
+          {
+            "id": "scalajs-ember-clipboard",
+            "configuration": "test->compile"
+          },
+          {
+            "id": "scalajs-ember-history",
+            "configuration": "test->compile"
+          },
+          {
+            "id": "scalajs-ember-core",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-rich-text",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-list",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-link",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-code",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-image",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-markdown",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-json",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-html",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-ui",
+            "configuration": "compile->compile"
+          }
+        ],
+        "compileModules": [
+          "com.anjunar:scala-reflect_sjs1_3:1.1.3",
+          "com.anjunar:scalajs-ember-browser_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-clipboard_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-code_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-core_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-history_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-html_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-image_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-json_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-link_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-list_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-markdown_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-rich-text_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-ui_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ui-core_sjs1_3:1.0.0",
+          "org.scala-js:scalajs-dom_sjs1_3:2.8.1",
+          "org.scala-js:scalajs-javalib:1.22.0",
+          "org.scala-js:scalajs-library_2.13:1.22.0",
+          "org.scala-js:scalajs-scalalib_2.13:2.13.18+1.22.0",
+          "org.scala-lang:scala-library:2.13.18",
+          "org.scala-lang:scala3-library_sjs1_3:3.3.8"
+        ]
+      },
+      {
+        "id": "scalajs-ember-toolbar",
+        "publishSkip": false,
+        "dependencies": [
+          {
+            "id": "scalajs-ember-core",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-rich-text",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-history",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-link",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-image",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-clipboard",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-ui",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-browser",
+            "configuration": "compile->compile"
+          }
+        ],
+        "compileModules": [
+          "com.anjunar:scala-reflect_sjs1_3:1.1.3",
+          "com.anjunar:scalajs-ember-browser_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-clipboard_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-core_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-history_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-html_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-image_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-json_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-link_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-rich-text_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-ui_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ui-core_sjs1_3:1.0.0",
+          "org.scala-js:scalajs-dom_sjs1_3:2.8.1",
+          "org.scala-js:scalajs-javalib:1.22.0",
+          "org.scala-js:scalajs-library_2.13:1.22.0",
+          "org.scala-js:scalajs-scalalib_2.13:2.13.18+1.22.0",
+          "org.scala-lang:scala-library:2.13.18",
+          "org.scala-lang:scala3-library_sjs1_3:3.3.8"
+        ]
+      },
+      {
+        "id": "scalajs-ember-ui",
+        "publishSkip": false,
+        "dependencies": [
+          {
+            "id": "scalajs-ember-core",
+            "configuration": "compile->compile"
+          },
+          {
+            "id": "scalajs-ember-html",
+            "configuration": "compile->compile"
+          }
+        ],
+        "compileModules": [
+          "com.anjunar:scala-reflect_sjs1_3:1.1.3",
+          "com.anjunar:scalajs-ember-core_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ember-html_sjs1_3:0.1.0-SNAPSHOT",
+          "com.anjunar:scalajs-ui-core_sjs1_3:1.0.0",
+          "org.scala-js:scalajs-dom_sjs1_3:2.8.1",
+          "org.scala-js:scalajs-javalib:1.22.0",
+          "org.scala-js:scalajs-library_2.13:1.22.0",
+          "org.scala-js:scalajs-scalalib_2.13:2.13.18+1.22.0",
+          "org.scala-lang:scala-library:2.13.18",
+          "org.scala-lang:scala3-library_sjs1_3:3.3.8"
+        ]
+      }
+    ]
+  },
+  "browser": [
+    {
+      "browser": "chromium",
+      "version": "153.0.8010.12",
+      "nodes": 1000,
+      "shape": "paragraphs",
+      "edits": {
+        "commitIncludingProjection": {
+          "samples": 1000,
+          "p50Ms": 0,
+          "p95Ms": 0.10000099999999179,
+          "maxMs": 0.5
+        },
+        "commitToProjected": {
+          "samples": 1000,
+          "p50Ms": 0,
+          "p95Ms": 0.10000099999999179,
+          "maxMs": 0.5
+        },
+        "mounts": 0,
+        "unmounts": 0,
+        "maxChangedNodes": 1
+      },
+      "writes": {
+        "text": 1050,
+        "children": 0,
+        "attributes": 0
+      },
+      "mount": {
+        "nodes": 1001,
+        "mountMs": 14.399999000000008,
+        "mounts": 1001
+      },
+      "move": {
+        "elapsedMs": 78.900001,
+        "identity": true,
+        "mounts": 0,
+        "unmounts": 0
+      },
+      "release": {
+        "disposeMs": 3,
+        "remainingNodes": 0
+      },
+      "heap": {
+        "beforeGcBytes": 6859372,
+        "mountedGcBytes": 11357560,
+        "afterDisposeGcBytes": 8511952
+      }
+    },
+    {
+      "browser": "chromium",
+      "version": "153.0.8010.12",
+      "nodes": 10000,
+      "shape": "paragraphs",
+      "edits": {
+        "commitIncludingProjection": {
+          "samples": 1000,
+          "p50Ms": 0,
+          "p95Ms": 0.10000099999996337,
+          "maxMs": 12.5
+        },
+        "commitToProjected": {
+          "samples": 1000,
+          "p50Ms": 0,
+          "p95Ms": 0.10000099999996337,
+          "maxMs": 12.5
+        },
+        "mounts": 0,
+        "unmounts": 0,
+        "maxChangedNodes": 1
+      },
+      "writes": {
+        "text": 1050,
+        "children": 0,
+        "attributes": 0
+      },
+      "mount": {
+        "nodes": 10001,
+        "mountMs": 64.19999899999999,
+        "mounts": 10001
+      },
+      "move": {
+        "elapsedMs": 14062.4,
+        "identity": true,
+        "mounts": 0,
+        "unmounts": 0
+      },
+      "release": {
+        "disposeMs": 28,
+        "remainingNodes": 0
+      },
+      "heap": {
+        "beforeGcBytes": 6859372,
+        "mountedGcBytes": 34277740,
+        "afterDisposeGcBytes": 8578596
+      }
+    },
+    {
+      "browser": "chromium",
+      "version": "153.0.8010.12",
+      "nodes": 100000,
+      "shape": "paragraphs",
+      "edits": {
+        "commitIncludingProjection": {
+          "samples": 1000,
+          "p50Ms": 0,
+          "p95Ms": 0.10000000000013642,
+          "maxMs": 0.3000000000001819
+        },
+        "commitToProjected": {
+          "samples": 1000,
+          "p50Ms": 0,
+          "p95Ms": 0.10000000000013642,
+          "maxMs": 0.3000000000001819
+        },
+        "mounts": 0,
+        "unmounts": 0,
+        "maxChangedNodes": 1
+      },
+      "writes": {
+        "text": 1050,
+        "children": 0,
+        "attributes": 0
+      },
+      "mount": {
+        "nodes": 100001,
+        "mountMs": 512.3000000000001,
+        "mounts": 100001
+      },
+      "move": null,
+      "release": {
+        "disposeMs": 91.09999999403954,
+        "remainingNodes": 0
+      },
+      "heap": {
+        "beforeGcBytes": 6859372,
+        "mountedGcBytes": 267154116,
+        "afterDisposeGcBytes": 8519812
+      }
+    },
+    {
+      "browser": "chromium",
+      "version": "153.0.8010.12",
+      "nodes": 3,
+      "shape": "long-leaf",
+      "edits": {
+        "commitIncludingProjection": {
+          "samples": 1000,
+          "p50Ms": 0.5,
+          "p95Ms": 0.7000000000000455,
+          "maxMs": 7.300000000000068
+        },
+        "commitToProjected": {
+          "samples": 1000,
+          "p50Ms": 0.5,
+          "p95Ms": 0.7000000000000455,
+          "maxMs": 7.300000000000068
+        },
+        "mounts": 0,
+        "unmounts": 0,
+        "maxChangedNodes": 1
+      },
+      "writes": {
+        "text": 1050,
+        "children": 0,
+        "attributes": 0
+      },
+      "mount": {
+        "nodes": 3,
+        "mountMs": 5.5,
+        "mounts": 3
+      },
+      "move": null,
+      "release": {
+        "disposeMs": 0.3999999761581421,
+        "remainingNodes": 0
+      },
+      "heap": {
+        "beforeGcBytes": 6859372,
+        "mountedGcBytes": 12133872,
+        "afterDisposeGcBytes": 7977876
+      }
+    },
+    {
+      "browser": "chromium",
+      "version": "153.0.8010.12",
+      "nodes": 129,
+      "shape": "deep-list",
+      "edits": {
+        "commitIncludingProjection": {
+          "samples": 1000,
+          "p50Ms": 0.09999999999999432,
+          "p95Ms": 0.20000100000001453,
+          "maxMs": 0.7000010000000145
+        },
+        "commitToProjected": {
+          "samples": 1000,
+          "p50Ms": 0.09999999999999432,
+          "p95Ms": 0.20000100000001453,
+          "maxMs": 0.7000010000000145
+        },
+        "mounts": 0,
+        "unmounts": 0,
+        "maxChangedNodes": 1
+      },
+      "writes": {
+        "text": 1050,
+        "children": 0,
+        "attributes": 0
+      },
+      "mount": {
+        "nodes": 129,
+        "mountMs": 5,
+        "mounts": 129
+      },
+      "move": null,
+      "release": {
+        "disposeMs": 1.300000011920929,
+        "remainingNodes": 0
+      },
+      "heap": {
+        "beforeGcBytes": 6859372,
+        "mountedGcBytes": 8861676,
+        "afterDisposeGcBytes": 8330008
+      }
+    },
+    {
+      "browser": "firefox",
+      "version": "155.0.1",
+      "nodes": 1000,
+      "shape": "paragraphs",
+      "edits": {
+        "commitIncludingProjection": {
+          "samples": 1000,
+          "p50Ms": 0,
+          "p95Ms": 0,
+          "maxMs": 1
+        },
+        "commitToProjected": {
+          "samples": 1000,
+          "p50Ms": 0,
+          "p95Ms": 0,
+          "maxMs": 1
+        },
+        "mounts": 0,
+        "unmounts": 0,
+        "maxChangedNodes": 1
+      },
+      "writes": {
+        "text": 1050,
+        "children": 0,
+        "attributes": 0
+      },
+      "mount": {
+        "nodes": 1001,
+        "mountMs": 30,
+        "mounts": 1001
+      },
+      "move": {
+        "elapsedMs": 29,
+        "identity": true,
+        "mounts": 0,
+        "unmounts": 0
+      },
+      "release": {
+        "disposeMs": 3,
+        "remainingNodes": 0
+      },
+      "heap": {
+        "beforeGcBytes": null,
+        "mountedGcBytes": null,
+        "afterDisposeGcBytes": null
+      }
+    },
+    {
+      "browser": "firefox",
+      "version": "155.0.1",
+      "nodes": 10000,
+      "shape": "paragraphs",
+      "edits": {
+        "commitIncludingProjection": {
+          "samples": 1000,
+          "p50Ms": 0,
+          "p95Ms": 1,
+          "maxMs": 5
+        },
+        "commitToProjected": {
+          "samples": 1000,
+          "p50Ms": 0,
+          "p95Ms": 0,
+          "maxMs": 5
+        },
+        "mounts": 0,
+        "unmounts": 0,
+        "maxChangedNodes": 1
+      },
+      "writes": {
+        "text": 1050,
+        "children": 0,
+        "attributes": 0
+      },
+      "mount": {
+        "nodes": 10001,
+        "mountMs": 127,
+        "mounts": 10001
+      },
+      "move": {
+        "elapsedMs": 2585,
+        "identity": true,
+        "mounts": 0,
+        "unmounts": 0
+      },
+      "release": {
+        "disposeMs": 47,
+        "remainingNodes": 0
+      },
+      "heap": {
+        "beforeGcBytes": null,
+        "mountedGcBytes": null,
+        "afterDisposeGcBytes": null
+      }
+    },
+    {
+      "browser": "firefox",
+      "version": "155.0.1",
+      "nodes": 100000,
+      "shape": "paragraphs",
+      "edits": {
+        "commitIncludingProjection": {
+          "samples": 1000,
+          "p50Ms": 0,
+          "p95Ms": 1,
+          "maxMs": 4
+        },
+        "commitToProjected": {
+          "samples": 1000,
+          "p50Ms": 0,
+          "p95Ms": 1,
+          "maxMs": 4
+        },
+        "mounts": 0,
+        "unmounts": 0,
+        "maxChangedNodes": 1
+      },
+      "writes": {
+        "text": 1050,
+        "children": 0,
+        "attributes": 0
+      },
+      "mount": {
+        "nodes": 100001,
+        "mountMs": 3054,
+        "mounts": 100001
+      },
+      "move": null,
+      "release": {
+        "disposeMs": 351,
+        "remainingNodes": 0
+      },
+      "heap": {
+        "beforeGcBytes": null,
+        "mountedGcBytes": null,
+        "afterDisposeGcBytes": null
+      }
+    },
+    {
+      "browser": "firefox",
+      "version": "155.0.1",
+      "nodes": 3,
+      "shape": "long-leaf",
+      "edits": {
+        "commitIncludingProjection": {
+          "samples": 1000,
+          "p50Ms": 3,
+          "p95Ms": 10,
+          "maxMs": 18
+        },
+        "commitToProjected": {
+          "samples": 1000,
+          "p50Ms": 3,
+          "p95Ms": 10,
+          "maxMs": 18
+        },
+        "mounts": 0,
+        "unmounts": 0,
+        "maxChangedNodes": 1
+      },
+      "writes": {
+        "text": 1050,
+        "children": 0,
+        "attributes": 0
+      },
+      "mount": {
+        "nodes": 3,
+        "mountMs": 16,
+        "mounts": 3
+      },
+      "move": null,
+      "release": {
+        "disposeMs": 1,
+        "remainingNodes": 0
+      },
+      "heap": {
+        "beforeGcBytes": null,
+        "mountedGcBytes": null,
+        "afterDisposeGcBytes": null
+      }
+    },
+    {
+      "browser": "firefox",
+      "version": "155.0.1",
+      "nodes": 129,
+      "shape": "deep-list",
+      "edits": {
+        "commitIncludingProjection": {
+          "samples": 1000,
+          "p50Ms": 0,
+          "p95Ms": 1,
+          "maxMs": 3
+        },
+        "commitToProjected": {
+          "samples": 1000,
+          "p50Ms": 0,
+          "p95Ms": 1,
+          "maxMs": 3
+        },
+        "mounts": 0,
+        "unmounts": 0,
+        "maxChangedNodes": 1
+      },
+      "writes": {
+        "text": 1050,
+        "children": 0,
+        "attributes": 0
+      },
+      "mount": {
+        "nodes": 129,
+        "mountMs": 16,
+        "mounts": 129
+      },
+      "move": null,
+      "release": {
+        "disposeMs": 2,
+        "remainingNodes": 0
+      },
+      "heap": {
+        "beforeGcBytes": null,
+        "mountedGcBytes": null,
+        "afterDisposeGcBytes": null
+      }
+    },
+    {
+      "browser": "webkit",
+      "version": "26.6",
+      "nodes": 1000,
+      "shape": "paragraphs",
+      "edits": {
+        "commitIncludingProjection": {
+          "samples": 1000,
+          "p50Ms": 0,
+          "p95Ms": 0,
+          "maxMs": 1
+        },
+        "commitToProjected": {
+          "samples": 1000,
+          "p50Ms": 0,
+          "p95Ms": 0,
+          "maxMs": 1
+        },
+        "mounts": 0,
+        "unmounts": 0,
+        "maxChangedNodes": 1
+      },
+      "writes": {
+        "text": 1050,
+        "children": 0,
+        "attributes": 0
+      },
+      "mount": {
+        "nodes": 1001,
+        "mountMs": 18,
+        "mounts": 1001
+      },
+      "move": {
+        "elapsedMs": 36,
+        "identity": true,
+        "mounts": 0,
+        "unmounts": 0
+      },
+      "release": {
+        "disposeMs": 4,
+        "remainingNodes": 0
+      },
+      "heap": {
+        "beforeGcBytes": null,
+        "mountedGcBytes": null,
+        "afterDisposeGcBytes": null
+      }
+    },
+    {
+      "browser": "webkit",
+      "version": "26.6",
+      "nodes": 10000,
+      "shape": "paragraphs",
+      "edits": {
+        "commitIncludingProjection": {
+          "samples": 1000,
+          "p50Ms": 0,
+          "p95Ms": 0,
+          "maxMs": 1
+        },
+        "commitToProjected": {
+          "samples": 1000,
+          "p50Ms": 0,
+          "p95Ms": 0,
+          "maxMs": 1
+        },
+        "mounts": 0,
+        "unmounts": 0,
+        "maxChangedNodes": 1
+      },
+      "writes": {
+        "text": 1050,
+        "children": 0,
+        "attributes": 0
+      },
+      "mount": {
+        "nodes": 10001,
+        "mountMs": 75,
+        "mounts": 10001
+      },
+      "move": {
+        "elapsedMs": 1159,
+        "identity": true,
+        "mounts": 0,
+        "unmounts": 0
+      },
+      "release": {
+        "disposeMs": 24,
+        "remainingNodes": 0
+      },
+      "heap": {
+        "beforeGcBytes": null,
+        "mountedGcBytes": null,
+        "afterDisposeGcBytes": null
+      }
+    },
+    {
+      "browser": "webkit",
+      "version": "26.6",
+      "nodes": 100000,
+      "shape": "paragraphs",
+      "edits": {
+        "commitIncludingProjection": {
+          "samples": 1000,
+          "p50Ms": 0,
+          "p95Ms": 0,
+          "maxMs": 1
+        },
+        "commitToProjected": {
+          "samples": 1000,
+          "p50Ms": 0,
+          "p95Ms": 0,
+          "maxMs": 1
+        },
+        "mounts": 0,
+        "unmounts": 0,
+        "maxChangedNodes": 1
+      },
+      "writes": {
+        "text": 1050,
+        "children": 0,
+        "attributes": 0
+      },
+      "mount": {
+        "nodes": 100001,
+        "mountMs": 625,
+        "mounts": 100001
+      },
+      "move": null,
+      "release": {
+        "disposeMs": 194,
+        "remainingNodes": 0
+      },
+      "heap": {
+        "beforeGcBytes": null,
+        "mountedGcBytes": null,
+        "afterDisposeGcBytes": null
+      }
+    },
+    {
+      "browser": "webkit",
+      "version": "26.6",
+      "nodes": 3,
+      "shape": "long-leaf",
+      "edits": {
+        "commitIncludingProjection": {
+          "samples": 1000,
+          "p50Ms": 0,
+          "p95Ms": 1,
+          "maxMs": 3
+        },
+        "commitToProjected": {
+          "samples": 1000,
+          "p50Ms": 0,
+          "p95Ms": 1,
+          "maxMs": 3
+        },
+        "mounts": 0,
+        "unmounts": 0,
+        "maxChangedNodes": 1
+      },
+      "writes": {
+        "text": 1050,
+        "children": 0,
+        "attributes": 0
+      },
+      "mount": {
+        "nodes": 3,
+        "mountMs": 12,
+        "mounts": 3
+      },
+      "move": null,
+      "release": {
+        "disposeMs": 1,
+        "remainingNodes": 0
+      },
+      "heap": {
+        "beforeGcBytes": null,
+        "mountedGcBytes": null,
+        "afterDisposeGcBytes": null
+      }
+    },
+    {
+      "browser": "webkit",
+      "version": "26.6",
+      "nodes": 129,
+      "shape": "deep-list",
+      "edits": {
+        "commitIncludingProjection": {
+          "samples": 1000,
+          "p50Ms": 0,
+          "p95Ms": 1,
+          "maxMs": 4
+        },
+        "commitToProjected": {
+          "samples": 1000,
+          "p50Ms": 0,
+          "p95Ms": 1,
+          "maxMs": 4
+        },
+        "mounts": 0,
+        "unmounts": 0,
+        "maxChangedNodes": 1
+      },
+      "writes": {
+        "text": 1050,
+        "children": 0,
+        "attributes": 0
+      },
+      "mount": {
+        "nodes": 129,
+        "mountMs": 9,
+        "mounts": 129
+      },
+      "move": null,
+      "release": {
+        "disposeMs": 1,
+        "remainingNodes": 0
+      },
+      "heap": {
+        "beforeGcBytes": null,
+        "mountedGcBytes": null,
+        "afterDisposeGcBytes": null
+      }
+    }
+  ],
+  "functional": {
+    "total": 804,
+    "passed": 802,
+    "expectedFailures": 2,
+    "unexpected": 0,
+    "flaky": 0,
+    "skipped": 0
+  },
+  "benchmark": {
+    "total": 15,
+    "passed": 15,
+    "expectedFailures": 0,
+    "unexpected": 0,
+    "flaky": 0,
+    "skipped": 0
+  },
+  "scala": {
+    "passed": 1266,
+    "command": "sbt --server scalafmtAll \"Test/testOnly *\" + four fullLinkJS + editorMetadata + scalafmtCheckAll",
+    "runtime": "2.0.8 (Oracle Corporation Java 25.0.4.1)"
+  },
+  "recordedAt": "2026-09-14T10:07:25.335Z",
+  "largeMove": "Open: separate 50000-sibling stress timeout, see large-move-timeout.json",
+  "devices": "No physical device, IME or screenreader acceptance recorded"
+}

@@ -809,7 +809,7 @@ Gate dieses Repositories:
 sbt --server "Test/testOnly *"
 ```
 
-Die npm-/Bridge-/Browser-Gates gehören zum Nachbar-Repo und laufen dort
+Die npm-/Bridge-Gates gehören zum Nachbar-Repo und laufen dort
 ([AGENTS.md](../scalajs-ui/AGENTS.md), [verify.yml](../scalajs-ui/.github/workflows/verify.yml)):
 
 ```powershell
@@ -820,6 +820,15 @@ npm run verify --workspaces --if-present
 ```
 
 Der Browser-Harness liegt in `ember-integration/browser`. Die CI unter `.github/workflows/verify.yml` prüft Formatierung, alle Scala-Module über das Root-Gate sowie Serverimport und Chromium/Firefox/WebKit. `sbt --server test` delegiert in sbt 2 auf `testQuick` und ist kein vollständiges Abnahme-Gate; `clean` invalidiert den externen Action-Cache nicht. Die in AGENTS.md genannte Testanzahl ist eine Momentaufnahme, kein einzufrierender Sollwert. Neue Browser-/No-JS-Gates kommen explizit in die CI. Generiertes JavaScript wird weder durchsucht noch bearbeitet; Größen werden über Dateistatistik/Kompression bzw. Build-Metadaten gemessen.
+
+P28 konkretisiert diese Beweise in der [Supportmatrix](ember-integration/browser/support-matrix.md),
+der [Gerätecheckliste](ember-integration/browser/accessibility-checklist.md) und dem
+[Messbericht](benchmarks/report.md). Drei unabhängig gelinkte Profilanwendungen
+messen Scala.js-Erreichbarkeit; sie sind keine gemeinsame npm-Runtime und nehmen
+P29 nicht vorweg. Große Formstrings und flache Umordnungen haben separat
+ausgewiesene Kosten. Der [Runtime-Kandidat](benchmarks/runtime-reorder.md) behebt
+den großen Move-Timeout und ist inzwischen als UI-Core 1.0.1 veröffentlicht und
+übernommen. Offene Geräteprüfungen verhindern noch eine uneingeschränkte P28-Abnahme.
 
 ## 25. Ablösung des bestehenden Editors
 

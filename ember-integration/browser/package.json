@@ -6,6 +6,8 @@
   "scripts": {
     "test:browser": "playwright test",
     "test:server": "node server-import.mjs",
+    "test:bench": "playwright test --config ../../benchmarks/playwright.config.mjs",
+    "test:bench:stress": "playwright test --config ../../benchmarks/stress.config.mjs",
     "verify": "npm run test:server && npm run test:browser"
   },
   "devDependencies": {

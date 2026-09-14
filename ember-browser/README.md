@@ -458,3 +458,10 @@ IME-Unterstützung als nicht abgenommen — gleich wie viele Tests grün sind.
 
 Die Aufteilung ist dieselbe wie bei §16 und aus demselben Grund: eine Regel, die durch eine
 ihrer Darstellungen geprüft wird, ist einmal geprüft.
+
+P28 dokumentiert Browser-/Gerätenachweise in der
+[Supportmatrix](../ember-integration/browser/support-matrix.md) und erfasst
+reproduzierbare [Projektion-/Heap-Messungen](../benchmarks/report.md). Vor einer
+kontrollierten Eingabe oder einem übernommenen Shortcut liest der Controller den
+aktuellen DOM-Caret synchron über den SelectionPort: ein noch ausstehendes
+`selectionchange` darf die Eingabe nicht an eine alte Modellposition lenken.

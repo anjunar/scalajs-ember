@@ -1,0 +1,153 @@
+{
+  "recordedAt": "2026-09-14T12:00:06.001Z",
+  "publication": {
+    "deploymentId": "dc3942f5-2142-48a5-a69d-83d4eadbce34",
+    "deploymentName": "com.anjunar:scalajs-ui:1.0.1",
+    "deploymentState": "PUBLISHED",
+    "purls": [
+      "pkg:maven/com.anjunar/scalajs-ui-viewport_sjs1_3@1.0.1",
+      "pkg:maven/com.anjunar/scalajs-ui-router_sjs1_3@1.0.1",
+      "pkg:maven/com.anjunar/scalajs-ui-bridge_sjs1_3@1.0.1",
+      "pkg:maven/com.anjunar/scalajs-ui-controls_sjs1_3@1.0.1",
+      "pkg:maven/com.anjunar/scalajs-ui-core_sjs1_3@1.0.1",
+      "pkg:maven/com.anjunar/scalajs-ui-json_sjs1_3@1.0.1",
+      "pkg:maven/com.anjunar/scalajs-ui-forms_sjs1_3@1.0.1",
+      "pkg:maven/com.anjunar/scalajs-ui-editor_sjs1_3@1.0.1",
+      "pkg:maven/com.anjunar/scalajs-ui-webauthn_sjs1_3@1.0.1"
+    ],
+    "errors": {},
+    "warnings": [
+      "Your organization anjunar has used over 75% of its monthly Release Size publishing limit. Review usage before enforcement begins October 1, 2026. View usage: https://central.sonatype.com/publishing/usage?org=anjunar",
+      "Your organization anjunar is over its monthly File Count publishing limit. Enforcement begins October 1, 2026. View usage: https://central.sonatype.com/publishing/usage?org=anjunar",
+      "Your organization anjunar is over its monthly Release Count publishing limit. Enforcement begins October 1, 2026. View usage: https://central.sonatype.com/publishing/usage?org=anjunar"
+    ]
+  },
+  "artifacts": [
+    {
+      "artifact": "scalajs-ui-bridge_sjs1_3",
+      "version": "1.0.1",
+      "jarSha256": "dc74e01400fd1b7e952f7834f5aca364bf800383b456c573d7f01594dfc1f49d",
+      "pomUrl": "https://repo.maven.apache.org/maven2/com/anjunar/scalajs-ui-bridge_sjs1_3/1.0.1/scalajs-ui-bridge_sjs1_3-1.0.1.pom"
+    },
+    {
+      "artifact": "scalajs-ui-controls_sjs1_3",
+      "version": "1.0.1",
+      "jarSha256": "317e69a8e2826fc6277ba0ec807e479540859ff8b2e36f784c3aed31fe993b21",
+      "pomUrl": "https://repo.maven.apache.org/maven2/com/anjunar/scalajs-ui-controls_sjs1_3/1.0.1/scalajs-ui-controls_sjs1_3-1.0.1.pom"
+    },
+    {
+      "artifact": "scalajs-ui-core_sjs1_3",
+      "version": "1.0.1",
+      "jarSha256": "ed56253ea70c40692f2718f919efee36ab6ef5bcddfc8b3f2d8cfaf99a21a9fe",
+      "pomUrl": "https://repo.maven.apache.org/maven2/com/anjunar/scalajs-ui-core_sjs1_3/1.0.1/scalajs-ui-core_sjs1_3-1.0.1.pom"
+    },
+    {
+      "artifact": "scalajs-ui-editor_sjs1_3",
+      "version": "1.0.1",
+      "jarSha256": "59794a0169aaeb8e23b30c6d5985b4a375aad76ca70362dde10b0ed31263a323",
+      "pomUrl": "https://repo.maven.apache.org/maven2/com/anjunar/scalajs-ui-editor_sjs1_3/1.0.1/scalajs-ui-editor_sjs1_3-1.0.1.pom"
+    },
+    {
+      "artifact": "scalajs-ui-forms_sjs1_3",
+      "version": "1.0.1",
+      "jarSha256": "53d0774812bca5e52d389d3427f87acd4e3d1cbe77def184fed5026d2d21971d",
+      "pomUrl": "https://repo.maven.apache.org/maven2/com/anjunar/scalajs-ui-forms_sjs1_3/1.0.1/scalajs-ui-forms_sjs1_3-1.0.1.pom"
+    },
+    {
+      "artifact": "scalajs-ui-json_sjs1_3",
+      "version": "1.0.1",
+      "jarSha256": "6c4777fceb6b8054060c306d3131012dc3d2345d46374836ff896bfef3cbdbf4",
+      "pomUrl": "https://repo.maven.apache.org/maven2/com/anjunar/scalajs-ui-json_sjs1_3/1.0.1/scalajs-ui-json_sjs1_3-1.0.1.pom"
+    },
+    {
+      "artifact": "scalajs-ui-router_sjs1_3",
+      "version": "1.0.1",
+      "jarSha256": "f2a81d2ae2466321e413f879a80f60c81f035f91e0436aba05deb53529e78b14",
+      "pomUrl": "https://repo.maven.apache.org/maven2/com/anjunar/scalajs-ui-router_sjs1_3/1.0.1/scalajs-ui-router_sjs1_3-1.0.1.pom"
+    },
+    {
+      "artifact": "scalajs-ui-viewport_sjs1_3",
+      "version": "1.0.1",
+      "jarSha256": "908800ad86bf2de619bdaf7592889d633d35392fbbc884f270d59971504f06c8",
+      "pomUrl": "https://repo.maven.apache.org/maven2/com/anjunar/scalajs-ui-viewport_sjs1_3/1.0.1/scalajs-ui-viewport_sjs1_3-1.0.1.pom"
+    },
+    {
+      "artifact": "scalajs-ui-webauthn_sjs1_3",
+      "version": "1.0.1",
+      "jarSha256": "ff1436e241f9364f9c1e8a3c4bb7fc75da1a73648b1d8f77e99ae2a910b7679b",
+      "pomUrl": "https://repo.maven.apache.org/maven2/com/anjunar/scalajs-ui-webauthn_sjs1_3/1.0.1/scalajs-ui-webauthn_sjs1_3-1.0.1.pom"
+    }
+  ],
+  "runtime": "com.anjunar:scalajs-ui-core_sjs1_3:1.0.1",
+  "sourceHashes": [
+    {
+      "file": "scala/scalajs-ui-core/src/main/scala-3/ui/core/component/Runtime.scala",
+      "sha256": "bd560bd4c920c9a1e19e7b5049448cc830896a97e12432e5713f6694487a039d"
+    },
+    {
+      "file": "scala/scalajs-ui-core/src/main/scala-3/ui/core/statement/KeyedChildren.scala",
+      "sha256": "007426174a62effa8605281baba46ac4ba95bb08d3bd78eecd43dcf63c42cf78"
+    },
+    {
+      "file": "scala/scalajs-ui-core/src/test/scala-3/ui/core/render/KeyedReorderSpec.scala",
+      "sha256": "868ba4c69cda2dcd949f85eef59e66238ac7cde949bff96684bff52f6558452b"
+    }
+  ],
+  "integrationSha256": "5aa2b0a0a312c1acf91be0df7f82299d456dd9d97fc63232cc63b7e1a3ad45c9",
+  "gates": {
+    "uiScala": 454,
+    "editorScala": 1266,
+    "npmWorkspaces": "passed",
+    "npmVitestCases": 333,
+    "uiBrowser": 57,
+    "editorBrowser": {
+      "passed": 802,
+      "expectedFailures": 2
+    },
+    "stress": {
+      "passed": 3,
+      "expectedFailures": 0
+    },
+    "uiAndEditorFormat": "passed"
+  },
+  "stressCase": {
+    "nodes": 100001,
+    "paragraphSiblings": 50000,
+    "operation": "first paragraph to end"
+  },
+  "moves": [
+    {
+      "browser": "chromium",
+      "version": "153.0.8010.12",
+      "elapsedMs": 92.5,
+      "identity": true,
+      "mounts": 0,
+      "unmounts": 0,
+      "firstIsLast": true,
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "browser": "firefox",
+      "version": "155.0.1",
+      "elapsedMs": 112,
+      "identity": true,
+      "mounts": 0,
+      "unmounts": 0,
+      "firstIsLast": true,
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "browser": "webkit",
+      "version": "26.6",
+      "elapsedMs": 130,
+      "identity": true,
+      "mounts": 0,
+      "unmounts": 0,
+      "firstIsLast": true,
+      "added": 1,
+      "removed": 1
+    }
+  ]
+}

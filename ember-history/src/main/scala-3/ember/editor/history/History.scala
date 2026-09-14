@@ -23,6 +23,7 @@ final class History(
   private var session: EditorSession   = null
   private var current: HistoryState    = HistoryState.empty
   private var group: Option[OpenGroup] = None
+  private var unrecordedChanges        = Set.empty[NodeId]
 
   // Commands stage their stack transition in the draft. This field is not captured
   // in history snapshots, and expires on the next transaction. A rejected draft
@@ -42,7 +43,11 @@ final class History(
       Right(value.filter(_.revision == candidate.previous.revision))
 
   /** Eine ausdruecklich geoeffnete Gruppe -- Composition, Drag, ein mehrstufiger Dialog. */
-  private final case class OpenGroup(before: HistorySnapshot, label: Option[String])
+  private final case class OpenGroup(
+      before: HistorySnapshot,
+      label: Option[String],
+      changedNodes: Set[NodeId] = Set.empty
+  )
 
   override def contribute: ExtensionContributions =
     ExtensionContributions(
@@ -59,7 +64,12 @@ final class History(
         "Diese History ist bereits installiert. Eine History gehoert genau einer Sitzung (§14)."
       )
     session = installed
-    installed.onCommit(record)
+    val commits = installed.onCommit(record)
+    Subscription(() => {
+      commits.dispose()
+      reset()
+      session = null
+    })
 
   // -----------------------------------------------------------------------------------------
   // Lesen
@@ -89,6 +99,7 @@ final class History(
   def reset(): Unit =
     current = HistoryState.empty
     group = None
+    unrecordedChanges = Set.empty
 
   /** Beginnt eine ausdrueckliche Gruppe.
     *
@@ -126,11 +137,14 @@ final class History(
             marks = MarkSet.empty,
             at = clock.now(),
             label = open.label,
-            estimatedBytes = HistoryEntry.estimate(open.before.document, session.document)
+            estimatedBytes =
+              HistoryEntry.estimate(open.before.document, session.document, open.changedNodes),
+            changedNodes = Some(open.changedNodes)
           ),
           config.limits
         )
       current = current.closed
+      unrecordedChanges = Set.empty
     }
 
   // -----------------------------------------------------------------------------------------
@@ -138,10 +152,14 @@ final class History(
   // -----------------------------------------------------------------------------------------
 
   private def record(commit: Commit): Unit =
+    // Explicit groups snapshot their entire interval, including edits tagged Ignore.
+    group =
+      group.map(open => open.copy(changedNodes = open.changedNodes ++ commit.changes.changedNodes))
     val staged =
       commit.current.fields(PendingRestore).filter(_.revision == commit.previous.revision)
     if staged.isDefined then
       val transition = staged.get
+      unrecordedChanges = Set.empty
       current = transition.next
       // If the same transaction edits the restored document, retain that edit as
       // a new structural entry, rather than silently treating it as part of Undo.
@@ -154,12 +172,14 @@ final class History(
             MarkSet.empty,
             clock.now(),
             commit.meta.label,
+            // This delta starts before the restore, not at the restored snapshot. A
+            // restored node removed again can cancel out of it; this nonlocal path diffs fully.
             HistoryEntry.estimate(transition.target.document, commit.current.document)
           ),
           config.limits
         )
-    else if commit.meta.origin == Origin.History then ()
-    else if commit.meta.history.contains(HistoryPolicy.Ignore) then ()
+    else if commit.meta.origin == Origin.History then rememberUnrecorded(commit)
+    else if commit.meta.history.contains(HistoryPolicy.Ignore) then rememberUnrecorded(commit)
     else if commit.meta.origin == Origin.Import && config.resetOnImport then reset()
     else if group.isDefined then ()
     else if !commit.documentChanged then
@@ -168,12 +188,17 @@ final class History(
       // Gruppe wird geschlossen, und die naechste Stufe nimmt `commit.previous.selection` der
       // dann folgenden Aenderung -- also genau die Auswahl, die jetzt gilt.
       current = current.closed
+      unrecordedChanges = Set.empty
     else append(commit)
 
   private def append(commit: Commit): Unit =
     val kind  = HistoryGrouping.classify(commit)
     val marks = HistoryGrouping.marksOf(kind, commit.current.document)
     val at    = clock.now()
+    // A later merge spans ignored commits too: its before snapshot predates them.
+    // Keep their candidate IDs without changing the ignored commit's undo state.
+    val changed = commit.changes.changedNodes ++ unrecordedChanges
+    unrecordedChanges = Set.empty
 
     val entry = HistoryEntry(
       before = snapshotOf(commit.previous),
@@ -182,12 +207,17 @@ final class History(
       marks = marks,
       at = at,
       label = commit.meta.label,
-      estimatedBytes = HistoryEntry.estimate(commit.previous.document, commit.current.document)
+      estimatedBytes = HistoryEntry
+        .estimate(commit.previous.document, commit.current.document, commit.changes.changedNodes),
+      changedNodes = Some(changed)
     )
 
     current =
       if mergesIntoOpenEntry(commit, kind, marks, at) then current.merge(entry, config.limits)
       else current.push(entry, config.limits)
+
+  private def rememberUnrecorded(commit: Commit): Unit =
+    if current.open then unrecordedChanges ++= commit.changes.changedNodes
 
   /** A published state as a snapshot, including the fields that asked to come along (§14). */
   private def snapshotOf(state: EditorState): HistorySnapshot =

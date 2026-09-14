@@ -375,6 +375,8 @@ object EditingFixtures:
     case InputOutcome.Deduplicated       => "deduplicated"
     case InputOutcome.Unimported(_)      => "unimported"
     case InputOutcome.Idle(state)        => s"idle:$state"
+    case InputOutcome.Busy(state)        => s"busy:$state"
+    case InputOutcome.NotAShortcut(key)  => s"not-a-shortcut:$key"
 
   private def name(intent: InputIntent): String = intent match
     case InputIntent.InsertText(_)     => "insert-text"

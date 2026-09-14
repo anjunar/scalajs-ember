@@ -17,7 +17,7 @@ await readFile(new URL('main.js', output)).catch(() => {
 const html = `<!doctype html><html><body>
 <div id="root"></div>
 <script type="module">
-import { emberFixtures, runtimeFixtures, projectionFixtures, formFixtures, selectionFixtures, editingFixtures, clipboardFixtures, mediaFixtures } from '/main.js'
+import { emberFixtures, runtimeFixtures, projectionFixtures, formFixtures, selectionFixtures, editingFixtures, clipboardFixtures, mediaFixtures, editorBench } from '/main.js'
 window.fixtures = emberFixtures
 window.runtime = runtimeFixtures
 window.projection = projectionFixtures
@@ -26,6 +26,7 @@ window.selection = selectionFixtures
 window.editing = editingFixtures
 window.clipboard = clipboardFixtures
 window.media = mediaFixtures
+window.bench = editorBench
 window.ready = true
 </script>
 </body></html>`
@@ -88,7 +89,30 @@ async function readBody(request) {
 const server = createServer(async (request, response) => {
   const url = new URL(request.url, 'http://127.0.0.1')
   const path = url.pathname
+  const profileAsset = /^\/profiles\/(text|markdown|standard)\/([A-Za-z0-9_.-]+\.js)$/.exec(path)
+  if (profileAsset) {
+    response.setHeader('Content-Type', 'text/javascript; charset=utf-8')
+    response.end(await readFile(new URL(`../../target/editor-profiles/${profileAsset[1]}/${profileAsset[2]}`, import.meta.url)))
+    return
+  }
+  if (path === '/profile') {
+    const name = url.searchParams.get('name') ?? 'text'
+    if (!['text', 'markdown', 'standard'].includes(name)) { response.writeHead(404).end(); return }
+    response.setHeader('Content-Type', 'text/html; charset=utf-8')
+    response.end(`<!doctype html><html lang="de"><head><meta charset="utf-8"><title>Ember Profil ${name}</title></head><body>
+      <h1>Profil ${name}</h1><div id="root" aria-label="Dokument"></div><button id="value">Wert lesen</button><pre id="output"></pre>
+      <script type="module">import { profile } from '/profiles/${name}/main.js'; window.profile = profile;
+      profile.mount(document.getElementById('root'), 'Hello');
+      document.getElementById('value').onclick = () => document.getElementById('output').textContent = profile.value();
+      window.ready = true;</script></body></html>`)
+    return
+  }
   if (await mediaRequest(request, response, url, mediaFixtures)) return
+  if (path === '/acceptance-trace.mjs') {
+    response.setHeader('Content-Type', 'text/javascript; charset=utf-8')
+    response.end(await readFile(new URL('acceptance-trace.mjs', import.meta.url)))
+    return
+  }
 
   if (path === '/toolbar.css') {
     response.setHeader('Content-Type', 'text/css; charset=utf-8')
@@ -112,7 +136,7 @@ const server = createServer(async (request, response) => {
       window.toolbar = toolbarFixtures;
       toolbarFixtures.mount(document.getElementById('toolbar-editor'),document.getElementById('toolbar-host'),document.getElementById('dialogs'),document.getElementById('toolbar-file'));
       document.getElementById('readonly').addEventListener('change', event => toolbarFixtures.readonly(event.target.checked));
-      window.ready = true;</script></body></html>`)
+      window.ready = true;</script>${url.searchParams.get('trace') === '1' ? '<script type="module" src="/acceptance-trace.mjs"></script>' : ''}</body></html>`)
     return
   }
 

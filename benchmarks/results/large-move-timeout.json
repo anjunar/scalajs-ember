@@ -1,0 +1,71 @@
+{
+  "measuredAt": "2026-09-14T09:39:32.628Z",
+  "operation": "After mount and 1000 local edits: window.bench.move(), first of 50000 root children to the end; ui-core 1.0.0",
+  "timeoutMs": 240000,
+  "status": "failed, not accepted",
+  "note": "Diagnostic run before moving the unchanged stress operation to large-move.spec.mjs. Local timings overlapped a later sbt build; use the regular final report for timings.",
+  "tests": [
+    {
+      "title": "paragraphs 100000: local projection, identity, move and release",
+      "project": "chromium",
+      "expectedStatus": "passed",
+      "results": [
+        {
+          "status": "timedOut",
+          "duration": 245031,
+          "error": "\u001b[31mTest timeout of 240000ms exceeded.\u001b[39m",
+          "stdout": [
+            {
+              "text": "chromium paragraphs 100000: mount 522.3ms\n"
+            },
+            {
+              "text": "chromium paragraphs 100000: edits p95 0.100ms\n"
+            }
+          ],
+          "measurements": [
+            {
+              "name": "mount",
+              "value": {
+                "nodes": 100001,
+                "mountMs": 522.3000010000001,
+                "mounts": 100001
+              }
+            },
+            {
+              "name": "edits",
+              "value": {
+                "edits": {
+                  "commitIncludingProjection": {
+                    "samples": 1000,
+                    "p50Ms": 0,
+                    "p95Ms": 0.10000000000013642,
+                    "maxMs": 0.5
+                  },
+                  "commitToProjected": {
+                    "samples": 1000,
+                    "p50Ms": 0,
+                    "p95Ms": 0.10000000000013642,
+                    "maxMs": 0.5
+                  },
+                  "mounts": 0,
+                  "unmounts": 0,
+                  "maxChangedNodes": 1
+                },
+                "writes": {
+                  "text": 1050,
+                  "children": 0,
+                  "attributes": 0
+                },
+                "mount": {
+                  "nodes": 100001,
+                  "mountMs": 522.3000010000001,
+                  "mounts": 100001
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

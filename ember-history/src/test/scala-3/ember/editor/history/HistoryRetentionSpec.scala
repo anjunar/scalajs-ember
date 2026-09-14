@@ -105,6 +105,28 @@ final class HistoryRetentionSpec extends AnyFlatSpec with Matchers {
     f.history.state.undo.head.estimatedBytes should be >= afterFirst
   }
 
+  it should "match the full estimate when grouped changes cancel or carry Ignore" in {
+    val f = new HistoryFixture()
+    f.history.beginGroup()
+    f.edit(TransactionMeta.user.withHistory(HistoryPolicy.Ignore))(_.spliceText(f.text, 0, 0, "x"))
+    f.edit()(_.spliceText(f.text, 0, 1, "y"))
+    f.history.endGroup()
+    val entry = f.history.state.undo.last
+    entry.estimatedBytes shouldBe HistoryEntry.estimate(entry.before.document, entry.after.document)
+  }
+
+  it should "estimate nodes restored and removed again within an Undo transaction" in {
+    val f = new HistoryFixture()
+    f.edit()(_.remove(f.text))
+    f.session.update { tx =>
+      tx.dispatch(HistoryCommands.Undo)
+      tx.remove(f.text)
+    }.isRight shouldBe true
+    val entry = f.history.state.undo.last
+    entry.estimatedBytes shouldBe HistoryEntry.estimate(entry.before.document, entry.after.document)
+    entry.estimatedBytes should be > 0
+  }
+
   // ---------------------------------------------------------------------------------------
   // Freigeben
   // ---------------------------------------------------------------------------------------

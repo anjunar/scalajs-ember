@@ -148,3 +148,10 @@ Komponenten anfasst (§15.1, Abnahme).
 Was dort grundsätzlich nicht prüfbar ist — DOM-Identität und der Umfang der Schreibzugriffe —
 steht im Harness: [ember-integration/browser](../ember-integration/browser/README.md),
 `projection.spec.mjs`.
+
+P28 ergänzt einen [versionierten Import-/Roundtrip-Korpus](../benchmarks/corpora/README.md)
+und unabhängig gelinkte Text-/Markdown-/Standard-Messanwendungen. Unbekannte
+HTML-Elemente einschließlich Tabellen werden aufgelöst und als Verlust
+diagnostiziert; reine Text-`span` bleiben transparent. Tatsächliche Profilgrößen,
+Performance und Browser-/Gerätegrenzen: [Messbericht](../benchmarks/report.md),
+[Supportmatrix](../ember-integration/browser/support-matrix.md).

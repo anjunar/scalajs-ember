@@ -1,0 +1,13 @@
+[
+  { "name": "unicode-bidi", "format": "markdown", "source": "Grüße 👩🏽‍💻 é — العربية עברית 中文 한글", "includes": ["Grüße", "العربية", "👩🏽‍💻"] },
+  { "name": "marks", "format": "markdown", "source": "**Strong** and *emphasis* and `code`.", "includes": ["<strong>", "<em>", "<code>"] },
+  { "name": "nested-list", "format": "markdown", "source": "3. First\n   - Nested\n   - More\n4. Last", "includes": ["<ol", "<ul", "Nested"] },
+  { "name": "quote-break", "format": "markdown", "source": "> Quote\n>\n> Another\n\n---\n\nA  \nbreak", "includes": ["<blockquote", "<hr", "<br"] },
+  { "name": "fenced-code", "format": "markdown", "source": "```scala\nval x = \"<script>\"\n```", "includes": ["<pre", "&lt;script&gt;"] },
+  { "name": "media-links", "format": "markdown", "source": "[Example](https://example.org \"Title\") and ![](/assets/test.png)", "includes": ["href=\"https://example.org\"", "alt=\"\""] },
+  { "name": "raw-html-as-text", "format": "markdown", "source": "<script>alert(1)</script>", "includes": ["&lt;script&gt;"], "excludes": ["<script>"] },
+  { "name": "escaped-delimiters", "format": "markdown", "source": "\\*literal\\* &amp; &#x1F600;", "includes": ["*literal*", "&amp;", "😀"] },
+  { "name": "html-active-content", "format": "html", "source": "<p>Keep<script>discard()</script><img src=\"javascript:bad\" onerror=\"bad()\"></p>", "includes": ["Keep"], "excludes": ["<script", "javascript:", "onerror", "discard()"], "loss": true },
+  { "name": "html-wrappers", "format": "html", "source": "<section style=\"position:fixed\"><p><b>Bold</b><i>Italic</i></p></section>", "includes": ["<strong>", "<em>"], "excludes": ["position:", "<section"], "loss": true },
+  { "name": "html-table-loss", "format": "html", "source": "<table><tr><td>Cell A</td><td>Cell B</td></tr></table>", "includes": ["Cell A", "Cell B"], "excludes": ["<table"], "loss": true }
+]

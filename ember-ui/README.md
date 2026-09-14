@@ -188,3 +188,13 @@ Geprüft wird sie dort, wo beide Seiten zusammenkommen:
 sbt --server "scalajs-ember-standard/Test/testOnly *"   # headless, gegen SsrCursor
 cd ember-integration/browser && npm run verify           # DOM-Identität, Schreibumfang
 ```
+
+P28 erweitert die lokale Messung auf 100001 Knoten und prüft Mounts, Unmounts,
+Textschreibzugriffe und Freigabe. Der große flache Move mit 50000 Geschwistern
+überschreitet mit UI-Core 1.0.0 das 240-s-Zeitlimit. Der
+[korrigierte lokale Runtime-Kandidat](../benchmarks/runtime-reorder.md) besteht
+diesen Fall in drei Engines mit 95–132 ms und genau einem DOM-Move;
+die Korrektur ist inzwischen als [Standardabhängigkeit 1.0.1 übernommen](../benchmarks/ui-core-1.0.1-release.md).
+Messwerte und Reproduktion: [Performancebericht](../benchmarks/report.md).
+Die [Supportmatrix](../ember-integration/browser/support-matrix.md) begrenzt die
+daraus ableitbare Freigabe ausdrücklich.

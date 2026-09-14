@@ -17,10 +17,17 @@ jobs:
           java-version: '21'
           cache: sbt
       - uses: sbt/setup-sbt@v1
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
       - name: Formatierung
         run: sbt --server scalafmtCheckAll
       - name: Tests
         run: sbt --server "Test/testOnly *"
+      - name: Aufgeloeste Modul- und Publish-Grenzen
+        run: |
+          sbt --server editorMetadata
+          node tools/verify-editor-boundaries.mjs
 
   browser:
     runs-on: ubuntu-latest
@@ -38,7 +45,7 @@ jobs:
         with:
           node-version: '22'
       - name: Anwendung linken
-        run: sbt --server "scalajs-ember-integration/fullLinkJS"
+        run: sbt --server "scalajs-ember-integration/fullLinkJS" "scalajs-ember-profile-text/fullLinkJS" "scalajs-ember-profile-markdown/fullLinkJS" "scalajs-ember-profile-standard/fullLinkJS" editorMetadata
       - name: Harness einrichten
         working-directory: ember-integration/browser
         run: |
@@ -48,4 +55,26 @@ jobs:
       # gelieferten Browsers; unter Linux laeuft er. Genau deshalb bleibt er hier drin.
       - name: Serverimport und Browser
         working-directory: ember-integration/browser
-        run: npm run verify
+        env:
+          PLAYWRIGHT_JSON_OUTPUT_NAME: ../../target/p28/full-browser-report.json
+        run: |
+          npm run test:server
+          npm run test:browser -- --reporter=line,json
+      - name: Versionierte Korpora und reale Profilgroessen
+        run: |
+          node tools/verify-editor-boundaries.mjs
+          node tools/verify-editor-corpora.mjs
+          node tools/measure-editor-bundles.mjs
+      - name: Core, History und Formstring messen
+        run: node --expose-gc benchmarks/run.mjs
+      - name: Lokale Projektion, Move und Freigabe messen
+        working-directory: ember-integration/browser
+        run: npm run test:bench
+      - name: Belege zusammenfassen
+        run: node tools/summarize-editor-evidence.mjs
+      - name: Abnahmebelege sichern
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: editor-acceptance
+          path: target/p28/

@@ -15,7 +15,7 @@ Laufzeitabhängigkeit.
 
 ## Stand
 
-**Implementierungsstand: P01–P27 vorhanden, P28–P30 offen.** Das
+**Implementierungsstand: P01–P27 vorhanden, P28 teilweise umgesetzt; P29–P30 offen.** Das
 [Review vom 14. September 2026](UI_EDITOR_REVIEW.md) dokumentiert 14 behobene Befunde
 und die zugehörigen Regressionstests. Das vollständige Scala-Gate ist grün;
 die reale IME-/Geräte-Abnahme sowie natives Clipboard unter Windows-WebKit stehen
@@ -150,8 +150,14 @@ weitergereicht. P26 ergänzt den [Medienservice und Upload-Lifecycle](ember-form
 Picker/Paste/Drop, gemappte Ziele, Abbruch, Preview-Freigabe und einen geprüften
 Multipart-Weg ohne JavaScript. P27 ergänzt [`ember-toolbar`](ember-toolbar/README.md):
 komponierbare Commands, zugängliche Link-/Bilddialoge und eine eigenständige
-Demoansicht unter `/toolbar` im Browser-Harness. Als Nächstes folgt P28:
-Geräteabnahme, Korpora, Performance und Packaging.
+Demoansicht unter `/toolbar` im Browser-Harness. P28 ergänzt reproduzierbare
+Korpora, Profilgrößen, Modulgrenzen und Performance-Messungen. Die
+[Supportmatrix](ember-integration/browser/support-matrix.md) und der
+[Messbericht](benchmarks/report.md) unterscheiden automatisierte Belege von
+offener Geräteabnahme und der gemessenen Grenze großer flacher Umordnungen.
+Der [Runtime-Fix für große Moves](benchmarks/runtime-reorder.md) ist mit einem
+lokalen UI-Core-Kandidaten geprüft (50000 Absätze: 95–132 ms). Die Korrektur wurde
+anschließend als [UI-Core 1.0.1 veröffentlicht und übernommen](benchmarks/ui-core-1.0.1-release.md).
 
 Konvention: Verzeichnis `ember-<modul>`, sbt-ID und Artefakt `scalajs-ember-<modul>`,
 Scala-Paket `ember.editor.<modul>`. Die vollständige Modultabelle steht in
@@ -186,10 +192,10 @@ Vorhanden:
   `ember.editor.history`. Undo/Redo, Gruppierungsregeln, Limits. Headless und optional.
 - [`ember-html`](ember-html/README.md) — sbt-ID `scalajs-ember-html`, Paket
   `ember.editor.html`. Der semantische HTML-Vertrag und eine unveränderliche
-  Fragmentdarstellung. Headless; der Importparser folgt mit P24.
+  Fragmentdarstellung sowie der begrenzte HTML-Import mit Verlustdiagnosen. Headless.
 - [`ember-ui`](ember-ui/README.md) — sbt-ID `scalajs-ember-ui`, Paket
-  `ember.editor.ui`. Die keyed Dokumentansicht auf der UI-Runtime. Einziges
-  **veröffentlichtes** Modul, das UI kennt.
+  `ember.editor.ui`. Keyed Dokumentansicht, NodeView-SPI und semantische HTML-Ausgabe
+  über die gemeinsame UI-Runtime.
 - [`ember-browser`](ember-browser/README.md) — sbt-ID `scalajs-ember-browser`, Paket
   `ember.editor.browser`. Hydration mit Verlustschutz, die Brücke zur Browserauswahl und die
   Eingabepipeline: Positionsabbildung, Selection-Port, Fokus, Bookmarks, `beforeinput`/`input`
@@ -214,7 +220,7 @@ Die generischen Editing-Primitive (Text-Splices, `Runtime.move`, `KeyedChildren`
 veröffentlichtes Artefakt von Maven Central:
 
 ```scala
-libraryDependencies += "com.anjunar" %% "scalajs-ui-core" % "1.0.0"
+libraryDependencies += "com.anjunar" %% "scalajs-ui-core" % "1.0.1"
 ```
 
 **Das Nachbar-Repo muss also nicht mehr danebenliegen.** Bis P16 war es eine Quell-Abhängigkeit

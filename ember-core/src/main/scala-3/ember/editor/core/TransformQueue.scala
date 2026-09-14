@@ -79,7 +79,7 @@ private[core] object TransformQueue:
     val document = transaction.document
     transaction.currentChanges.changedNodes.toVector
       .filter(document.contains)
-      .map(nodeId => (nodeId, document.pathIndices(nodeId).length))
+      .map(nodeId => (nodeId, document.ancestorsOf(nodeId).length))
       .sortBy((nodeId, depth) => (-depth, nodeId.value))
       .map(_._1)
 

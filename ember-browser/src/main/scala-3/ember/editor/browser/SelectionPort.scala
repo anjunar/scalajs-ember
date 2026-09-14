@@ -328,7 +328,12 @@ final class SelectionPort private (
       scope.ownerDocument.addEventListener("selectionchange", handler)
 
   /** Called for every native selection change in this document. */
-  private def onNativeChange(): Unit =
+  private def onNativeChange(): Unit = importPendingNative()
+
+  /** Captures navigation that has not delivered selectionchange yet. Our own DOM representation
+    * must not replace a model NodeSelection with a generic range.
+    */
+  def importPendingNative(): Unit =
     if !disposedFlag && !isOwnEcho then importNative(): Unit
 
   /** Whether the current DOM selection is exactly what this port last wrote (§15.2). */
