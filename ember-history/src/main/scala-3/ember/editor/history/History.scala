@@ -2,43 +2,16 @@ package ember.editor.history
 
 import ember.editor.core.*
 
-/** Deterministisches Undo und Redo (§14).
+/** Deterministic undo and redo through shared snapshots (§14).
   *
-  * ==Warum die History nicht im Sitzungszustand steht==
+  * The stack belongs to this session's History instance. Undo and redo stage an immutable
+  * transition in the transaction, keyed to its starting revision; the commit listener publishes it
+  * only after validation and reducers succeed. A rejected transaction cannot consume a step. The
+  * staging field uses Recompute, so snapshots never capture the history recursively.
   *
-  * §14: "ViewState, DOM, Uploads und '''rekursiv die History selbst''' werden nicht in
-  * History-Snapshots aufgenommen." Waere sie ein [[StateField]], stuende sie in jedem
-  * [[EditorState]] -- und jeder Snapshot enthielte alle vorherigen. Deshalb lebt sie hier, in einem
-  * Objekt neben der Sitzung, und nicht in ihr.
-  *
-  * Der Preis ist sichtbar: eine `History` ist veraenderlich und gehoert genau '''einer''' Sitzung.
-  * Sie zweimal zu installieren ist ein Aufrufvertragsfehler.
-  *
-  * ==Was ein Undo tut==
-  *
-  * Es setzt einen frueheren Stand ein, es dreht keine Uhr zurueck. §9 ist da eindeutig: "Beide
-  * steigen auch bei Undo: der wiederhergestellte Inhalt ist ein neuer Stand." Dokument und Auswahl
-  * kommen in '''einem''' Commit zurueck (§14) -- nicht in zweien, sonst saehe ein Beobachter
-  * dazwischen einen Stand, den es nie gab.
-  *
-  * ==Wie ein Undo sich selbst nicht aufzeichnet==
-  *
-  * Zwei Wege, und beide muessen halten:
-  *
-  *   1. [[undo]] und [[redo]] setzen [[Origin.History]]; der Rekorder ueberspringt diese Herkunft.
-  *      Das ist die Zusage aus §14 ("History-origin wird nicht neu aufgezeichnet"), und sie gilt
-  *      fuer jeden, der eine Wiederherstellung selbst ausloest.
-  *   1. Wer dagegen [[HistoryCommands.Undo]] dispatcht, bestimmt die Herkunft nicht -- das tut der
-  *      Aufrufer des Dispatches. Deshalb merkt sich dieses Objekt das Dokument, das es gerade
-  *      eingesetzt hat, und ueberspringt den Commit, der genau dieses Objekt veroeffentlicht.
-  *      Referenzgleichheit, nicht Wertgleichheit: der wiederhergestellte Snapshot ''ist'' derselbe
-  *      Wert, den die History haelt.
-  *
-  * Dass der zweite Weg traegt, haengt an einer Eigenschaft, die es zu wissen lohnt: Transforms
-  * laufen nach der Wiederherstellung erneut, und wenn sie den Stand veraendern, ist es nicht mehr
-  * derselbe. Sie tun es nicht, weil jeder gespeicherte Snapshot ein '''veroeffentlichter''' Stand
-  * ist und damit bereits normalisiert -- ein Transform, der darauf noch etwas zu tun faende, waere
-  * nicht idempotent. `HistorySpec` haelt das fest.
+  * Restore publishes document and selection in one new revision (§9). A command can restore and
+  * then edit within the same transaction: the additional edit becomes a new history entry, while a
+  * pure restore is never recorded again.
   */
 final class History(
     config: HistoryConfig = HistoryConfig.default,
@@ -47,17 +20,34 @@ final class History(
 
   val id: ExtensionId = ExtensionId("ember.history")
 
-  private var session: EditorSession     = null
-  private var current: HistoryState      = HistoryState.empty
-  private var restored: Option[Document] = None
-  private var group: Option[OpenGroup]   = None
+  private var session: EditorSession   = null
+  private var current: HistoryState    = HistoryState.empty
+  private var group: Option[OpenGroup] = None
+
+  // Commands stage their stack transition in the draft. This field is not captured
+  // in history snapshots, and expires on the next transaction. A rejected draft
+  // therefore has no effect on the external history, even if a later reducer throws.
+  private final case class StagedRestore(
+      revision: Revision,
+      target: HistorySnapshot,
+      next: HistoryState
+  )
+  private object PendingRestore extends StateField[Option[StagedRestore]]:
+    val name    = "ember.history.pending-restore"
+    val initial = Option.empty[StagedRestore]
+    override def reduce(
+        value: Option[StagedRestore],
+        candidate: CommitCandidate
+    ): Either[EditorError, Option[StagedRestore]] =
+      Right(value.filter(_.revision == candidate.previous.revision))
 
   /** Eine ausdruecklich geoeffnete Gruppe -- Composition, Drag, ein mehrstufiger Dialog. */
   private final case class OpenGroup(before: HistorySnapshot, label: Option[String])
 
   override def contribute: ExtensionContributions =
-    ExtensionContributions(commands =
-      Vector(
+    ExtensionContributions(
+      fields = Vector(PendingRestore),
+      commands = Vector(
         CommandRegistration(HistoryCommands.Undo)((scope, _) => run(scope, undone)),
         CommandRegistration(HistoryCommands.Redo)((scope, _) => run(scope, redone))
       )
@@ -148,10 +138,26 @@ final class History(
   // -----------------------------------------------------------------------------------------
 
   private def record(commit: Commit): Unit =
-    val expected = restored
-    restored = None
-
-    if expected.exists(_ eq commit.current.document) then ()
+    val staged =
+      commit.current.fields(PendingRestore).filter(_.revision == commit.previous.revision)
+    if staged.isDefined then
+      val transition = staged.get
+      current = transition.next
+      // If the same transaction edits the restored document, retain that edit as
+      // a new structural entry, rather than silently treating it as part of Undo.
+      if !(transition.target.document eq commit.current.document) then
+        current = current.push(
+          HistoryEntry(
+            transition.target,
+            snapshotOf(commit.current),
+            EditKind.Structural,
+            MarkSet.empty,
+            clock.now(),
+            commit.meta.label,
+            HistoryEntry.estimate(transition.target.document, commit.current.document)
+          ),
+          config.limits
+        )
     else if commit.meta.origin == Origin.History then ()
     else if commit.meta.history.contains(HistoryPolicy.Ignore) then ()
     else if commit.meta.origin == Origin.Import && config.resetOnImport then reset()
@@ -220,19 +226,16 @@ final class History(
     take(current) match
       case None                 => Right(false)
       case Some((target, next)) =>
-        val previous = current
-        current = next
-        restored = Some(target.document)
-        session.update(TransactionMeta.history) { transaction =>
-          transaction.restore(target.document, target.selection): Unit
-          target.fields.foreach(_.applyTo(transaction))
-        } match
-          case Right(_)    => Right(true)
-          case Left(error) =>
-            // Die Stufe ist nicht verbraucht, wenn sie nicht angekommen ist.
-            current = previous
-            restored = None
-            Left(error)
+        session
+          .update(TransactionMeta.history) { transaction =>
+            transaction.restore(target.document, target.selection): Unit
+            target.fields.foreach(_.applyTo(transaction))
+            transaction.setField(
+              PendingRestore,
+              Some(StagedRestore(session.state.revision, target, next))
+            )
+          }
+          .map(_ => true)
 
   /** Der Weg aus §12: `editor.register(Undo) { (tx, _) => history.undo(tx) }`.
     *
@@ -248,14 +251,17 @@ final class History(
       scope: TransformScope,
       take: HistoryState => Option[(HistorySnapshot, HistoryState)]
   ): CommandResult =
-    take(current) match
+    val staged = scope.field(PendingRestore).filter(_.revision == session.state.revision)
+    take(staged.map(_.next).getOrElse(current)) match
       case None                 => CommandResult.Pass
       case Some((target, next)) =>
         scope.restore(target.document, target.selection) match
           case Right(_) =>
             target.fields.foreach(_.applyTo(scope))
-            current = next
-            restored = Some(target.document)
+            scope.setField(
+              PendingRestore,
+              Some(StagedRestore(session.state.revision, target, next))
+            )
             CommandResult.Handled
           case Left(_) =>
             // Der Entwurf hat den Fehler eingerastet; die Transaktion scheitert ohnehin. Der

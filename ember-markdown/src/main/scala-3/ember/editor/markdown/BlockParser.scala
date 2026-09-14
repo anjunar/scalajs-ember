@@ -185,12 +185,21 @@ private final class BlockParser(source: String, profile: MarkdownProfile):
           // erste Definition eines Labels gewinnt, und "erste" heisst hier "im Quelltext".
           block.children.reverseIterator.foreach(pending.push)
 
-  private def inlinesOf(block: OpenBlock): Vector[MarkdownInline] =
+  private def inlinesOf(block: OpenBlock, depth: Int): Vector[MarkdownInline] =
     if profile.conformance == Conformance.BlocksOnly then
       val text = block.inlineSource
       if text.isEmpty then Vector.empty
       else Vector(MarkdownInline.Text(freshId(), spanOfContent(block, 0, text.length), text))
-    else inlineParser.parse(block.inlineSource, position => block.sourceOffsetOf(position))
+    else
+      inlineParser.parse(
+        block.inlineSource,
+        position => block.sourceOffsetOf(position),
+        depth
+      ) match
+        case Right(inlines) => inlines
+        case Left(error)    =>
+          if failure.isEmpty then failure = Some(error)
+          Vector.empty
 
   private def spanOfContent(block: OpenBlock, from: Int, to: Int): SourceSpan =
     SourceSpan(block.sourceOffsetOf(from), block.sourceOffsetOf(to))
@@ -815,7 +824,7 @@ private final class BlockParser(source: String, profile: MarkdownProfile):
           val span = SourceSpan(block.startOffset, math.max(block.startOffset, block.endOffset))
           spans += (id.value -> span)
 
-          Right(block.kind match
+          val built = block.kind match
             case OpenKind.Document =>
               MarkdownDocument(id, span, children)
             case OpenKind.BlockQuote =>
@@ -825,19 +834,20 @@ private final class BlockParser(source: String, profile: MarkdownProfile):
             case OpenKind.Item(_) =>
               MarkdownBlock.ListItem(id, span, children)
             case OpenKind.Paragraph =>
-              MarkdownBlock.Paragraph(id, span, inlinesOf(block))
+              MarkdownBlock.Paragraph(id, span, inlinesOf(block, depth))
             case OpenKind.ReferencesOnly =>
               // Nur erreichbar, wenn die Wurzel selbst so markiert waere -- sie ist es nie.
               MarkdownBlock.Paragraph(id, span, Vector.empty)
             case OpenKind.Heading(level, style) =>
-              MarkdownBlock.Heading(id, span, level, style, inlinesOf(block))
+              MarkdownBlock.Heading(id, span, level, style, inlinesOf(block, depth))
             case OpenKind.Code(fenced, char, length, _) =>
               val fence = if fenced then Some(Fence(char, length, block.info)) else None
               MarkdownBlock.CodeBlock(id, span, block.literal, fence)
             case OpenKind.Html =>
               MarkdownBlock.HtmlBlock(id, span, block.literal)
             case OpenKind.ThematicBreak =>
-              MarkdownBlock.ThematicBreak(id, span))
+              MarkdownBlock.ThematicBreak(id, span)
+          failure.toLeft(built)
 
   // -----------------------------------------------------------------------------------------
   // Kleinkram

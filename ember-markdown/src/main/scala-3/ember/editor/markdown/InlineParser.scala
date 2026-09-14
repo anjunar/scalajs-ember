@@ -64,7 +64,11 @@ private[markdown] final class InlineParser(
     * absolute source offset. The two differ because block parsing strips markers -- the `> ` of a
     * quote, the indentation of a list item -- so the content is not a slice of the source.
     */
-  def parse(content: String, offsetOf: Int => Int): Vector[MarkdownInline] =
+  def parse(
+      content: String,
+      offsetOf: Int => Int,
+      depth: Int
+  ): Either[ParseError, Vector[MarkdownInline]] =
     subject = content
     pos = 0
     delimiters = null
@@ -77,33 +81,63 @@ private[markdown] final class InlineParser(
       else if !parseInline() then running = false
 
     processEmphasis(null)
-    build(slots.toVector, offsetOf)
+    build(slots.toVector, offsetOf, depth)
 
   // -----------------------------------------------------------------------------------------
   // Aufbau des Ergebnisses
   // -----------------------------------------------------------------------------------------
 
-  private def build(from: Vector[InlineSlot], offsetOf: Int => Int): Vector[MarkdownInline] =
-    from.filterNot(_.removed).flatMap { slot =>
-      val span     = SourceSpan(offsetOf(slot.start), offsetOf(slot.end))
-      val children = build(slot.children.toVector, offsetOf)
+  private def build(
+      from: Vector[InlineSlot],
+      offsetOf: Int => Int,
+      depth: Int
+  ): Either[ParseError, Vector[MarkdownInline]] =
+    // Explicit post-order traversal: even a deliberately raised depth limit must not
+    // turn a foreign input into a JavaScript stack overflow.
+    val pending = mutable.Stack.empty[(InlineSlot, Int, Boolean)]
+    val built   = mutable.HashMap.empty[InlineSlot, Vector[MarkdownInline]]
+    from.reverseIterator
+      .filterNot(_.removed)
+      .foreach(slot => pending.push((slot, depth + 1, false)))
+    while pending.nonEmpty do
+      val (slot, atDepth, visited) = pending.pop()
+      if atDepth > profile.limits.maxDepth then
+        return Left(ParseError.LimitExceeded("maxDepth", profile.limits.maxDepth, atDepth))
+      if !spend(1) then return Left(ParseError.BudgetExhausted(profile.limits.maxSteps, 0))
+      if !visited then
+        pending.push((slot, atDepth, true))
+        slot.children.reverseIterator
+          .filterNot(_.removed)
+          .foreach(child => pending.push((child, atDepth + 1, false)))
+      else
+        built.update(
+          slot,
+          materialise(slot, slot.children.toVector.filterNot(_.removed).flatMap(built), offsetOf)
+        )
+    Right(from.filterNot(_.removed).flatMap(built))
 
-      slot.kind match
-        case SlotKind.Text =>
-          val literal = Option(slot.text).map(_.literal).getOrElse("")
-          if literal.isEmpty then Vector.empty
-          else Vector(MarkdownInline.Text(nextId(), span, literal))
-        case SlotKind.Code(literal) => Vector(MarkdownInline.Code(nextId(), span, literal))
-        case SlotKind.SoftBreak     => Vector(MarkdownInline.SoftBreak(nextId(), span))
-        case SlotKind.HardBreak     => Vector(MarkdownInline.HardBreak(nextId(), span))
-        case SlotKind.Html(literal) => Vector(MarkdownInline.HtmlInline(nextId(), span, literal))
-        case SlotKind.Emphasis      => Vector(MarkdownInline.Emphasis(nextId(), span, children))
-        case SlotKind.Strong        => Vector(MarkdownInline.Strong(nextId(), span, children))
-        case SlotKind.Link(destination, title) =>
-          Vector(MarkdownInline.Link(nextId(), span, destination, title, children))
-        case SlotKind.Image(destination, title) =>
-          Vector(MarkdownInline.Image(nextId(), span, destination, title, children))
-    }
+  private def materialise(
+      slot: InlineSlot,
+      children: Vector[MarkdownInline],
+      offsetOf: Int => Int
+  ): Vector[MarkdownInline] =
+    val span = SourceSpan(offsetOf(slot.start), offsetOf(slot.end))
+
+    slot.kind match
+      case SlotKind.Text =>
+        val literal = Option(slot.text).map(_.literal).getOrElse("")
+        if literal.isEmpty then Vector.empty
+        else Vector(MarkdownInline.Text(nextId(), span, literal))
+      case SlotKind.Code(literal) => Vector(MarkdownInline.Code(nextId(), span, literal))
+      case SlotKind.SoftBreak     => Vector(MarkdownInline.SoftBreak(nextId(), span))
+      case SlotKind.HardBreak     => Vector(MarkdownInline.HardBreak(nextId(), span))
+      case SlotKind.Html(literal) => Vector(MarkdownInline.HtmlInline(nextId(), span, literal))
+      case SlotKind.Emphasis      => Vector(MarkdownInline.Emphasis(nextId(), span, children))
+      case SlotKind.Strong        => Vector(MarkdownInline.Strong(nextId(), span, children))
+      case SlotKind.Link(destination, title) =>
+        Vector(MarkdownInline.Link(nextId(), span, destination, title, children))
+      case SlotKind.Image(destination, title) =>
+        Vector(MarkdownInline.Image(nextId(), span, destination, title, children))
 
   private def append(slot: InlineSlot): InlineSlot =
     slots += slot

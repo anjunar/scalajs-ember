@@ -38,10 +38,12 @@ object RichTextBindings:
     case InputIntent.InsertLineBreak =>
       session => session.dispatch(RichText.InsertBreak, BreakKind.Hard)
 
-    case InputIntent.Delete(Direction.Backward, _) =>
+    // Word/line deletion stays native until matching model commands exist. A
+    // character command must never claim those broader requests; input imports them.
+    case InputIntent.Delete(Direction.Backward, Granularity.Character | Granularity.Selection) =>
       session => session.dispatch(RichText.DeleteBackward)
 
-    case InputIntent.Delete(Direction.Forward, _) =>
+    case InputIntent.Delete(Direction.Forward, Granularity.Character | Granularity.Selection) =>
       session => session.dispatch(RichText.DeleteForward)
 
   /** The formats this profile has. Superscript and subscript are not among them.

@@ -60,7 +60,7 @@ enum HtmlImportDecision:
   )
 
   /** A node with no children: an image, a break. */
-  case Leaf(node: EditorNode)
+  case Leaf(node: EditorNode, level: NodeLevel = NodeLevel.Inline)
 
   /** An inline wrapper that contributes a mark to the text inside it (§8.2). */
   case Marked(mark: TextMark)

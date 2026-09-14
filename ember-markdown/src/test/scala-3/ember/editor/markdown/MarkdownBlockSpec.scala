@@ -586,7 +586,9 @@ final class MarkdownBlockSpec extends AnyFlatSpec with Matchers {
     // `*` passiert den Vorfilter und laesst alle Blockanfaenge probieren, `t` nicht.
     val cheap     = "text\n" * 30
     val expensive = "*x*\n" * 30
-    val budget    = under(roomy.copy(maxSteps = 45))
+    // This assertion isolates block-start work. Inline scanning/materialisation has
+    // its own budget charges and must no longer return a partial successful parse.
+    val budget = under(roomy.copy(maxSteps = 45)).copy(conformance = Conformance.BlocksOnly)
 
     Markdown.parseSyntax(cheap, budget) should matchPattern { case Right(_) => }
     Markdown.parseSyntax(expensive, budget) should matchPattern {

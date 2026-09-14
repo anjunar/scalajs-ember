@@ -90,6 +90,16 @@ final class NativeInputReader(positions: DomPositionMap, scope: BrowserScope):
                 case None         => NativeImport.Nothing
                 case Some(splice) => NativeImport.Text(id, splice)
 
+          case (Left(_), Right(wrapper)) if onlyText(wrapper) =>
+            // A native replacement can carry real input even when the original
+            // Text host has detached. Import its text, then rebind through UI.
+            NativeImport.SplitRun(
+              id,
+              NativeInputReader
+                .delta(run.text, wrapper.textContent)
+                .getOrElse(TextSplice(0, 0, ""))
+            )
+
           case _ =>
             NativeImport.Unimportable(s"`${id.value}` ist nicht projiziert.", None)
 

@@ -142,7 +142,7 @@ object RichTextHtmlImport:
     val name                                            = "html.hr"
     def handles(element: HtmlFragment.Element): Boolean = element.tag == "hr"
     def decide(element: HtmlFragment.Element, scope: HtmlImportScope): HtmlImportDecision =
-      HtmlImportDecision.Leaf(ThematicBreakNode(scope.nextId()))
+      HtmlImportDecision.Leaf(ThematicBreakNode(scope.nextId()), NodeLevel.Block)
 
   /** The marks, with every spelling that occurs.
     *

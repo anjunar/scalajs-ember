@@ -14,10 +14,10 @@ Verbindlicher Entwurf: [UI_EDITOR_ARCHITECTURE.md](../UI_EDITOR_ARCHITECTURE.md)
 
 ## Stand
 
-P09 abgeschlossen, aber nur zur Hälfte: die Semantik-SPI steht, der Importparser nicht. Was
-es gibt, ist die Ausgabeseite — `HtmlSemantics`, `HtmlShape`, `HtmlAttribute`, `HtmlSupport`
-und die Serialisierung `HtmlFragment.render`. `HtmlImportRule` und die Standardregeln folgen
-mit P24.
+P09 und P24 sind implementiert: `HtmlSemantics`, `HtmlShape`, `HtmlAttribute`, `HtmlSupport`
+und `HtmlFragment.render` bilden die Ausgabeseite. `HtmlFragmentParser`, `HtmlImportRule`
+und `HtmlImport` bilden den begrenzten headless Import; Standardregeln liegen in
+`ember-standard`. Der Parser beansprucht keine vollständige HTML5-Tree-Construction.
 
 ## Eine Beschreibung, zwei Ausgaben
 
@@ -103,10 +103,10 @@ gibt. Leere Elemente (`br`, `img`, …) mit Kindern sind ein Fehler, kein Schön
 
 ## Tests
 
-Dieses Modul hat keine eigene Suite. Seine Aussagen sind erst zusammen mit einem Renderer
-prüfbar — `ProjectionSpec` in `ember-standard` fährt beide Profile, den Wrapper und die
-Attributgrenze durch die echte Projektion:
+`HtmlParserSpec` prüft das Fragmentprofil. In `ember-standard` ergänzen `HtmlImportSpec`
+und `HtmlSecuritySpec` die semantischen und sicherheitsbezogenen Importfälle;
+`ProjectionSpec` prüft beide Ausgabeprofile durch die echte Projektion:
 
 ```bash
-sbt --server "scalajs-ember-standard/Test/testOnly *"
+sbt --server "scalajs-ember-html/Test/testOnly *" "scalajs-ember-standard/Test/testOnly *"
 ```

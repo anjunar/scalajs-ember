@@ -404,13 +404,15 @@ final class HistorySpec extends AnyFlatSpec with Matchers {
   // Was die History nicht enthaelt
   // ---------------------------------------------------------------------------------------
 
-  "The history" should "live outside the session state" in {
+  "The history" should "never be captured recursively in its snapshots" in {
     // §14: "ViewState, DOM, Uploads und rekursiv die History selbst werden nicht in
     // History-Snapshots aufgenommen." Waere sie ein StateField, stuende sie in jedem Snapshot.
     val f = fixture()
     f.typeChar("a")
 
-    f.session.state.fields.fields shouldBe empty
+    f.session.state.fields.captureForHistory shouldBe empty
+    f.history.state.undo.head.before.fields shouldBe empty
+    f.history.state.undo.head.after.fields shouldBe empty
     f.history.state.undo.head.before.document.node(f.text) shouldBe
       Some(TextNode(f.text, "Hallo"))
   }

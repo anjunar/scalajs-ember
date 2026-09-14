@@ -451,9 +451,9 @@ object MarkdownRules:
   /** Inline code, so that the encoder finds an owner for the mark.
     *
     * The decode direction is empty: a code span becomes a run with this mark through [[text]],
-    * because its content is verbatim and has no children to descend into. The encode direction is
-    * empty too -- [[text]] writes the backticks. What is left is [[owns]], and it has to exist or
-    * the export would report a missing rule for a mark that is handled.
+    * because its content is verbatim and has no children to descend into. The encode direction
+    * combines the literals of all adjacent runs into one code span. Keeping only the first child
+    * would silently discard the rest of a grouped mark range.
     */
   val inlineCode: MarkdownMarkRule = new MarkdownMarkRule:
     val id      = "ember.markdown.inline-code"
@@ -466,7 +466,8 @@ object MarkdownRules:
         mark: TextMark,
         children: Vector[MarkdownInline],
         sink: SyntaxSink
-    ): Option[MarkdownInline] = children.headOption
+    ): Option[MarkdownInline] =
+      Some(MarkdownInline.Code(sink.fresh(), sink.nowhere, MarkdownInline.plainText(children)))
 
   /** The two marks that have no CommonMark spelling.
     *

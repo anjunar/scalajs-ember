@@ -1,15 +1,17 @@
 # UI Editor: ausführbarer Implementierungsplan
 
-Status: **Meilenstein A bis D stehen** — P01–P23 abgeschlossen (1089 Scala-Tests und 576
-Browserfälle in Chromium, Firefox und WebKit grün; die reale IME-Abnahme ist eine
-Handprüfung und steht aus), P24–P30 offen. Dieses Repository (`scalajs-ember`) ist das in
+Status: **Code für P01–P24 vorhanden; P25–P30 offen.** Die 14 Befunde des Reviews vom
+14. September 2026 wurden korrigiert und durch reguläre Regressionstests abgesichert;
+Details, Testzahlen und ursprüngliche Repro-Fälle stehen im [Review](UI_EDITOR_REVIEW.md).
+Das vollständige Scala-Gate ist grün. Die reale IME-Abnahme bleibt eine
+ausstehende Handprüfung. Dieses Repository (`scalajs-ember`) ist das in
 Architektur und Plan gemeinte „eigene Repository“. Die generischen UI-Core-Anteile aus
 P08/P09, P19a, P20 und P23 sind **nicht hier, sondern im Nachbar-Repo `../scalajs-ui`**
 implementiert und seit P17 als veröffentlichtes Artefakt `com.anjunar:scalajs-ui-core:1.0.0`
 eingebunden ([build.sbt](build.sbt)), vorher als Quell-Abhängigkeit; der Vertrag steht in
 [UI_CORE_INTEGRATION.md](UI_CORE_INTEGRATION.md). Das erledigt nicht die jeweiligen
 Editor-Integrationsphasen — P20 kam mit dem veröffentlichten 1.0.0 ohne jede Änderung dort
-aus. Stand: 11. September 2026.
+aus. Status aktualisiert: 14. September 2026; die Phasenprotokolle dokumentieren ihren jeweiligen damaligen Stand.
 
 Eine laufende Demo des jeweils erreichten Standes liegt in
 [ember-demo/](ember-demo/README.md) -- nicht publiziert, ohne Bundler, `node
@@ -37,14 +39,14 @@ Der Plan entstand in `scalajs-ui` und wurde beim Umzug hierher angepasst. Was si
   `execCommand`-Editor mit HTML-String als Zustand — genau das, was Architektur §2 und §25
   ausschließen. Er wurde samt vite-Demo gelöscht, bevor P01 beginnt. Architektur §25 („Ablösung“)
   betrifft daher nur noch den Prototyp und `scalajs-lexical` **im Nachbar-Repo**.
-- **Kein Git.** Dieses Repository ist (noch) keine Git-Arbeitskopie; `git status --short` im
-  Arbeitsvertrag unten entfällt, solange das so bleibt.
+- **Git.** Das Repository ist inzwischen eine Git-Arbeitskopie; `git status --short`
+  gehört zum Arbeitsvertrag unten.
 
 ## Arbeitsvertrag für jede Phase
 
 Eine Ausführung bearbeitet eine Phase, prüft deren Dependencies und Abnahme und aktualisiert anschließend den belegten Status. Ist ein Vertrag widerlegt, zuerst Architektur und Plan mit Ursache korrigieren. Kein Ersatzrenderer, keine zweite Property-Runtime und kein Kopieren unverständlicher Lexical-Browserzweige. Kein vorzeitiges Umstellen produktiver Einstiege.
 
-Vor Beginn: [../scalajs-ui/AGENTS.md](../scalajs-ui/AGENTS.md) (dieses Repo hat noch keine eigene), Architekturabschnitte der Phase und die tatsächlichen Quelldateien lesen — hier *und*, wo die Phase sie nennt, in `../scalajs-ui`. Fremde Änderungen bleiben erhalten. Die Editor-Phasen stehen sämtlich auf **offen**; die bereits verfügbaren UI-Voraussetzungen werden im separaten Core-Vertrag beschrieben. Keine Freigabe durch einen grünen Prototyptest ableiten.
+Vor Beginn: [../scalajs-ui/AGENTS.md](../scalajs-ui/AGENTS.md) (dieses Repo hat noch keine eigene), Architekturabschnitte der Phase und die tatsächlichen Quelldateien lesen — hier *und*, wo die Phase sie nennt, in `../scalajs-ui`. Fremde Änderungen bleiben erhalten. Den aktuellen Phasenstand nennt der Statuskopf; die bereits verfügbaren UI-Voraussetzungen werden im separaten Core-Vertrag beschrieben. Keine Freigabe durch einen grünen Prototyptest ableiten.
 
 Pfadkonventionen in den Phasen:
 
@@ -1541,7 +1543,7 @@ P10, P11 und P17 sind nach ihren jeweiligen Voraussetzungen unabhängig vom Rend
 - **Neue Dateien:** `../scalajs-ui/scala/scalajs-ui-core/src/main/scala-3/ui/core/layout/TextArea.scala`, `.../render/TextAreaContent.scala`; Tests `.../render/TextAreaSsrSpec.scala`; IT `textarea.spec.ts`.
 - **Ändern:** Host-/Cursor-/Hydration-Verträge nur soweit RCDATA und Wertübernahme dies erfordern; nicht `SsrRawTextNode` zu einem ungesicherten Editorweg umdeuten.
 - **API:** Textarea-Default/Baseline getrennt von aktuellem value, Source-Text sicher rendern, Pre-claim-Erfassung und No-rewrite-Hydration-Policy; native reset-Semantik.
-- **Tests:** `""`, `"| `ember-toolbar` | Optionale Toolbarsnabc"`, CRLF, `"&</textarea>"`; echter HTML-Parser liefert korrekten Wert, kein Literal-`ui:text`; vor Hydration geänderter value und Backward Selection; Reset auf Baseline.
+- **Tests:** `""`, `"\nabc"`, CRLF, `"&</textarea>"`; echter HTML-Parser liefert korrekten Wert, kein Literal-`ui:text`; vor Hydration geänderter value und Backward Selection; Reset auf Baseline.
 - **Akzeptanz:** Leerer Inhalt erzeugt keine Text-Kommentaranker; führende LF geht nicht verloren; sicherer und normal submitbarer SSR-Wert. Die Komponente ist generisch, ohne Editorimporte.
 - **Risiken:** Textarea ist RCDATA, nicht gewöhnlicher Elementtext; `textContent`, `defaultValue` und `.value` haben unterschiedliche Aufgaben.
 - **Dependencies:** P07, P09; Architektur §§4, 16–17.

@@ -57,11 +57,18 @@ final class NativeMutationObserver(host: dom.Element):
   private var observer: dom.MutationObserver = null
   private var pending: MutationSummary       = MutationSummary.empty
 
+  /** Structural targets, delivered after native input handlers have run. */
+  var onChildList: Vector[dom.Node] => Unit = _ => ()
+
   def isObserving: Boolean = observer != null
 
   def start(): Unit =
     if observer == null then
-      observer = new dom.MutationObserver((records, _) => collect(records))
+      observer = new dom.MutationObserver((records, _) => {
+        collect(records)
+        val targets = records.toVector.filter(_.`type` == "childList").map(_.target).distinct
+        if targets.nonEmpty then onChildList(targets)
+      })
       observer.observe(
         host,
         new dom.MutationObserverInit {

@@ -202,8 +202,8 @@ final class DomPositionMap(view: DocumentView, scope: BrowserScope):
         if !component.isBound then Left(PositionProblem.NotProjected(id))
         else
           DomNodes.option(component.host).flatMap(DomKinds.asElement) match
-            case Some(element) => Right(element)
-            case None          => Left(PositionProblem.NotProjected(id))
+            case Some(element) if scope.contains(element) => Right(element)
+            case _                                        => Left(PositionProblem.NotProjected(id))
 
   // -----------------------------------------------------------------------------------------
   // Die Stellen, an denen die Renderhilfen auffallen
@@ -227,8 +227,8 @@ final class DomPositionMap(view: DocumentView, scope: BrowserScope):
     view.componentFor(id) match
       case Some(run: TextRunElement) if run.isBound =>
         run.textHost.flatMap(DomNodes.option).flatMap(DomKinds.asText) match
-          case Some(text) => Right(text)
-          case None       => Left(PositionProblem.NotProjected(id))
+          case Some(text) if hostOf(id).toOption.exists(_.contains(text)) => Right(text)
+          case _ => Left(PositionProblem.NotProjected(id))
       case _ => Left(PositionProblem.NotProjected(id))
 
   private def domIndexOf(parent: dom.Node, child: dom.Node): Either[PositionProblem, Int] =

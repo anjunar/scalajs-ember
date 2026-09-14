@@ -112,8 +112,15 @@ final class HtmlSecuritySpec extends AnyFlatSpec with Matchers {
   }
 
   "Active embeds" should "be refused" in {
-    Vector("iframe", "object", "embed", "applet", "frame").foreach { tag =>
+    Vector("iframe", "object", "applet", "frame").foreach { tag =>
       text(s"<p>a</p><$tag src='http://x.test'>inner</$tag>") shouldBe "a"
+    }
+  }
+
+  "Void embeds" should "be removed without swallowing their following text" in {
+    Vector("embed").foreach { tag =>
+      text(s"<p>a</p><$tag src='http://x.test'>inner</$tag>") shouldBe "ainner"
+      losses(s"<$tag src='http://x.test'>") should include(s"<$tag>")
     }
   }
 

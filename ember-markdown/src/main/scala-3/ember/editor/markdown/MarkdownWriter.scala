@@ -144,7 +144,11 @@ object MarkdownWriter:
         // Dieselbe Ueberlegung wie beim Zaun, eine Ebene tiefer: der Lauf muss laenger sein als
         // jeder im Inhalt, und ein Inhalt mit Backtick am Rand braucht Randleerzeichen.
         val ticks   = "`" * (longestRun(literal, '`') + 1)
-        val padding = if literal.startsWith("`") || literal.endsWith("`") then " " else ""
+        val padding =
+          if literal.startsWith("`") || literal.endsWith("`") ||
+            (literal.startsWith(" ") && literal.endsWith(" ") && literal.exists(_ != ' '))
+          then " "
+          else ""
         out.append(ticks).append(padding).append(literal).append(padding).append(ticks): Unit
 
       case MarkdownInline.SoftBreak(_, _) => out.append('\n'): Unit
@@ -156,12 +160,12 @@ object MarkdownWriter:
 
       case MarkdownInline.Emphasis(_, _, children) =>
         out.append('*'): Unit
-        writeInline(children, out)
+        out.append(markContent(children)): Unit
         out.append('*'): Unit
 
       case MarkdownInline.Strong(_, _, children) =>
         out.append("**"): Unit
-        writeInline(children, out)
+        out.append(markContent(children)): Unit
         out.append("**"): Unit
 
       case MarkdownInline.Link(_, _, destination, title, children) =>
@@ -182,6 +186,16 @@ object MarkdownWriter:
           .append(titleOf(title))
           .append(')'): Unit
     }
+
+  /** Entity spelling keeps boundary whitespace inside the mark without preventing the source
+    * delimiters from opening/closing. The parser restores the actual text.
+    */
+  private def markContent(children: Vector[MarkdownInline]): String =
+    val text  = writeInlines(children)
+    val start = text.prefixLength(_.isWhitespace)
+    val end   = math.max(start, text.length - text.reverseIterator.takeWhile(_.isWhitespace).length)
+    def entities(value: String): String = value.map(char => s"&#${char.toInt};").mkString
+    entities(text.take(start)) + text.substring(start, end) + entities(text.drop(end))
 
   private def titleOf(title: Option[String]): String =
     title.map(value => s""" "${value.replace("\\", "\\\\").replace("\"", "\\\"")}"""").getOrElse("")

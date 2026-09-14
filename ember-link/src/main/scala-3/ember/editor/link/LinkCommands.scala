@@ -81,7 +81,22 @@ object LinkEditing:
       .toVector
       .flatMap((parent, runs) => parent.map(_ -> runs))
       .sortBy((parent, _) => scope.document.indexOfChild(parent).getOrElse(0))
-      .foreach((parent, runs) => wrapInside(scope, generator, parent, runs, target))
+      .foreach { (parent, runs) =>
+        // A parent bucket may contain disjoint stretches separated by another link
+        // or an atom. Never move such stretches together across the intervening node.
+        val siblings = scope.document.childrenOf(parent)
+        val selected = runs.map(_.id).toSet
+        val segments = siblings
+          .foldLeft(Vector.empty[Vector[TextNode]]) { (groups, id) =>
+            if !selected(id) then groups :+ Vector.empty
+            else
+              val run = scope.document.node(id).collect { case text: TextNode => text }.get
+              if groups.isEmpty then Vector(Vector(run))
+              else groups.init :+ (groups.last :+ run)
+          }
+          .filter(_.nonEmpty)
+        segments.foreach(segment => wrapInside(scope, generator, parent, segment, target))
+      }
 
   private def wrapInside(
       scope: TransformScope,

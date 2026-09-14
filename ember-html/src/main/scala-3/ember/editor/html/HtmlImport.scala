@@ -101,44 +101,45 @@ object HtmlImport:
           blocks += emit(support.profile.paragraph(merged(pending.toVector), scope))
           pending.clear()
 
-      fragments.foreach {
+      def visit(fragments: Vector[HtmlFragment], marks: MarkSet): Unit = fragments.foreach {
         case HtmlFragment.Text(value) =>
           // Between blocks, whitespace is the indentation of the page it came from.
           val text = normalise(value, whitespace)
-          if text.exists(!_.isWhitespace) || (whitespace == Whitespace.Preserve && text.nonEmpty)
-          then pending += emit(support.profile.text(text, MarkSet.empty, scope))
+          if text.exists(!_.isWhitespace) || pending.nonEmpty ||
+            (whitespace == Whitespace.Preserve && text.nonEmpty)
+          then pending += emit(support.profile.text(text, marks, scope))
 
         case element: HtmlFragment.Element =>
           decide(element) match
             // An inline container between blocks -- a link on a line of its own. It is content,
             // not a boundary, so it joins the paragraph being collected.
             case HtmlImportDecision.Container(create, NodeLevel.Inline, mode, inner) =>
-              pending += emit(create(importChildren(element, mode, inner)))
+              pending += emit(create(importChildren(element, mode, inner, marks)))
 
             case HtmlImportDecision.Container(create, _, mode, inner) =>
               flush()
-              blocks += emit(create(importChildren(element, mode, inner)))
+              blocks += emit(create(importChildren(element, mode, inner, marks)))
 
-            case HtmlImportDecision.Leaf(node) => pending += emit(node)
+            case HtmlImportDecision.Leaf(node, NodeLevel.Inline) => pending += emit(node)
+            case HtmlImportDecision.Leaf(node, NodeLevel.Block)  =>
+              flush()
+              blocks += emit(node)
 
             // A mark with nothing around it -- `<em>x</em>` at the top level. Its content is
             // inline, so it joins the paragraph being collected.
             case HtmlImportDecision.Marked(mark) =>
-              pending ++= within(
-                element,
-                importInline(element.children, MarkSet.of(mark), whitespace)
-              )
+              within(element, visit(element.children, marks + mark))
 
             case HtmlImportDecision.Unwrap =>
-              val inner = within(element, importBlocks(element.children, whitespace))
-              if inner.nonEmpty then
-                flush()
-                blocks ++= inner
+              // Keep the current stream: a harmless inline wrapper is not a paragraph
+              // boundary. Any actual blocks inside it still flush that stream themselves.
+              within(element, visit(element.children, marks))
 
             case HtmlImportDecision.Discard(reason) =>
               diagnostics += HtmlDiagnostic(HtmlLoss.DroppedElement, s"<${element.tag}>: $reason")
       }
 
+      visit(fragments, MarkSet.empty)
       flush()
       blocks.toVector
 
@@ -146,14 +147,15 @@ object HtmlImport:
     private def importChildren(
         element: HtmlFragment.Element,
         mode: ChildMode,
-        whitespace: Whitespace
+        whitespace: Whitespace,
+        marks: MarkSet
     ): Vector[NodeId] =
       within(
         element,
         mode match
           case ChildMode.Blocks => importBlocks(element.children, whitespace)
           case ChildMode.Inline =>
-            merged(importInline(element.children, MarkSet.empty, whitespace))
+            merged(importInline(element.children, marks, whitespace))
       )
 
     /** Runs `body` with the element on the ancestor stack, so a rule can ask where it is. */
@@ -185,13 +187,19 @@ object HtmlImport:
                 importInline(element.children, marks.union(MarkSet.of(mark)), whitespace)
               )
 
-            case HtmlImportDecision.Leaf(node) => Vector(emit(node))
+            case HtmlImportDecision.Leaf(node, NodeLevel.Inline) => Vector(emit(node))
+            case HtmlImportDecision.Leaf(_, NodeLevel.Block)     =>
+              diagnostics += HtmlDiagnostic(
+                HtmlLoss.DroppedElement,
+                s"<${element.tag}> stand in Inline-Inhalt"
+              )
+              Vector.empty
 
             case HtmlImportDecision.Unwrap =>
               within(element, importInline(element.children, marks, whitespace))
 
             case HtmlImportDecision.Container(create, NodeLevel.Inline, mode, inner) =>
-              Vector(emit(create(importChildren(element, mode, inner))))
+              Vector(emit(create(importChildren(element, mode, inner, marks))))
 
             // A block inside inline content. Real shape, and its meaning is its text.
             case HtmlImportDecision.Container(_, _, _, inner) =>

@@ -77,6 +77,9 @@ object MediaError:
       extends MediaError:
     def message: String = s"Der Host `$host` steht nicht auf der Allowlist."
 
+  final case class AmbiguousUrl(override val path: DiagnosticPath) extends MediaError:
+    def message: String = "Backslashes sind in einer dauerhaften Bildquelle nicht erlaubt."
+
 /** Which media sources a profile accepts.
   *
   * ==Why this is not the link policy==
@@ -114,6 +117,9 @@ final case class MediaUrlPolicy(
     val value = UrlNormalisation.normalise(raw)
 
     if value.isEmpty then Left(MediaError.Empty(at))
+    // Browsers interpret backslashes as slashes in HTTP(S) URLs, including relative
+    // network paths. Reject them instead of checking a different authority than the browser.
+    else if value.contains('\\') then Left(MediaError.AmbiguousUrl(at))
     else if value.startsWith("//") then Left(MediaError.ProtocolRelative(at))
     else
       UrlNormalisation.schemeOf(value) match

@@ -10,11 +10,15 @@ Laufzeitabhängigkeit.
 | --- | --- |
 | [UI_EDITOR_ARCHITECTURE.md](UI_EDITOR_ARCHITECTURE.md) | Verbindlicher Architekturentwurf, §1–§26. |
 | [UI_EDITOR_IMPLEMENTATION.md](UI_EDITOR_IMPLEMENTATION.md) | Ausführbarer Phasenplan P01–P30 plus optionale Folgepakete X01–X03. |
+| [UI_EDITOR_REVIEW.md](UI_EDITOR_REVIEW.md) | Review vom 14. September 2026: priorisierte Befunde, Teststand und ausführbare Repro-Fälle. |
 | [UI_CORE_INTEGRATION.md](UI_CORE_INTEGRATION.md) | Vertrag der bereits vorhandenen UI-Core-Editing-Primitive im Nachbar-Repo. |
 
 ## Stand
 
-**Meilenstein A bis D stehen** — P01–P23 abgeschlossen, P24–P30 offen. Der frühere
+**Implementierungsstand: P01–P24 vorhanden, P25–P30 offen.** Das
+[Review vom 14. September 2026](UI_EDITOR_REVIEW.md) dokumentiert 14 behobene Befunde
+und die zugehörigen Regressionstests. Das vollständige Scala-Gate ist grün;
+die reale IME-/Geräte-Abnahme steht weiterhin aus. Der frühere
 `contenteditable`-Prototyp (`ember.core.Editor` mit `execCommand` und HTML-String als
 Zustand) und seine vite-Demo wurden entfernt — Architektur §2 und §25 schließen diesen
 Ansatz aus.
@@ -75,7 +79,7 @@ P17 und die erste Hälfte von P18 bringen Markdown. `ember-markdown` parst Commo
 einen Syntaxbaum mit UTF-16-Quellbereichen bis hinunter zum einzelnen Delimiter, und
 `MarkdownWriter` schreibt ihn zurück. Wie weit das reicht, ist **gemessen und nicht
 behauptet**: 651 der 652 Beispiele der offiziellen Konformitätssuite kommen zeichengenau
-heraus, und 621 überleben Schreiben und Neu-Parsen unverändert. Beide Zahlen werden exakt
+heraus, und 628 überleben Schreiben und Neu-Parsen unverändert. Beide Zahlen werden exakt
 geprüft — eine Verschlechterung fällt damit ebenso auf wie eine Verbesserung, die jemand
 nachzutragen vergisst.
 

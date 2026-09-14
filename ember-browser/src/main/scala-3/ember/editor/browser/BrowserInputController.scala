@@ -194,11 +194,11 @@ final class BrowserInputController private (
       beforeInputListener = event => dispatchEvent(event, handleBeforeInput)
       inputListener = event => dispatchEvent(event, handleInput)
       keyDownListener = event => dispatchEvent(event, handleKeyDown)
-      compositionStart = _ => onCompositionStart()
-      compositionEnd = _ => onCompositionEnd()
+      compositionStart = event => if owns(event) then onCompositionStart()
+      compositionEnd = event => if owns(event) then onCompositionEnd()
       // §15.3: "Blur erfasst noch offene native Aenderung." Focus leaving is not a reason to
       // throw a half-typed word away -- it is a reason to take it.
-      focusOut = _ => if current.isDefined then onCompositionEnd()
+      focusOut = event => if current.isDefined && owns(event) then onCompositionEnd()
 
       host.addEventListener("beforeinput", beforeInputListener)
       host.addEventListener("input", inputListener)
@@ -207,6 +207,7 @@ final class BrowserInputController private (
       host.addEventListener("compositionend", compositionEnd)
       host.addEventListener("focusout", focusOut)
 
+      mutations.onChildList = repairOwnership
       mutations.start()
       currentState = ControllerState.Ready
       applyEditingAttributes()
@@ -225,6 +226,7 @@ final class BrowserInputController private (
       // §15.3: "Dispose raeumt auf und meldet ggf. nicht abgeschlossene Eingabe an den Host."
       discardComposition("dispose")
       mutations.stop()
+      mutations.onChildList = _ => ()
       host.removeAttribute("contenteditable")
       host.removeAttribute("tabindex")
       host.removeAttribute("aria-readonly")
@@ -296,6 +298,7 @@ final class BrowserInputController private (
     if currentState != ControllerState.Ready then InputOutcome.Idle(currentState)
     else if !owns(event) then InputOutcome.NotOurs
     else
+      operations.clear()
       val input     = event.asInstanceOf[dom.InputEvent]
       val inputType = input.inputType.toString
       val intent    = BeforeInputAdapter.intentOf(
@@ -343,8 +346,45 @@ final class BrowserInputController private (
         case input: dom.InputEvent => input.inputType.toString
         case _                     => ""
 
-      if operations.consume(inputType) then InputOutcome.Deduplicated
-      else importNative(NativeInput)
+      // A canceled beforeinput usually has no input echo. A matching inputType is
+      // therefore not proof of identity: the DOM delta decides whether work remains.
+      operations.consume(inputType): Unit
+      importNative(NativeInput)
+
+  /** Revalidate only subtrees touched by structural mutations. Equal text does not prove that the
+    * runtime's Text host is still attached to its wrapper.
+    */
+  private def repairOwnership(targets: Vector[dom.Node]): Unit =
+    if currentState == ControllerState.Ready then
+      val document = session.document
+      val roots    = targets.flatMap(port.positions.nodeAt(_, document)).distinct
+      var pending  = roots
+      var damaged  = Vector.empty[NodeId]
+      var detached = Vector.empty[NodeId]
+      while pending.nonEmpty do
+        val id = pending.head
+        pending = pending.tail
+        document.node(id) match
+          case Some(_) if port.positions.hostOf(id).isLeft               => detached :+= id
+          case Some(_: TextNode) if port.positions.textNodeOf(id).isLeft => damaged :+= id
+          case Some(element: ElementNode) => pending = element.children ++ pending
+          case _                          => ()
+      if damaged.nonEmpty || detached.nonEmpty then
+        val selection = port.read()
+        detached.distinct.foreach(view.rebuild)
+        damaged.distinct.foreach(view.resetRun)
+        selection match
+          case SelectionReading.Mapped(value) =>
+            port.write(Some(value)): Unit
+            port.importNative(): Unit
+          case _ => port.sync(): Unit
+        if detached.exists(port.positions.hostOf(_).isLeft) ||
+          damaged.exists(port.positions.textNodeOf(_).isLeft)
+        then
+          enterRecovery()
+          announce(
+            InputOutcome.Unimported("Ein ersetzter DOM-Host konnte nicht repariert werden.")
+          ): Unit
 
   /** Brings the model to what the DOM already says.
     *

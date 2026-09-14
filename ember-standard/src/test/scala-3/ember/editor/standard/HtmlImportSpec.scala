@@ -116,7 +116,7 @@ final class HtmlImportSpec extends AnyFlatSpec with Matchers {
 
   "Blocks" should "become the nodes they mean" in {
     outline("<h2>T</h2><p>a</p><blockquote><p>b</p></blockquote><hr>") shouldBe
-      """h2["T"],p["a"],quote[p["b"]],p[hr]"""
+      """h2["T"],p["a"],quote[p["b"]],hr"""
   }
 
   "A div" should "be a paragraph when it holds prose" in {

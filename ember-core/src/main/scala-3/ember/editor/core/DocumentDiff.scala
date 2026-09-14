@@ -80,7 +80,7 @@ private[core] object DocumentDiff:
       touchedAncestors = Set.empty
     )
 
-    (changes, mappingFor(after, removed))
+    (changes, mappingFor(before, after, removed, splices))
 
   /** Der kleinste Splice, der `previous` in `next` ueberfuehrt. */
   private def spliceBetween(previous: String, next: String): TextSplice =
@@ -102,31 +102,65 @@ private[core] object DocumentDiff:
   /** Die Abbildung alter Punkte auf den wiederhergestellten Stand.
     *
     * '''Keine Identitaet.''' Ein Punkt, dessen Knoten es nicht mehr gibt, ist verschoben, und ein
-    * Offset hinter dem Ende seines Laufs ebenso. Alles andere bleibt, wo es war: die
-    * Wiederherstellung setzt einen Stand, sie rechnet keine Positionen um -- und wo zwischen beiden
-    * Staenden dieselbe ID denselben Inhalt hat, ist derselbe Punkt auch derselbe Punkt.
+    * Offset hinter dem Ende seines Laufs ebenso. Textpunkte folgen dem ermittelten Splice;
+    * Kindgrenzen folgen ihrem linken oder rechten Anker. Nicht rekonstruierbare Stellen werden als
+    * verloren gemeldet, statt einen unveraenderten Offset zu versprechen.
     *
     * Fuer die Auswahl spielt das keine Rolle -- ein Undo setzt sie ausdruecklich auf den
     * gespeicherten Wert. Es zaehlt fuer [[Bookmark]]s und fuer jeden, der eine gemerkte Position
     * ueber die Wiederherstellung hinweg aufloesen will.
     */
-  private def mappingFor(after: Document, removed: Set[NodeId]): PositionMapping =
-    if removed.isEmpty && after.size == 0 then PositionMapping.identity
-    else
-      PositionMapping.of(removedNodes = removed) { point =>
-        point match
-          case Point.Text(node, offset, affinity) =>
-            after.node(node) match
-              case Some(text: TextNode) if offset <= text.text.length =>
-                MappedPoint.Preserved(point)
-              case Some(text: TextNode) =>
-                MappedPoint.Displaced(Point.Text(node, text.text.length, affinity))
-              case _ => MappedPoint.Displaced(point)
-          case Point.Children(parent, offset, affinity) =>
-            after.node(parent) match
-              case Some(element: ElementNode) if offset <= element.children.length =>
-                MappedPoint.Preserved(point)
-              case Some(element: ElementNode) =>
-                MappedPoint.Displaced(Point.Children(parent, element.children.length, affinity))
-              case _ => MappedPoint.Displaced(point)
-      }
+  private def mappingFor(
+      before: Document,
+      after: Document,
+      removed: Set[NodeId],
+      splices: Map[NodeId, Vector[TextSplice]]
+  ): PositionMapping =
+    PositionMapping.of(removedNodes = removed) { point =>
+      def lost = MappedPoint.Displaced(Point.Children(after.rootId, 0, point.affinity))
+      point match
+        case Point.Text(node, offset, affinity) =>
+          (before.node(node), after.node(node)) match
+            case (Some(old: TextNode), Some(text: TextNode)) if offset <= old.text.length =>
+              splices
+                .getOrElse(node, Vector.empty)
+                .foldLeft[MappedPoint](MappedPoint.Preserved(point)) { (mapped, splice) =>
+                  mapped.flatMap { at =>
+                    PositionMapping
+                      .deleteText(node, splice.start, splice.start + splice.deleteCount)(at)
+                      .flatMap(deleted =>
+                        MappedPoint.Preserved(
+                          PositionMapping
+                            .insertText(node, splice.start, splice.inserted.length)(deleted)
+                        )
+                      )
+                  }
+                }
+            case (_, Some(text: TextNode)) =>
+              MappedPoint.Displaced(Point.Text(node, math.min(offset, text.text.length), affinity))
+            case _ => lost
+        case Point.Children(parent, offset, affinity) =>
+          (before.node(parent), after.node(parent)) match
+            case (Some(old: ElementNode), Some(next: ElementNode))
+                if offset <= old.children.length =>
+              val anchored = affinity match
+                case Affinity.Before if offset == 0                  => Some(0)
+                case Affinity.After if offset == old.children.length => Some(next.children.length)
+                case Affinity.Before                                 =>
+                  val index = next.children.indexOf(old.children(offset - 1))
+                  Option.when(index >= 0)(index + 1)
+                case Affinity.After =>
+                  val index = next.children.indexOf(old.children(offset))
+                  Option.when(index >= 0)(index)
+              anchored match
+                case Some(index) => MappedPoint.Preserved(Point.Children(parent, index, affinity))
+                case None        =>
+                  MappedPoint.Displaced(
+                    Point.Children(parent, math.min(offset, next.children.length), affinity)
+                  )
+            case (_, Some(next: ElementNode)) =>
+              MappedPoint.Displaced(
+                Point.Children(parent, math.min(offset, next.children.length), affinity)
+              )
+            case _ => lost
+    }

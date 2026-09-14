@@ -4,7 +4,7 @@ import ember.editor.core.*
 import ember.editor.html.*
 import ui.core.component.{AbstractComponent, Runtime}
 import ui.core.layout.TextComponent
-import ui.core.render.{Cursor, HostElement, HostNode}
+import ui.core.render.{Cursor, DomNodes, HostElement, HostNode}
 
 /** Eine UI-Komponente mit semantischem Tag und Attributen.
   *
@@ -104,7 +104,9 @@ final class TextRunElement(tagName: String) extends SemanticElement(tagName):
     super.compose(cursor)
     chain = Runtime.mount(build(), cursor, Some(this))
 
-  def setText(value: String): Unit = content.setText(value)
+  def setText(value: String): Unit =
+    ensureTextHost()
+    content.setText(value)
 
   /** The DOM text node of this run, once mounted.
     *
@@ -116,7 +118,19 @@ final class TextRunElement(tagName: String) extends SemanticElement(tagName):
   def textHost: Option[HostNode] = content.physicalHosts.headOption
 
   def spliceText(start: Int, deleteCount: Int, inserted: String): Unit =
+    ensureTextHost()
     content.spliceText(start, deleteCount, inserted)
+
+  /** Native tooling can replace an identical Text node before the observer runs. Rebuild through UI
+    * before writing; never mutate the detached former host. SSR has no DOM host and needs no
+    * attachment check.
+    */
+  private def ensureTextHost(): Unit =
+    if isBound then
+      DomNodes.option(host).foreach { wrapper =>
+        if !textHost.flatMap(DomNodes.option).exists(wrapper.contains) then
+          resetText(content.getText)
+      }
 
   def text: String = content.getText
 

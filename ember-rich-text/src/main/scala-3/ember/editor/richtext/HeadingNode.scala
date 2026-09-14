@@ -47,3 +47,6 @@ object HeadingNode extends ElementNodeType[HeadingNode]:
     node.copy(children = children)
 
   def empty(id: NodeId, level: HeadingLevel): HeadingNode = HeadingNode(id, Vector.empty, level)
+
+  override def validate(node: HeadingNode, document: DocumentRead): Vector[Violation] =
+    InlineContent.validate(node, document)

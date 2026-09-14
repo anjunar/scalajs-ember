@@ -178,6 +178,7 @@ enum HydrationProblem:
   case TextMismatch(node: NodeId, expected: String, actual: String)
   case ChildCount(node: NodeId, expected: Int, actual: Int)
   case NoSemantics(node: NodeId)
+  case DetachedHost(node: NodeId)
 
   def render: String = this match
     case TagMismatch(node, expected, actual) =>
@@ -190,6 +191,8 @@ enum HydrationProblem:
       s"`${node.value}`: $expected Kinder erwartet, $actual gefunden"
     case NoSemantics(node) =>
       s"`${node.value}`: keine HtmlSemantics registriert"
+    case DetachedHost(node) =>
+      s"`${node.value}`: der gebundene DOM-Host wurde abgetrennt oder ersetzt"
 
 /** The failure a preflight throws.
   *

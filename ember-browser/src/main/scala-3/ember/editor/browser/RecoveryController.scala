@@ -74,6 +74,14 @@ final class RecoveryController(
 
   /** What the view gets wrong, if anything. */
   def check(): Vector[HydrationProblem] =
+    val ownership = session.document.inDocumentOrder.collect {
+      case node if positions.hostOf(node.id).isLeft => HydrationProblem.DetachedHost(node.id)
+      case text: TextNode if positions.textNodeOf(text.id).isLeft =>
+        HydrationProblem.DetachedHost(text.id)
+    }.toVector
+    ownership ++ checkSemantics()
+
+  private def checkSemantics(): Vector[HydrationProblem] =
     // An editor without semantics has nothing to compare against. Reporting every node as
     // "keine HtmlSemantics registriert" would turn a missing description into a broken view.
     if semantics.entries.isEmpty then Vector.empty
@@ -116,9 +124,10 @@ final class RecoveryController(
     */
   private def rebuildOne(node: NodeId): Boolean =
     session.document.node(node) match
-      case Some(_: TextNode) => view.resetRun(node)
-      case Some(_)           => view.rebuild(node)
-      case None              => false
+      case Some(_) if positions.hostOf(node).isLeft => view.rebuild(node)
+      case Some(_: TextNode)                        => view.resetRun(node)
+      case Some(_)                                  => view.rebuild(node)
+      case None                                     => false
 
   private def nodeOf(problem: HydrationProblem): NodeId = problem match
     case HydrationProblem.TagMismatch(node, _, _)          => node
@@ -126,6 +135,7 @@ final class RecoveryController(
     case HydrationProblem.TextMismatch(node, _, _)         => node
     case HydrationProblem.ChildCount(node, _, _)           => node
     case HydrationProblem.NoSemantics(node)                => node
+    case HydrationProblem.DetachedHost(node)               => node
 
 object RecoveryController:
 

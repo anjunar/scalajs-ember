@@ -1,14 +1,16 @@
 # UI Editor: Architektur eines nativen Scala.js-Editors
 
-Status: Architekturentwurf, noch keine implementierte Editor-API. Stand: 9. September 2026.
+Status: Architekturentwurf vom 9. September 2026; inzwischen ist Code für P01–P24
+vorhanden. Der [Review vom 14. September 2026](UI_EDITOR_REVIEW.md) dokumentiert 14
+behobene Abweichungen und den aktuellen Teststand. Reale IME-/Geräte-Abnahmen stehen aus.
 
 Repository-Aufteilung: Der Editor entsteht in einem eigenen Repository — das ist dieses,
 `scalajs-ember`. Die generischen UI-Core-Voraussetzungen sind implementiert, aber im
 Nachbar-Repo `../scalajs-ui`; sie werden seit P17 als veröffentlichtes Artefakt
 `com.anjunar:scalajs-ui-core:1.0.0` eingebunden ([build.sbt](build.sbt)), vorher als
 Quell-Abhängigkeit auf dessen Submodul. Der tatsächliche API-Vertrag steht in
-[UI_CORE_INTEGRATION.md](UI_CORE_INTEGRATION.md). Editorbezogene Module und APIs dieses
-Entwurfs bleiben Planung.
+[UI_CORE_INTEGRATION.md](UI_CORE_INTEGRATION.md). Dieser Entwurf beschreibt die
+Zielarchitektur; der belegte Umsetzungsstand steht in Implementierungsplan und Review.
 
 Pfade ohne Präfix meinen dieses Repository; Pfade mit `../scalajs-ui/` das Nachbar-Repo.
 Modulnamen folgen der Konvention Verzeichnis `ember-<modul>`, sbt-ID/Artefakt
@@ -189,7 +191,7 @@ Verzeichnisse heißen `ember-*`, sbt-IDs und Artefakte konsistent `scalajs-ember
 | `ember-browser-support` | Optionale konkrete Key-/Input-Bindings für History, Listen, Links und Code; getrennt vom Browsermechanismus | browser, history, list, link, code |
 | `ember-clipboard` | Copy/Cut/Paste, Dokumentfragmente, Clipboard-Port | core, rich-text, json, html, browser |
 | `ember-forms` | Markdown-/JSON-Feld, Textarea-Fallback, Submit/Reset, Media-Service-Port und Multipart-Vertrag | core, ui, browser, markdown, json, image, ui-forms |
-| `ember-ui` || `ember-toolbar` | Optionale Toolbars, Link-/Image-Dialoge, Commands/Status anzeigen | core, rich-text, history, link, image, ui, browser, ui-controls, ui-viewport |
+| `ember-toolbar` | Optionale Toolbars, Link-/Image-Dialoge, Commands/Status anzeigen | core, rich-text, history, link, image, ui, browser, ui-controls, ui-viewport |
 | `ember-table` (später) | Table/Row/Cell, Zellbereichsselection, Editing und eigene Adapter | core, rich-text; Adapter gezielt zusätzlich json/html/ui |
 
 `standard` ist bewusst ein optionales Integrationsmodul: Dadurch kennen die Node-Module weder Markdown noch UI und die Format-SPIs keine konkreten Feature-Nodes. Seine einzelnen Adapter sind eigene Fabriken/Objekte ohne eager globale Sammelregistrierung. Eine reine Paragraph-Anwendung wählt nur Paragraph-/Text-Support. Eine Fremderweiterung liefert ihre Adapter in ihrem eigenen Modul und ändert `standard` nicht.
@@ -206,8 +208,8 @@ Pfeile bedeuten „hängt ab von“. Die Tabelle in §6 ist der vollständige di
 
 ```mermaid
 flowchart TD
-  UI[editor-ui] --> UI[editor-ui]
-  UI --> Browser[editor-browser]
+  Toolbar[editor-toolbar] --> UI[editor-ui]
+  Toolbar --> Browser[editor-browser]
   Forms[editor-forms] --> Browser
   Forms --> MD[editor-markdown]
   Forms --> JSON[editor-json]
@@ -255,6 +257,8 @@ trait EditorNode:
 trait ElementNode extends EditorNode:
   def children: Vector[NodeId]
 
+trait InlineElementNode extends ElementNode
+
 trait AtomNode extends EditorNode
 
 final case class RootNode(id: NodeId, children: Vector[NodeId]) extends ElementNode
@@ -278,6 +282,11 @@ trait ElementNodeType[N <: ElementNode] extends NodeType[N]:
 `NodeType[N]` bindet Registry, Transform, Codec und View an denselben Scala-Typ. Heterogene Registries werden intern durch existenzielle Einträge gekapselt; keine öffentliche `Map[String, Any]`. Ein Deskriptor prüft seinen Typzeugen, bevor ein typisierter Handler läuft. IDs für Wire-Formate sind versionierte Namen; Commands verwenden davon unabhängig Objektidentität.
 
 `rekey` und `withChildren` sind unveränderliche Rekonstruktionsverträge: Sie erhalten alle anderen fachlichen Felder und ermöglichen generische Insert/Move-/Paste-Operationen auch für fremde Case Classes. Der Core kann und darf deren `copy`-Signatur nicht erraten. Vertragsprüfungen testen ID-/Children-Ergebnis und erhaltene Zusatzdaten.
+
+Inline-Container wie `LinkNode` erweitern `InlineElementNode`. Textbearbeitung überspringt
+diese Vorfahren beim Ermitteln des Blocks und teilt sie bei Enter über ihre Deskriptoren.
+Paragraph, Heading und Link erlauben Text, Inline-Container und passende Atome;
+Blockcontainer und thematische Trenner sind dort keine zulässigen Inline-Kinder.
 
 Ein fehlender Element-Deskriptor kann eine Schema-*Registrierung* nicht verhindern — das war eine Fehlannahme dieses Entwurfs, korrigiert in P02. Bei der Registrierung liefert ein Deskriptor seinen Node-Typ ausschließlich über `project`; es gibt zu diesem Zeitpunkt keinen Knoten, an dem sich prüfen ließe, ob er Kinder trägt. Die Regel greift stattdessen bei der Validierung: ein `ElementNode`, dessen Deskriptor kein `ElementNodeType` ist, ergibt `Violation.MissingElementDescriptor`. Die Wirkung ist dieselbe — ein solcher Container gelangt nie in ein gültiges Dokument —, nur der Zeitpunkt ist ein anderer.
 
@@ -448,6 +457,11 @@ Beispiele für spätere unabhängige Erweiterungen: CharacterLimit als Transakti
 ## 14. History
 
 `ember-history` ist headless und optional. Es besitzt Current/Undo/Redo-Einträge mit strukturell geteilten Document-Snapshots und Selection vor/nach der Änderung. ViewState, DOM, Uploads und rekursiv die History selbst werden nicht in History-Snapshots aufgenommen. StateFields deklarieren einen eigenen Restore-/Mapping-Vertrag.
+
+Undo-/Redo-Commands bereiten ihren Stapelwechsel im Transaktionsentwurf vor. Erst ein
+erfolgreicher Commit übernimmt ihn; eine spätere Ablehnung derselben Transaktion lässt
+die History unverändert. Das kurzlebige Staging-Feld wird nicht in Snapshots aufgenommen.
+Bookmark-Mapping bei Restore berücksichtigt Textsplices und die Affinität von Kindgrenzen.
 
 Gruppierungsregeln sind explizit testbar:
 
@@ -745,7 +759,7 @@ sbt --server "scalajs-ui-bridge/fullLinkJS"
 npm run verify --workspaces --if-present
 ```
 
-Ein eigener Browser-Harness entsteht hier erst mit P07 (`ember-integration`); eine CI hat dieses Repository noch nicht. `sbt --server test` delegiert in sbt 2 auf `testQuick` und ist kein vollständiges Abnahme-Gate; `clean` invalidiert den externen Action-Cache nicht. Die in AGENTS.md genannte Testanzahl ist eine Momentaufnahme, kein einzufrierender Sollwert. Neue Browser-/No-JS-Gates kommen explizit in die CI. Generiertes JavaScript wird weder durchsucht noch bearbeitet; Größen werden über Dateistatistik/Kompression bzw. Build-Metadaten gemessen.
+Der Browser-Harness liegt in `ember-integration/browser`. Die CI unter `.github/workflows/verify.yml` prüft Formatierung, alle Scala-Module über das Root-Gate sowie Serverimport und Chromium/Firefox/WebKit. `sbt --server test` delegiert in sbt 2 auf `testQuick` und ist kein vollständiges Abnahme-Gate; `clean` invalidiert den externen Action-Cache nicht. Die in AGENTS.md genannte Testanzahl ist eine Momentaufnahme, kein einzufrierender Sollwert. Neue Browser-/No-JS-Gates kommen explizit in die CI. Generiertes JavaScript wird weder durchsucht noch bearbeitet; Größen werden über Dateistatistik/Kompression bzw. Build-Metadaten gemessen.
 
 ## 25. Ablösung des bestehenden Editors
 

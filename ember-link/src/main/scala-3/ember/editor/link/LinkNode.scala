@@ -38,7 +38,7 @@ final case class LinkNode(
     id: NodeId,
     children: Vector[NodeId],
     target: LinkTarget
-) extends ElementNode:
+) extends InlineElementNode:
 
   def url: LinkUrl = target.url
 
@@ -61,7 +61,8 @@ object LinkNode extends ElementNodeType[LinkNode]:
 
   /** A link whose title is only whitespace says nothing and renders as an empty tooltip. */
   override def validate(node: LinkNode, document: DocumentRead): Vector[Violation] =
-    node.title match
+    val content = ember.editor.richtext.InlineContent.validate(node, document)
+    content ++ (node.title match
       case Some(title) if title.trim.isEmpty =>
         Vector(
           Violation.NodeRejected(
@@ -70,4 +71,4 @@ object LinkNode extends ElementNodeType[LinkNode]:
             DiagnosticPath.node(node.id.value).field("title")
           )
         )
-      case _ => Vector.empty
+      case _ => Vector.empty)

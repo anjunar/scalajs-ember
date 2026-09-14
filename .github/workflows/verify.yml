@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      # Der Kern und rich-text sind headless und unabhaengig vom scalajs-ui-Repository.
+      # Alle Scala-Module, einschließlich Format-, History- und Forms-Tests.
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
@@ -20,7 +20,7 @@ jobs:
       - name: Formatierung
         run: sbt --server scalafmtCheckAll
       - name: Tests
-        run: sbt --server "scalajs-ember-core/Test/testOnly *" "scalajs-ember-rich-text/Test/testOnly *"
+        run: sbt --server "Test/testOnly *"
 
   browser:
     runs-on: ubuntu-latest

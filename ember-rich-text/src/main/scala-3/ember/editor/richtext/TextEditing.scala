@@ -8,12 +8,11 @@ import ember.editor.core.*
   * `spliceText` und `move`; dass ein Backspace am Absatzanfang zwei Absaetze zusammenfuehrt, ist
   * eine Entscheidung dieses Profils und steht deshalb hier.
   *
-  * ==Dokumentform in P06==
+  * ==Block boundaries==
   *
-  * `root > paragraph* > text*`. Heading, Quote, Listen und Links kommen mit P12 bis P15 dazu und
-  * bringen ihre eigene Semantik mit. Die Funktionen hier arbeiten deshalb mit "Block" als
-  * Elternknoten eines Textlaufs, nicht mit `ParagraphNode` -- was sie erweiterbar laesst, ohne dass
-  * sie jetzt schon Faelle behandeln, die es noch nicht gibt.
+  * The block is the nearest ancestor that is not an InlineElementNode. Enter splits inline
+  * ancestors through their descriptors; range deletion traverses the paths to both endpoints,
+  * including intervening list items and nested containers.
   *
   * ==Graphem statt UTF-16==
   *
@@ -150,27 +149,18 @@ object TextEditing:
     (for
       point          <- caretOf(scope)
       (node, offset) <- textPositionOf(document, point)
-      block          <- document.parentOf(node)
+      block          <- blockOf(document, node)
       container      <- document.parentOf(block)
       blockIndex     <- document.indexOfChild(block)
-      nodeIndex      <- document.indexOfChild(node)
-    yield (node, offset, block, container, blockIndex, nodeIndex)) match
+    yield (node, offset, block, container, blockIndex)) match
 
       case None => Right(())
 
-      case Some((node, offset, block, container, blockIndex, nodeIndex)) =>
-        val siblings = document.childrenOf(block)
-        val length   = textOf(document, node).length
-
+      case Some((node, offset, block, container, blockIndex)) =>
         // Drei Faelle, und der Unterschied ist nicht Kosmetik: am Anfang oder Ende wird
         // ausdruecklich *nicht* geteilt, sonst entstuende bei jedem Enter ein leerer
         // Textlauf, den P12 spaeter wieder einsammeln muesste.
-        val split: Either[UpdateError, Vector[NodeId]] =
-          if offset == 0 then Right(siblings.drop(nodeIndex))
-          else if offset == length then Right(siblings.drop(nodeIndex + 1))
-          else
-            val created = generator.nextFor(document)
-            scope.splitText(node, offset, created).map(_ => created +: siblings.drop(nodeIndex + 1))
+        val split = splitInlineTail(scope, generator, node, offset, block)
 
         split.flatMap { moving =>
           val paragraphId = generator.nextFor(scope.document)
@@ -193,12 +183,85 @@ object TextEditing:
           for
             _ <- fresh
             _ <- moveAll(scope, moving, paragraphId)
-            target = moving.headOption.orElse(scope.document.childrenOf(paragraphId).headOption)
-            _ <- target.fold(Right(()))(id =>
-              scope.select(RangeSelection.caret(Point.textBefore(id, 0)))
+            target = scope.document
+              .subtreeOf(paragraphId)
+              .find(id => asText(scope.document, id).isDefined)
+            _ <- scope.select(
+              RangeSelection.caret(
+                target
+                  .map(Point.textBefore(_, 0))
+                  .getOrElse(Point.childrenBefore(paragraphId, 0))
+              )
             )
           yield ()
         }
+
+  /** Splits every inline ancestor on the path, preserving its descriptor payload and moving the
+    * original descendants. Only the wrappers need new identities.
+    */
+  private def splitInlineTail(
+      scope: TransformScope,
+      generator: NodeIdGenerator,
+      node: NodeId,
+      offset: Int,
+      block: NodeId
+  ): Either[UpdateError, Vector[NodeId]] =
+    val document = scope.document
+    val parent   = document.parentOf(node).get
+    val siblings = document.childrenOf(parent)
+    val index    = siblings.indexOf(node)
+    val prepared =
+      if offset == 0 then Right(siblings.drop(index))
+      else if offset == textOf(document, node).length then Right(siblings.drop(index + 1))
+      else
+        val fresh = generator.nextFor(document)
+        scope.splitText(node, offset, fresh).map(_ => fresh +: siblings.drop(index + 1))
+    prepared.flatMap { initial =>
+      var tail      = initial
+      var container = parent
+      var error     = Option.empty[UpdateError]
+      while container != block && error.isEmpty do
+        val current   = scope.document
+        val outer     = current.parentOf(container).get
+        val at        = current.indexOfChild(container).get
+        val following = current.childrenOf(outer).drop(at + 1)
+        if tail.nonEmpty then
+          val original = current.node(container).get
+          val fresh    = generator.nextFor(current)
+          val clone    = current.schema
+            .descriptorFor(original)
+            .collect { case descriptor: ElementNodeType[?] =>
+              emptyClone(descriptor, original, fresh)
+            }
+            .flatten
+            .getOrElse(throw EditorContractViolation("Inline container has no element descriptor"))
+          val result = for
+            _ <- scope.insert(outer, at + 1, clone)
+            _ <- moveAll(scope, tail, fresh)
+            _ <-
+              if scope.document.childrenOf(container).isEmpty then scope.remove(container)
+              else Right(())
+          yield ()
+          error = result.left.toOption
+          tail = fresh +: following
+        else tail = following
+        container = outer
+      error.toLeft(tail)
+    }
+
+  private def emptyClone[N <: ElementNode](
+      descriptor: ElementNodeType[N],
+      node: EditorNode,
+      id: NodeId
+  ): Option[ElementNode] =
+    descriptor
+      .project(node)
+      .map(value => descriptor.withChildren(descriptor.rekey(value, id), Vector.empty))
+
+  private def blockOf(document: DocumentRead, node: NodeId): Option[NodeId] =
+    document
+      .ancestorsOf(node)
+      .find(id => !document.node(id).exists(_.isInstanceOf[InlineElementNode]))
 
   // -----------------------------------------------------------------------------------------
   // Loeschen
@@ -326,7 +389,7 @@ object TextEditing:
       endOffset: Int
   ): Either[UpdateError, Unit] =
     val document = scope.document
-    val blocks   = (document.parentOf(startNode), document.parentOf(endNode))
+    val blocks   = (blockOf(document, startNode), blockOf(document, endNode))
 
     blocks match
       case (Some(startBlock), Some(endBlock)) =>
@@ -340,11 +403,8 @@ object TextEditing:
           // it. The same happened to a range from one marked run into the next -- text beyond the
           // selection disappeared. Found by selecting a picture in the demo and pressing
           // Backspace.
-          _ <-
-            if startBlock == endBlock then removeBetween(scope, startNode, endNode)
-            else removeAfter(scope, startNode).flatMap(_ => removeBefore(scope, endNode))
+          _ <- removeSelectedBetween(scope, startNode, endNode)
           _ <- trimHead(scope, endNode, endOffset)
-          _ <- removeBlocksBetween(scope, startBlock, endBlock)
           _ <-
             if startBlock == endBlock then healBetween(scope, startNode, endNode)
             else joinBlocks(scope, into = startNode, from = endNode)
@@ -406,7 +466,7 @@ object TextEditing:
       case None                    => Right(())
 
   /** Entfernt die Bloecke, die vollstaendig zwischen den beiden Randbloecken liegen. */
-  private def removeBlocksBetween(
+  private def removeSelectedBetween(
       scope: TransformScope,
       startBlock: NodeId,
       endBlock: NodeId
@@ -414,14 +474,28 @@ object TextEditing:
     if startBlock == endBlock then Right(())
     else
       val document = scope.document
-      document.parentOf(startBlock) match
-        case None            => Right(())
-        case Some(container) =>
-          val blocks = document.childrenOf(container)
-          val first  = blocks.indexOf(startBlock)
-          val last   = blocks.indexOf(endBlock)
-          if first < 0 || last < 0 || last <= first + 1 then Right(())
-          else removeAll(scope, blocks.slice(first + 1, last))
+      val left     = (startBlock +: document.ancestorsOf(startBlock)).reverse
+      val right    = (endBlock +: document.ancestorsOf(endBlock)).reverse
+      val common   = left.zip(right).takeWhile((a, b) => a == b).length
+      val from     = left.drop(common)
+      val to       = right.drop(common)
+      for
+        _ <- from
+          .drop(1)
+          .reverse
+          .foldLeft[Either[UpdateError, Unit]](Right(()))((result, id) =>
+            result.flatMap(_ => removeAfter(scope, id))
+          )
+        _ <- to
+          .drop(1)
+          .reverse
+          .foldLeft[Either[UpdateError, Unit]](Right(()))((result, id) =>
+            result.flatMap(_ => removeBefore(scope, id))
+          )
+        _ <- (from.headOption, to.headOption) match
+          case (Some(first), Some(last)) => removeBetween(scope, first, last)
+          case _                         => Right(())
+      yield ()
 
   /** Haengt den Block von `from` an den Block von `into` an und entfernt den leeren Rest.
     *
@@ -436,17 +510,32 @@ object TextEditing:
   ): Either[UpdateError, Unit] =
     val document = scope.document
 
-    (document.parentOf(into), document.parentOf(from)) match
+    (blockOf(document, into), blockOf(document, from)) match
       case (Some(target), Some(source)) if target != source =>
         val moving = document.childrenOf(source)
         for
           _ <- moveAll(scope, moving, target, scope.document.childrenOf(target).length)
           _ <- scope.remove(source)
+          _ <- pruneEmptyParents(scope, document.parentOf(source))
           _ <- scope.select(
             RangeSelection.caret(Point.textBefore(into, textOf(scope.document, into).length))
           )
         yield ()
       case _ => Right(())
+
+  private def pruneEmptyParents(
+      scope: TransformScope,
+      start: Option[NodeId]
+  ): Either[UpdateError, Unit] =
+    var parent                            = start
+    var result: Either[UpdateError, Unit] = Right(())
+    while parent.isDefined && parent.get != scope.document.rootId &&
+      scope.document.childrenOf(parent.get).isEmpty && result.isRight
+    do
+      val id = parent.get
+      parent = scope.document.parentOf(id)
+      result = scope.remove(id)
+    result
 
   // -----------------------------------------------------------------------------------------
   // Kleinteiliges
@@ -651,7 +740,7 @@ object TextEditing:
       case _                                              => None
 
   private def sameBlock(document: DocumentRead, left: NodeId, right: NodeId): Boolean =
-    document.parentOf(left) == document.parentOf(right)
+    blockOf(document, left) == blockOf(document, right)
 
   private def siblingsOf(
       document: DocumentRead,

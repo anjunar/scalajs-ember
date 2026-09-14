@@ -27,6 +27,11 @@ trait ElementNode extends EditorNode:
 
   def children: Vector[NodeId]
 
+/** A container within a text block, such as a link. Editing crosses its boundary without treating
+  * it as a paragraph. Its descriptor still owns reconstruction.
+  */
+trait InlineElementNode extends ElementNode
+
 /** Ein atomarer Knoten: sein Inneres ist kein normaler Textbereich.
   *
   * Entspricht Lexicals `DecoratorNode`, aber bewusst enger (§3.4): keine Slots, keine editierbaren
