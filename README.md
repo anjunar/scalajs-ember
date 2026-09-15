@@ -281,6 +281,27 @@ Der `master`-Workflow veröffentlicht denselben optimierten Build unter
 [anjunar.github.io/scalajs-ember](https://anjunar.github.io/scalajs-ember/) als vorgerendertes
 HTML mit anschließender Hydration.
 
+### Maven Central
+
+Veröffentlicht werden alle Bibliotheksmodule unter `com.anjunar:scalajs-ember-*`; Demo,
+Harness und Benchmark-Profile sind `publish / skip`. Wie in `scalajs-ui` signiert `sbt-pgp`
+das Bundle, sbt 2 legt es unter `target/sona-staging` ab, und das Skript lädt es in das
+Central Portal hoch und wartet auf den Status:
+
+```powershell
+.\scripts\publish-central.ps1
+```
+
+```bash
+scripts/publish-central.sh
+```
+
+Voraussetzungen: eine Release-Version in `build.sbt` (ein `-SNAPSHOT` wird abgewiesen), ein
+GPG-Signierschlüssel und die Zugangsdaten in `~/.sbt/sonatype_central_credentials`
+(`user=…`, `password=…`) oder in `SONATYPE_CENTRAL_USERNAME`/`SONATYPE_CENTRAL_PASSWORD`.
+`-PublishingType USER_MANAGED` bzw. `--publishing-type USER_MANAGED` lässt die Freigabe im
+Portal von Hand; `-SkipPublishSigned` lädt ein bereits erzeugtes Bundle erneut hoch.
+
 Die Harness läuft getrennt, weil sie den Linkeroutput braucht:
 
 ```bash
@@ -304,3 +325,8 @@ EMBER_FIREFOX_CHANNEL=moz-firefox npm run test:browser
 
 Die vollständige Diagnose steht in
 [ember-integration/browser/README.md](ember-integration/browser/README.md).
+
+## Lizenz
+
+Ember steht unter der [MIT-Lizenz](LICENSE). `ember-markdown` enthält eine Portierung von
+commonmark.js; deren Lizenztexte stehen in [ember-markdown/NOTICE](ember-markdown/NOTICE).

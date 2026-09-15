@@ -1,7 +1,7 @@
 import org.scalajs.linker.interface.{ESVersion, ModuleKind}
 import org.scalajs.sbtplugin.ScalaJSPlugin
 
-version      := "0.1.0-SNAPSHOT"
+version      := "1.0.0"
 organization := "com.anjunar"
 scalaVersion := "3.3.8"
 
@@ -54,7 +54,33 @@ lazy val publishSettings = Seq(
   pomIncludeRepository    := { _ => false },
   versionScheme           := Some("early-semver"),
   licenses                := Seq("MIT" -> uri("https://opensource.org/licenses/MIT")),
-  homepage                := Some(uri("https://github.com/anjunar/scalajs-ember"))
+  homepage                := Some(uri("https://github.com/anjunar/scalajs-ember")),
+  // Central validates these POM fields and rejects a bundle without them.
+  organizationName     := "Anjunar",
+  organizationHomepage := Some(uri("https://github.com/anjunar")),
+  scmInfo              := Some(
+    ScmInfo(
+      uri("https://github.com/anjunar/scalajs-ember"),
+      "scm:git:https://github.com/anjunar/scalajs-ember.git",
+      Some("scm:git:git@github.com:anjunar/scalajs-ember.git")
+    )
+  ),
+  developers := List(
+    Developer(
+      id = "anjunar",
+      name = "Patrick Bittner",
+      email = "anjunar@gmx.de",
+      url = uri("https://github.com/anjunar")
+    )
+  ),
+  // Releases go to sbt 2's local staging directory (`target/sona-staging`), which
+  // scripts/publish-central.* zips and uploads to the Central Portal. Snapshots go
+  // straight to the Central snapshot repository.
+  publishTo := {
+    if (version.value.endsWith("-SNAPSHOT"))
+      Some("central-snapshots" at "https://central.sonatype.com/repository/maven-snapshots/")
+    else localStaging.value
+  }
 )
 
 // Binaerabhaengigkeit auf ui-core von Maven Central, seit P17 statt der Quell-Abhaengigkeit
@@ -390,6 +416,22 @@ lazy val emberMarkdown =
     .settings(testSettings)
     .settings(commonJsSettings)
     .settings(publishSettings)
+    // The BSD-2-Clause licence of commonmark.js requires its notice in binary redistributions,
+    // so it ships at the root of the published jars and not only in the repository.
+    //
+    // As a package mapping, not as a resource: sbt 2 leaves a resource that lies outside the
+    // resource directories out of `packageBin`, and `mappings` takes virtual file references
+    // (the same route the scalajs-ui build notes for its README).
+    .settings(
+      Compile / packageBin / mappings += {
+        val notice = baseDirectory.value / "NOTICE"
+        fileConverter.value.toVirtualFile(notice.toPath) -> "NOTICE"
+      },
+      Compile / packageSrc / mappings += {
+        val notice = baseDirectory.value / "NOTICE"
+        fileConverter.value.toVirtualFile(notice.toPath) -> "NOTICE"
+      }
+    )
     // Die Konformitaetsfixtures werden zu Scala-Quelltext erzeugt, statt zur Laufzeit gelesen:
     // ein Scala.js-Test hat kein Dateisystem und keinen Classpath (siehe `SpecFixtures`).
     .settings(
