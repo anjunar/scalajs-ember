@@ -322,6 +322,32 @@ lazy val emberCode =
       )
     )
 
+// X02: syntax highlighting as a view extension. The lexers and the scheduler are plain Scala and
+// run anywhere; `CodeDecorations` paints the result with the CSS Custom Highlight API and never
+// writes the document DOM. It sits on `ui` because it has to find a run's text node, and on
+// nothing above it -- the browser controller, forms and the toolbar do not know it exists.
+lazy val emberCodeHighlighting =
+  Project(id = "scalajs-ember-code-highlighting", base = file("ember-code-highlighting"))
+    .enablePlugins(ScalaJSPlugin)
+    .dependsOn(emberCore, emberCode, emberUi)
+    .settings(
+      name        := "scalajs-ember-code-highlighting",
+      moduleName  := "scalajs-ember-code-highlighting",
+      description := "Syntax highlighting for Ember code blocks as derived view decorations."
+    )
+    .settings(testSettings)
+    .settings(domSettings)
+    .settings(commonJsSettings)
+    .settings(publishSettings)
+    .settings(
+      boundarySettings(
+        allowedProjects = Seq("scalajs-ember-core", "scalajs-ember-code", "scalajs-ember-ui"),
+        forbiddenImports = forbiddenUpwardImports.filterNot(_ == "ember.editor.ui") ++
+          Seq("ember.editor.html", "ember.editor.markdown", "ember.editor.json", "ember.editor.standard"),
+        allowedModules = Seq("scalajs-ui-core")
+      )
+    )
+
 // §6: LinkNode, Link-Commands und Link-URL-Policy. Wie `list` auf dem Rich-Text-Profil, weil
 // ein Link Inline-Inhalte enthaelt (§8.2) -- Textlaeufe, spaeter auch Inline-Atome.
 lazy val emberLink =
@@ -730,7 +756,8 @@ lazy val emberIntegration =
       emberBrowserSupport,
       emberForms,
       emberToolbar,
-      emberStandard
+      emberStandard,
+      emberCodeHighlighting
     )
     .settings(
       name                            := "scalajs-ember-integration",
@@ -771,7 +798,8 @@ lazy val emberIntegration =
           "scalajs-ember-link",
           "scalajs-ember-code",
           "scalajs-ember-history",
-          "scalajs-ember-image"
+          "scalajs-ember-image",
+          "scalajs-ember-code-highlighting"
         ),
         // Wie bei `standard` fehlt `ember.editor.ui` mit Absicht: der Harness haengt an der
         // Projektion, das ist seit P09 sein Zweck. Seit P19b faehrt er ausserdem das
@@ -808,7 +836,8 @@ lazy val emberDemo =
       emberBrowserSupport,
       emberClipboard,
       emberToolbar,
-      emberStandard
+      emberStandard,
+      emberCodeHighlighting
     )
     .settings(
       name                            := "scalajs-ember-demo",
@@ -846,7 +875,8 @@ lazy val emberDemo =
           "scalajs-ember-browser-support",
           "scalajs-ember-clipboard",
           "scalajs-ember-toolbar",
-          "scalajs-ember-standard"
+          "scalajs-ember-standard",
+          "scalajs-ember-code-highlighting"
         ),
         forbiddenImports = forbiddenUpwardImports
           .filterNot(name => name == "ember.editor.ui" || name == "ember.editor.browser" || name == "ember.editor.toolbar"),
@@ -880,6 +910,7 @@ lazy val root = Project(id = "scalajs-ember-root", base = file("."))
     emberList,
     emberLink,
     emberCode,
+    emberCodeHighlighting,
     emberImage,
     emberMarkdown,
     emberJson,

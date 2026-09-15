@@ -102,7 +102,13 @@ object DemoRibbon:
             () => CommandState(available() && session.selection.nonEmpty),
             () => dialogs.image()
           ),
-          block("code-block", "Codeblock", CodeCommands.ToggleCodeBlock, CodeInfo()),
+          // A dialog rather than a toggle: the language decides whether the block is coloured.
+          ToolbarAction(
+            "code-block",
+            "Codeblock und Sprache",
+            () => blockState(session, "code-block", enabled),
+            () => dialogs.codeBlock()
+          ),
           block("rule", "Trennlinie", RichText.InsertThematicBreak, ())
         )
       )

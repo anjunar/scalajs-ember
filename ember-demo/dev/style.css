@@ -95,6 +95,28 @@ a { color: var(--accent); text-underline-offset: 3px; }
 .editor-surface pre { padding: 22px; background: var(--code); border: 1px solid var(--line); border-radius: 6px; white-space: pre-wrap; }
 .editor-surface code { font: 13px/1.7 Consolas, monospace; background: var(--code); border-radius: 3px; padding: 2px 4px; }
 .editor-surface pre code { padding: 0; }
+/* Syntax colours. The editor paints them as CSS highlights over the existing text node; static
+   output of ember-code-highlighting uses the same names as classes. */
+:root {
+  --tok-keyword: #a0461d; --tok-type: #2d6b8a; --tok-string: #4a7524; --tok-number: #95570a;
+  --tok-comment: #858b82; --tok-function: #684b9c; --tok-variable: #8a3a60; --tok-punct: #626a60;
+  --tok-escape: #b0402a;
+}
+:root[data-theme="dark"] {
+  --tok-keyword: #f0a276; --tok-type: #7fb8d6; --tok-string: #a8cc7c; --tok-number: #e0b36a;
+  --tok-comment: #7d867a; --tok-function: #c4a8f0; --tok-variable: #e59cc2; --tok-punct: #a9b2a5;
+  --tok-escape: #f08a6a;
+}
+::highlight(ember-tok-keyword), ::highlight(ember-tok-heading) { color: var(--tok-keyword); }
+::highlight(ember-tok-type), ::highlight(ember-tok-tag), ::highlight(ember-tok-property), ::highlight(ember-tok-link) { color: var(--tok-type); }
+::highlight(ember-tok-string), ::highlight(ember-tok-code) { color: var(--tok-string); }
+::highlight(ember-tok-number), ::highlight(ember-tok-constant), ::highlight(ember-tok-attribute) { color: var(--tok-number); }
+::highlight(ember-tok-comment) { color: var(--tok-comment); }
+::highlight(ember-tok-function), ::highlight(ember-tok-emphasis), ::highlight(ember-tok-strong) { color: var(--tok-function); }
+::highlight(ember-tok-variable), ::highlight(ember-tok-meta) { color: var(--tok-variable); }
+::highlight(ember-tok-operator), ::highlight(ember-tok-punctuation) { color: var(--tok-punct); }
+::highlight(ember-tok-escape) { color: var(--tok-escape); }
+::highlight(ember-tok-link) { text-decoration: underline; }
 .editor-surface img { max-width: 100%; height: auto; border-radius: 6px; }
 .editor-surface hr { border: 0; border-top: 1px solid var(--line); margin: 30px 0; }
 .editor-surface [data-ember-selected] { outline: 2px solid var(--accent); }
@@ -126,7 +148,7 @@ a { color: var(--accent); text-underline-offset: 3px; }
 .ui-window__container { padding: 20px; overflow: auto; flex: 1; min-height: 0; }
 .demo-dialog { font-size: 13px; }
 .demo-dialog label { display: grid; gap: 5px; margin-bottom: 13px; font-size: 12px; color: var(--muted); }
-.demo-dialog input { padding: 9px 10px; background: var(--canvas); color: var(--ink); border: 1px solid var(--line); border-radius: 5px; min-width: 0; width: 100%; }
+.demo-dialog input, .demo-dialog select { padding: 9px 10px; background: var(--canvas); color: var(--ink); border: 1px solid var(--line); border-radius: 5px; min-width: 0; width: 100%; }
 .demo-dialog button { margin-right: 7px; margin-top: 5px; }
 .demo-dialog button[type="submit"] { background: var(--accent); color: var(--panel); border-color: var(--accent); }
 .demo-dialog p[role="alert"] { color: var(--accent); font-size: 12px; }

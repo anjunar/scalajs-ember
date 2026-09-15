@@ -3,6 +3,7 @@ package ember.editor.demo
 import ember.editor.browser.*
 import ember.editor.browsersupport.{EditorBindings, HistoryBindings}
 import ember.editor.clipboard.{ClipboardCodec, BrowserClipboardController}
+import ember.editor.codehighlighting.CodeDecorations
 import ember.editor.core.*
 import ember.editor.link.LinkUrlPolicy
 import ember.editor.standard.{ImageSupport, StandardHtmlImport}
@@ -33,6 +34,7 @@ final class DemoPage(editor: DemoSession) extends AbstractComponent:
   private var selection: SelectionPort              = null
   private var input: BrowserInputController         = null
   private var clipboard: BrowserClipboardController = null
+  private var decorations: CodeDecorations          = null
   private var ribbon: EditorToolbar                 = null
   private var dialogs: DemoDialogs                  = null
 
@@ -146,6 +148,9 @@ final class DemoPage(editor: DemoSession) extends AbstractComponent:
               cursor.afterHydration { () =>
                 selection.attach()
                 input.attach()
+                // Colours are view state and write no DOM, but they paint on the text nodes the
+                // hydration claimed -- so not before it has claimed them.
+                decorations = CodeDecorations.attach(editor.session, view)
                 ribbon.refresh()
               }
           }
@@ -255,6 +260,7 @@ final class DemoPage(editor: DemoSession) extends AbstractComponent:
   override def dispose(): Unit =
     if dialogs != null then dialogs.dispose()
     if clipboard != null then clipboard.dispose()
+    if decorations != null then decorations.dispose()
     if input != null then input.dispose()
     editor.compositions.release()
     if selection != null then selection.dispose()

@@ -48,7 +48,9 @@ Repo ausgeliefert. `EMBER_DEMO_PORT` setzt einen anderen Port.
 
 - **Artikel schreiben**: Überschriften, Textformatierung, Zitat, nummerierte Liste und Link.
 - **Notizen & Listen**: verschachtelte Listen mit Ein- und Ausrücken.
-- **Code & Medien**: Scala-Codeblock, Bild aus dem Repo und Trennlinie.
+- **Code & Medien**: Scala-Codeblock mit Syntax-Highlighting, Bild aus dem Repo und Trennlinie.
+  „Code" in der Ribbon öffnet die Sprachauswahl: Block mit Sprache anlegen, Sprache ändern oder
+  Codeblock aufheben.
 - **Leeres Dokument**: eine tatsächlich editierbare leere Seite.
 
 Die Navigation verwendet Links mit Hash-Routen, einschließlich Browser-Zurück/Vorwärts.

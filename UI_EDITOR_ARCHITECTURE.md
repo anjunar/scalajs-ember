@@ -182,6 +182,7 @@ Verzeichnisse heißen `ember-*`, sbt-IDs und Artefakte konsistent `scalajs-ember
 | `ember-link` | LinkNode, Link-Commands und Link-URL-Policy | core, rich-text |
 | `ember-image` | Image/Media-Referenzen, Atom-Semantik, validierte Quellen und Maße | core |
 | `ember-code` | CodeBlock, Sprache als Metadatum, Code-Editing | core, rich-text |
+| `ember-code-highlighting` (X02) | Zeilenlexer, Grammatiken, revisionierter Highlighter-Dienst, Code-Dekorationen über die CSS Custom Highlight API | core, code, ui |
 | `ember-json` | Wire-ADT, Node-Codecs, Schema-/Dokumentversionen, Validierung | core |
 | `ember-markdown` | Scala-Syntaxparser, Writer, SourceMap und typisierte AST-Adapter-SPI | core |
 | `ember-html` | Sichere HTML-Fragmentrepräsentation, Importparser, typisierte Import-/Semantikregeln | core |
@@ -200,7 +201,7 @@ Der Browsermechanismus nimmt typisierte Input-/Key-Bindings und Effect-Callbacks
 
 Die Trade-offs sind ausdrücklich: Das Integrationsmodul hat viele Compile-Abhängigkeiten; die tatsächlich gelinkte Größe muss gemessen werden. Falls einzelne Fabriken trotz getrennter Erreichbarkeit unerwünschte Features festhalten, werden betroffene Adapter in kleinere Integrationsartefakte ausgelagert. Das ist ein messbares Akzeptanzkriterium, kein blindes Vertrauen in Tree Shaking.
 
-Kein separates optionales `selection`: Tx und History benötigen die Typen und Maps zwingend. Kein separates `reactive`: der kleine Adapter gehört zu `ui`. Syntax-Highlighting, Collaboration, Mentions und Autocomplete werden erst bei Implementierung eigenständige Feature-Module; jetzt werden keine leeren Projekte dafür erzeugt.
+Kein separates optionales `selection`: Tx und History benötigen die Typen und Maps zwingend. Kein separates `reactive`: der kleine Adapter gehört zu `ui`. Collaboration, Mentions und Autocomplete werden erst bei Implementierung eigenständige Feature-Module; jetzt werden keine leeren Projekte dafür erzeugt. Syntax-Highlighting ist mit X02 als `ember-code-highlighting` entstanden.
 
 ## 7. Dependency Graph
 

@@ -2471,6 +2471,52 @@ Diese Pakete gehören zum langfristigen Ausbau, nicht zum Gate für die erste Ab
 - **Risiken:** Mehrere Textspans verändern DOM-Offsets; NodeView muss SelectionPort und Composition-Vertrag erfüllen.
 - **Dependencies:** P15, P23, P28; Freigabe nach P30.
 
+> **Umgesetzt (15. September 2026), mit ausdrücklichem Auftrag vor P29/P30.** Neues Modul
+> [`ember-code-highlighting`](ember-code-highlighting/README.md) (core, code, ui): `Token`/`TokenKind`,
+> `Grammar`/`Rule`/`LexState`, `Lexer`, `LexedText`, `Grammars` mit `HighlightLanguages`,
+> `Highlighter`/`LocalHighlighter`/`HighlightResult`, `StaticHighlight`, `HighlightScheduler` und
+> `CodeDecorations`. Erste Sprachen: Scala, JavaScript/TypeScript, JSON, HTML/XML, CSS, Shell,
+> Markdown; weitere folgen später.
+>
+> **Das Risiko ist nicht gemildert, sondern umgangen.** Die Zeile „Mehrere Textspans verändern
+> DOM-Offsets" gilt nur für Spans. Gefärbt wird über die CSS Custom Highlight API: `Range`s über dem
+> einen Textknoten des Codeblocks. Damit bleibt die Code-NodeView unverändert — die in „Ändern"
+> genannte optionale NodeView war nicht nötig —, `SelectionPort`, Recovery und Composition sehen
+> denselben DOM wie ohne Highlighting, und ein `MutationObserver` meldet beim Färben nichts. Gemalt
+> wird nur, wenn der DOM-Text exakt der Ergebnistext ist; während einer Composition wartet der Block.
+>
+> **Kein Parser als Lexer.** Weder `ember-markdown` noch der HTML-Tokenizer aus P24 werden benutzt:
+> ein Highlighter muss zeilenweise wieder aufsetzen können, CommonMark entscheidet erst nach der
+> ganzen Eingabe, und der HTML-Tokenizer liefert keine Quellpositionen. Übernommen ist die Einheit
+> (halboffene UTF-16-Bereiche). Das inkrementelle Nachlexen stoppt, sobald eine Zeile im alten
+> Zustand beginnt und der Rest unverändert ist — Tippen lext eine Zeile.
+>
+> **Revisionen und Worker.** `Highlighter` ist im Vertrag asynchron, jedes Ergebnis trägt Block,
+> Revision und Text; der Scheduler zeigt nur die Antwort auf die letzte Anfrage bei unverändertem
+> Text. Ein Worker-Adapter ist nicht gebaut — der Vertrag trägt ihn, `LocalHighlighter` ist schnell
+> genug (gemessen über `relexed`, nicht über Zeit).
+>
+> **SSR.** Die Editor-SSR bleibt ungefärbt, weil Hydration exakt die Projektion erwartet (§17).
+> `StaticHighlight` liefert dieselben Farben als Klassen für Seiten ohne Editor, mit demselben Lexer
+> und ohne Worker.
+>
+> **Belege.** `scalajs-ember-code-highlighting`: 48 Tests grün (`LexerSpec`,
+> `IncrementalLexingSpec` mit 2400 generierten Änderungen gegen vollständiges Lexen,
+> `HighlightSchedulerSpec` inkl. „Dokument ist vor und nach dasselbe Objekt"). Browser:
+> `code-highlighting.spec.mjs`, 13 Fälle je Engine, 39/39 grün in Chromium, Firefox und WebKit, ohne
+> übersprungene Fälle. Die Demo färbt den Scala-Block des Beispiels „Code & Medien" in Hell und
+> Dunkel, im Pages-Build nach der Hydration nachgeprüft. Globale Gates danach: `scalafmtCheckAll`,
+> `Test/testOnly *` (1317 Tests), `verify-editor-boundaries` (24 Projekte), Tool-Tests, die volle
+> Harness mit `npm run verify` (873 Fälle) und `verify:pages` (9 Fälle) — alle grün.
+>
+> **Nachtrag (15. September 2026):** Die Demo-Ribbon öffnet für „Code" einen Dialog mit
+> Sprachauswahl: neuen Codeblock mit Sprache anlegen, Sprache eines bestehenden Blocks ändern
+> (Meta bleibt erhalten, unbekannte Sprachen aus Importen bleiben wählbar) oder den Block aufheben.
+> Pages-Showcase-Test dafür ergänzt.
+>
+> **Offen:** weitere Sprachen; Fences in Markdown-Blöcken werden als Code gefärbt, nicht in ihrer
+> eigenen Sprache.
+
 ### X03 — Kollaboration zunächst als eigenständiger Architekturspike
 
 - **Ziel:** Operations-/ID-/Undo-Vertrag für konkurrierende Änderungen belegen, bevor Netzwerkfeatures implementiert werden.

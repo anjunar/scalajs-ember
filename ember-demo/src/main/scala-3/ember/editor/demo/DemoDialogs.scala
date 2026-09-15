@@ -3,6 +3,7 @@ package ember.editor.demo
 import ember.editor.browser.{SelectionPort, WriteIntent}
 import ember.editor.core.*
 import ember.editor.clipboard.ClipboardCommands
+import ember.editor.code.{CodeBlockNode, CodeCommands, CodeInfo, CodeLanguage}
 import ember.editor.image.*
 import ember.editor.link.Links
 import ember.editor.toolbar.*
@@ -23,6 +24,19 @@ final class DemoDialogs(
   private var opened             = false
   private var disposed           = false
 
+  /** The languages the demo offers -- the names `ember-code-highlighting` colours. */
+  private val languages = Vector(
+    ""           -> "Ohne Sprache",
+    "scala"      -> "Scala",
+    "javascript" -> "JavaScript",
+    "typescript" -> "TypeScript",
+    "json"       -> "JSON",
+    "html"       -> "HTML",
+    "css"        -> "CSS",
+    "shell"      -> "Shell",
+    "markdown"   -> "Markdown"
+  )
+
   def link(): Either[EditorError, Unit] =
     val link = editor.session.selection
       .collect { case range: RangeSelection => range.focus }
@@ -41,6 +55,56 @@ final class DemoDialogs(
         )
       )
     )
+
+  /** Turns the current block into code with a language, or changes the language of a code block.
+    *
+    * The language is chosen when the block is made, because a code block without one stays
+    * uncoloured -- and afterwards, because a pasted listing is often in a different language than
+    * the one first guessed. Inside a code block the same button offers to turn it back into text.
+    * The meta half of the info string (`{highlight=3-5}`) is kept: it belongs to the fence.
+    */
+  def codeBlock(): Either[EditorError, Unit] =
+    if selection.scope.focusWithin then selection.importNative()
+    val current  = currentCodeBlock
+    val language = current.flatMap(_.info.language).map(_.value).getOrElse("")
+    // A language the list does not know -- `rust` from an imported fence -- stays selectable, so
+    // that opening the dialog and pressing apply does not silently remove it.
+    val options =
+      if languages.exists(_._1 == language) then languages else languages :+ (language -> language)
+    capture(
+      if current.nonEmpty then "Codeblock bearbeiten" else "Codeblock einfügen",
+      Vector("Sprache" -> language),
+      Map("Sprache"    -> options)
+    )(
+      (target, values) =>
+        val chosen = CodeLanguage.parse(values(0))
+        current match
+          case Some(block) =>
+            service.run(target)(
+              _.dispatch(CodeCommands.SetCodeInfo, block.info.copy(language = chosen))
+            )
+          case None =>
+            service.run(target)(_.dispatch(CodeCommands.ToggleCodeBlock, CodeInfo(chosen)))
+      ,
+      Option.when(current.nonEmpty)(
+        "Codeblock aufheben" -> ((target: DialogTarget, _: Vector[String]) =>
+          service.run(target)(_.dispatch(CodeCommands.ToggleCodeBlock, CodeInfo.empty))
+        )
+      )
+    )
+
+  private def currentCodeBlock: Option[CodeBlockNode] =
+    val document = editor.session.document
+    editor.session.selection
+      .collect { case range: RangeSelection => range.focus.owner }
+      .flatMap { start =>
+        Iterator
+          .iterate(Option(start))(_.flatMap(document.parentOf))
+          .takeWhile(_.nonEmpty)
+          .flatten
+          .flatMap(document.node)
+          .collectFirst { case code: CodeBlockNode => code }
+      }
 
   def image(): Either[EditorError, Unit] =
     val image = service.selectedImage
@@ -98,7 +162,11 @@ final class DemoDialogs(
       yield ()
     )
 
-  private def capture(title: String, fields: Vector[(String, String)])(
+  private def capture(
+      title: String,
+      fields: Vector[(String, String)],
+      choices: Map[String, Vector[(String, String)]] = Map.empty
+  )(
       apply: (DialogTarget, Vector[String]) => Either[EditorError, Unit],
       extra: Option[(String, (DialogTarget, Vector[String]) => Either[EditorError, Unit])] = None
   ): Either[EditorError, Unit] =
@@ -124,7 +192,8 @@ final class DemoDialogs(
                 else mapped.orElse(editor.session.selection),
                 WriteIntent.Explicit
               )
-          }
+          },
+          choices = choices
         )
       }
 
@@ -145,7 +214,8 @@ final class DemoDialogs(
       submit: Vector[String] => Either[EditorError, Unit],
       extra: Option[(String, Vector[String] => Either[EditorError, Unit])],
       after: () => Unit,
-      description: String = ""
+      description: String = "",
+      choices: Map[String, Vector[(String, String)]] = Map.empty
   ): Unit =
     var done                      = false
     var conf: Viewport.WindowConf = null
@@ -158,7 +228,7 @@ final class DemoDialogs(
     conf = new Viewport.WindowConf(
       body = {
         DslLayer.child(
-          new DemoDialogForm(title, fields, submit, extra, () => close(), description)
+          new DemoDialogForm(title, fields, submit, extra, () => close(), description, choices)
         ) {}
       },
       widthPx = 460,

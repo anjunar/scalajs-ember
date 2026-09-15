@@ -46,6 +46,41 @@ test('all examples render and navigation preserves edits and undo', async ({ pag
   expect(errors).toEqual([])
 })
 
+test('code block dialog chooses, changes and removes the language', async ({ page }) => {
+  const errors = []
+  page.on('pageerror', error => errors.push(error.message))
+  await page.goto('./#blank')
+  await surface(page).click()
+  await page.keyboard.type('val answer = 42')
+
+  await action(page, 'code-block').click()
+  let dialog = page.getByRole('dialog', { name: 'Codeblock einfügen' })
+  await dialog.getByLabel('Sprache').selectOption('scala')
+  await dialog.getByRole('button', { name: 'Übernehmen' }).click()
+  await expect(dialog).toBeHidden()
+  await expect(surface(page).locator('pre')).toHaveClass('language-scala')
+  await page.waitForFunction(() => {
+    const keywords = CSS.highlights.get('ember-tok-keyword')
+    return !!keywords && [...keywords].some(range => range.toString() === 'val')
+  })
+
+  await action(page, 'code-block').click()
+  dialog = page.getByRole('dialog', { name: 'Codeblock bearbeiten' })
+  await expect(dialog.getByLabel('Sprache')).toHaveValue('scala')
+  await dialog.getByLabel('Sprache').selectOption('javascript')
+  await dialog.getByRole('button', { name: 'Übernehmen' }).click()
+  await expect(dialog).toBeHidden()
+  await expect(surface(page).locator('pre')).toHaveClass('language-javascript')
+
+  await action(page, 'code-block').click()
+  dialog = page.getByRole('dialog', { name: 'Codeblock bearbeiten' })
+  await dialog.getByRole('button', { name: 'Codeblock aufheben' }).click()
+  await expect(dialog).toBeHidden()
+  await expect(surface(page).locator('pre')).toHaveCount(0)
+  await expect(surface(page)).toContainText('val answer = 42')
+  expect(errors).toEqual([])
+})
+
 test('link dialog validates the URL, preserves selection and restores focus', async ({ page }) => {
   await page.goto('./')
   await selectText(page, 'Gute Texte')

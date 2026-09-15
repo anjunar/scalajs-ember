@@ -158,6 +158,10 @@ offener Geräteabnahme und der gemessenen Grenze großer flacher Umordnungen.
 Der [Runtime-Fix für große Moves](benchmarks/runtime-reorder.md) ist mit einem
 lokalen UI-Core-Kandidaten geprüft (50000 Absätze: 95–132 ms). Die Korrektur wurde
 anschließend als [UI-Core 1.0.1 veröffentlicht und übernommen](benchmarks/ui-core-1.0.1-release.md).
+Mit X02 kommt [`ember-code-highlighting`](ember-code-highlighting/README.md) dazu:
+Syntax-Highlighting für Scala, JavaScript/TypeScript, JSON, HTML/XML, CSS, Shell und Markdown,
+gefärbt über die CSS Custom Highlight API — ohne einen einzigen Schreibzugriff auf Dokument oder
+DOM, damit Auswahl, Recovery und Composition unberührt bleiben.
 
 Konvention: Verzeichnis `ember-<modul>`, sbt-ID und Artefakt `scalajs-ember-<modul>`,
 Scala-Paket `ember.editor.<modul>`. Die vollständige Modultabelle steht in
@@ -177,6 +181,9 @@ Vorhanden:
   `ember.editor.link`. Inline-Links mit geprüfter URL-Policy. Headless und optional.
 - [`ember-code`](ember-code/README.md) — sbt-ID `scalajs-ember-code`, Paket
   `ember.editor.code`. Codeblöcke mit typisierten Sprachmetadaten, ohne Highlighter.
+- [`ember-code-highlighting`](ember-code-highlighting/README.md) — sbt-ID
+  `scalajs-ember-code-highlighting`, Paket `ember.editor.codehighlighting`. Zeilenlexer,
+  Grammatiken und Code-Dekorationen als abgeleiteter View-State. Optional.
 - [`ember-image`](ember-image/README.md) — sbt-ID `scalajs-ember-image`, Paket
   `ember.editor.image`. Externe Bilder als Inline-Atome mit geprüfter Media-Policy. Hängt
   allein am Kern — ein Bild braucht vom Rich-Text-Profil nichts.

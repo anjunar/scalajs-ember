@@ -7,14 +7,19 @@ import ui.core.render.{Cursor, DomNodes}
 import ui.core.state.Property
 import org.scalajs.dom
 
-/** Ordinary UI content mounted directly by Viewport.WindowConf. */
+/** Ordinary UI content mounted directly by Viewport.WindowConf.
+  *
+  * A field whose caption has `choices` becomes a `select` with those `(value, label)` options;
+  * every other field is a text input.
+  */
 final class DemoDialogForm(
     title: String,
     fields: Vector[(String, String)],
     submit: Vector[String] => Either[EditorError, Unit],
     extra: Option[(String, Vector[String] => Either[EditorError, Unit])],
     close: () => Unit,
-    description: String = ""
+    description: String = "",
+    choices: Map[String, Vector[(String, String)]] = Map.empty
 ) extends AbstractComponent {
   val tagName                                = "form"
   private val error                          = Property("")
@@ -31,12 +36,16 @@ final class DemoDialogForm(
         val tagName                                = "label"
         override def compose(cursor: Cursor): Unit = {
           Runtime.mount(TextComponent(caption), cursor, Some(this))
-          input = new AbstractComponent {
-            val tagName                                = "input"
-            override def compose(cursor: Cursor): Unit = {
-              setAttribute("type", "text")
-              setAttribute("value", initial)
-            }
+          input = choices.get(caption) match {
+            case Some(options) => choice(options, initial)
+            case None          =>
+              new AbstractComponent {
+                val tagName                                = "input"
+                override def compose(cursor: Cursor): Unit = {
+                  setAttribute("type", "text")
+                  setAttribute("value", initial)
+                }
+              }
           }
           Runtime.mount(input, cursor, Some(this))
         }
@@ -72,12 +81,33 @@ final class DemoDialogForm(
       }
     }
   }
+  private def choice(options: Vector[(String, String)], initial: String): AbstractComponent =
+    new AbstractComponent {
+      val tagName                                = "select"
+      override def compose(cursor: Cursor): Unit =
+        options.foreach { (value, text) =>
+          val option = new AbstractComponent {
+            val tagName                                = "option"
+            override def compose(cursor: Cursor): Unit = {
+              setAttribute("value", value)
+              if (value == initial) setAttribute("selected", "")
+              Runtime.mount(TextComponent(text), cursor, Some(this))
+            }
+          }
+          Runtime.mount(option, cursor, Some(this))
+        }
+    }
   override def afterCompose(cursor: Cursor): Unit = if (cursor.isBrowser)
     inputs.headOption
       .orElse(Option(cancelButton))
       .foreach(input => DomNodes.raw(input.host).asInstanceOf[dom.HTMLElement].focus())
   private def values =
-    inputs.map(input => DomNodes.raw(input.host).asInstanceOf[dom.HTMLInputElement].value)
+    inputs.map(input =>
+      DomNodes.raw(input.host) match {
+        case select: dom.HTMLSelectElement => select.value
+        case other                         => other.asInstanceOf[dom.HTMLInputElement].value
+      }
+    )
   private def complete(result: Either[EditorError, Unit]): Unit =
     result.fold(e => error.set(e.message), _ => close())
 }

@@ -38,8 +38,9 @@ Die Risikozeile sagt, warum das so bleiben muss: „Sichtbares Highlighting darf
 persistente Mark-Zerlegung jeder Codezeile erzwingen." Ein Dokument, in dem jedes Token ein
 markierter Lauf wäre, ließe sich weder als Dokument lesen noch als Fence schreiben. Was dieses
 Modul garantiert, ist genau das, was ein Highlighter braucht und was Markdown-Fences brauchen:
-**der Inhalt, wörtlich, einschließlich seiner Leerzeilen.** Ein späteres
-`ember-code-highlighting` (§6) färbt in einer Ansicht ein, ohne das Dokument anzufassen.
+**der Inhalt, wörtlich, einschließlich seiner Leerzeilen.**
+[`ember-code-highlighting`](../ember-code-highlighting/README.md) (X02) färbt in der Ansicht ein,
+ohne das Dokument oder den DOM-Textknoten anzufassen.
 
 ## Das Inhaltsmodell
 
