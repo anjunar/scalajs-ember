@@ -32,9 +32,12 @@ object Main:
 
     val app = new DemoApp
     if root.childElementCount > 0 then
-      val cursor = HydratingCursor.root(root)
+      val serverRoot = root.firstElementChild
+      val cursor     = HydratingCursor.root(root)
       Runtime.mount(app, cursor): Unit
       cursor.completeHydration()
+      if root.firstElementChild ne serverRoot then
+        throw new IllegalStateException("Die Hydration hat den serverseitigen App-Host ersetzt.")
       root.setAttribute("data-rendering", "hydrated")
     else
       Runtime.mount(app, DomCursor.root(root)): Unit

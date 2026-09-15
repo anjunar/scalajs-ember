@@ -24,9 +24,6 @@ test.describe('without JavaScript', () => {
 test('hydrates the existing root and activates the editor afterwards', async ({ page }) => {
   await page.goto('./')
   await expect(page.locator('#root')).toHaveAttribute('data-rendering', 'hydrated')
-  expect(await page.evaluate(() =>
-    window.__EMBER_SSR_ROOT__ === document.querySelector('#root > .demo-app')
-  )).toBe(true)
   await expect(page.getByRole('textbox', { name: 'Dokument bearbeiten' })).toHaveAttribute(
     'contenteditable',
     'true'
