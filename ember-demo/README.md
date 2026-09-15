@@ -80,8 +80,13 @@ Exportverluste ausdrücklich an; der Markdown-Download verwendet `Strict` und ve
 einen verlustbehafteten Export. Für solche Dokumente steht der JSON-Download bereit.
 
 Die Quellansicht dient zur Beobachtung und ist nicht editierbar.
-Diese Anwendung rendert clientseitig; die SSR-/Hydration-Prüfungen bleiben im
-separaten `ember-integration`-Modul.
+
+Der Pages-Build rendert die vollständige initiale Artikelansicht mit `SsrCursor` in Node und
+schreibt sie in `index.html`. Im Browser übernimmt `HydratingCursor` genau diesen Komponentenbaum;
+erst nach dem vollständigen Claim werden Navigation, Editor-Controller und Toolbar aktiviert.
+GitHub Pages liefert damit vorgerendertes HTML aus, obwohl es selbst keinen Serverprozess pro
+Anfrage betreibt. Die isolierten Fehler-, Recovery- und Verlustschutzfälle bleiben zusätzlich im
+separaten `ember-integration`-Modul abgedeckt.
 
 ## Prüfen
 
@@ -106,8 +111,8 @@ npm --prefix ember-demo run verify:pages
 ```
 
 Das erzeugt `target/ember-pages`, startet die Prüfung unter
-`http://127.0.0.1:4202/scalajs-ember/` und führt dieselben sechs Browserabläufe gegen das
-tatsächliche statische Artefakt aus. Eine manuelle Vorschau startet mit
+`http://127.0.0.1:4202/scalajs-ember/` und führt die sechs Browserabläufe sowie drei zusätzliche
+SSR-/No-JavaScript-/Hydrationstests gegen das tatsächliche statische Artefakt aus. Eine manuelle Vorschau startet mit
 `npm --prefix ember-demo run preview:pages`.
 Optimierten Build manuell ansehen:
 
@@ -121,7 +126,7 @@ npm --prefix ember-demo run serve
 
 | Datei | Aufgabe |
 | --- | --- |
-| `Main.scala` | Browser-Einstieg in den UI-Komponentenbaum |
+| `Main.scala` | Node-SSR und Browser-Hydration desselben UI-Komponentenbaums |
 | `DemoApp.scala` | Navigation, Theme, Viewport und langlebige Beispielsitzungen |
 | `DemoExample.scala` | Beispieldokumente |
 | `DemoSession.scala` | Lokale Ember-Module, Schema, History und Codecs |
@@ -130,5 +135,6 @@ npm --prefix ember-demo run serve
 | `DemoDialogs.scala`, `DemoDialogForm.scala` | Direkte Viewport-Fenster mit Formularinhalt |
 | `dev/` | HTML, CSS, lokale SVGs sowie Build-/Start-/Server-Skripte |
 | `test/showcase.spec.mjs` | Browserregressionen gegen den Full-Link |
+| `test/pages-ssr.spec.mjs` | Vorgerendertes HTML, No-JavaScript-Lesen und Hydration |
 
 Alle Scala-Quellen liegen unter `src/main/scala-3/ember/editor/demo`.

@@ -208,7 +208,8 @@ Vorhanden:
   Knotenarten und Renderer einander kennen.
 - [`ember-demo`](ember-demo/README.md) — sbt-ID `scalajs-ember-demo`. **Nicht publiziert.**
   Eigenständige Showcase mit vier Beispielen, Ribbon, Viewport-Dialogen, Hell/Dunkel,
-  Lesemodus und zuschaltbaren Live-Ansichten für Markdown, JSON, HTML und Dokumentbaum.
+  Lesemodus und zuschaltbaren Live-Ansichten für Markdown, JSON, HTML und Dokumentbaum. Der
+  Pages-Build rendert die initiale Ansicht in Node vor und hydriert denselben UI-Baum im Browser.
 - [`ember-integration`](ember-integration/browser/README.md) — sbt-ID
   `scalajs-ember-integration`. **Nicht publiziert.** Browser-Harness, die die tatsächlich
   gelinkte Anwendung in echten Engines ausführt.
@@ -270,7 +271,8 @@ npm --prefix ember-demo run dev
 Dann [http://127.0.0.1:4200](http://127.0.0.1:4200). Bedienung, Entwicklungsablauf,
 Browser-Tests und Formatgrenzen stehen in [ember-demo/README.md](ember-demo/README.md).
 Der `master`-Workflow veröffentlicht denselben optimierten Build unter
-[anjunar.github.io/scalajs-ember](https://anjunar.github.io/scalajs-ember/).
+[anjunar.github.io/scalajs-ember](https://anjunar.github.io/scalajs-ember/) als vorgerendertes
+HTML mit anschließender Hydration.
 
 Die Harness läuft getrennt, weil sie den Linkeroutput braucht:
 

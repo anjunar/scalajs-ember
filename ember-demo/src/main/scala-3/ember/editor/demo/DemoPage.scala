@@ -89,36 +89,37 @@ final class DemoPage(editor: DemoSession) extends AbstractComponent:
               ImageSupport.views,
               parent = Some(host)
             )
-            val element = DomNodes.raw(host.host).asInstanceOf[dom.HTMLElement]
-            selection = SelectionPort.attachTo(editor.session, view, element)
-            input = BrowserInputController.attachTo(
-              editor.session,
-              view,
-              selection,
-              EditorBindings.everything,
-              EditorBindings.everythingKeyboard ++ EditorBindings.tabIndentation,
-              TabPolicy.IndentsUntilEscape,
-              EditorMode.Editable,
-              Some(ImageSupport.everything),
-              BusyPolicy.Defer
-            )
-            editor.compositions.bind(input)
-            val historyBinding = HistoryBindings.groupCompositions(input, editor.history)
-            addDisposable(ui.core.state.Disposable(historyBinding.dispose()))
-            val codec = new ClipboardCodec(
-              "ember-demo/1",
-              editor.session.document.schema,
-              editor.codecs,
-              ImageSupport.everything,
-              StandardHtmlImport.everything(LinkUrlPolicy.default, editor.media)
-            )
-            clipboard = new BrowserClipboardController(
-              editor.session,
-              selection,
-              input,
-              codec,
-              report = result => result.left.foreach(error => notice.set(error.message))
-            )
+            if cursor.isBrowser then
+              val element = DomNodes.raw(host.host).asInstanceOf[dom.HTMLElement]
+              selection = SelectionPort.detached(editor.session, view, element)
+              input = BrowserInputController.detached(
+                editor.session,
+                view,
+                selection,
+                EditorBindings.everything,
+                EditorBindings.everythingKeyboard ++ EditorBindings.tabIndentation,
+                TabPolicy.IndentsUntilEscape,
+                EditorMode.Editable,
+                Some(ImageSupport.everything),
+                BusyPolicy.Defer
+              )
+              editor.compositions.bind(input)
+              val historyBinding = HistoryBindings.groupCompositions(input, editor.history)
+              addDisposable(ui.core.state.Disposable(historyBinding.dispose()))
+              val codec = new ClipboardCodec(
+                "ember-demo/1",
+                editor.session.document.schema,
+                editor.codecs,
+                ImageSupport.everything,
+                StandardHtmlImport.everything(LinkUrlPolicy.default, editor.media)
+              )
+              clipboard = new BrowserClipboardController(
+                editor.session,
+                selection,
+                input,
+                codec,
+                report = result => result.left.foreach(error => notice.set(error.message))
+              )
             dialogs = new DemoDialogs(editor, selection, () => available, DemoPage.this)
             ribbon = new EditorToolbar(
               editor.session,
@@ -129,18 +130,24 @@ final class DemoPage(editor: DemoSession) extends AbstractComponent:
             Runtime.mount(ribbon, Runtime.contentCursor(toolbarHost), Some(toolbarHost))
             addDisposable(readOnly.observe { value =>
               dialogs.close()
-              input.setMode(if value then EditorMode.ReadOnly else EditorMode.Editable)
-              host.setAttribute("aria-readonly", value.toString)
+              if input != null then
+                input.setMode(if value then EditorMode.ReadOnly else EditorMode.Editable)
               ribbon.refresh()
             })
-            val composition = input.onComposition(_ => ribbon.refresh())
-            addDisposable(ui.core.state.Disposable(composition.dispose()))
-            val outcomes = input.onOutcome {
-              case InputOutcome.Refused(_, reason) => notice.set(reason.toString)
-              case InputOutcome.Unimported(reason) => notice.set(reason.toString)
-              case _                               => ()
-            }
-            addDisposable(ui.core.state.Disposable(outcomes.dispose()))
+            if input != null then
+              val composition = input.onComposition(_ => ribbon.refresh())
+              addDisposable(ui.core.state.Disposable(composition.dispose()))
+              val outcomes = input.onOutcome {
+                case InputOutcome.Refused(_, reason) => notice.set(reason.toString)
+                case InputOutcome.Unimported(reason) => notice.set(reason.toString)
+                case _                               => ()
+              }
+              addDisposable(ui.core.state.Disposable(outcomes.dispose()))
+              cursor.afterHydration { () =>
+                selection.attach()
+                input.attach()
+                ribbon.refresh()
+              }
           }
           div {
             classes = Seq("editor-status")

@@ -2,6 +2,7 @@ import { defineConfig } from '@playwright/test'
 
 export default defineConfig({
   testDir: './test',
+  testIgnore: '**/pages-ssr.spec.mjs',
   outputDir: '../target/ember-demo-results',
   fullyParallel: true,
   workers: 2,

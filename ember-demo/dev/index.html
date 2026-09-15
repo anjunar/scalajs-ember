@@ -10,7 +10,10 @@
   </head>
   <body>
     <div id="root"></div>
-    <noscript>Diese interaktive Demo benötigt JavaScript.</noscript>
+    <noscript>Der Artikel ist lesbar. Zum Bearbeiten wird JavaScript benötigt.</noscript>
+    <script>
+      window.__EMBER_SSR_ROOT__ = document.querySelector('#root > .demo-app')
+    </script>
     <script type="module">
       import { boot } from './main.js'
       boot()

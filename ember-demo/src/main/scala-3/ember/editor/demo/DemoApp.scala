@@ -23,21 +23,10 @@ final class DemoApp extends AbstractComponent:
   private val editors = DemoExample.all.map(example => example.id -> new DemoSession(example)).toMap
   private val active  = Property("article")
   private val dark    = Property(false)
+  private var browserActivated = false
 
   override def compose(cursor: Cursor): Unit =
     addClass("demo-app")
-    val selected = dom.window.location.hash.stripPrefix("#")
-    if editors.contains(selected) then active.set(selected)
-    dark.set(dom.window.matchMedia("(prefers-color-scheme: dark)").matches)
-    def theme(): Unit =
-      dom.document.documentElement.setAttribute("data-theme", if dark.get then "dark" else "light")
-    theme()
-    addDisposable(dark.observe(_ => theme()))
-    val navigate: js.Function1[dom.Event, Unit] = _ =>
-      val id = dom.window.location.hash.stripPrefix("#")
-      if editors.contains(id) then active.set(id)
-    dom.window.addEventListener("hashchange", navigate)
-    addDisposable(ui.core.state.Disposable(dom.window.removeEventListener("hashchange", navigate)))
     DslLayer.render(this, cursor) {
       viewport {
         div {
@@ -105,6 +94,28 @@ final class DemoApp extends AbstractComponent:
         }
       }
     }
+    if cursor.isBrowser then cursor.afterHydration(() => activateBrowser())
+
+  private def activateBrowser(): Unit =
+    if !browserActivated then
+      browserActivated = true
+      val selected = dom.window.location.hash.stripPrefix("#")
+      if editors.contains(selected) then active.set(selected)
+      dark.set(dom.window.matchMedia("(prefers-color-scheme: dark)").matches)
+      def theme(): Unit =
+        dom.document.documentElement.setAttribute(
+          "data-theme",
+          if dark.get then "dark" else "light"
+        )
+      theme()
+      addDisposable(dark.observe(_ => theme()))
+      val navigate: js.Function1[dom.Event, Unit] = _ =>
+        val id = dom.window.location.hash.stripPrefix("#")
+        if editors.contains(id) then active.set(id)
+      dom.window.addEventListener("hashchange", navigate)
+      addDisposable(
+        ui.core.state.Disposable(dom.window.removeEventListener("hashchange", navigate))
+      )
 
   override def dispose(): Unit =
     // Unmount the view/controller trees before disposing their long-lived sessions.
