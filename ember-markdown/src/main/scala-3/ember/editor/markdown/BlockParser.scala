@@ -186,20 +186,146 @@ private final class BlockParser(source: String, profile: MarkdownProfile):
           block.children.reverseIterator.foreach(pending.push)
 
   private def inlinesOf(block: OpenBlock, depth: Int): Vector[MarkdownInline] =
+    inlinesFrom(block.inlineSource, position => block.sourceOffsetOf(position), depth)
+
+  private def inlinesFrom(text: String, offsetOf: Int => Int, depth: Int): Vector[MarkdownInline] =
     if profile.conformance == Conformance.BlocksOnly then
-      val text = block.inlineSource
       if text.isEmpty then Vector.empty
-      else Vector(MarkdownInline.Text(freshId(), spanOfContent(block, 0, text.length), text))
+      else
+        Vector(MarkdownInline.Text(freshId(), SourceSpan(offsetOf(0), offsetOf(text.length)), text))
     else
-      inlineParser.parse(
-        block.inlineSource,
-        position => block.sourceOffsetOf(position),
-        depth
-      ) match
+      inlineParser.parse(text, offsetOf, depth) match
         case Right(inlines) => inlines
         case Left(error)    =>
           if failure.isEmpty then failure = Some(error)
           Vector.empty
+
+  // -----------------------------------------------------------------------------------------
+  // GFM tables
+  // -----------------------------------------------------------------------------------------
+
+  /** A pipe table read off a finished paragraph (GFM, X01).
+    *
+    * ==Why after the block parse and not as a block start==
+    *
+    * Because that is what the extension is: a paragraph whose second line is a delimiter row. The
+    * block grammar already decided where the paragraph ends -- a blank line, or a line that starts
+    * another block -- and a table ends at exactly the same places. Making it a block start would
+    * mean teaching every continuation rule about a construct that only exists under one profile.
+    *
+    * Only a table whose header is the paragraph's first line is recognised. Text lines in front of
+    * a header would need the paragraph split in two, and a writer never produces that shape.
+    */
+  private def tableOf(
+      block: OpenBlock,
+      depth: Int,
+      id: SyntaxId,
+      span: SourceSpan,
+      spans: mutable.Map[Int, SourceSpan]
+  ): Option[MarkdownBlock] =
+    val source = block.inlineSource
+    val lines  = mutable.ArrayBuffer.empty[(String, Int)]
+    var start  = 0
+    while start <= source.length do
+      val end = source.indexOf('\n', start) match
+        case -1    => source.length
+        case found => found
+      lines += ((source.substring(start, end), start))
+      start = end + 1
+
+    if lines.length < 2 then None
+    else
+      val (headerLine, headerStart) = lines(0)
+      val delimiterLine             = lines(1)._1
+      delimiterRow(delimiterLine) match
+        case Some(alignments)
+            if (headerLine.contains('|') || delimiterLine.contains('|')) &&
+              splitCells(headerLine, headerStart).length == alignments.length &&
+              spend(lines.length) =>
+          val body = lines.head +: lines.drop(2)
+          val rows = body.zipWithIndex.map { case ((line, lineStart), index) =>
+            val header = index == 0
+            val found  = splitCells(line, lineStart).take(alignments.length)
+            val cells  = alignments.indices.map { column =>
+              val (text, cellStart) = found.lift(column).getOrElse(("", lineStart + line.length))
+              val cellSpan          =
+                SourceSpan(
+                  block.sourceOffsetOf(cellStart),
+                  block.sourceOffsetOf(cellStart + text.length)
+                )
+              val cell = MarkdownBlock.TableCell(
+                freshId(),
+                cellSpan,
+                header,
+                alignments(column),
+                inlinesFrom(text, position => block.sourceOffsetOf(cellStart + position), depth + 2)
+              )
+              spans += (cell.id.value -> cellSpan)
+              cell
+            }
+            val rowSpan =
+              SourceSpan(
+                block.sourceOffsetOf(lineStart),
+                block.sourceOffsetOf(lineStart + line.length)
+              )
+            val row = MarkdownBlock.TableRow(freshId(), rowSpan, header, cells.toVector)
+            spans += (row.id.value -> rowSpan)
+            row
+          }
+          Some(MarkdownBlock.Table(id, span, alignments, rows.toVector))
+        case _ => None
+
+  /** The alignments of a delimiter row, or `None` when the line is not one. */
+  private def delimiterRow(line: String): Option[Vector[TableAlignment]] =
+    val cells = splitCells(line, 0).map(_._1)
+    if cells.isEmpty || !line.contains('-') then None
+    else
+      val alignments = cells.map { cell =>
+        if !DelimiterCell.matches(cell) then None
+        else
+          Some((cell.startsWith(":"), cell.endsWith(":")) match
+            case (true, true)  => TableAlignment.Center
+            case (true, false) => TableAlignment.Left
+            case (false, true) => TableAlignment.Right
+            case _             => TableAlignment.Unspecified)
+      }
+      Option.when(alignments.forall(_.isDefined))(alignments.flatten)
+
+  /** Splits a row into trimmed cells and where each starts in the paragraph's content.
+    *
+    * An outer pipe on either side is optional. `\|` is a pipe inside a cell -- GFM applies that
+    * even inside a code span -- and is unescaped here, before the inline parser sees the text.
+    */
+  private def splitCells(line: String, lineStart: Int): Vector[(String, Int)] =
+    def blank(at: Int): Boolean = line.charAt(at) == ' ' || line.charAt(at) == '\t'
+    var from                    = 0
+    var to                      = line.length
+    while from < to && blank(from) do from += 1
+    while to > from && blank(to - 1) do to -= 1
+    if from < to && line.charAt(from) == '|' then from += 1
+    if to > from && line.charAt(to - 1) == '|' && !(to - 2 >= from && line.charAt(to - 2) == '\\')
+    then to -= 1
+
+    def cell(a: Int, b: Int): (String, Int) =
+      var left  = a
+      var right = b
+      while left < right && blank(left) do left += 1
+      while right > left && blank(right - 1) do right -= 1
+      (line.substring(left, right).replace("\\|", "|"), lineStart + left)
+
+    val cells     = Vector.newBuilder[(String, Int)]
+    var cellStart = from
+    var index     = from
+    while index < to do
+      line.charAt(index) match
+        case '\\' if index + 1 < to => index += 2
+        case '|'                    =>
+          cells += cell(cellStart, index)
+          cellStart = index + 1
+          index += 1
+        case _ => index += 1
+    if from < to || line.contains('|') then cells += cell(cellStart, to)
+    cells.result()
 
   private def spanOfContent(block: OpenBlock, from: Int, to: Int): SourceSpan =
     SourceSpan(block.sourceOffsetOf(from), block.sourceOffsetOf(to))
@@ -834,7 +960,8 @@ private final class BlockParser(source: String, profile: MarkdownProfile):
             case OpenKind.Item(_) =>
               MarkdownBlock.ListItem(id, span, children)
             case OpenKind.Paragraph =>
-              MarkdownBlock.Paragraph(id, span, inlinesOf(block, depth))
+              (if profile.tables then tableOf(block, depth, id, span, spans) else None)
+                .getOrElse(MarkdownBlock.Paragraph(id, span, inlinesOf(block, depth)))
             case OpenKind.ReferencesOnly =>
               // Nur erreichbar, wenn die Wurzel selbst so markiert waere -- sie ist es nie.
               MarkdownBlock.Paragraph(id, span, Vector.empty)
@@ -895,6 +1022,7 @@ private object BlockParser:
   val CodeFence: Regex         = raw"""`{3,}(?!.*`)|~{3,}""".r
   val ClosingCodeFence: Regex  = raw"""(?:`{3,}|~{3,})(?=[ \t]*$$)""".r
   val SetextHeadingLine: Regex = raw"""(?:=+|-+)[ \t]*$$""".r
+  val DelimiterCell: Regex     = raw""":?-+:?""".r
   val NonSpace: Regex          = raw"""[^ \t\f\r\n]""".r
 
   val AtxOnlyClosing: Regex = raw"""^[ \t]*#+[ \t]*$$""".r

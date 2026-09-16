@@ -104,6 +104,7 @@ Grammar("scala")(
 | `Rule.words` | Ein ganzes Wort aus einer Liste; `valid` ist nicht `val` + `id` |
 | `.push` / `.pop` | Zustandswechsel: String, Kommentar, Interpolation |
 | `.embed(grammar, end)` | Andere Sprache bis `end`: JavaScript in `<script>`, CSS in `<style>` |
+| `Rule.embedMatched(select)` | Sprache und Ende aus dem Treffer selbst: ein Markdown-Fence färbt seinen Inhalt in der Sprache seines Info-Strings und endet an einem mindestens gleich langen Fence am Zeilenanfang |
 | `.when(guard)` | Rückblick, den ein Muster nicht kann: `/` als Regex oder Division, `#` als Kommentar |
 | `lineBound = true` | Zustand endet mit der Zeile — ein offener `"` in Scala |
 

@@ -54,11 +54,19 @@ object DemoExample:
         |- Mittwoch: Einen ersten Entwurf teilen
         |- Freitag: Gemeinsam ausprobieren
         |
+        |## Wer macht was
+        |
+        || Aufgabe | Wer | Stand |
+        || --- | --- | :---: |
+        || Ideen sammeln | Alle | erledigt |
+        || Entwurf teilen | Mia | offen |
+        |
         |## Was wir mitnehmen
         |
         |> Lieber einen kleinen Schritt ausprobieren als den perfekten Plan aufschieben.
         |
-        |**Tipp:** In einer Liste rückt Tab den Eintrag ein, Shift+Tab rückt ihn aus.
+        |**Tipp:** In einer Liste rückt Tab den Eintrag ein, Shift+Tab rückt ihn aus. In einer Tabelle
+        |springt Tab in die nächste Zelle.
         |Mit Escape und anschließend Tab verlässt du den Editor.
         |""".stripMargin
     ),

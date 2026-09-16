@@ -316,6 +316,8 @@ object TextEditing:
                       _ <- scope.spliceText(previous, start, text.length - start, "")
                       _ <- scope.select(RangeSelection.caret(Point.textBefore(previous, start)))
                     yield ()
+              case Some(previous) if !Isolation.shared(document, previous, node) =>
+                leaveEmptyBlock(scope, node, towards = previous, backward = true)
               case Some(previous) =>
                 joinBlocks(scope, into = previous, from = node)
 
@@ -355,6 +357,8 @@ object TextEditing:
                 boundaries.nextGraphemeBoundary(textOf(document, following), 0) match
                   case None      => Right(())
                   case Some(end) => scope.spliceText(following, 0, end, "")
+              case Some(following) if !Isolation.shared(document, node, following) =>
+                leaveEmptyBlock(scope, node, towards = following, backward = false)
               case Some(following) =>
                 joinBlocks(scope, into = node, from = following)
 
@@ -392,6 +396,15 @@ object TextEditing:
     val blocks   = (blockOf(document, startNode), blockOf(document, endNode))
 
     blocks match
+      case (Some(_), Some(_)) if !Isolation.shared(document, startNode, endNode) =>
+        // The range leaves an isolated region -- from one table cell into another, or out of a
+        // table. Text goes, structure stays, and nothing is joined: see [[discardAcross]].
+        for
+          _ <- trimTail(scope, startNode, startOffset)
+          _ <- removeSelectedBetween(scope, startNode, endNode, discardAcross(scope))
+          _ <- trimHead(scope, endNode, endOffset)
+          _ <- scope.select(RangeSelection.caret(Point.textBefore(startNode, startOffset)))
+        yield ()
       case (Some(startBlock), Some(endBlock)) =>
         for
           _ <- trimTail(scope, startNode, startOffset)
@@ -431,14 +444,78 @@ object TextEditing:
   private def removeBetween(
       scope: TransformScope,
       left: NodeId,
-      right: NodeId
+      right: NodeId,
+      drop: NodeId => Either[UpdateError, Unit]
   ): Either[UpdateError, Unit] =
     siblingsOf(scope.document, left) match
       case Some((siblings, index)) =>
         siblings.indexOf(right) match
-          case until if until > index => removeAll(scope, siblings.slice(index + 1, until))
+          case until if until > index => dropAll(siblings.slice(index + 1, until), drop)
           case _                      => Right(())
       case None => Right(())
+
+  /** How a range deletion that leaves an isolated region gets rid of what it covers.
+    *
+    * A node whose parent is structure -- a row in a table, a cell in a row -- keeps its place and
+    * loses its content. Everything else goes as a whole, including a table that lies entirely
+    * inside the range: its parent is an ordinary container, and the author selected all of it.
+    */
+  private def discardAcross(scope: TransformScope)(id: NodeId): Either[UpdateError, Unit] =
+    val document = scope.document
+    if document.parentOf(id).exists(Isolation.isStructural(document, _)) ||
+      Isolation.isIsolating(document, id)
+    then clearIsolated(scope, id)
+    else scope.remove(id)
+
+  /** Empties every isolated region in a piece of structure and keeps the structure. */
+  private def clearIsolated(scope: TransformScope, id: NodeId): Either[UpdateError, Unit] =
+    val document = scope.document
+    if Isolation.isIsolating(document, id) then
+      dropAll(document.childrenOf(id).reverse, scope.remove)
+    else if Isolation.isStructural(document, id) then
+      dropAll(document.childrenOf(id), clearIsolated(scope, _))
+    else scope.remove(id)
+
+  /** Backspace or Delete where the neighbouring text lies in another isolated region.
+    *
+    * Nothing is joined. The one thing that does happen is the one an author expects: an empty block
+    * '''outside''' any isolated region -- the empty line after a table -- goes, and the caret moves
+    * to the neighbouring text. Inside a cell the key does nothing, because deleting there could
+    * only mean pulling another cell's text in.
+    */
+  private def leaveEmptyBlock(
+      scope: TransformScope,
+      node: NodeId,
+      towards: NodeId,
+      backward: Boolean
+  ): Either[UpdateError, Unit] =
+    val document = scope.document
+    blockOf(document, node) match
+      // Backward, the block must not be the last one: removing the line after a table would leave
+      // the table with nothing behind it to put a caret on.
+      case Some(block)
+          if Isolation.of(document, node).isEmpty &&
+            isEmptyBlock(document, block) &&
+            document.parentOf(block).exists { parent =>
+              val siblings = document.childrenOf(parent)
+              siblings.length > 1 && (!backward || siblings.lastOption != Some(block))
+            } =>
+        val caret =
+          if backward then Point.textBefore(towards, textOf(document, towards).length)
+          else Point.textBefore(towards, 0)
+        for
+          _ <- scope.remove(block)
+          _ <- scope.select(RangeSelection.caret(caret))
+        yield ()
+      case _ => Right(())
+
+  private def isEmptyBlock(document: DocumentRead, block: NodeId): Boolean =
+    document.subtreeOf(block).forall { id =>
+      document.node(id) match
+        case Some(run: TextNode)  => run.text.isEmpty
+        case Some(_: ElementNode) => true
+        case _                    => false
+    }
 
   /** Closes the seam between two runs that a removal has made neighbours. */
   private def healBetween(
@@ -454,15 +531,23 @@ object TextEditing:
         case None => Right(())
 
   /** Entfernt alle Geschwister hinter `node` in dessen Block. */
-  private def removeAfter(scope: TransformScope, node: NodeId): Either[UpdateError, Unit] =
+  private def removeAfter(
+      node: NodeId,
+      scope: TransformScope,
+      drop: NodeId => Either[UpdateError, Unit]
+  ): Either[UpdateError, Unit] =
     siblingsOf(scope.document, node) match
-      case Some((siblings, index)) => removeAll(scope, siblings.drop(index + 1))
+      case Some((siblings, index)) => dropAll(siblings.drop(index + 1), drop)
       case None                    => Right(())
 
   /** Entfernt alle Geschwister vor `node` in dessen Block. */
-  private def removeBefore(scope: TransformScope, node: NodeId): Either[UpdateError, Unit] =
+  private def removeBefore(
+      node: NodeId,
+      scope: TransformScope,
+      drop: NodeId => Either[UpdateError, Unit]
+  ): Either[UpdateError, Unit] =
     siblingsOf(scope.document, node) match
-      case Some((siblings, index)) => removeAll(scope, siblings.take(index))
+      case Some((siblings, index)) => dropAll(siblings.take(index), drop)
       case None                    => Right(())
 
   /** Entfernt die Bloecke, die vollstaendig zwischen den beiden Randbloecken liegen. */
@@ -470,6 +555,14 @@ object TextEditing:
       scope: TransformScope,
       startBlock: NodeId,
       endBlock: NodeId
+  ): Either[UpdateError, Unit] =
+    removeSelectedBetween(scope, startBlock, endBlock, scope.remove)
+
+  private def removeSelectedBetween(
+      scope: TransformScope,
+      startBlock: NodeId,
+      endBlock: NodeId,
+      drop: NodeId => Either[UpdateError, Unit]
   ): Either[UpdateError, Unit] =
     if startBlock == endBlock then Right(())
     else
@@ -484,16 +577,16 @@ object TextEditing:
           .drop(1)
           .reverse
           .foldLeft[Either[UpdateError, Unit]](Right(()))((result, id) =>
-            result.flatMap(_ => removeAfter(scope, id))
+            result.flatMap(_ => removeAfter(id, scope, drop))
           )
         _ <- to
           .drop(1)
           .reverse
           .foldLeft[Either[UpdateError, Unit]](Right(()))((result, id) =>
-            result.flatMap(_ => removeBefore(scope, id))
+            result.flatMap(_ => removeBefore(id, scope, drop))
           )
         _ <- (from.headOption, to.headOption) match
-          case (Some(first), Some(last)) => removeBetween(scope, first, last)
+          case (Some(first), Some(last)) => removeBetween(scope, first, last, drop)
           case _                         => Right(())
       yield ()
 
@@ -511,7 +604,8 @@ object TextEditing:
     val document = scope.document
 
     (blockOf(document, into), blockOf(document, from)) match
-      case (Some(target), Some(source)) if target != source =>
+      case (Some(target), Some(source))
+          if target != source && Isolation.shared(document, into, from) =>
         val moving = document.childrenOf(source)
         for
           _ <- moveAll(scope, moving, target, scope.document.childrenOf(target).length)
@@ -529,7 +623,11 @@ object TextEditing:
   ): Either[UpdateError, Unit] =
     var parent                            = start
     var result: Either[UpdateError, Unit] = Right(())
+    // Never an isolated region or structure: an empty cell is still a cell, and the table module
+    // gives it a paragraph again.
     while parent.isDefined && parent.get != scope.document.rootId &&
+      !Isolation.isIsolating(scope.document, parent.get) &&
+      !Isolation.isStructural(scope.document, parent.get) &&
       scope.document.childrenOf(parent.get).isEmpty && result.isRight
     do
       val id = parent.get
@@ -750,9 +848,12 @@ object TextEditing:
       .parentOf(node)
       .map(parent => (document.childrenOf(parent), document.childrenOf(parent).indexOf(node)))
 
-  private def removeAll(scope: TransformScope, nodes: Vector[NodeId]): Either[UpdateError, Unit] =
+  private def dropAll(
+      nodes: Vector[NodeId],
+      drop: NodeId => Either[UpdateError, Unit]
+  ): Either[UpdateError, Unit] =
     nodes.foldLeft[Either[UpdateError, Unit]](Right(()))((accumulated, node) =>
-      accumulated.flatMap(_ => scope.remove(node))
+      accumulated.flatMap(_ => drop(node))
     )
 
   /** Verschiebt in der angegebenen Reihenfolge ans Ende bzw. ab `startIndex`. */

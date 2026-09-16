@@ -129,7 +129,8 @@ object MarkdownCodec:
       // Das ist derselbe Grund, aus dem `materialise` im Parser von unten baut -- eine Regel,
       // die rekursiert, koennte die Reihenfolge anders waehlen als die naechste.
       val children = value match
-        case MarkdownBlock.Paragraph(_, _, _) | MarkdownBlock.Heading(_, _, _, _, _) =>
+        case MarkdownBlock.Paragraph(_, _, _) | MarkdownBlock.Heading(_, _, _, _, _) |
+            MarkdownBlock.TableCell(_, _, _, _, _) =>
           inlineChildren(value)
         case other => blocks(other.children)
 
@@ -144,9 +145,10 @@ object MarkdownCodec:
             None
 
     private def inlineChildren(value: MarkdownBlock): Vector[NodeId] = value match
-      case MarkdownBlock.Paragraph(_, _, content)     => inlines(content, MarkSet.empty)
-      case MarkdownBlock.Heading(_, _, _, _, content) => inlines(content, MarkSet.empty)
-      case _                                          => Vector.empty
+      case MarkdownBlock.Paragraph(_, _, content)       => inlines(content, MarkSet.empty)
+      case MarkdownBlock.Heading(_, _, _, _, content)   => inlines(content, MarkSet.empty)
+      case MarkdownBlock.TableCell(_, _, _, _, content) => inlines(content, MarkSet.empty)
+      case _                                            => Vector.empty
 
     def inlines(from: Vector[MarkdownInline], marks: MarkSet): Vector[NodeId] =
       from.flatMap(value => if failure.isDefined then Vector.empty else oneInline(value, marks))

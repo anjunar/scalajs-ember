@@ -187,13 +187,13 @@ Verzeichnisse heißen `ember-*`, sbt-IDs und Artefakte konsistent `scalajs-ember
 | `ember-markdown` | Scala-Syntaxparser, Writer, SourceMap und typisierte AST-Adapter-SPI | core |
 | `ember-html` | Sichere HTML-Fragmentrepräsentation, Importparser, typisierte Import-/Semantikregeln | core |
 | `ember-ui` | DocumentView, NodeView-SPI, Commit-Projektion, UI-Property-Adapter, HTML-Ausgabe über UI | core, html, ui-core |
-| `ember-standard` | Separat wählbare Standard-Adapter für JSON, Markdown, HTML und NodeViews; komfortable Presets | rich-text, list, link, image, code, json, markdown, html, ui |
+| `ember-standard` | Separat wählbare Standard-Adapter für JSON, Markdown, HTML und NodeViews; komfortable Presets | rich-text, list, link, image, code, table, json, markdown, html, ui |
 | `ember-browser` | Input, SelectionPort, Composition, Mutationen, Fokus und Hydration-Aktivierung | core, rich-text, ui |
-| `ember-browser-support` | Optionale konkrete Key-/Input-Bindings für History, Listen, Links und Code; getrennt vom Browsermechanismus | browser, history, list, link, code |
+| `ember-browser-support` | Optionale konkrete Key-/Input-Bindings für History, Listen, Links, Code und Tabellen; getrennt vom Browsermechanismus | browser, history, list, link, code, table |
 | `ember-clipboard` | Copy/Cut/Paste, Dokumentfragmente, Clipboard-Port | core, rich-text, json, html, browser |
 | `ember-forms` | Markdown-/JSON-Feld, Textarea-Fallback, Submit/Reset, Media-Service-Port und Multipart-Vertrag | core, ui, browser, clipboard, markdown, json, html, image; ui-forms bei benötigter Integration |
 | `ember-toolbar` | Optionale Toolbars, Link-/Image-Dialoge, Commands/Status anzeigen | core, rich-text, history, link, image, clipboard, ui, browser; ui-core |
-| `ember-table` (später) | Table/Row/Cell, Zellbereichsselection, Editing und eigene Adapter | core, rich-text; Adapter gezielt zusätzlich json/html/ui |
+| `ember-table` (X01) | Table/Row/Cell, rechteckige Zellauswahl mit registriertem Mapper, Normalisierung und Struktur-Commands; Adapter in `standard` (`TableSupport`) und `browser-support` (`TableBindings`) | core, rich-text |
 
 `standard` ist bewusst ein optionales Integrationsmodul: Dadurch kennen die Node-Module weder Markdown noch UI und die Format-SPIs keine konkreten Feature-Nodes. Seine einzelnen Adapter sind eigene Fabriken/Objekte ohne eager globale Sammelregistrierung. Eine reine Paragraph-Anwendung wählt nur Paragraph-/Text-Support. Eine Fremderweiterung liefert ihre Adapter in ihrem eigenen Modul und ändert `standard` nicht.
 

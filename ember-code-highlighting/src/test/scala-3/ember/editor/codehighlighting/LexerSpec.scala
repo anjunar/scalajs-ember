@@ -270,14 +270,37 @@ final class LexerSpec extends AnyFlatSpec with Matchers {
     tokens.filter(_._2 == Emphasis) shouldBe Vector("*emph*" -> Emphasis)
   }
 
-  it should "keep a fence's content out of the inline rules" in {
+  it should "colour a fence in the language it names" in {
     val text   = "```scala\nval x = \"*not emphasis*\"\n```\n*after*"
     val tokens = lex("md", text)
 
     tokens should contain("scala" -> Meta)
-    tokens should contain("val x = \"*not emphasis*\"" -> Code)
+    tokens should contain("val" -> Keyword)
+    tokens should contain("\"*not emphasis*\"" -> String)
+    tokens.filter(_._2 == Emphasis) shouldBe Vector("*after*" -> Emphasis)
     tokens.count(_ == ("```" -> Punctuation)) shouldBe 2
+  }
+
+  it should "keep an unknown language's fence in one colour" in {
+    val text = "```cobol\nMOVE *A* TO B\n```\n*after*"
+
+    lex("md", text) should contain("MOVE *A* TO B" -> Code)
+    lex("md", text) should contain("*after*" -> Emphasis)
+  }
+
+  it should "close a fence only with a line of at least as many markers" in {
+    // CommonMark §4.5: four backticks are not closed by three, and a fence never closes mid-line.
+    val text   = "````js\nlet a = 1 ```\n```\nlet b = 2\n````\n*after*"
+    val tokens = lex("md", text)
+
+    tokens.count(_ == ("let" -> Keyword)) shouldBe 2
     tokens should contain("*after*" -> Emphasis)
+  }
+
+  it should "leave the embedded language when the fence closes inside an open string" in {
+    val text = "```js\nlet s = `open\n```\n*after*"
+
+    lex("md", text) should contain("*after*" -> Emphasis)
   }
 
   // ---------------------------------------------------------------------------------------

@@ -15,7 +15,10 @@ Laufzeitabhängigkeit.
 
 ## Stand
 
-**Implementierungsstand: P01–P27 vorhanden, P28 teilweise umgesetzt; P29–P30 offen.** Das
+**Implementierungsstand: P01–P30 umgesetzt, dazu X01 (Tabellen) und X02 (Syntax-Highlighting).**
+P29 und der Abschluss von P30 liegen im Nachbar-Repo `../scalajs-ui`: typisierte Session-,
+Command- und Extension-Handles in derselben Scala.js-Runtime. Vom Nutzer ausgenommen und damit
+nicht freigegeben sind die Geräte-, IME- und Screenreader-Abnahmen. Das
 [Review vom 14. September 2026](UI_EDITOR_REVIEW.md) dokumentiert 14 behobene Befunde
 und die zugehörigen Regressionstests. Das vollständige Scala-Gate ist grün;
 die reale IME-/Geräte-Abnahme sowie natives Clipboard unter Windows-WebKit stehen
@@ -161,7 +164,13 @@ anschließend als [UI-Core 1.0.1 veröffentlicht und übernommen](benchmarks/ui-
 Mit X02 kommt [`ember-code-highlighting`](ember-code-highlighting/README.md) dazu:
 Syntax-Highlighting für Scala, JavaScript/TypeScript, JSON, HTML/XML, CSS, Shell und Markdown,
 gefärbt über die CSS Custom Highlight API — ohne einen einzigen Schreibzugriff auf Dokument oder
-DOM, damit Auswahl, Recovery und Composition unberührt bleiben.
+DOM, damit Auswahl, Recovery und Composition unberührt bleiben. Ein Markdown-Fence färbt seinen
+Inhalt in der Sprache seines Info-Strings.
+
+Mit X01 kommt [`ember-table`](ember-table/README.md) dazu: Tabellen mit Kopfzeile und
+Spaltenausrichtung, eine rechteckige Zellauswahl über einen registrierten Selection-Mapper,
+Struktur-Commands, Tab-Navigation und GFM-Tabellen hinter einem eigenen Markdown-Profil — ohne
+Sonderfall im Kern. Keines der Standardbündel zieht Tabellen herein.
 
 Konvention: Verzeichnis `ember-<modul>`, sbt-ID und Artefakt `scalajs-ember-<modul>`,
 Scala-Paket `ember.editor.<modul>`. Die vollständige Modultabelle steht in
@@ -184,6 +193,9 @@ Vorhanden:
 - [`ember-code-highlighting`](ember-code-highlighting/README.md) — sbt-ID
   `scalajs-ember-code-highlighting`, Paket `ember.editor.codehighlighting`. Zeilenlexer,
   Grammatiken und Code-Dekorationen als abgeleiteter View-State. Optional.
+- [`ember-table`](ember-table/README.md) — sbt-ID `scalajs-ember-table`, Paket
+  `ember.editor.table`. Tabellen, Zellauswahl, Normalisierung und Struktur-Commands. Hängt an
+  core und rich-text; Formate in `ember-standard`, Browserbindungen in `ember-browser-support`.
 - [`ember-image`](ember-image/README.md) — sbt-ID `scalajs-ember-image`, Paket
   `ember.editor.image`. Externe Bilder als Inline-Atome mit geprüfter Media-Policy. Hängt
   allein am Kern — ein Bild braucht vom Rich-Text-Profil nichts.

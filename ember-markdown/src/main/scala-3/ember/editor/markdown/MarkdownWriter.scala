@@ -127,6 +127,39 @@ object MarkdownWriter:
     case MarkdownBlock.ListItem(_, _, children) =>
       writeBlocks(children, out)
 
+    case MarkdownBlock.Table(_, _, alignments, rows) =>
+      // Outer pipes on every line. A row that began with a bare cell could begin with `-` or a
+      // digit and be read back as a list item, and the delimiter row with it.
+      val rendered = rows.map(_.children.map {
+        case MarkdownBlock.TableCell(_, _, _, _, inlines) => cellText(inlines)
+        case _                                            => ""
+      })
+      val columns = math.max(alignments.length, rendered.map(_.length).maxOption.getOrElse(0))
+      if columns > 0 && rendered.nonEmpty then
+        def row(cells: Vector[String]): String =
+          cells.padTo(columns, "").mkString("| ", " | ", " |")
+        out.line(row(rendered.head))
+        out.line(
+          Vector
+            .tabulate(columns)(column =>
+              alignments.lift(column).getOrElse(TableAlignment.Unspecified) match
+                case TableAlignment.Left        => ":---"
+                case TableAlignment.Center      => ":---:"
+                case TableAlignment.Right       => "---:"
+                case TableAlignment.Unspecified => "---"
+            )
+            .mkString("| ", " | ", " |")
+        )
+        rendered.drop(1).foreach(cells => out.line(row(cells)))
+
+    // Rows and cells only exist inside a table, which writes them itself.
+    case MarkdownBlock.TableRow(_, _, _, _)     => ()
+    case MarkdownBlock.TableCell(_, _, _, _, _) => ()
+
+  /** A cell on one line, with its pipes escaped. A line break has no spelling inside a row. */
+  private def cellText(inlines: Vector[MarkdownInline]): String =
+    writeInlines(inlines).replace("\\\n", " ").replace("\n", " ").replace("|", "\\|")
+
   /** A list item, told whether its list is tight. See [[needsBlankLineBefore]]. */
   private def writeItem(item: MarkdownBlock, out: Sink, tight: Boolean): Unit = item match
     case MarkdownBlock.ListItem(_, _, children) => writeBlocks(children, out, tight)

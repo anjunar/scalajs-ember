@@ -26,6 +26,9 @@ package ember.editor.markdown
   * @param entities
   *   Which named character references are resolved; see [[EntityTable]]. Numeric references need no
   *   table and are always complete.
+  * @param tables
+  *   Whether GFM pipe tables are recognised. Off in every CommonMark profile -- the extension
+  *   changes what some paragraphs mean, and §18.2 counts it outside the CommonMark guarantee.
   */
 final case class MarkdownProfile(
     name: String,
@@ -33,7 +36,8 @@ final case class MarkdownProfile(
     conformance: Conformance,
     limits: ParseLimits,
     rawHtml: RawHtmlPolicy,
-    entities: EntityTable
+    entities: EntityTable,
+    tables: Boolean = false
 )
 
 object MarkdownProfile:
@@ -61,6 +65,12 @@ object MarkdownProfile:
   /** The same rules under paste-sized bounds. For a source a user did not write. */
   val untrustedPaste: MarkdownProfile =
     commonMarkSafe.copy(name = "CommonMarkSafe/Paste", limits = ParseLimits.paste)
+
+  /** The safe profile plus GFM pipe tables (X01). Named separately, because it is a different
+    * promise: the same source can mean something else here than under [[commonMarkSafe]].
+    */
+  val commonMarkSafeWithTables: MarkdownProfile =
+    commonMarkSafe.copy(name = "CommonMarkSafe+Tables", tables = true)
 
   /** Block structure only -- for a table of contents or a search index, where resolving emphasis
     * and links would be work nobody reads.

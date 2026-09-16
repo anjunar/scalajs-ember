@@ -128,6 +128,13 @@ probiert werden.
 begrenzt sie. Ohne die Grenze stürzt eine tief geschachtelte Eingabe ab, statt einen Fehlerwert
 zu liefern — mit ihr ist es `ParseError.LimitExceeded`.
 
+**GFM-Tabellen nur auf Wunsch.** `MarkdownProfile.tables` ist in jedem CommonMark-Profil aus;
+`commonMarkSafeWithTables` schaltet Pipe-Tabellen ein (X01). Ein Absatz, dessen zweite Zeile eine
+Trennzeile mit passender Spaltenzahl ist, wird dann `MarkdownBlock.Table` mit `TableRow` und
+`TableCell` samt Ausrichtung; `|` bleibt ein Zeichen in der Zelle. Der Writer schreibt Tabellen
+mit äußeren Pipes und maskiert `|`. Der Konformitätslauf läuft ohne die Erweiterung, seine Zahlen
+bleiben unverändert.
+
 **Ein Syntaxfehler ist keiner der Fälle**, und das ist kein Versehen: CommonMark hat keine
 ungültige Eingabe. Jede Zeichenkette ist ein gültiges Dokument, also ist alles, was hier
 schiefgehen kann, eine Ressourcengrenze.

@@ -24,6 +24,15 @@ enum StackOp:
     */
   case Embed(grammar: () => Grammar, end: Pattern)
 
+  /** Continue in a language the match itself names, until a line that starts with `end`.
+    *
+    * A Markdown fence says its language in its info string, and its closing fence depends on the
+    * opener: three backticks close three, four close only four or more. `select` reads both from
+    * the matched text; `None` means the language is not known and nothing is embedded. The end is
+    * only tested at the start of a line -- a fence cannot close in the middle of one.
+    */
+  case EmbedMatched(select: String => Option[(Grammar, Pattern)])
+
 /** One entry of a state: a rule, or the rules of another state. */
 sealed trait RuleEntry
 
@@ -63,6 +72,14 @@ final class Rule private (
 
   def embed(grammar: => Grammar, end: String): Rule =
     withOps(StackOp.Embed(() => grammar, Pattern.compile(end)))
+
+  /** See [[StackOp.EmbedMatched]]. End patterns are shared per source string, so that two frames
+    * for the same fence compare equal.
+    */
+  def embedMatched(select: String => Option[(Grammar, String)]): Rule =
+    withOps(
+      StackOp.EmbedMatched(text => select(text).map((grammar, end) => grammar -> Patterns.of(end)))
+    )
 
   def when(test: Rule.Guard): Rule =
     val previous = guard
@@ -213,9 +230,24 @@ object Grammar:
   * `end` is set on the frame that entered an embedded language, and only there: it is the boundary
   * everything above it has to stop at.
   */
-final case class Frame(grammar: Grammar, state: String, end: Option[Pattern]):
+final case class Frame(
+    grammar: Grammar,
+    state: String,
+    end: Option[Pattern],
+    endAtLineStart: Boolean = false
+):
 
   def definition: LexerState = grammar.state(state)
+
+/** Compiled patterns shared by source string.
+  *
+  * `Pattern` compares by identity, and a [[Frame]] with a dynamically chosen end has to equal the
+  * frame the same fence produced last time, or the incremental relexing would never stop early.
+  */
+private[codehighlighting] object Patterns:
+  private val compiled = mutable.HashMap.empty[String, Pattern]
+
+  def of(regex: String): Pattern = compiled.getOrElseUpdate(regex, Pattern.compile(regex))
 
 /** Where the lexer is at the start of a line. The top of the stack is the head of the list. */
 final case class LexState(frames: List[Frame]):

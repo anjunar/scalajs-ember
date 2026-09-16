@@ -718,11 +718,35 @@ object Grammars:
     * author can see here, while re-parsing a whole block on every keystroke would. What this reads
     * is what a reader of the source sees -- headings, fences, markers, emphasis, code and links.
     */
-  lazy val markdown: Grammar = Grammar("markdown")(
+  lazy val markdown: Grammar = markdownWith(() => HighlightLanguages.standard)
+
+  /** The opener of a fence: indentation, the fence itself, and the first word of the info string.
+    */
+  private val fenceOpener =
+    java.util.regex.Pattern.compile("""\s{0,3}(`{3,}|~{3,})\s*([^\s`{]*)""")
+
+  /** Markdown whose fenced code is coloured in the language its info string names.
+    *
+    * The languages are a thunk: the standard registry contains this grammar itself, and a fence in
+    * a Markdown block may well be Markdown again. A fence closes with the same character and at
+    * least as many of them as opened it (CommonMark §4.5), so the end is chosen per opener. An
+    * unknown language keeps the fence's content in one colour, as before.
+    */
+  def markdownWith(languages: () => HighlightLanguages): Grammar = Grammar("markdown")(
     state("root")(
       Rule
         .groups("""(\s{0,3})(`{3,}|~{3,})(.*)""", None, Some(Punctuation), Some(Meta))
         .push("fence")
+        .embedMatched { text =>
+          val opener = fenceOpener.matcher(text)
+          if !opener.lookingAt() || opener.group(2).isEmpty then None
+          else
+            val fence  = opener.group(1)
+            val marker = if fence.head == '`' then "`" else "~"
+            languages()
+              .grammarFor(opener.group(2))
+              .map(_ -> ("""\s{0,3}""" + marker + "{" + fence.length + """,}\s*$"""))
+        }
         .when(lineBegin),
       Rule.token("""\s{0,3}#{1,6}(?:\s.*)?$""", Heading).when(lineBegin),
       Rule

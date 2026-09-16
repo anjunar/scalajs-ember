@@ -52,12 +52,17 @@ object Lexer:
       while position < line.length && steps < budget do
         steps += 1
         val boundary = frames.find(_.end.isDefined)
-        val limit    = boundary.flatMap(_.end) match
-          case Some(end) =>
+        val limit    = boundary match
+          case Some(Frame(_, _, Some(end), true)) =>
+            // Ends only where a line begins: a closing fence is a whole line.
+            val finder = matcher(end)
+            finder.region(0, line.length)
+            if position == 0 && finder.lookingAt() then 0 else line.length
+          case Some(Frame(_, _, Some(end), _)) =>
             val finder = matcher(end)
             finder.region(position, line.length)
             if finder.find() then finder.start() else line.length
-          case None => line.length
+          case _ => line.length
 
         if boundary.isDefined && limit == position then
           // The embedded language ends here. Everything above the boundary goes with it, and the
@@ -77,7 +82,7 @@ object Lexer:
                 && rule.words.forall(_.contains(attempt.group()))
               then
                 emit(rule, attempt, tokens)
-                frames = applyOps(rule.ops, frames)
+                frames = applyOps(rule.ops, frames, attempt.group())
                 position = attempt.end()
                 matched = true
             index += 1
@@ -103,7 +108,7 @@ object Lexer:
         group += 1
     else rule.kind.foreach(kind => tokens.add(matcher.start(), matcher.end(), kind))
 
-  private def applyOps(ops: Vector[StackOp], frames: List[Frame]): List[Frame] =
+  private def applyOps(ops: Vector[StackOp], frames: List[Frame], matched: String): List[Frame] =
     ops.foldLeft(frames) { (stack, op) =>
       op match
         case StackOp.Push(state) => Frame(stack.head.grammar, state, None) :: stack
@@ -114,6 +119,11 @@ object Lexer:
         case StackOp.Embed(grammar, end) =>
           val inner = grammar()
           Frame(inner, inner.initial, Some(end)) :: stack
+        case StackOp.EmbedMatched(select) =>
+          select(matched) match
+            case Some((inner, end)) =>
+              Frame(inner, inner.initial, Some(end), endAtLineStart = true) :: stack
+            case None => stack
     }
 
   /** The state the next line starts in: every line-bound state is left. */

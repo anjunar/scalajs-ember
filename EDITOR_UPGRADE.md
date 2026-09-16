@@ -1,6 +1,6 @@
 # Native Editor-Integration in Scala JS UI und Simplicity Blog
 
-Stand: 14. September 2026. Die Anwendungseinbindung wurde auf ausdrücklichen Nutzerauftrag vorgezogen. Link- und Bilddialoge verwenden direkt `ui.viewport.Viewport.WindowConf`; die frühere Lexical-Dialogbrücke ist entfernt.
+Stand: 16. September 2026 (Einbindung vom 14. September, P29-API und Abschluss vom 16. September). Die Anwendungseinbindung wurde auf ausdrücklichen Nutzerauftrag vorgezogen. Link- und Bilddialoge verwenden direkt `ui.viewport.Viewport.WindowConf`; die frühere Lexical-Dialogbrücke ist entfernt.
 
 ## Was jetzt verwendet wird
 
@@ -48,7 +48,7 @@ npm install
 npm run verify
 ```
 
-Die UI verwendet lokal veröffentlichte Ember-Artefakte `0.1.0-SNAPSHOT`. Für einen frischen Checkout müssen diese zuerst gebaut werden. Ein öffentliches Release benötigt eine abgestimmte Versionierung beider Bibliotheken.
+Die UI bezieht Ember 1.0.0 aus Maven Central (`com.anjunar:scalajs-ember-*`); ein lokales `publishLocal` ist für einen frischen Checkout nicht mehr nötig. Was nach 1.0.0 in Ember entstand — Tabellen (X01) und die Fence-Färbung im Markdown-Highlighting —, erreicht die UI erst mit einem neuen Ember-Release.
 
 ## Nachweise
 
@@ -65,6 +65,17 @@ Bei der Einbindung wurde ein Ember-Fehler korrigiert: Formatierung konnte aussch
 
 Die lokalen Logs liegen unter `target/native-ember-all-scala.log`, `target/native-ui-final-scala.log`, `target/native-ui-final-npm.log`, `target/native-ui-demo-verify.log` und `target/native-blog-final-verify.log`. Der Demo-Server läuft lokal unter `http://localhost:5174/editor/basics`.
 
+## Session-API (P29)
+
+Seit dem 16. September 2026 hat `@anjunar/scalajs-ui-editor` neben `editor(name, options)` eine typisierte Session-API in derselben Scala.js-Runtime:
+
+- `createEditor({ extensions, markdown | json })` erzeugt eine headless Session; die Extensions kommen aus Fabriken (`richText()`, `history()`, `lists()`, `code()`, `links(...)`, `images(...)`) statt aus einer Namensliste.
+- 17 Commands als `Command<P>` (`insertText`, `toggleMark`, `setHeading`, `toggleList`, `setLink`, `undo` …). Der Compiler prüft die Payloads, die Bridge validiert sie erneut.
+- `onSession` am gemounteten Editor leiht dessen laufende Session aus; Änderungen darüber landen im Formwert.
+- Die Bridge exportiert die API über `@anjunar/scalajs-ui-bridge/editor-api`, ohne beim Import eine Runtime zu installieren.
+
+`plugins` bleibt unverändert eine Liste von Toolbar-Fähigkeiten; bestehende Aufrufe von `editor(...)` brauchen keine Änderung. Einzelheiten stehen im README des Pakets und im Plan unter P29.
+
 ## Noch getrennt offen
 
-Diese Umsetzung ersetzt den Prototyp in der Anwendungseinbindung. Sie erledigt nicht automatisch die weitergehende P29-API mit öffentlichen Session-/Command-/Extension-Handles. Die noch offenen Geräte-/Screenreader-Freigaben aus P28 bleiben ebenfalls offen; weitere manuelle IME-Prüfungen wurden vom Nutzer beendet. Der Blog-Backendserver war bei dieser Prüfung nicht gestartet: ein authentifizierter Speichern/Publizieren-/Medien-Backend-Durchlauf wurde nicht behauptet. Die Backend-Transportverträge wurden nicht geändert.
+Diese Umsetzung ersetzt den Prototyp in der Anwendungseinbindung; die P29-API ist inzwischen ergänzt (siehe oben). Das Backend von `simplicity-blog` speichert Kommentare weiterhin als `LexicalDocument` und wandelt sie über `LexicalMarkdownConverter` in Markdown um. Eine Umstellung betrifft gespeicherte Daten und braucht eine eigene Entscheidung. Die noch offenen Geräte-/Screenreader-Freigaben aus P28 bleiben ebenfalls offen; weitere manuelle IME-Prüfungen wurden vom Nutzer beendet. Der Blog-Backendserver war bei dieser Prüfung nicht gestartet: ein authentifizierter Speichern/Publizieren-/Medien-Backend-Durchlauf wurde nicht behauptet. Die Backend-Transportverträge wurden nicht geändert.

@@ -1,6 +1,6 @@
 # UI Editor: ausführbarer Implementierungsplan
 
-Status: **Code für P01–P27 vorhanden; P28 teilweise umgesetzt; native Anwendungseinbindung aus P29/P30 lokal umgesetzt; weitergehende Handle-API und Produktfreigaben offen.** Die 14 Befunde des Reviews vom
+Status: **P01–P30 umgesetzt (16. September 2026), dazu X01 Tabellen und X02 Syntax-Highlighting. Offen sind nur die vom Nutzer ausgenommenen Geräte-, IME- und Screenreader-Abnahmen aus P28, der Windows-WebKit-Clipboard-Befund aus P25 und X03.** Die 14 Befunde des Reviews vom
 14. September 2026 wurden korrigiert und durch reguläre Regressionstests abgesichert;
 Details, Testzahlen und ursprüngliche Repro-Fälle stehen im [Review](UI_EDITOR_REVIEW.md).
 Die native Clipboard-Abnahme für Windows-WebKit ist durch einen unabhängig
@@ -20,7 +20,8 @@ aus. Status aktualisiert: 14. September 2026; die Phasenprotokolle dokumentieren
 Viewport-Dialoge vorgegeben. Die frühere Beschränkung auf P28 gilt für diesen Auftrag
 nicht mehr. Umfang, tatsächliche Gates, Formatgrenzen und verbleibende Freigaben
 stehen in [EDITOR_UPGRADE.md](EDITOR_UPGRADE.md). Der Komfort-Einstieg läuft jetzt auf
-Ember; eine vollständige öffentliche P29-Handle-API wird dadurch nicht behauptet.
+Ember. Die öffentliche P29-Handle-API (Session, Commands, Extension-Fabriken) ist seit dem
+16. September 2026 ebenfalls umgesetzt; siehe den Vermerk unter P29.
 
 Eine laufende Demo des jeweils erreichten Standes liegt in
 [ember-demo/](ember-demo/README.md) -- nicht publiziert, ohne Bundler, `node
@@ -2431,6 +2432,58 @@ Keine weiteren IME-Läufe oder IME-Rückfragen ohne neuen Auftrag. P29 bleibt of
 - **Risiken:** Scala.js-Linking und npm-Tree-Shaking haben unterschiedliche Grenzen; Umstellung der Bridge kann bestehende Konsumenten betreffen. Dokumentierte API-Änderung bewusst testen.
 - **Dependencies:** P28; Architektur §23.
 
+> **Umgesetzt (16. September 2026)** in `../scalajs-ui`, nach dem ausdrücklichen Auftrag, alle offenen
+> Punkte abzuarbeiten. Bridge: `EditorSessionHandleBridge`, `EditorCommandHandleBridge`,
+> `EditorExtensionHandleBridge` und `EditorDocumentCodecBridge`, exportiert als ein Wert
+> `editorApi` in derselben Linker-Ausgabe (moduleID `editor`). Fassade:
+> `npm/scalajs-ui-editor/src/session.ts`, `commands.ts`, `extensions.ts`.
+>
+> - **Handles und Payloads.** `createEditor({ extensions, markdown | json })` liefert eine headless
+>   Session mit `dispatch`, `subscribe`, `select`, `toMarkdown`/`toJson`,
+>   `replaceMarkdown`/`replaceJson`, `canUndo`/`canRedo` und `dispose`. 17 Commands als
+>   `Command<P>`: Der Compiler prüft den Payload-Typ, **und** die Bridge validiert ihn noch einmal
+>   (unbekannte Felder, falsche Typen, Payload bei Commands ohne Payload, Link-Policy). Ein Command
+>   ohne installierte Extension meldet `handled: false` und ändert nichts.
+> - **Ext-Fabriken statt Stringliste.** `richText()`, `history()`, `lists()`, `code()`,
+>   `links({ schemes, allowRelative })`, `images({ schemes, allowRelative, hosts })`. Jede Fabrik ist
+>   ein Rezept und bringt ihre Markdown- und JSON-Regeln mit; eine Session hat genau die Formate
+>   ihrer Extensions. `plugins` am gemounteten `editor(...)` bleibt eine Liste von
+>   Toolbar-Fähigkeiten und ist ausdrücklich keine Extension-Liste.
+> - **Fehlersemantik.** Fehlgebrauch wirft (falsche Form, fremdes oder entsorgtes Handle, nicht
+>   auflösbare Extensions). Was das Dokument entscheidet, kommt als Ergebniswert
+>   `{ ok: false, error }` zurück. Export und Import sind strikt; `allowLoss` muss ausdrücklich
+>   gewählt werden.
+> - **Eine Runtime, keine Nebenwirkung beim Import.** Der neue Subpath
+>   `@anjunar/scalajs-ui-bridge/editor-api` exportiert `editorApi` aus demselben `editor.js`-Chunk
+>   wie `./editor`, installiert aber nichts. Nötig ist das, weil die Demo-Seitenliste die
+>   Editorfassade auch im Stub-Lauf importiert; eine installierende Fassade hätte dort den Guard
+>   gegen eine zweite Runtime ausgelöst.
+> - **Gemounteter Editor.** `onSession` leiht die laufende Session des sichtbaren Editors als
+>   nicht besitzendes Handle aus (`owned: false`). Änderungen fließen in den Formwert, und
+>   `toMarkdown` nutzt den Markdown-Dialekt des Formulars. `dispose()` beendet nur das Handle,
+>   und mit der Fläche stirbt es. Während SSR wird nichts geliehen. Dafür bekam
+>   `ui.editor.Editor` einen `private[ui]`-Hook (`NativeEditorBinding`).
+> - **Demo.** `/editor/basics` hat einen Button „Undo last change", der über die geliehene Session
+>   läuft.
+>
+> **Belege.** `session.test.ts` (19 Fälle, echte gelinkte Bridge in jsdom): Commands, History,
+> Extensions, Commit-DTOs, JSON-Roundtrip, Import-Reset der History, Verlustexport,
+> `@ts-expect-error`-Payloads mit Laufzeitprüfung, Link-Policy, Auswahlformen, Look-alikes,
+> **Handles einer zweiten, getrennt geladenen Kopie der Linker-Ausgabe** (in beide Richtungen
+> abgewiesen), Dispose, Betrieb bei installierter Stub-Runtime, geliehene Session samt Formwert,
+> Quelltextansicht und Unmount, kein Ausleihen während SSR. Tarball-Consumer: `tsc --strict` über die
+> neue API und eine headless Session in reinem Node ohne installierte Runtime. Bridge-`verify`:
+> `editor-api.js` installiert nichts, und eine Session läuft in Node. Unterwegs behoben: Der
+> Consumer-Test blockierte den Vitest-Worker mit synchronen Prozessaufrufen, sodass ein RPC-Timeout
+> trotz grüner Tests auftrat. Die Aufrufe sind jetzt asynchron.
+>
+> **Nicht enthalten.** Eine Render-Funktion für eine headless erzeugte Session
+> (`renderEditor(session, …)` aus dem Beispiel in §23) gibt es nicht. Der sichtbare Editor bleibt
+> `editor(...)`, und seine Session ist über `onSession` erreichbar. Eine deklarative
+> TypeScript-Contribution-API für eigene Knotenarten ist nicht gebaut. Tabellen (X01) und die
+> Fence-Färbung (X02-Nachtrag) erreichen `scalajs-ui` erst mit einem neuen Ember-Release, denn
+> `scalajs-ui` bezieht Ember 1.0.0 aus Maven Central.
+
 ## P30 — Bewusste Ablösung und Lexical entfernen
 
 - **Ziel:** Produktive Anwendungen verwenden den neuen Editor, Lexical ist keine Produktionsabhängigkeit mehr.
@@ -2442,6 +2495,30 @@ Keine weiteren IME-Läufe oder IME-Rückfragen ohne neuen Auftrag. P29 bleibt of
 - **Akzeptanz:** Keine scalajs-lexical-/@anjunar/scalajs-lexical-Produktionsabhängigkeit oder erreichbare Legacy-Registrierung; native API in Demos/Consumer; Datenverlustfreiheit anhand tatsächlich benötigter Importfixtures; alle einschlägigen Freigaben aus P28 belegt.
 - **Risiken:** Öffentliche API und reale gespeicherte Inhalte sind der einzige mögliche Migrationsbedarf. Im Ausgangsauftrag wurde keine automatische Konvertierung unbekannter Daten autorisiert oder spezifiziert; diese nicht erfinden.
 - **Dependencies:** P29; Architektur §25. Kein Umbau des Prototyps in früheren Phasen.
+
+> **Abgeschlossen (16. September 2026), ohne die Abnahmen, die der Nutzer ausgenommen hat.** Die
+> Ablösung selbst geschah am 14. September ([EDITOR_UPGRADE.md](EDITOR_UPGRADE.md)). Seitdem beziehen
+> `scalajs-ui` und über sie `simplicity-blog` den nativen Editor aus den veröffentlichten
+> Ember-1.0.0-Artefakten. Mit P29 ist die native API auch in der Demo und im Tarball-Consumer
+> angekommen.
+>
+> Die Quellsuche über versionierte Dateien (ohne Markdown und Lockfiles) findet in `scalajs-ui`
+> keinen Lexical-Treffer mehr. Die letzten Reste waren Texte und totes CSS: der Werbetext der
+> Landingpage und der Demo („Lexical-backed"), zwei CSS-Kommentare und `.lexical-*`-Selektoren in
+> `EditorDemo.css`, die kein Element mehr trafen. Sie wurden entfernt bzw. umformuliert, ebenso
+> ein Katalogeintrag im Frontend von `simplicity-blog`.
+>
+> **Bewusst nicht angefasst.** Das Backend von `simplicity-blog` speichert Kommentare weiterhin als
+> `LexicalDocument` (`BlogComment`, `BlogCommentReply`, `BlogCommentWrite`,
+> `BlogInlineMediaService`, `BlogMarkdownCodec`) und wandelt sie über `LexicalMarkdownConverter`
+> in Markdown um. Das sind gespeicherter Bestand und ein Transportvertrag, keine Editor-Abhängigkeit
+> im Browser. Die Risikozeile oben verbietet, eine Konvertierung zu erfinden; eine Umstellung braucht
+> eine eigene Entscheidung über die vorhandenen Daten.
+>
+> **Auf Nutzerwunsch ausgenommen** (16. September 2026: „punkte die nur noch testen in der abnahmen
+> brauchen wir nicht"): die Geräte-, IME- und Screenreader-Abnahmen aus P28 und der
+> Windows-WebKit-Befund zum nativen Clipboard aus P25. Sie bleiben in Supportmatrix und Checkliste
+> dokumentiert und gelten nicht als erteilte Freigabe.
 
 ## Optionale Folgepakete nach dem Ersatz
 
@@ -2458,6 +2535,59 @@ Diese Pakete gehören zum langfristigen Ausbau, nicht zum Gate für die erste Ab
 - **Akzeptanz:** Kein Core-Spezialfall für TableSelection; JSON vollständig; Markdown-Verluste für nicht darstellbare Tabellen explizit; normale Editoren ziehen das Modul nicht herein.
 - **Risiken:** Tabellen sind keine beliebige NodeSelection-Menge; komplexe Span-Modelle können Editing/Clipboard stark erweitern.
 - **Dependencies:** P30, vorhandene Selection-Erweiterbarkeit aus P03/P05.
+
+> **Umgesetzt (16. September 2026)**, vom Nutzer ausdrücklich in den Abschluss aufgenommen. Das neue
+> Modul [`ember-table`](ember-table/README.md) (core, rich-text) bringt `TableNode`,
+> `TableRowNode` und `TableCellNode` mit Kopfzeile und Spaltenausrichtung, dazu `TableSelection`
+> mit registriertem `TableSelectionMapper` und Validator. Acht Normalisierungsregeln reparieren
+> Rechteckigkeit, statt sie abzuweisen. Elf Commands decken Einfügen, Zeilen und Spalten einfügen
+> und löschen, Tabelle löschen, Kopfzeile, Ausrichtung, Zellnavigation und Zellauswahl ab; dazu
+> kommt `TableExtension`. Die Dateiaufteilung weicht von „Neue Dateien" ab: Zeile und Zelle stehen
+> in `TableNode.scala`, `TableSupport` liegt in `ember-standard`, die Browseranteile in
+> `ember-browser-support`. So bleibt `ember-table` frei von HTML, Markdown, JSON und UI.
+>
+> - **Kein Core-Spezialfall.** `ember-core` ist unverändert. `ember-rich-text` lernt statt eines
+>   Tabellentyps zwei Marker (`IsolatingElementNode`, `StructuralElementNode`). Backspace und Entf
+>   an Zellgrenzen und Bereiche über mehrere Zellen führen nichts zusammen. Ein Bereich, der eine
+>   Tabelle nur berührt, leert Zellen; eine vollständig markierte Tabelle wird als Ganzes entfernt.
+>   Über einer Zellauswahl übernehmen Handler mit hoher Priorität Tippen, Enter, Backspace und Entf
+>   (§12). `ember-browser` bekam `SelectionPort.represent`, damit eine fremde Auswahlart dem
+>   Browser als Bereich gezeigt werden kann.
+> - **Formate.** JSON ist vollständig (Kopfzeile, Ausrichtungen, Zellblöcke). GFM-Pipe-Tabellen gibt
+>   es nur mit `MarkdownProfile.commonMarkSafeWithTables`; der CommonMark-Konformitätslauf läuft
+>   weiter ohne die Erweiterung und ist unverändert. Markdown-Verluste werden ausdrücklich gemeldet:
+>   eine Tabelle ohne Kopfzeile und eine Zelle mit mehr als einem Block. HTML
+>   `table/tbody/tr/th/td` samt `align` gilt für SSR und Import; `caption` wird mit Diagnose
+>   verworfen.
+> - **Browser.** Tab und Shift+Tab springen zwischen Zellen (aus der letzten Zelle entsteht eine neue
+>   Zeile), im Rahmen von `TabPolicy.IndentsUntilEscape`. Escape hebt eine Zellauswahl auf, und
+>   Ziehen über Zellgrenzen erzeugt eine rechteckige Auswahl. Angezeigt wird sie über ein Stylesheet,
+>   ohne Schreibzugriff auf das Editor-DOM.
+> - **Optional.** Keines der `everything`-Bündel enthält Tabellen. Die Demo nimmt sie ausdrücklich
+>   dazu: Ribbon-Gruppe „Tabelle" und eine Beispieltabelle im Notizen-Beispiel.
+>
+> **Belege.** `scalajs-ember-table` mit 45 Tests (`TableStructureSpec`, `TableEditingSpec` inkl. Undo,
+> `TableSelectionSpec` inkl. Abweisung ohne Modul), `MarkdownTableSpec` (ember-markdown gesamt 172),
+> `TableFormatSpec` mit 12 Tests (HTML, JSON, Markdown, HTML-Import), im Browser
+> `table-editing.spec.mjs` 24/24 in Chromium, Firefox und WebKit, Pages-Showcase 11/11.
+>
+> **Globale Gates danach** (16. September 2026): `scalafmtCheckAll`, `Test/testOnly *` mit 1390 Tests,
+> `editorMetadata`, `verify-editor-boundaries` (25 Projekte), Tool-Tests 8/8, volle Harness
+> `npm run verify` mit 897 Fällen und `verify:pages` mit 11 Fällen, alles grün.
+>
+> **Bundlegrößen** (Full-Link-Profile, gemessen gegen den Commit vor X01): text +12,3 kB roh / +1,3 kB
+> gzip, markdown +70,7 kB / +7,9 kB, standard +69,3 kB / +7,7 kB. Standard wächst nicht stärker als
+> markdown, obwohl es mehr registriert; das `ember-table`-Modul wird also nicht mitgelinkt. Der
+> Zuwachs stammt aus Code, den die Profile ohnehin erreichen: der Isolationslogik in
+> `ember-rich-text` und dem Tabellenteil von Parser, Syntaxbaum und Writer in `ember-markdown`, der
+> hinter einem Laufzeit-Flag des Profils liegt und deshalb für den Linker erreichbar bleibt. Wer
+> diese rund 8 kB gzip vermeiden will, müsste die Tabellenerkennung als eigene Parser-Erweiterung
+> auslagern; das ist nicht umgesetzt.
+>
+> **Nicht enthalten.** Verbundene Zellen, weil X01 dafür eigene Invarianten verlangt. Kopieren und
+> Ausschneiden einer **Zellauswahl** schreibt nichts in die Zwischenablage; Textauswahlen in Zellen
+> verhalten sich wie überall. Readonly ist über den bestehenden Editor-Modus abgedeckt, nicht über
+> eigene Tabellentests. `scalajs-ui` bekommt Tabellen erst mit einem neuen Ember-Release.
 
 ### X02 — Syntax-Highlighting als View-Erweiterung
 
@@ -2514,8 +2644,16 @@ Diese Pakete gehören zum langfristigen Ausbau, nicht zum Gate für die erste Ab
 > (Meta bleibt erhalten, unbekannte Sprachen aus Importen bleiben wählbar) oder den Block aufheben.
 > Pages-Showcase-Test dafür ergänzt.
 >
-> **Offen:** weitere Sprachen; Fences in Markdown-Blöcken werden als Code gefärbt, nicht in ihrer
-> eigenen Sprache.
+> **Nachtrag (16. September 2026): Fences in ihrer eigenen Sprache.** Ein Markdown-Codeblock färbt
+> den Inhalt eines Fences jetzt in der Sprache seines Info-Strings. Dafür gibt es zwei Neuerungen in
+> der Grammatik: `Rule.embedMatched` wählt Grammatik und Endmuster aus dem Treffer selbst, und ein
+> eingebetteter Frame kann an den Zeilenanfang gebunden enden (`endAtLineStart`). Ein schließender
+> Fence muss mindestens so lang sein wie der öffnende und am Zeilenanfang stehen; ein Fence innerhalb
+> eines Fences schließt nichts. Unbekannte Sprachen werden weiter als Code gefärbt. `LexerSpec` und
+> `IncrementalLexingSpec` decken Einbettung, Längenregel und inkrementelles Nachlexen über die
+> Fence-Grenze ab (51 Tests).
+>
+> **Offen:** weitere Sprachen.
 
 ### X03 — Kollaboration zunächst als eigenständiger Architekturspike
 

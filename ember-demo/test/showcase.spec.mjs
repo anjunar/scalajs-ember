@@ -81,6 +81,36 @@ test('code block dialog chooses, changes and removes the language', async ({ pag
   expect(errors).toEqual([])
 })
 
+test('tables insert, navigate with Tab, change shape and export as GFM', async ({ page }) => {
+  const errors = []
+  page.on('pageerror', error => errors.push(error.message))
+  await page.goto('./#notes')
+  await expect(surface(page).locator('table th')).toHaveCount(3)
+
+  await page.goto('./#blank')
+  await surface(page).click()
+  await page.keyboard.type('Plan')
+  await action(page, 'table').click()
+  await expect(surface(page).locator('table tr')).toHaveCount(3)
+  await page.keyboard.type('Aufgabe')
+  await page.keyboard.press('Tab')
+  await page.keyboard.type('Wer')
+
+  await action(page, 'row-below').click()
+  await expect(surface(page).locator('table tr')).toHaveCount(4)
+  await action(page, 'delete-column').click()
+  await expect(surface(page).locator('table tr').first().locator('th')).toHaveCount(2)
+
+  await page.getByRole('button', { name: 'Quellansicht' }).click()
+  await expect(page.locator('.inspector-code')).toContainText('| Aufgabe |')
+  await expect(page.locator('.inspector-code')).toContainText('| --- | --- |')
+
+  await action(page, 'delete-table').click()
+  await expect(surface(page).locator('table')).toHaveCount(0)
+  await expect(surface(page)).toContainText('Plan')
+  expect(errors).toEqual([])
+})
+
 test('link dialog validates the URL, preserves selection and restores focus', async ({ page }) => {
   await page.goto('./')
   await selectText(page, 'Gute Texte')

@@ -20,7 +20,7 @@ await readFile(new URL('main.js', output)).catch(() => {
 const html = `<!doctype html><html><body>
 <div id="root"></div>
 <script type="module">
-import { emberFixtures, runtimeFixtures, projectionFixtures, formFixtures, selectionFixtures, editingFixtures, clipboardFixtures, mediaFixtures, highlightFixtures, editorBench } from '/main.js'
+import { emberFixtures, runtimeFixtures, projectionFixtures, formFixtures, selectionFixtures, editingFixtures, clipboardFixtures, mediaFixtures, highlightFixtures, tableFixtures, editorBench } from '/main.js'
 window.fixtures = emberFixtures
 window.runtime = runtimeFixtures
 window.projection = projectionFixtures
@@ -30,6 +30,7 @@ window.editing = editingFixtures
 window.clipboard = clipboardFixtures
 window.media = mediaFixtures
 window.highlight = highlightFixtures
+window.table = tableFixtures
 window.bench = editorBench
 window.ready = true
 </script>

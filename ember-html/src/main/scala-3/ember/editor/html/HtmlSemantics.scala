@@ -39,6 +39,9 @@ object HtmlAttribute:
     "width",
     "height",
     "start",
+    // A table column's alignment on `th`/`td` (X01). The attribute and not `style="text-align"`:
+    // §19.1 rules out CSS strings, and `align` is what GFM renderers and a paste from them carry.
+    "align",
     // `rel` und `target` gehoeren zusammen und kommen nur an externen Links vor -- siehe
     // `LinkSupport`. Sie stehen hier, weil §19.1 eine geschlossene Liste verlangt und nicht,
     // weil ein Adapter sie beliebig setzen duerfte.

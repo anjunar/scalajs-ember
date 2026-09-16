@@ -18,6 +18,13 @@ und `ThematicBreakNode`, die fünf eingebauten Marks, Bereichsformatierung, das 
 `TypingMarks`, die Textlauf-Normalisierung, die Editing- und Blockbefehle sowie die
 UAX-29-Segmentierung. Listen folgen mit P13, Links mit P14, Code mit P15.
 
+X01 ergänzt zwei Marker für Container fremder Module, ohne dass dieses Profil deren Typen kennt:
+`IsolatingElementNode` (etwa eine Tabellenzelle — Backspace und Entf an ihrer Grenze ziehen keinen
+Text aus der Nachbarschaft, ein Bereich über zwei solche Container wird geleert statt
+zusammengeführt) und `StructuralElementNode` (Tabelle, Zeile — ein Bereich, der sie nur berührt,
+leert die isolierten Kinder, statt die Struktur zu entfernen). `Isolation.shared` entscheidet, ob
+zwei Positionen zusammengeführt werden dürfen.
+
 ## Verwendung
 
 ```scala

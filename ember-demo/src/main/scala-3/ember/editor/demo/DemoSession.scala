@@ -10,8 +10,9 @@ import ember.editor.link.{LinkExtension, LinkUrlPolicy}
 import ember.editor.list.ListExtension
 import ember.editor.json.*
 import ember.editor.richtext.*
-import ember.editor.markdown.{LossPolicy, MarkdownCodec}
-import ember.editor.standard.{MarkdownSupports, StandardJsonSupport, ImageSupport}
+import ember.editor.markdown.{LossPolicy, MarkdownCodec, MarkdownProfile}
+import ember.editor.standard.{MarkdownSupports, StandardJsonSupport, TableSupport}
+import ember.editor.table.TableExtension
 import ember.editor.ui.DocumentView
 import ember.editor.html.RenderProfile
 
@@ -21,8 +22,9 @@ final class DemoSession(val example: DemoExample):
   val history       = new History(HistoryConfig.default)
   val compositions  = new CompositionHolder
   val media         = MediaUrlPolicy.default
-  val codecs        = StandardJsonSupport.everything(media = media)
-  val markdownRules = MarkdownSupports.everything(LinkUrlPolicy.default, media)
+  val codecs        = StandardJsonSupport.everything(media = media) ++ TableSupport.json
+  val markdownRules =
+    MarkdownSupports.everything(LinkUrlPolicy.default, media) ++ TableSupport.markdownRules
   private object CompositionGate extends Extension:
     val id                  = ExtensionId("ember.demo.composition-gate")
     override def contribute = ExtensionContributions(
@@ -36,6 +38,7 @@ final class DemoSession(val example: DemoExample):
         LinkExtension(generator),
         CodeExtension(generator),
         ImageExtension(generator, media),
+        TableExtension(generator),
         new ClipboardExtension(generator),
         history,
         CompositionGate
@@ -57,7 +60,8 @@ final class DemoSession(val example: DemoExample):
         resolved.schema,
         markdownRules,
         generator,
-        NodeId("document")
+        NodeId("document"),
+        MarkdownProfile.commonMarkSafeWithTables
       )
       .fold(error => throw new IllegalArgumentException(error.message), _.document)
 
@@ -91,7 +95,7 @@ final class DemoSession(val example: DemoExample):
     MarkdownCodec.encode(session.document, markdownRules, LossPolicy.Strict).map(_.source)
 
   def html: String =
-    DocumentView.renderToHtml(session.document, ImageSupport.views, RenderProfile.Content)
+    DocumentView.renderToHtml(session.document, TableSupport.views, RenderProfile.Content)
 
   def outline: String =
     def walk(id: NodeId, depth: Int): Vector[String] =

@@ -244,11 +244,31 @@ final class SelectionPort private (
           case None                        => SelectionWrite.Skipped(SkipReason.NoSelection)
           case Some(range: RangeSelection) => writePoints(range.anchor, range.focus)
           case Some(nodes: NodeSelection)  => writeNodes(nodes)
-          case Some(_)                     =>
+          case Some(other)                 =>
             // A foreign selection kind (§11 keeps the contract open). It has a mapper in the
-            // core but no DOM representation here, and inventing one would put the caret
-            // somewhere its owner never meant.
-            SelectionWrite.Skipped(SkipReason.NoSelection)
+            // core, and the module that owns it may say how the browser should see it --
+            // inventing a representation here would put the caret somewhere its owner never
+            // meant.
+            representations.view.flatMap((_, represent) => represent(other)).headOption match
+              case Some((anchor, focus)) => writePoints(anchor, focus)
+              case None                  => SelectionWrite.Skipped(SkipReason.NoSelection)
+
+  private var representations = Vector.empty[(Long, Selection => Option[(Point, Point)])]
+
+  /** Teaches the port how a foreign selection kind looks as a native range.
+    *
+    * A table's cell rectangle is the example: the browser has no rectangles, so the table module
+    * writes the range from its anchor cell to its focus cell. What the port writes, it recognises
+    * as its own echo, so the model keeps the rectangle rather than importing the range back over
+    * it.
+    */
+  def represent(representation: Selection => Option[(Point, Point)]): Subscription =
+    if disposedFlag then Subscription.cancelled
+    else
+      nextHandle += 1
+      val handle = nextHandle
+      representations = representations :+ (handle, representation)
+      Subscription(() => representations = representations.filterNot(_._1 == handle))
 
   private def writePoints(anchor: Point, focus: Point): SelectionWrite =
     val document = session.document

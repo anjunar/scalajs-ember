@@ -9,13 +9,19 @@ Verbindlicher Entwurf: [UI_EDITOR_ARCHITECTURE.md](../UI_EDITOR_ARCHITECTURE.md)
 | --- | --- |
 | sbt-ID / Artefakt | `scalajs-ember-browser-support` |
 | Scala-Paket | `ember.editor.browsersupport` |
-| Produktionsabhängigkeiten | `scalajs-ember-core`, `-rich-text`, `-list`, `-link`, `-code`, `-history`, `-ui`, `-browser` |
+| Produktionsabhängigkeiten | `scalajs-ember-core`, `-rich-text`, `-list`, `-link`, `-code`, `-table`, `-history`, `-ui`, `-browser` |
 
 ## Stand
 
 **P22 und der History-Anteil von P23 abgeschlossen.** Vorhanden: `RichTextBindings`,
 `HistoryBindings`, `ListBindings`, `LinkBindings`, `CodeBindings` und die zusammengesetzten
 `EditorBindings`.
+
+X01 ergänzt `TableBindings` (Tab/Shift+Tab springen zwischen Zellen, Escape hebt eine Zellauswahl
+auf) und `TableSelectionView`: hebt einen gezogenen Bereich über Zellgrenzen zu einer
+`TableSelection` an, zeigt sie über ein Stylesheet im `head` an und meldet sie dem Browser über
+`SelectionPort.represent`. Beides ist nicht Teil von `EditorBindings.everything` —
+[ember-table](../ember-table/README.md) beschreibt die Reihenfolge.
 
 ## Warum es dieses Modul gibt
 

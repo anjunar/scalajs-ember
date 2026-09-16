@@ -1,12 +1,17 @@
 package ember.editor.demo
 
 import ember.editor.browser.*
-import ember.editor.browsersupport.{EditorBindings, HistoryBindings}
+import ember.editor.browsersupport.{
+  EditorBindings,
+  HistoryBindings,
+  TableBindings,
+  TableSelectionView
+}
 import ember.editor.clipboard.{ClipboardCodec, BrowserClipboardController}
 import ember.editor.codehighlighting.CodeDecorations
 import ember.editor.core.*
 import ember.editor.link.LinkUrlPolicy
-import ember.editor.standard.{ImageSupport, StandardHtmlImport}
+import ember.editor.standard.{StandardHtmlImport, TableSupport}
 import ember.editor.toolbar.*
 import ember.editor.ui.DocumentView
 import org.scalajs.dom
@@ -35,6 +40,7 @@ final class DemoPage(editor: DemoSession) extends AbstractComponent:
   private var input: BrowserInputController         = null
   private var clipboard: BrowserClipboardController = null
   private var decorations: CodeDecorations          = null
+  private var cellSelection: TableSelectionView     = null
   private var ribbon: EditorToolbar                 = null
   private var dialogs: DemoDialogs                  = null
 
@@ -88,7 +94,7 @@ final class DemoPage(editor: DemoSession) extends AbstractComponent:
             view = DocumentView.mount(
               editor.session,
               Runtime.contentCursor(host),
-              ImageSupport.views,
+              TableSupport.views,
               parent = Some(host)
             )
             if cursor.isBrowser then
@@ -99,10 +105,12 @@ final class DemoPage(editor: DemoSession) extends AbstractComponent:
                 view,
                 selection,
                 EditorBindings.everything,
-                EditorBindings.everythingKeyboard ++ EditorBindings.tabIndentation,
+                // Table Tab first: inside a cell it moves, and outside it passes to code and lists.
+                TableBindings.tabNavigation ++ EditorBindings.tabIndentation ++
+                  EditorBindings.everythingKeyboard ++ TableBindings.keyboard,
                 TabPolicy.IndentsUntilEscape,
                 EditorMode.Editable,
-                Some(ImageSupport.everything),
+                Some(TableSupport.everything),
                 BusyPolicy.Defer
               )
               editor.compositions.bind(input)
@@ -112,8 +120,10 @@ final class DemoPage(editor: DemoSession) extends AbstractComponent:
                 "ember-demo/1",
                 editor.session.document.schema,
                 editor.codecs,
-                ImageSupport.everything,
-                StandardHtmlImport.everything(LinkUrlPolicy.default, editor.media)
+                TableSupport.everything,
+                StandardHtmlImport
+                  .everything(LinkUrlPolicy.default, editor.media)
+                  .withRules(TableSupport.htmlImport*)
               )
               clipboard = new BrowserClipboardController(
                 editor.session,
@@ -151,6 +161,7 @@ final class DemoPage(editor: DemoSession) extends AbstractComponent:
                 // Colours are view state and write no DOM, but they paint on the text nodes the
                 // hydration claimed -- so not before it has claimed them.
                 decorations = CodeDecorations.attach(editor.session, view)
+                cellSelection = TableSelectionView.attach(editor.session, view, selection)
                 ribbon.refresh()
               }
           }
@@ -261,6 +272,7 @@ final class DemoPage(editor: DemoSession) extends AbstractComponent:
     if dialogs != null then dialogs.dispose()
     if clipboard != null then clipboard.dispose()
     if decorations != null then decorations.dispose()
+    if cellSelection != null then cellSelection.dispose()
     if input != null then input.dispose()
     editor.compositions.release()
     if selection != null then selection.dispose()

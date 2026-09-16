@@ -6,6 +6,7 @@ import ember.editor.code.{CodeCommands, CodeInfo, CodeBlockNode}
 import ember.editor.history.HistoryCommands
 import ember.editor.list.*
 import ember.editor.richtext.*
+import ember.editor.table.*
 import ember.editor.toolbar.*
 
 object DemoRibbon:
@@ -33,6 +34,19 @@ object DemoRibbon:
             selection.scope.focus()
             selection.write(session.selection, WriteIntent.Explicit)
           }
+      )
+
+    /** Enabled only where a table command has something to act on. */
+    def inTable[A](id: String, label: String, cmd: EditorCommand[A], value: A) =
+      command(
+        id,
+        label,
+        cmd,
+        value,
+        () =>
+          CommandState(
+            available() && Tables.contextAt(session.document, session.selection).isDefined
+          )
       )
     def block[A](id: String, label: String, cmd: EditorCommand[A], value: A) =
       command(id, label, cmd, value, () => blockState(session, id, enabled))
@@ -111,26 +125,73 @@ object DemoRibbon:
           ),
           block("rule", "Trennlinie", RichText.InsertThematicBreak, ())
         )
+      ),
+      ToolbarGroup(
+        "Tabelle",
+        Vector(
+          command(
+            "table",
+            "Tabelle einfügen",
+            TableCommands.InsertTable,
+            TableSize(3, 3),
+            () => enabled
+          ),
+          inTable(
+            "row-above",
+            "Zeile darüber einfügen",
+            TableCommands.InsertRow,
+            RowPosition.Above
+          ),
+          inTable(
+            "row-below",
+            "Zeile darunter einfügen",
+            TableCommands.InsertRow,
+            RowPosition.Below
+          ),
+          inTable(
+            "column-before",
+            "Spalte links einfügen",
+            TableCommands.InsertColumn,
+            ColumnPosition.Before
+          ),
+          inTable(
+            "column-after",
+            "Spalte rechts einfügen",
+            TableCommands.InsertColumn,
+            ColumnPosition.After
+          ),
+          inTable("delete-row", "Zeile löschen", TableCommands.DeleteRow, ()),
+          inTable("delete-column", "Spalte löschen", TableCommands.DeleteColumn, ()),
+          inTable("delete-table", "Tabelle löschen", TableCommands.DeleteTable, ())
+        )
       )
     )
     val labels = Map(
-      "undo"         -> "↶",
-      "redo"         -> "↷",
-      "bold"         -> "F",
-      "italic"       -> "K",
-      "inline-code"  -> "</>",
-      "heading-1"    -> "H1",
-      "heading-2"    -> "H2",
-      "heading-3"    -> "H3",
-      "unquote"      -> "Ohne Zitat",
-      "bullet-list"  -> "• Liste",
-      "ordered-list" -> "1. Liste",
-      "indent"       -> "→ Einzug",
-      "outdent"      -> "← Einzug",
-      "link"         -> "Link",
-      "image"        -> "Bild",
-      "code-block"   -> "Code",
-      "rule"         -> "Linie"
+      "undo"          -> "↶",
+      "redo"          -> "↷",
+      "bold"          -> "F",
+      "italic"        -> "K",
+      "inline-code"   -> "</>",
+      "heading-1"     -> "H1",
+      "heading-2"     -> "H2",
+      "heading-3"     -> "H3",
+      "unquote"       -> "Ohne Zitat",
+      "bullet-list"   -> "• Liste",
+      "ordered-list"  -> "1. Liste",
+      "indent"        -> "→ Einzug",
+      "outdent"       -> "← Einzug",
+      "link"          -> "Link",
+      "image"         -> "Bild",
+      "code-block"    -> "Code",
+      "rule"          -> "Linie",
+      "table"         -> "Tabelle",
+      "row-above"     -> "↑ Zeile",
+      "row-below"     -> "↓ Zeile",
+      "column-before" -> "← Spalte",
+      "column-after"  -> "→ Spalte",
+      "delete-row"    -> "− Zeile",
+      "delete-column" -> "− Spalte",
+      "delete-table"  -> "− Tabelle"
     )
     groups.map(group =>
       group.copy(actions =

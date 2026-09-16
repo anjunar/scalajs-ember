@@ -1,7 +1,7 @@
 import org.scalajs.linker.interface.{ESVersion, ModuleKind}
 import org.scalajs.sbtplugin.ScalaJSPlugin
 
-version      := "1.0.0"
+version      := "1.0.1"
 organization := "com.anjunar"
 scalaVersion := "3.3.8"
 
@@ -348,6 +348,30 @@ lazy val emberCode =
       )
     )
 
+// X01: tables with their own selection contract. On the rich-text profile, because a cell holds
+// paragraphs; the formats and the browser bindings live in `standard` and `browser-support`, so a
+// headless server can edit tables without linking either.
+lazy val emberTable =
+  Project(id = "scalajs-ember-table", base = file("ember-table"))
+    .enablePlugins(ScalaJSPlugin)
+    .dependsOn(emberCore, emberRichText, emberHistory % "test->compile")
+    .settings(
+      name        := "scalajs-ember-table",
+      moduleName  := "scalajs-ember-table",
+      description := "Tables with rectangular cell selection, structural commands and normalisation."
+    )
+    .settings(testSettings)
+    .settings(commonJsSettings)
+    .settings(publishSettings)
+    .settings(
+      boundarySettings(
+        allowedProjects = Seq("scalajs-ember-core", "scalajs-ember-rich-text", "scalajs-ember-history"),
+        forbiddenImports = forbiddenJfxImports ++ forbiddenUpwardImports ++
+          Seq("ember.editor.html", "ember.editor.markdown", "ember.editor.json"),
+        forbiddenModules = forbiddenArtifacts :+ "scalajs-dom"
+      )
+    )
+
 // X02: syntax highlighting as a view extension. The lexers and the scheduler are plain Scala and
 // run anywhere; `CodeDecorations` paints the result with the CSS Custom Highlight API and never
 // writes the document DOM. It sits on `ui` because it has to find a run's text node, and on
@@ -510,6 +534,7 @@ lazy val emberBrowserSupport =
       emberList,
       emberLink,
       emberCode,
+      emberTable,
       emberHistory,
       emberUi,
       emberBrowser
@@ -533,6 +558,7 @@ lazy val emberBrowserSupport =
           "scalajs-ember-list",
           "scalajs-ember-link",
           "scalajs-ember-code",
+          "scalajs-ember-table",
           "scalajs-ember-history",
           "scalajs-ember-ui",
           "scalajs-ember-browser"
@@ -719,6 +745,7 @@ lazy val emberStandard =
       emberLink,
       emberCode,
       emberImage,
+      emberTable,
       emberMarkdown,
       emberJson,
       emberHtml,
@@ -746,6 +773,7 @@ lazy val emberStandard =
           "scalajs-ember-link",
           "scalajs-ember-code",
           "scalajs-ember-image",
+          "scalajs-ember-table",
           "scalajs-ember-markdown",
           "scalajs-ember-json",
           "scalajs-ember-html",
@@ -799,7 +827,8 @@ lazy val emberIntegration =
       emberForms,
       emberToolbar,
       emberStandard,
-      emberCodeHighlighting
+      emberCodeHighlighting,
+      emberTable
     )
     .settings(
       name                            := "scalajs-ember-integration",
@@ -841,7 +870,8 @@ lazy val emberIntegration =
           "scalajs-ember-code",
           "scalajs-ember-history",
           "scalajs-ember-image",
-          "scalajs-ember-code-highlighting"
+          "scalajs-ember-code-highlighting",
+          "scalajs-ember-table"
         ),
         // Wie bei `standard` fehlt `ember.editor.ui` mit Absicht: der Harness haengt an der
         // Projektion, das ist seit P09 sein Zweck. Seit P19b faehrt er ausserdem das
@@ -879,7 +909,8 @@ lazy val emberDemo =
       emberClipboard,
       emberToolbar,
       emberStandard,
-      emberCodeHighlighting
+      emberCodeHighlighting,
+      emberTable
     )
     .settings(
       name                            := "scalajs-ember-demo",
@@ -918,7 +949,8 @@ lazy val emberDemo =
           "scalajs-ember-clipboard",
           "scalajs-ember-toolbar",
           "scalajs-ember-standard",
-          "scalajs-ember-code-highlighting"
+          "scalajs-ember-code-highlighting",
+          "scalajs-ember-table"
         ),
         forbiddenImports = forbiddenUpwardImports
           .filterNot(name => name == "ember.editor.ui" || name == "ember.editor.browser" || name == "ember.editor.toolbar"),
@@ -953,6 +985,7 @@ lazy val root = Project(id = "scalajs-ember-root", base = file("."))
     emberLink,
     emberCode,
     emberCodeHighlighting,
+    emberTable,
     emberImage,
     emberMarkdown,
     emberJson,

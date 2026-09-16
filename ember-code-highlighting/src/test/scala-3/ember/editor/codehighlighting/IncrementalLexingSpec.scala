@@ -22,7 +22,7 @@ final class IncrementalLexingSpec extends AnyFlatSpec with Matchers {
     "css"        -> "/* a */\n.b > c:hover { color: #fff; }\n@media x { d { margin: 0 } }\n",
     "html"  -> "<p class=\"a\">b &amp; c</p>\n<script>\nlet x = '</p>'\n</script>\n<!--\nx -->\n",
     "shell" -> "# c\nexport A=\"$B ${C}\"\nif [ -f x ]; then echo $(ls); fi\n",
-    "markdown" -> "# T\n```js\nx\n```\n*a* `b` [c](d)\n- e\n"
+    "markdown" -> "# T\n```js\nx\n```\n*a* `b` [c](d)\n- e\n````scala\ns\"${ a }\"\n```\n````\n"
   )
 
   private val alphabet = "ab1 \n\"'`/*{}$#<>!-_()[]:;=\\~&.".toVector

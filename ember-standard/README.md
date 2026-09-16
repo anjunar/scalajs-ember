@@ -9,7 +9,7 @@ Verbindlicher Entwurf: [UI_EDITOR_ARCHITECTURE.md](../UI_EDITOR_ARCHITECTURE.md)
 | --- | --- |
 | sbt-ID / Artefakt | `scalajs-ember-standard` |
 | Scala-Paket | `ember.editor.standard` |
-| Produktionsabhängigkeiten | `scalajs-ember-core`, `scalajs-ember-rich-text`, `scalajs-ember-list`, `scalajs-ember-link`, `scalajs-ember-code`, `scalajs-ember-image`, `scalajs-ember-markdown`, `scalajs-ember-json`, `scalajs-ember-html`, `scalajs-ember-ui` |
+| Produktionsabhängigkeiten | `scalajs-ember-core`, `scalajs-ember-rich-text`, `scalajs-ember-list`, `scalajs-ember-link`, `scalajs-ember-code`, `scalajs-ember-image`, `scalajs-ember-table`, `scalajs-ember-markdown`, `scalajs-ember-json`, `scalajs-ember-html`, `scalajs-ember-ui` |
 
 ## Stand
 
@@ -18,6 +18,14 @@ P09 und P12 bis P18 abgeschlossen. Vorhanden: `ParagraphSupport` (Wurzel, Absatz
 den fünf eingebauten Marks HTML-Tags macht — `ListSupport` (`ul`/`ol`/`li` samt Startnummer),
 `LinkSupport` (`a` samt der Entscheidung über `target` und `rel`), `CodeSupport` (`pre`/`code`
 samt Sprachklasse) und `ImageSupport` (`img` als Void-Element).
+
+X01 ergänzt `TableSupport`: `table`/`tbody`/`tr` und `th`/`td` samt `align`, die JSON-Codecs für
+Tabelle, Zeile und Zelle, eine GFM-Blockregel (Lesen mit `MarkdownProfile.commonMarkSafeWithTables`;
+eine Tabelle ohne Kopfzeile und Zellen mit mehr als einem Block sind gemeldete Verluste) und
+HTML-Importregeln (Kopfzeile aus `th` der ersten Zeile, `caption` wird mit Diagnose verworfen).
+Keines der `everything`-Bündel enthält sie: eine Anwendung nimmt Tabellen ausdrücklich dazu
+([ember-table](../ember-table/README.md)). Der Linker nimmt den Tabellencode nur auf, wenn
+`TableSupport` erreichbar ist.
 
 Dazu zwei Adaptersätze, die **nicht** HTML machen und aus demselben Grund hier stehen — §6 gibt
 den Node-Modulen nur den Kern, und dies ist der eine Ort, an dem beide Seiten auf dem

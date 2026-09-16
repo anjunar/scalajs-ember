@@ -107,6 +107,44 @@ object MarkdownBlock:
   final case class ListItem(id: SyntaxId, span: SourceSpan, children: Vector[MarkdownBlock])
       extends Container
 
+  /** A GFM pipe table, only under a profile with [[MarkdownProfile.tables]].
+    *
+    * §18.2 names GFM tables as '''not''' part of the CommonMark guarantee, and they are not: a
+    * CommonMark reader sees the same source as a paragraph with pipes in it. The profile flag is
+    * where an application says it wants the extension, and the conformance suite runs without it.
+    *
+    * Rows hold cells, and the header row is the first one. `alignments` has one entry per column of
+    * the delimiter row -- which is also the number of cells every row has.
+    */
+  final case class Table(
+      id: SyntaxId,
+      span: SourceSpan,
+      alignments: Vector[TableAlignment],
+      children: Vector[MarkdownBlock]
+  ) extends Container
+
+  final case class TableRow(
+      id: SyntaxId,
+      span: SourceSpan,
+      header: Boolean,
+      children: Vector[MarkdownBlock]
+  ) extends Container
+
+  /** One cell: a single line of inline content, with its row's header flag and its column's
+    * alignment carried along, so that a rule can build a cell without looking at its parents.
+    */
+  final case class TableCell(
+      id: SyntaxId,
+      span: SourceSpan,
+      header: Boolean,
+      alignment: TableAlignment,
+      inlines: Vector[MarkdownInline]
+  ) extends Leaf
+
+/** A column's alignment in a GFM delimiter row: `---`, `:---`, `:---:`, `---:`. */
+enum TableAlignment:
+  case Unspecified, Left, Center, Right
+
 /** Inline syntax: what lives inside a paragraph or a heading.
   *
   * ==Why the destinations are plain strings==
