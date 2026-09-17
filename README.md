@@ -1,304 +1,180 @@
-# scalajs-ember
+# Ember
 
-Ember ist ein modularer HTML-WYSIWYG-Editor für Scala.js. Er wird als eigenständige
-Engine neu entwickelt; Lexical liefert Konzepte und Vergleichsfälle, keine
-Laufzeitabhängigkeit.
+Ember is a modular, headless-first rich-text editor engine for Scala.js. A single document model
+and set of feature modules drive both server-rendered HTML and a live, hydrated browser editor —
+there is no separate view model to keep in sync and no `contenteditable`/`execCommand` layer
+underneath.
 
-## Dokumente
+## Overview
 
-| Datei | Inhalt |
-| --- | --- |
-| [UI_EDITOR_ARCHITECTURE.md](UI_EDITOR_ARCHITECTURE.md) | Verbindlicher Architekturentwurf, §1–§26. |
-| [UI_EDITOR_IMPLEMENTATION.md](UI_EDITOR_IMPLEMENTATION.md) | Ausführbarer Phasenplan P01–P30 plus optionale Folgepakete X01–X03. |
-| [UI_EDITOR_REVIEW.md](UI_EDITOR_REVIEW.md) | Review vom 14. September 2026: priorisierte Befunde, Teststand und ausführbare Repro-Fälle. |
-| [UI_CORE_INTEGRATION.md](UI_CORE_INTEGRATION.md) | Vertrag der bereits vorhandenen UI-Core-Editing-Primitive im Nachbar-Repo. |
+Ember keeps an immutable document tree as the source of truth. Every edit goes through a
+transaction that produces a new document, a change set, and a position mapping in one atomic
+step; commands turn user intent (a keystroke, a toolbar click) into transactions without ever
+touching the DOM directly. The same document, the same node-type registry, and the same HTML
+semantics drive server-side rendering and the browser's editable surface — hydration claims a
+delivered page instead of re-rendering it, and a text edit in the browser writes exactly one
+`characterData` mutation.
 
-## Stand
+```text
+Document (immutable) --apply operation--> Document', ChangeSet, PositionMapping
+       |
+       +--> ember-html / ember-ui  --> SSR string / live editable surface
+       +--> ember-json             --> versioned wire format
+       +--> ember-markdown         --> CommonMark source text
+```
 
-**Implementierungsstand: P01–P30 umgesetzt, dazu X01 (Tabellen) und X02 (Syntax-Highlighting).**
-P29 und der Abschluss von P30 liegen im Nachbar-Repo `../scalajs-ui`: typisierte Session-,
-Command- und Extension-Handles in derselben Scala.js-Runtime. Vom Nutzer ausgenommen und damit
-nicht freigegeben sind die Geräte-, IME- und Screenreader-Abnahmen. Das
-[Review vom 14. September 2026](UI_EDITOR_REVIEW.md) dokumentiert 14 behobene Befunde
-und die zugehörigen Regressionstests. Das vollständige Scala-Gate ist grün;
-die reale IME-/Geräte-Abnahme sowie natives Clipboard unter Windows-WebKit stehen
-weiterhin aus (Details in P25 des Implementierungsplans). Der frühere
-`contenteditable`-Prototyp (`ember.core.Editor` mit `execCommand` und HTML-String als
-Zustand) und seine vite-Demo wurden entfernt — Architektur §2 und §25 schließen diesen
-Ansatz aus.
+The view layer is built on the separately published Scala.js UI runtime,
+[`scalajs-ui-core`](https://github.com/anjunar/scalajs-ui) — Ember does not implement its own
+renderer, VDOM, or scheduler.
 
-`ember-core` trägt den headless Kern unter `ember.editor.core`: Fehlerkonvention,
-erzwungene Abhängigkeitsgrenze, das unveränderliche Dokumentmodell mit vollständiger
-Strukturvalidierung sowie die primitiven Operationen mit komponierbarer Positionsabbildung.
-Dazu Sitzung, atomare Transaktionen, typisierte Zustandsfelder, Commands mit
-Prioritäten, Extensions mit Auflösung und Rollback sowie die Transform-Schleife.
-`ember-rich-text` setzt darauf das Profil: Absätze, Editing-Semantik und
-UAX-29-Graphemgrenzen. Damit lässt sich Text ohne DOM bearbeiten — die Abnahmezeile
-von Meilenstein A.
+## Installation
 
-Seit P09 gibt es die Ansicht dazu. `ember-html` beschreibt, wie eine Knotenart als HTML
-aussieht; `ember-ui` projiziert das Dokument keyed auf den UI-Komponentenbaum, ohne
-zweiten Renderer und ohne VDOM; `ember-standard` verbindet beide Seiten. Aus **einer**
-Beschreibung entstehen die serverseitige Ausgabe und die Editierfläche im Browser, und ein
-Textedit schreibt genau einen `characterData`-Eintrag — im Browser mit einem
-MutationObserver belegt. Das ist die Abnahmezeile von Meilenstein B.
+Enable Scala.js in `project/plugins.sbt`:
 
-Mit P10 kommt die Persistenz dazu. `ember-json` schreibt und liest ein versioniertes
-Dokumentformat -- mit IDs, mit getrennten Format-, Schema- und Codec-Versionen, mit Grenzen
-gegen fremde Payloads und mit reinen Migrationsfunktionen. Es haengt allein am Kern: ein
-Server, der Dokumente speichert, linkt weder UI noch HTML mit.
+```scala
+addSbtPlugin("org.scala-js" % "sbt-scalajs" % "1.22.0")
+```
 
-P11 bringt Undo und Redo. `ember-history` hält strukturell geteilte Snapshots, gruppiert nach
-den ausdrücklichen Regeln aus §14 -- zusammenhängendes Tippen verschmilzt, Backspace und Delete
-nicht, ein Caretsprung beendet die Gruppe -- und begrenzt sich über Stufenzahl und ein
-geschätztes Byte-Budget. Auch dieses Modul hängt allein am Kern und ist optional.
+Add the modules your document needs. A minimal rich-text editor:
 
-P12 macht aus dem Textprofil ein Rich-Text-Profil: die fünf eingebauten Marks, Bereichs-
-formatierung, Überschriften, Zitate und Umbrüche. Getrennte Textläufe wachsen nach dem
-Entformatieren wieder zusammen — in derselben Transaktion, also ohne eigenen Undo-Schritt --,
-und was die nächste Eingabe formatiert, steht in einem Zustandsfeld statt in der Darstellung.
+```scala
+enablePlugins(ScalaJSPlugin)
+scalaVersion := "3.3.8"
+libraryDependencies ++= Seq(
+  "com.anjunar" %% "scalajs-ember-core"      % "1.0.1",
+  "com.anjunar" %% "scalajs-ember-rich-text" % "1.0.1",
+  "com.anjunar" %% "scalajs-ember-html"      % "1.0.1",
+  "com.anjunar" %% "scalajs-ember-ui"        % "1.0.1"
+)
+```
 
-P13 ergänzt Listen. Ein- und Ausrücken bewegen Knoten, statt sie neu zu bauen -- ein Caret im
-dritten Wort steht danach im dritten Wort --, Enter und Backspace bedeuten an Listengrenzen
-etwas anderes und treten über §12s Prioritätskette vor die Rich-Text-Handler, und vier
-Normalisierungsregeln halten die Struktur legal, egal wer sie verändert hat.
+## Quick start
 
-P14 bringt Links. Eine Adresse wird zu einem `LinkUrl`, und den gibt es nur durch die Policy --
-Command und Import können deshalb nicht auseinanderlaufen. Was die Policy abweist, sind nicht
-nur `javascript:`-Präfixe, sondern auch ihre verschleierten Formen: Steuerzeichen im Schema,
-entity-kodierte Buchstaben, protokollrelative Ziele.
+Build a document, mount it, and dispatch a command:
 
-P15 bringt Codeblöcke. Die Sprache ist ein Metadatum, kein Highlighter -- was das Modul
-garantiert, ist der Inhalt wörtlich in einem unmarkierten Lauf, einschließlich seiner
-Leerzeilen. Genau das brauchen sowohl ein späterer Highlighter als auch ein Markdown-Fence.
+```scala
+import ember.editor.core.*
+import ember.editor.richtext.*
+import ember.editor.standard.ParagraphSupport
+import ember.editor.ui.DocumentView
+import ui.core.render.DomCursor
+import org.scalajs.dom
 
-P16 bringt Bilder, und zwar als Referenz: eine Adresse und eine optionale Kennung, keine
-Dateidaten und keine Objekt-URL. Ein Upload ist laut §20 ein Anwendungsservice; was hier
-ankommt, ist etwas, das schon existiert. Damit ist ein Bild einzufügen eine gewöhnliche
-Dokumentänderung mit einer History-Stufe -- und ein Undo entfernt den Knoten, ohne irgendwo
-eine Datei anzufassen. Die Media-Policy ist strenger als die für Links, weil ein Link von einem
-Leser gefolgt wird, ein Bild aber von der Seite selbst geladen.
+val generator = NodeIdGenerator.sequential()
+val resolved  = ExtensionResolver.resolve(Vector(RichText(generator))).getOrElse(sys.error("extensions"))
+val document  = RichText.emptyDocument(resolved.schema, generator).getOrElse(sys.error("document"))
+val session   = EditorSession.create(document, resolved, resolved.sessionConfig()).getOrElse(sys.error("session"))
 
-P17 und die erste Hälfte von P18 bringen Markdown. `ember-markdown` parst CommonMark 0.31.2 in
-einen Syntaxbaum mit UTF-16-Quellbereichen bis hinunter zum einzelnen Delimiter, und
-`MarkdownWriter` schreibt ihn zurück. Wie weit das reicht, ist **gemessen und nicht
-behauptet**: 651 der 652 Beispiele der offiziellen Konformitätssuite kommen zeichengenau
-heraus, und 628 überleben Schreiben und Neu-Parsen unverändert. Beide Zahlen werden exakt
-geprüft — eine Verschlechterung fällt damit ebenso auf wie eine Verbesserung, die jemand
-nachzutragen vergisst.
+val view = DocumentView.mount(session, DomCursor.root(dom.document.getElementById("root")), ParagraphSupport.views)
 
-Und mit P18 geht beides auch ins Dokument: eine typisierte SPI bildet Syntax auf registrierte
-NodeTypes ab (§18.1), ohne HTML oder DOM als Zwischenstufe. Emphasis wird dabei eine **Mark**
-und kein Knoten — `*a*` ist ein Lauf mit einer Eigenschaft, kein Knoten um einen Lauf herum
-(§8.2). Was Markdown nicht schreiben kann — Unterstreichung, Bildmaße, ein abgewiesenes
-Linkziel —, meldet der Export: unter `Strict` als Fehler, unter `AllowLossy` als Diagnose.
-Still verloren geht nichts.
+session.update(_.setSelection(RichText.caretAtStart(session.document)))
+session.dispatch(RichText.InsertText, "Hello, Ember")
+session.dispatch(RichText.ToggleMark, StandardMarks.Strong)
+```
 
-P19 macht den Editor zu einem Formularfeld. Genau eine benannte Textarea trägt den Wert; ohne
-JavaScript ist sie sichtbar und normal submitbar, und erst nach erfolgreicher Aktivierung
-verschwindet sie hinter der Rich-Ansicht — verborgen, nie `disabled`. Im Quelltextmodus besitzt
-ein `SourceDraft` den Wert, und eine Dokumentänderung überschreibt ihn nicht: sie wird
-zurückgestellt oder abgewiesen. Die **Formatgrenze liegt vor dem Commit** — ein
-`ToggleUnderline` in einem Strict-CommonMark-Feld erzeugt kein Dokument, dessen Formwert
-veraltet wäre, sondern gar keines.
+For SSR, call `DocumentView.renderToHtml(document, views)` on a plain `Document` — no session, no
+selection, no history; browser hydration then claims that same markup through
+[`ember-browser`](ember-browser/README.md). See
+[`ember-demo`](ember-demo/README.md) for a complete, runnable application (navigation, a toolbar,
+light/dark themes, and a pre-rendered-then-hydrated Pages build), and
+[`ember-forms`](ember-forms/README.md) for using the editor as a plain HTML form field with a
+working no-JavaScript fallback.
 
-P20 nimmt eine schon ausgelieferte Seite in Betrieb. Was darauf stand, bevor das Skript lief —
-der getippte Text, die Auswahl samt Richtung, der Fokus —, wird **vor** dem ersten Claim
-erfasst; ein Editor-Check vergleicht IDs, Text und die genannten Attribute gegen dieselbe
-Semantik, die die Seite gerendert hat. Scheitert er, baut sich nur die Vorschau neu auf: die
-Textarea liegt außerhalb dieser Grenze und behält, was jemand hineingeschrieben hat.
-Editierbar wird das Feld erst nach erfolgreichem Claim **und** abgeschlossener äußerer
-Hydration — und solange eine Eingabesitzung offen sein könnte oder der Quelltext seit dem
-Rendern geändert wurde, gar nicht.
+## Modules
 
-P21 verbindet logische und Browserauswahl. Die Abbildung zählt dabei **keine** DOM-Kinder: jeder
-Offset kommt von den Hosts der Dokumentkinder, sodass Gruppenanker, Innentags und Platzhalter
-von selbst wegfallen. Geschrieben wird nur bei passender Projektionsrevision und nur in einen
-fokussierten Host — ein Hintergrundupdate nimmt niemandem den Fokus weg. Pfeilnavigation läuft
-nativ und wird importiert, nicht gerechnet; ein Caret in einem nativen Feld innerhalb eines
-Atoms gehört nicht dem Editor. Und alles, was der Port anfasst, kommt aus dem `ownerDocument`
-seines Hosts, damit ein Editor in einem iframe oder Shadow Root funktioniert oder ehrlich sagt,
-dass er es nicht kann.
+Ember follows one naming convention throughout: directory `ember-<module>`, sbt ID and artifact
+`scalajs-ember-<module>`, Scala package `ember.editor.<module>`. A dependency-boundary lint
+(`boundaryCheck` in [`build.sbt`](build.sbt)) enforces the allowed edges between modules as a
+build gate, not just a convention.
 
-Und mit P22 kann man tippen. Ein Tastendruck wird zu einer Absicht, die Absicht zu einem
-Command, das Command zu einer Transaktion -- der Controller fasst das Dokument-DOM nie an und
-kennt `execCommand` nicht. Verhindert wird die native Aktion nur bei erfolgreicher Übernahme oder
-bewusster Ablehnung; was niemand beansprucht, macht der Browser, und `input` zieht das Modell
-nach. Ein readonly Editor bleibt dabei fokussierbar und lesbar, und Tab verlässt die Fläche,
-solange nicht jemand Einrückung ausdrücklich einschaltet -- mit einem Ausgang.
+| Module | Package | Depends on | Responsibility |
+| --- | --- | --- | --- |
+| [`ember-core`](ember-core/README.md) | `core` | — | Immutable document model, transactions, commands, extensions |
+| [`ember-rich-text`](ember-rich-text/README.md) | `richtext` | core | Paragraphs, headings, marks, text editing, Unicode boundaries |
+| [`ember-list`](ember-list/README.md) | `list` | core, rich-text | Ordered/unordered lists, indent/outdent |
+| [`ember-link`](ember-link/README.md) | `link` | core, rich-text | Typed inline links with a validated URL policy |
+| [`ember-image`](ember-image/README.md) | `image` | core | Reference-based media as inline atoms |
+| [`ember-code`](ember-code/README.md) | `code` | core, rich-text | Code blocks with typed language metadata |
+| [`ember-table`](ember-table/README.md) | `table` | core, rich-text | Tables with rectangular cell selection |
+| [`ember-history`](ember-history/README.md) | `history` | core | Undo/redo with explicit grouping rules |
+| [`ember-json`](ember-json/README.md) | `json` | core | Versioned JSON wire format, schema migration |
+| [`ember-html`](ember-html/README.md) | `html` | core | Semantic HTML contract, fragment import/export |
+| [`ember-markdown`](ember-markdown/README.md) | `markdown` | core | CommonMark 0.31.2 parser, writer, source maps |
+| [`ember-ui`](ember-ui/README.md) | `ui` | core, html, `scalajs-ui-core` | Keyed document projection onto the UI runtime |
+| [`ember-browser`](ember-browser/README.md) | `browser` | core, rich-text, html, ui | Hydration, selection mapping, input pipeline |
+| [`ember-browser-support`](ember-browser-support/README.md) | `browsersupport` | browser + feature modules | Concrete keyboard/input bindings per feature |
+| [`ember-clipboard`](ember-clipboard/README.md) | `clipboard` | core, rich-text, json, html, browser | Copy/cut/paste and structured drag-and-drop |
+| [`ember-code-highlighting`](ember-code-highlighting/README.md) | `codehighlighting` | core, code, ui | Syntax highlighting as a pure view decoration |
+| [`ember-forms`](ember-forms/README.md) | `forms` | core, markdown, json, html, ui, browser, image, clipboard | The editor as a form field, with a no-JS fallback |
+| [`ember-toolbar`](ember-toolbar/README.md) | `toolbar` | core, rich-text, history, link, image, clipboard, ui, browser | Optional accessible command toolbar and dialogs |
+| [`ember-standard`](ember-standard/README.md) | `standard` | nearly everything | The one place node types and renderers meet |
+| [`ember-demo`](ember-demo/README.md) | `demo` | most modules + `scalajs-ui-viewport` | Runnable showcase application. **Not published.** |
+| [`ember-integration`](ember-integration/README.md) | `integration` | every module | Real-browser test harness. **Not published.** |
 
-P23 nimmt den einen Zustand dazu, in dem der Editor **nicht** Herr über seinen eigenen DOM ist:
-eine laufende Texteingabe. Der Browser schreibt dort Text, den er noch ändern wird, und jeder
-Schreibzugriff dorthin zerstört die Eingabe. Also wird der betroffene Block gesperrt, jede
-unabhängige Änderung **vor** dem Commit abgewiesen oder mit Bookmark zurückgestellt, und der
-Abschluss liest genau einmal — revisioniert, damit ein nachgereichtes `input` nichts verdoppelt.
-Eine Composition ergibt dabei genau eine Undo-Stufe.
+`ember-core`, `ember-rich-text`, `ember-history`, `ember-json`, `ember-html` and `ember-markdown`
+are headless — no DOM, no UI runtime — and can run in a plain server-side JVM/Node process. Only
+`ember-ui`, `ember-code-highlighting`, `ember-browser`, `ember-browser-support`, `ember-clipboard`,
+`ember-forms`, `ember-toolbar`, `ember-standard`, `ember-demo` and `ember-integration` know about
+`org.scalajs.dom` and/or `scalajs-ui-core`.
 
-Und für alles, was sonst in eine Seite schreibt — eine Erweiterung, ein Übersetzungswerkzeug —
-gilt: bemerkt wird es von einem `MutationObserver`, beurteilt wird es am **Dokument**, und
-repariert wird die Ansicht aus dem Dokument heraus. Genau einmal; danach bleiben der Text und
-eine Meldung.
+## Dependency on scalajs-ui
 
-Was noch fehlt, steht ausdrücklich da: eine reale IME-Abnahme ist eine Handprüfung mit
-dokumentiertem Geräteergebnis
-([manual-ime.md](ember-integration/browser/manual-ime.md)), und ohne ausgefüllte Zeilen gilt sie
-als nicht erteilt.
-
-## Module
-
-P25 ergänzt [`ember-clipboard`](ember-clipboard/README.md): markierte Teilbereiche
-und strukturierte Fragmente, validiertes MIME-Fallback, bestätigtes Cut und
-Drag-Move mit Positionsmapping. Dateien werden an einen injizierten Media-Intent
-weitergereicht. P26 ergänzt den [Medienservice und Upload-Lifecycle](ember-forms/MEDIA_SERVICE.md):
-Picker/Paste/Drop, gemappte Ziele, Abbruch, Preview-Freigabe und einen geprüften
-Multipart-Weg ohne JavaScript. P27 ergänzt [`ember-toolbar`](ember-toolbar/README.md):
-komponierbare Commands, zugängliche Link-/Bilddialoge und eine eigenständige
-Demoansicht unter `/toolbar` im Browser-Harness. P28 ergänzt reproduzierbare
-Korpora, Profilgrößen, Modulgrenzen und Performance-Messungen. Die
-[Supportmatrix](ember-integration/browser/support-matrix.md) und der
-[Messbericht](benchmarks/report.md) unterscheiden automatisierte Belege von
-offener Geräteabnahme und der gemessenen Grenze großer flacher Umordnungen.
-Der [Runtime-Fix für große Moves](benchmarks/runtime-reorder.md) ist mit einem
-lokalen UI-Core-Kandidaten geprüft (50000 Absätze: 95–132 ms). Die Korrektur wurde
-anschließend als [UI-Core 1.0.1 veröffentlicht und übernommen](benchmarks/ui-core-1.0.1-release.md).
-Mit X02 kommt [`ember-code-highlighting`](ember-code-highlighting/README.md) dazu:
-Syntax-Highlighting für Scala, JavaScript/TypeScript, JSON, HTML/XML, CSS, Shell und Markdown,
-gefärbt über die CSS Custom Highlight API — ohne einen einzigen Schreibzugriff auf Dokument oder
-DOM, damit Auswahl, Recovery und Composition unberührt bleiben. Ein Markdown-Fence färbt seinen
-Inhalt in der Sprache seines Info-Strings.
-
-Mit X01 kommt [`ember-table`](ember-table/README.md) dazu: Tabellen mit Kopfzeile und
-Spaltenausrichtung, eine rechteckige Zellauswahl über einen registrierten Selection-Mapper,
-Struktur-Commands, Tab-Navigation und GFM-Tabellen hinter einem eigenen Markdown-Profil — ohne
-Sonderfall im Kern. Keines der Standardbündel zieht Tabellen herein.
-
-Konvention: Verzeichnis `ember-<modul>`, sbt-ID und Artefakt `scalajs-ember-<modul>`,
-Scala-Paket `ember.editor.<modul>`. Die vollständige Modultabelle steht in
-Architektur §6; angelegt wird ein Modul erst in der Phase, die es braucht.
-
-Vorhanden:
-
-- [`ember-core`](ember-core/README.md) — sbt-ID `scalajs-ember-core`, Paket
-  `ember.editor.core`. Headless, keine Produktionsabhängigkeiten außer der
-  Standardbibliothek. Die Grenze ist als Build-Gate erzwungen (`boundaryCheck`).
-- [`ember-rich-text`](ember-rich-text/README.md) — sbt-ID `scalajs-ember-rich-text`,
-  Paket `ember.editor.richtext`. Absätze, Editing-Commands, Normalisierung und die
-  UAX-29-Graphemgrenzen. Hängt ausschließlich am Kern.
-- [`ember-list`](ember-list/README.md) — sbt-ID `scalajs-ember-list`, Paket
-  `ember.editor.list`. Listen, Ein- und Ausrücken, Listennormalisierung. Headless und optional.
-- [`ember-link`](ember-link/README.md) — sbt-ID `scalajs-ember-link`, Paket
-  `ember.editor.link`. Inline-Links mit geprüfter URL-Policy. Headless und optional.
-- [`ember-code`](ember-code/README.md) — sbt-ID `scalajs-ember-code`, Paket
-  `ember.editor.code`. Codeblöcke mit typisierten Sprachmetadaten, ohne Highlighter.
-- [`ember-code-highlighting`](ember-code-highlighting/README.md) — sbt-ID
-  `scalajs-ember-code-highlighting`, Paket `ember.editor.codehighlighting`. Zeilenlexer,
-  Grammatiken und Code-Dekorationen als abgeleiteter View-State. Optional.
-- [`ember-table`](ember-table/README.md) — sbt-ID `scalajs-ember-table`, Paket
-  `ember.editor.table`. Tabellen, Zellauswahl, Normalisierung und Struktur-Commands. Hängt an
-  core und rich-text; Formate in `ember-standard`, Browserbindungen in `ember-browser-support`.
-- [`ember-image`](ember-image/README.md) — sbt-ID `scalajs-ember-image`, Paket
-  `ember.editor.image`. Externe Bilder als Inline-Atome mit geprüfter Media-Policy. Hängt
-  allein am Kern — ein Bild braucht vom Rich-Text-Profil nichts.
-- [`ember-markdown`](ember-markdown/README.md) — sbt-ID `scalajs-ember-markdown`, Paket
-  `ember.editor.markdown`. CommonMark-Parser, -Writer, Syntaxbaum, SourceMaps und die
-  Adapter-SPI. Headless, hängt allein am Kern — die Regeln kommen von außen.
-- [`ember-forms`](ember-forms/README.md) — sbt-ID `scalajs-ember-forms`, Paket
-  `ember.editor.forms`. Das Editorfeld als Formularfeld: eine benannte Textarea, ein
-  geschützter Quelltextentwurf und der Weg ohne JavaScript.
-- [`ember-json`](ember-json/README.md) — sbt-ID `scalajs-ember-json`, Paket
-  `ember.editor.json`. Wire-ADT, Node- und Mark-Codecs, Grenzen, Schema-Migration. Headless.
-- [`ember-history`](ember-history/README.md) — sbt-ID `scalajs-ember-history`, Paket
-  `ember.editor.history`. Undo/Redo, Gruppierungsregeln, Limits. Headless und optional.
-- [`ember-html`](ember-html/README.md) — sbt-ID `scalajs-ember-html`, Paket
-  `ember.editor.html`. Der semantische HTML-Vertrag und eine unveränderliche
-  Fragmentdarstellung sowie der begrenzte HTML-Import mit Verlustdiagnosen. Headless.
-- [`ember-ui`](ember-ui/README.md) — sbt-ID `scalajs-ember-ui`, Paket
-  `ember.editor.ui`. Keyed Dokumentansicht, NodeView-SPI und semantische HTML-Ausgabe
-  über die gemeinsame UI-Runtime.
-- [`ember-browser`](ember-browser/README.md) — sbt-ID `scalajs-ember-browser`, Paket
-  `ember.editor.browser`. Hydration mit Verlustschutz, die Brücke zur Browserauswahl und die
-  Eingabepipeline: Positionsabbildung, Selection-Port, Fokus, Bookmarks, `beforeinput`/`input`
-  und die Tastatur.
-- [`ember-browser-support`](ember-browser-support/README.md) — sbt-ID
-  `scalajs-ember-browser-support`, Paket `ember.editor.browsersupport`. Wo Browserabsichten auf
-  Feature-Commands treffen. Getrennt, damit `browser` kein Feature kennen muss.
-- [`ember-standard`](ember-standard/README.md) — sbt-ID `scalajs-ember-standard`, Paket
-  `ember.editor.standard`. Die einzeln wählbaren Standardadapter — der Ort, an dem
-  Knotenarten und Renderer einander kennen.
-- [`ember-demo`](ember-demo/README.md) — sbt-ID `scalajs-ember-demo`. **Nicht publiziert.**
-  Eigenständige Showcase mit vier Beispielen, Ribbon, Viewport-Dialogen, Hell/Dunkel,
-  Lesemodus und zuschaltbaren Live-Ansichten für Markdown, JSON, HTML und Dokumentbaum. Der
-  Pages-Build rendert die initiale Ansicht in Node vor und hydriert denselben UI-Baum im Browser.
-- [`ember-integration`](ember-integration/browser/README.md) — sbt-ID
-  `scalajs-ember-integration`. **Nicht publiziert.** Browser-Harness, die die tatsächlich
-  gelinkte Anwendung in echten Engines ausführt.
-
-## Abhängigkeit auf scalajs-ui
-
-Die generischen Editing-Primitive (Text-Splices, `Runtime.move`, `KeyedChildren`,
-`TextArea`, `HydrationBoundary`, `HostMutationGuard`) liegen im Nachbar-Repo
-`../scalajs-ui` und sind dort implementiert und getestet. Sie kommen seit P17 als
-veröffentlichtes Artefakt von Maven Central:
+The generic editing/rendering primitives Ember's view layer sits on — keyed children, text
+splicing, hydration boundaries, host mutation guards — live in the neighbor project
+[`scalajs-ui`](https://github.com/anjunar/scalajs-ui) and are consumed as a published Maven
+Central artifact:
 
 ```scala
 libraryDependencies += "com.anjunar" %% "scalajs-ui-core" % "1.0.1"
 ```
 
-**Das Nachbar-Repo muss also nicht mehr danebenliegen.** Bis P16 war es eine Quell-Abhängigkeit
-(`ProjectRef(file("../scalajs-ui"), "scalajs-ui-core")`), und das war richtig, solange
-ui-core sich unter dem Editor bewegte — er war dessen erster ernsthafter Konsument, und jeder
-Befund musste dort sofort behoben werden können. Der Preis war, dass beide Builds aneinander
-hingen: ein halb gespeicherter Stand nebenan hat diesen Build mehrfach zum Stehen gebracht,
-ohne dass hier etwas falsch war. Mit 1.0.0 ist der Vertrag abgenommen, also endet die Kopplung
-— und der Settings-Graph schrumpft dabei von 34403 auf 18552.
+Only `ember-ui`, `ember-standard`, `ember-code-highlighting`, `ember-browser`,
+`ember-browser-support`, `ember-toolbar`, `ember-integration` and `ember-demo` depend on it (the
+last two additionally on `scalajs-ui-viewport`). `ember-core` and `ember-rich-text` stay
+completely headless. The dependency boundary lint blocklists `scalajs-ui` as a whole and reopens
+exactly `scalajs-ui-core` through an explicit allowlist entry, so an accidental `ui-forms` or
+`ui-viewport` import fails the build immediately rather than slipping onto the classpath.
 
-`%%` und nicht `%%%`, obwohl das Artefakt `scalajs-ui-core_sjs1_3` heißt: in einem Projekt mit
-aktiviertem `ScalaJSPlugin` setzt das Plugin das `sjs1_`-Präfix bereits selbst.
+## Build and tests
 
-Konsumenten sind `ember-ui`, `ember-standard`, `ember-integration` und `ember-demo`. Für
-`ember-ui` gilt die Publish-Regel aus §6 — ein veröffentlichtes Modul zeigt ausschließlich auf
-veröffentlichte Artefakte —, und sie ist gewahrt; nachprüfbar mit
-`sbt --server "scalajs-ember-ui/makePom"`.
-
-**Nur der Kern, und das steht jetzt im Lint.** Die Quell-Abhängigkeit garantierte strukturell,
-dass kein weiteres UI-Modul auf dem Classpath liegt; ein Binärartefakt tut das nicht. Der
-Grenz-Lint verbietet deshalb `scalajs-ui` als Ganzes und gibt über `allowedModules` genau
-`scalajs-ui-core` wieder frei. Ein versehentliches `ui-forms` bricht den Build mit einer
-klaren Meldung, statt still durchzurutschen.
-
-`ember-core` und `ember-rich-text` bleiben davon unberührt: sie sind headless
-(Architektur §7), hängen an nichts aus dem Nachbar-Repo, und ihr Gate läuft ohne es.
-
-## Entwicklung
-
-Voraussetzungen: JDK und sbt. Für die Browser-Harness zusätzlich Node/npm.
-
-Kommentare und Scaladoc im Quelltext: **Englisch** (seit dem 10. September 2026). Die Module
-bis P11 tragen noch deutsche Kommentare und werden nicht nachträglich umgestellt. Die
-Markdown-Dokumente bleiben deutsch.
+Requires a JDK and sbt; the browser harness additionally needs Node/npm.
 
 ```bash
 sbt --server "Test/testOnly *"
 ```
 
-Die Demo ansehen (baut die lokalen Ember-Quellen und startet den Server):
+runs the complete headless Scala test suite. Use `sbt --server` — the `sbtn` thin client does not
+start reliably on every machine, and plain `sbt test` delegates to `testQuick` in sbt 2, which is
+not a suitable acceptance gate.
+
+To see the editor running, start the demo (builds the local Ember sources, no prior release
+needed):
 
 ```bash
 npm --prefix ember-demo run dev
 ```
 
-Dann [http://127.0.0.1:4200](http://127.0.0.1:4200). Bedienung, Entwicklungsablauf,
-Browser-Tests und Formatgrenzen stehen in [ember-demo/README.md](ember-demo/README.md).
-Der `master`-Workflow veröffentlicht denselben optimierten Build unter
-[anjunar.github.io/scalajs-ember](https://anjunar.github.io/scalajs-ember/) als vorgerendertes
-HTML mit anschließender Hydration.
+then open [http://127.0.0.1:4200](http://127.0.0.1:4200) — see
+[`ember-demo`](ember-demo/README.md) for details. The `master` workflow publishes the same
+optimized build to [anjunar.github.io/scalajs-ember](https://anjunar.github.io/scalajs-ember/) as
+pre-rendered HTML followed by hydration.
 
-### Maven Central
+To run the real-browser acceptance suite (Chromium, Firefox, WebKit):
 
-Veröffentlicht werden alle Bibliotheksmodule unter `com.anjunar:scalajs-ember-*`; Demo,
-Harness und Benchmark-Profile sind `publish / skip`. Wie in `scalajs-ui` signiert `sbt-pgp`
-das Bundle, sbt 2 legt es unter `target/sona-staging` ab, und das Skript lädt es in das
-Central Portal hoch und wartet auf den Status:
+```bash
+sbt --server "scalajs-ember-integration/fullLinkJS"
+cd ember-integration/browser && npm ci && npm run verify
+```
+
+See [`ember-integration`](ember-integration/README.md) for the full suite list, and its README
+for a Windows-specific Firefox launch workaround
+(`EMBER_FIREFOX_CHANNEL=moz-firefox npm run test:browser`).
+
+### Publishing
+
+Library modules publish as `com.anjunar:scalajs-ember-*`; the demo, harness and benchmark
+profiles are `publish / skip`. Releases are signed with `sbt-pgp`, staged under
+`target/sona-staging`, and uploaded to the Central Portal:
 
 ```powershell
 .\scripts\publish-central.ps1
@@ -308,37 +184,17 @@ Central Portal hoch und wartet auf den Status:
 scripts/publish-central.sh
 ```
 
-Voraussetzungen: eine Release-Version in `build.sbt` (ein `-SNAPSHOT` wird abgewiesen), ein
-GPG-Signierschlüssel und die Zugangsdaten in `~/.sbt/sonatype_central_credentials`
-(`user=…`, `password=…`) oder in `SONATYPE_CENTRAL_USERNAME`/`SONATYPE_CENTRAL_PASSWORD`.
-`-PublishingType USER_MANAGED` bzw. `--publishing-type USER_MANAGED` lässt die Freigabe im
-Portal von Hand; `-SkipPublishSigned` lädt ein bereits erzeugtes Bundle erneut hoch.
+Requires a release version in `build.sbt` (a `-SNAPSHOT` is rejected), a GPG signing key, and
+credentials in `~/.sbt/sonatype_central_credentials` or
+`SONATYPE_CENTRAL_USERNAME`/`SONATYPE_CENTRAL_PASSWORD`.
 
-Die Harness läuft getrennt, weil sie den Linkeroutput braucht:
+## Project status and license
 
-```bash
-sbt --server "scalajs-ember-integration/fullLinkJS"
-cd ember-integration/browser && npm ci && npm run verify
-```
+The repository is on the `1.0.1` line and under active development. The full Scala suite and the
+browser harness run in CI on every push and pull request. Source, releases and issue tracking live
+in the [GitHub repository](https://github.com/anjunar/scalajs-ember).
 
-`sbt --server` ist Pflicht: der sbtn-Thin-Client scheitert auf diesem Rechner am
-Serverstart. `sbt --server test` delegiert in sbt 2 auf `testQuick` und taugt nicht
-als Abnahme-Gate.
-
-Chromium, Firefox und WebKit sind grün (126 Fälle, 42 je Engine). Auf diesem Rechner startet der von
-Playwright mitgelieferte Firefox allerdings nicht — er verlangt eine private
-Side-by-Side-Assembly, die Windows ihm verweigert. Ein regulär installierter Firefox
-derselben Version startet einwandfrei, das Problem liegt also im mitgelieferten Build.
-Deshalb lokal:
-
-```bash
-EMBER_FIREFOX_CHANNEL=moz-firefox npm run test:browser
-```
-
-Die vollständige Diagnose steht in
-[ember-integration/browser/README.md](ember-integration/browser/README.md).
-
-## Lizenz
-
-Ember steht unter der [MIT-Lizenz](LICENSE). `ember-markdown` enthält eine Portierung von
-commonmark.js; deren Lizenztexte stehen in [ember-markdown/NOTICE](ember-markdown/NOTICE).
+Ember is available under the [MIT License](LICENSE). `ember-markdown` contains a ported rule
+structure from commonmark.js (BSD-2-Clause, Copyright (c) 2014 John MacFarlane); the full license
+text is in [`ember-markdown/NOTICE`](ember-markdown/NOTICE).
+</content>

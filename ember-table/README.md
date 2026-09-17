@@ -1,29 +1,35 @@
 # scalajs-ember-table
 
-Tabellen mit eigenem Auswahlvertrag (X01). Headless und optional.
-
-Verbindlicher Entwurf: [UI_EDITOR_IMPLEMENTATION.md](../UI_EDITOR_IMPLEMENTATION.md) X01,
-[UI_EDITOR_ARCHITECTURE.md](../UI_EDITOR_ARCHITECTURE.md) §§8, 11, 12, 13.
+Tables with a dedicated rectangular cell-selection contract. Headless and optional.
 
 | | |
 | --- | --- |
-| sbt-ID / Artefakt | `scalajs-ember-table` |
-| Scala-Paket | `ember.editor.table` |
-| Produktionsabhängigkeiten | `scalajs-ember-core`, `scalajs-ember-rich-text` |
+| sbt ID / artifact | `scalajs-ember-table` |
+| Scala package | `ember.editor.table` |
+| Production dependencies | `scalajs-ember-core`, `scalajs-ember-rich-text` (`scalajs-ember-history` for tests) |
 
-## Stand
+## Overview
 
-X01 umgesetzt: `TableNode`/`TableRowNode`/`TableCellNode`, `TableSelection` mit registriertem
-Mapper und Validator, acht Normalisierungsregeln, elf Befehle und die `TableExtension`. Formate
-(HTML, JSON, GFM-Markdown, HTML-Import) liegen in `ember-standard` (`TableSupport`), Tastatur und
-Zellauswahl im Browser in `ember-browser-support` (`TableBindings`, `TableSelectionView`).
+`ember-table` adds `TableNode`/`TableRowNode`/`TableCellNode`, a `TableSelection` with a
+registered selection mapper and validator, eight normalization rules, eleven commands and the
+`TableExtension`. Formats (HTML, JSON, GFM Markdown, HTML import) live in
+[`ember-standard`](../ember-standard/README.md) (`TableSupport`); keyboard and browser cell
+selection live in [`ember-browser-support`](../ember-browser-support/README.md)
+(`TableBindings`, `TableSelectionView`). No standard bundle pulls tables in automatically — an
+application opts in explicitly.
 
-## Verwendung
+## Installation
+
+```scala
+libraryDependencies += "com.anjunar" %% "scalajs-ember-table" % "1.0.1"
+```
+
+## Quick start
 
 ```scala
 val resolved = ExtensionResolver
   .resolve(Vector(RichText(generator), TableExtension(generator), history))
-  .getOrElse(…)
+  .getOrElse(...)
 
 session.dispatch(TableCommands.InsertTable, TableSize(rows = 3, columns = 3))
 session.dispatch(TableCommands.InsertRow, RowPosition.Below)
@@ -38,96 +44,84 @@ session.dispatch(TableCommands.SelectCells, anchorCell -> focusCell)
 session.dispatch(TableCommands.CollapseCellSelection)               // Escape
 ```
 
-In der Anwendung, zusätzlich zu dem, was sie schon hat — keines der Standardbündel zieht
-Tabellen herein:
+Wiring tables into an application, in addition to what it already has (no bundle includes this
+automatically):
 
 ```scala
-TableSupport.views                                  // statt ImageSupport.views
-StandardJsonSupport.everything(…) ++ TableSupport.json
-MarkdownSupports.everything(…) ++ TableSupport.markdownRules  // Lesen mit commonMarkSafeWithTables
-StandardHtmlImport.everything(…).withRules(TableSupport.htmlImport*)
-TableBindings.tabNavigation ++ EditorBindings.tabIndentation ++ … ++ TableBindings.keyboard
+TableSupport.views                                              // alongside ImageSupport.views etc.
+StandardJsonSupport.everything(...) ++ TableSupport.json
+MarkdownSupports.everything(...) ++ TableSupport.markdownRules   // read with commonMarkSafeWithTables
+StandardHtmlImport.everything(...).withRules(TableSupport.htmlImport*)
+TableBindings.tabNavigation ++ EditorBindings.everythingKeyboard ++ TableBindings.keyboard
 TableSelectionView.attach(session, view, selectionPort)
 ```
 
-## Das Modell
+## The model
 
 ```text
 TableNode(header, alignments)
   TableRowNode
     TableCellNode(header, alignment)
-      ParagraphNode …
+      ParagraphNode ...
 ```
 
-Eine Zelle hält **Blöcke**, keinen Inline-Inhalt. Enter macht in einer Zelle einen zweiten
-Absatz, und HTML erlaubt Listen in Zellen. Markdown kann nur eine Zeile pro Zelle — der Adapter
-meldet mehr als eine als Verlust, statt das Dokument auf das zu beschränken, was ein Format
-schreiben kann.
+A cell holds **blocks**, not inline content — Enter in a cell makes a second paragraph, and HTML
+allows lists in cells; Markdown can only manage one line per cell, and the adapter reports more
+than one as a loss instead of restricting the document to what a format can write. Whether the
+first row is a header, and how each column aligns, are facts of the **table**; cells carry a copy
+because a cell renders as `th`/`td` without knowing its row. Normalization keeps the copies in
+sync; commands only write the table.
 
-Ob die erste Zeile ein Kopf ist und wie jede Spalte ausgerichtet ist, sind Tatsachen der
-**Tabelle**. Die Zellen tragen eine Kopie, weil eine Zelle als `th` oder `td` gerendert wird, ohne
-ihre Zeile zu kennen (§15.1). Die Normalisierung hält die Kopien nach; Befehle schreiben nur die
-Tabelle.
+## Invariants, repaired rather than rejected
 
-## Invarianten, repariert statt abgewiesen
-
-| Regel | Wirkung |
+| Rule | Effect |
 | --- | --- |
-| `table.children-are-rows` | Ein Nicht-Zeilen-Kind der Tabelle bekommt Zeile und Zelle |
-| `table.row-children-are-cells` | Ein Nicht-Zellen-Kind einer Zeile bekommt eine Zelle |
-| `table.cell-holds-blocks` | Inline-Inhalt direkt in einer Zelle kommt in einen Absatz |
-| `table.rectangular` / `table.row-keeps-rectangular` | Kurze Zeilen werden aufgefüllt; Kopf- und Ausrichtungskopien folgen der Tabelle |
-| `table.empty-cell-gets-paragraph` | Eine leere Zelle bekommt einen Absatz mit leerem Lauf |
-| `table.empty-row-goes` / `table.empty-table-goes` | Leere Zeilen und Tabellen verschwinden |
+| `table.children-are-rows` | A non-row child of the table gets a row and a cell |
+| `table.row-children-are-cells` | A non-cell child of a row gets a cell |
+| `table.cell-holds-blocks` | Inline content dropped directly into a cell goes into a paragraph |
+| `table.rectangular` / `table.row-keeps-rectangular` | Short rows are padded; header/alignment copies follow the table |
+| `table.empty-cell-gets-paragraph` | An empty cell gets a paragraph with an empty run |
+| `table.empty-row-goes` / `table.empty-table-goes` | Empty rows and tables disappear |
 
-Die Validierung ist bewusst nachsichtig: eingefügtes HTML ist selten rechteckig, und ein Import
-baut sein Dokument ohne Transforms. Sobald die Tabelle in eine Sitzung kommt, wird sie repariert.
+Validation is deliberately lenient — pasted HTML is rarely rectangular, and an import builds its
+document without transforms. As soon as a table enters a session, it is repaired.
 
-## Kein Core-Spezialfall
+## No kernel special case
 
-X01 verlangt es, und so ist es gebaut: Knotenarten, ein `SelectionMapper`, Transforms und Commands
-kommen über die Türen, die §13 ohnehin hat. Das Einzige, was das Rich-Text-Profil dazulernen
-musste, ist ein **Marker**, kein Typ:
+Node types, a `SelectionMapper`, transforms and commands all come through the doors the kernel
+already has. The only thing the rich-text profile had to learn is a **marker**, not a type:
+`IsolatingElementNode` (the cell — Backspace at the start and Delete at the end never pull text
+from a neighboring cell; a range from one cell into another is never merged) and
+`StructuralElementNode` (table and row — a range that only touches them clears the cells inside
+rather than removing rows or columns; a table fully contained in a range goes as a whole). A
+session without `TableExtension` has no mapper for `TableSelection` and rejects such a selection —
+the kernel never guesses.
 
-- `IsolatingElementNode` — die Zelle. Backspace am Anfang und Entf am Ende ziehen nie Text aus
-  einer Nachbarzelle; ein Bereich von einer Zelle in eine andere wird nicht zusammengeführt.
-- `StructuralElementNode` — Tabelle und Zeile. Ein Bereich, der sie nur **berührt**, leert die
-  Zellen darin statt Zeilen oder Spalten zu entfernen. Liegt eine Tabelle **vollständig** in einem
-  Bereich, geht sie als Ganzes.
+## Cell selection
 
-Eine Sitzung ohne `TableExtension` hat keinen Mapper für `TableSelection` und weist eine solche
-Auswahl ab — der Kern rät nicht.
+`TableSelection(table, anchor, focus)` is the rectangle spanned by its two corners **at the time
+of the question** — an inserted row inside the rectangle belongs to it afterward, and if a corner
+is lost the selection falls back to a caret in whichever one remains. Backspace, Delete, typing
+and Enter over a cell selection clear the cells (high-priority handlers ahead of the rich-text
+commands, only for this selection kind). In the browser, dragging across cell boundaries builds
+one via `TableSelectionView`, painted through a stylesheet in `head` and addressed by node IDs —
+nothing is written into the editor DOM. The browser sees it via `SelectionPort.represent` as a
+range from the anchor to the focus cell, and the port recognizes that as its own echo.
 
-## Die Zellauswahl
+## Keyboard
 
-`TableSelection(table, anchor, focus)` ist das Rechteck, das die zwei Ecken **zum Zeitpunkt der
-Frage** aufspannen. Eine eingefügte Zeile im Rechteck gehört danach dazu. Geht eine Ecke verloren,
-fällt die Auswahl auf einen Caret in der verbliebenen zurück.
+Tab jumps to the end of the next cell, wrapping to a new row from the last cell; Shift+Tab goes
+back. This is the explicitly opted-in behavior of `TabPolicy.IndentsUntilEscape` — Escape then Tab
+still leaves the editor from inside a table. Outside a table the command reports `Pass`, and lists
+and code keep the key.
 
-Backspace, Entf, Tippen und Enter über einer Zellauswahl leeren die Zellen; das übernehmen
-Handler mit hoher Priorität vor den Rich-Text-Befehlen (§12), und nur für diese Auswahlart.
+## Limitations
 
-Im Browser entsteht sie beim Ziehen über Zellgrenzen: `TableSelectionView` hebt einen importierten
-Bereich zwischen zwei Zellen derselben Tabelle zu einem Rechteck an. Angezeigt wird sie über ein
-Stylesheet im `head`, adressiert über die Knoten-IDs und auf den Editor-Host beschränkt — im
-Editor-DOM wird nichts geschrieben. Dem Browser wird sie über `SelectionPort.represent` als Bereich
-von der Anker- zur Fokuszelle gezeigt; der Port erkennt das als eigenes Echo.
-
-## Tastatur
-
-Tab springt ans Ende der nächsten Zelle, aus der letzten in eine neue Zeile; Shift+Tab zurück. Das
-ist §22s ausdrücklich aktiviertes Verhalten: `TableBindings.tabNavigation` gehört zu
-`TabPolicy.IndentsUntilEscape`, Escape und dann Tab verlassen den Editor auch aus einer Tabelle.
-Außerhalb einer Tabelle meldet der Befehl `Pass`, und Listen und Code behalten die Taste.
-
-## Grenzen
-
-- Keine verbundenen Zellen (Colspan/Rowspan) — X01 verlangt dafür eigens festgelegte Invarianten.
-- Kopieren und Ausschneiden einer **Zellauswahl** schreibt nichts in die Zwischenablage; eine
-  Textauswahl in Tabellen verhält sich wie überall.
-- GFM kennt keine Tabelle ohne Kopfzeile und keine mehrzeiligen Zellen; beides ist beim
-  Markdown-Export ein gemeldeter Verlust. Eine HTML-`caption` wird beim Import mit Diagnose
-  verworfen.
+- No merged cells (colspan/rowspan) — that would need its own set of invariants.
+- Copying or cutting a **cell selection** writes nothing to the clipboard; a text selection inside
+  tables behaves as elsewhere.
+- GFM has no table without a header row and no multi-line cells; both are reported losses on
+  Markdown export. An HTML `caption` is dropped with a diagnostic on import.
 
 ## Tests
 
@@ -135,13 +129,20 @@ Außerhalb einer Tabelle meldet der Befehl `Pass`, und Listen und Code behalten 
 sbt --server "scalajs-ember-table/Test/testOnly *"
 ```
 
-| Suite | Prüft |
+| Suite | Covers |
 | --- | --- |
-| `TableStructureSpec` | Rechteckigkeit, Kopfzeile, Ausrichtung, Reparaturen, nachsichtiger Import |
-| `TableEditingSpec` | Einfügen, Tippen, Enter, Backspace/Entf an Zellgrenzen, Bereiche über Zellen und Tabellen, Zellauswahl, Zeilen/Spalten, Tab, Undo |
-| `TableSelectionSpec` | Rechteck, Mapping durch Änderungen, Rückfall, Validator, Abweisung ohne Modul |
+| `TableStructureSpec` | Rectangularity, header row, alignment, repairs, lenient import |
+| `TableEditingSpec` | Insert, typing, Enter, Backspace/Delete at cell boundaries, ranges across cells and tables, cell selection, rows/columns, Tab, undo |
+| `TableSelectionSpec` | The rectangle, mapping through edits, fallback, the validator, rejection without the module |
 
-Dazu `ember-markdown/…/MarkdownTableSpec` (GFM lesen/schreiben), `ember-standard/…/TableFormatSpec`
-(HTML, JSON, Markdown, HTML-Import) und im Browser
-`ember-integration/browser/test/table-editing.spec.mjs` (Tippen, Enter, Backspace, Tab und
-Escape, Zellauswahl durch Ziehen, Undo) in Chromium, Firefox und WebKit.
+Plus `ember-markdown`'s `MarkdownTableSpec` (GFM read/write), `ember-standard`'s
+`TableFormatSpec` (HTML, JSON, Markdown, HTML import), and the browser harness's
+`table-editing.spec.mjs` (typing, Enter, Backspace, Tab, Escape, drag-selection, undo — in
+Chromium, Firefox and WebKit).
+
+## Related modules
+
+- [`ember-rich-text`](../ember-rich-text/README.md) — the profile this module extends.
+- [`ember-standard`](../ember-standard/README.md) — HTML/JSON/Markdown adapters for tables.
+- [`ember-browser-support`](../ember-browser-support/README.md) — Tab navigation and drag-to-select.
+</content>

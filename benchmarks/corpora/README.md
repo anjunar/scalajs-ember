@@ -23,5 +23,4 @@ direkt; daraus folgt keine Erweiterung der Importfreigabe. Formstring-Kosten sin
 separat von Core und Core+History ausgewiesen.
 
 Physische Geräte-Traces werden erst nach tatsächlichen Tests unter
-`device-traces/` abgelegt. Momentan liegt kein solcher Nachweis vor; die Anleitung
-steht in der [Accessibility-Checkliste](../../ember-integration/browser/accessibility-checklist.md).
+`device-traces/` abgelegt.

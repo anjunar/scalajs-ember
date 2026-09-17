@@ -1,284 +1,247 @@
 # scalajs-ember-markdown
 
-Ein CommonMark-Parser und -Writer in Scala. Kein DOM, kein HTML als Zwischenstufe, keine
-JavaScript-Abhängigkeit.
-
-Verbindlicher Entwurf: [UI_EDITOR_ARCHITECTURE.md](../UI_EDITOR_ARCHITECTURE.md) §18.
+A CommonMark parser and writer in Scala. No DOM, no HTML intermediate, no JavaScript dependency.
 
 | | |
 | --- | --- |
-| sbt-ID / Artefakt | `scalajs-ember-markdown` |
-| Scala-Paket | `ember.editor.markdown` |
-| Produktionsabhängigkeiten | `scalajs-ember-core` |
+| sbt ID / artifact | `scalajs-ember-markdown` |
+| Scala package | `ember.editor.markdown` |
+| Production dependencies | `scalajs-ember-core` |
 
-## Stand
+## Overview
 
-**P17 und P18 abgeschlossen.**
+The parser covers CommonMark **0.31.2** — blocks and inlines alike: paragraphs, headings, quotes,
+lists, code, thematic breaks, HTML blocks, emphasis, links (including reference definitions),
+autolinks, images, code spans, escapes, and character references.
 
-Vorhanden: `MarkdownBlock` und `MarkdownInline` samt Syntaxbaum, `Markdown.parseSyntax`,
-`MarkdownWriter`, `MarkdownCodec`, `SourceMap`, `DocumentSourceMap`, `MarkdownProfile`,
-`ParseLimits` und `EntityTable`. Der Parser
-deckt CommonMark **0.31.2** ab — Blöcke wie Inlines: Absätze, Überschriften, Zitate, Listen,
-Code, Trenner, HTML-Blöcke, Emphasis, Links samt Referenzdefinitionen, Autolinks, Bilder,
-Code-Spans, Escapes und Zeichenreferenzen.
+**How far that reaches is measured, not asserted:** the parser reproduces **651 of the 652**
+examples in the official conformance suite character-for-character, and **628 of 652** survive
+writing and re-parsing unchanged. Both numbers are checked exactly, in CI, not as a lower bound —
+so a regression is as visible as an improvement nobody recorded.
 
-**Wie weit das reicht, ist gemessen: 651 von 652** Beispielen der offiziellen
-Konformitätssuite kommen zeichengenau heraus. Der eine Rest ist kein Zufall — siehe
-[Entities](#entities).
-
-Dazu die typisierte SPI, die Syntax auf registrierte NodeTypes abbildet (§18.1):
-`MarkdownRule`, `MarkdownCodec` und `DocumentSourceMap`. Die Regeln selbst liegen in
-`ember-standard` — hier weiß nichts, was ein `ParagraphNode` ist.
-
-Das Profil sagt, wo es steht:
+The typed SPI that maps syntax onto registered node types (`MarkdownRule`, `MarkdownCodec`,
+`DocumentSourceMap`) lives here too; the rules themselves live in
+[`ember-standard`](../ember-standard/README.md) — nothing in this module knows what a
+`ParagraphNode` is. `MarkdownProfile` states exactly what is covered:
 
 ```scala
 MarkdownProfile.commonMarkSafe.conformance  // Conformance.Inlines
 MarkdownProfile.blocksOnly.conformance      // Conformance.BlocksOnly
 ```
 
-§18.1 verlangt genau das: „Bis die Konformitätsfälle vollständig bestanden sind, wird nur die
-tatsächlich getestete Teilmenge beworben." Ein Kommentar wäre ein Versprechen; ein Feld ist ein
-Wert, den eine Anwendung lesen kann — und was `Inlines` wert ist, steht als Zahl in der
-Testsuite.
+Until a profile's fixture cases pass in full, only the actually-tested subset is advertised —
+a comment would be a promise; a field is a value an application can read, and what `Inlines` is
+worth is a number in the test suite.
 
-## Verwendung
+## Installation
 
 ```scala
-Markdown.parseSyntax(quelltext, MarkdownProfile.commonMarkSafe) match
-  case Right(ergebnis) =>
-    ergebnis.document.children.foreach {
-      case MarkdownBlock.Heading(_, span, level, _, inlines) => …
-      case MarkdownBlock.CodeBlock(_, _, literal, fence)    => …
-      case _                                                => …
-    }
-  case Left(fehler) => zeige(fehler.render)
+libraryDependencies += "com.anjunar" %% "scalajs-ember-markdown" % "1.0.1"
 ```
 
-`MarkdownProfile.untrustedPaste` sind dieselben Regeln unter Paste-Grenzen — für einen
-Quelltext, den der Benutzer nicht selbst geschrieben hat.
+## Quick start
 
-## Ein Syntaxbaum, kein Dokument
+```scala
+Markdown.parseSyntax(source, MarkdownProfile.commonMarkSafe) match
+  case Right(result) =>
+    result.document.children.foreach {
+      case MarkdownBlock.Heading(_, span, level, _, inlines) => ...
+      case MarkdownBlock.CodeBlock(_, _, literal, fence)     => ...
+      case _                                                 => ...
+    }
+  case Left(error) => showError(error.render)
+```
 
-§18.1: „Die Syntax-AST ist immutable und nur ein Import-/Exportwert, kein zweiter dauerhaft
-synchron gehaltener Editorzustand."
+`MarkdownProfile.untrustedPaste` is the same rule set under paste-sized limits, for source text the
+user did not write themselves.
 
-Nichts hier weiß, was ein `ParagraphNode` ist, und nichts hier lässt sich bearbeiten. Genau
-deshalb hängt das Modul allein am Kern: ein Parser, der direkt `ParagraphNode` erzeugte, müsste
-das Rich-Text-Profil kennen, und eine Anwendung mit eigenen Blocktypen könnte ihn nicht
-verwenden. Die Regeln, die Syntax auf registrierte NodeTypes abbilden, liegen im
-Integrationsmodul (§6) und sind die noch offene Hälfte von P18.
+## A syntax tree, not a document
 
-**Ziele sind `String`, nicht `LinkUrl`.** Das sieht nach einer verpassten Gelegenheit für das
-„der Typ ist die Tür"-Muster aus, das der Rest dieses Editors verwendet — und ist Absicht:
-`LinkUrl` liegt in `ember-link`, `MediaUrl` in `ember-image`, und §6 gibt diesem Modul den Kern
-allein. Die Tür steht trotzdem, einen Schritt später: `ember-standard` fährt die Policy der
-Anwendung, wenn aus Syntax ein Dokument wird — genau wie §19.1 es verlangt. Der Parser
-normalisiert, der Adapter entscheidet.
+The syntax AST is immutable and only an import/export value, never a second, permanently
+synchronized editor state. Nothing here knows what a `ParagraphNode` is, and nothing here is
+editable — which is why the module depends only on the kernel: a parser that produced
+`ParagraphNode` directly would have to know the rich-text profile, and an application with its own
+block types could never use it. The rules that map syntax onto registered node types live in the
+integration module.
 
-## Herkunft und Lizenz
+Link/image destinations are plain `String`s here, not `LinkUrl`/`MediaUrl` — those types live in
+[`ember-link`](../ember-link/README.md) and [`ember-image`](../ember-image/README.md), and this
+module gets only the kernel. The "the type is the door" pattern still applies one layer up:
+[`ember-standard`](../ember-standard/README.md) runs the application's policy exactly where syntax
+becomes a document. The parser normalizes; the adapter decides.
 
-`BlockParser.scala` und `InlineParser.scala` sind **Portierungen der Regelstruktur** von
-`lib/blocks.js` und `lib/inlines.js` aus commonmark.js 0.31.2 — BSD-2-Clause, Copyright (c)
-2014 John MacFarlane. Der vollständige Lizenztext steht in [NOTICE](NOTICE).
+## Origin and license
 
-Übernommen wurde die Form: die Reihenfolge der Blockanfänge, die Fortsetzungsbedingung jedes
-Containers, die Lazy-Continuation-Regel und die Padding-Arithmetik der Listenmarker. Das sind
-die Teile, die P17s Risikozeile „echte Parserarbeit" nennt, und sie aus der Spezifikation neu
-herzuleiten hätte einen schlechteren Parser und dieselben Regeln ergeben.
+`BlockParser.scala` and `InlineParser.scala` are **ports of the rule structure** from
+`lib/blocks.js` and `lib/inlines.js` of commonmark.js 0.31.2 (BSD-2-Clause, Copyright (c) 2014 John
+MacFarlane; full license text in [NOTICE](NOTICE)). What was carried over is the *form*: the order
+of block starts, each container's continuation condition, the lazy-continuation rule, and list-
+marker padding arithmetic — the parts that constitute real parsing work, and re-deriving them from
+the specification would produce a worse parser with the same rules.
 
-Nicht übernommen wurde der Code. Die Unterschiede sind Absicht:
+The code itself was not carried over. The differences are deliberate:
 
 | | |
 | --- | --- |
-| **Offsets statt Zeile/Spalte** | commonmark.js meldet `sourcepos` als Zeile/Spalte mit tab-expandierten Spalten. §18.2 will UTF-16-Bereiche, und alles andere in diesem Editor zählt so (§11). Nachträglich umzurechnen ist die Stelle, an der sich ein Off-by-one versteckt. |
-| **Ein Budget** | §18.2 begrenzt Arbeitsschritte; die Vorlage kennt so etwas nicht. |
-| **Keine Smart Punctuation** | Die Vorlage kann Anführungszeichen runden und `--` zu Gedankenstrichen machen. Hier gibt es dafür keinen Schalter: §18.2 verlangt einen Round-Trip, der Bedeutung erhält, und die Zeichensetzung des Autors umzuschreiben ist eine Änderung des Inhalts. |
-| **Eine benannte Entity-Teilmenge** | Siehe [Entities](#entities). |
-| **Ein unveränderliches Ergebnis** | Der mutable Baum offener Blöcke lebt nur während des Parsens. Nichts außerhalb der Datei kann einen halbfertigen Block sehen. |
+| **Offsets instead of line/column** | commonmark.js reports `sourcepos` as tab-expanded line/column; this editor counts UTF-16 ranges everywhere, and converting afterward is exactly where an off-by-one hides. |
+| **A budget** | this module bounds work steps; the original has no such concept. |
+| **No smart punctuation** | the original can round quotes and turn `--` into dashes; there is no toggle for that here — a round trip that preserves meaning must not rewrite the author's punctuation. |
+| **A named entity subset** | see [Entities](#entities). |
+| **An immutable result** | the mutable tree of open blocks lives only during parsing; nothing outside the file can observe a half-finished block. |
 
-Die Reihenfolge der Blockanfänge ist **tragend**, nicht kosmetisch: eine
-Setext-Unterstreichung muss vor dem Trenner versucht werden, sonst beendet `---` den Absatz
-darüber, statt ihn zu einer Überschrift zu machen. Ein Listenpunkt muss nach dem Trenner
-kommen, sonst startet `- - -` drei verschachtelte Listen. Sie umzustellen ist kein Refactoring.
+The block-start order is **load-bearing**, not cosmetic: a Setext underline must be tried before
+the thematic break, or `---` ends the paragraph above it instead of turning it into a heading; a
+list item must come after the thematic break, or `- - -` starts three nested lists. Reordering it
+is not a refactor.
 
-## Grenzen
+## Limits
 
-§18.2: „Größe, Tiefe, Tokenzahl und Arbeitsschritte sind begrenzt."
-
-| | Voreinstellung | `paste` |
+| | Default | `paste` |
 | --- | --- | --- |
 | `maxSourceChars` | 4 MiB | 256 KiB |
-| `maxLines` | 200 000 | 10 000 |
+| `maxLines` | 200,000 | 10,000 |
 | `maxDepth` | 100 | 24 |
-| `maxBlocks` | 100 000 | 5 000 |
-| `maxSteps` | 20 000 000 | 1 000 000 |
+| `maxBlocks` | 100,000 | 5,000 |
+| `maxSteps` | 20,000,000 | 1,000,000 |
 
-**Warum ein Schrittbudget und nicht nur eine Tiefe.** Weil die teuren Eingaben nicht immer tief
-sind. `"> " * 50000` ist 100 kB und schachtelt fünfzigtausend Zitate — das fängt `maxDepth`.
-Aber eine Zeile aus zehntausend Backticks ist weder groß noch tief und kostet trotzdem. Das
-Budget wird pro Zeile und pro versuchtem Blockanfang belastet, also läuft alles, was lineare
-Eingabe in überlineare Arbeit verwandelt, aus dem Vorrat statt aus der Zeit.
+**Why a step budget and not just a depth limit.** Expensive input isn't always deep: `"> " * 50000`
+is 100 kB and nests fifty thousand quotes — `maxDepth` catches that. But a line of ten thousand
+backticks is neither large nor deep and still costs real work. The budget is charged per line and
+per attempted block start, so anything that turns linear input into superlinear work is caught by
+the budget, not the clock. Two equally-sized sources make the difference visible: `"text\n" * 30`
+costs 30 steps, `"*x*\n" * 30` costs 60, because `*` passes the pre-filter and every block start is
+attempted.
 
-Die Testsuite zeigt den Unterschied an zwei gleich großen Quellen: `"text\n" * 30` kostet 30
-Schritte, `"*x*\n" * 30` kostet 60 — weil `*` den Vorfilter passiert und alle Blockanfänge
-probiert werden.
+Recursion happens at exactly one place — building the immutable tree — and `maxDepth` bounds it, so
+a deeply nested input returns `ParseError.LimitExceeded` instead of crashing.
 
-**Rekursion gibt es genau eine Stelle**, den Aufbau des unveränderlichen Baums, und `maxDepth`
-begrenzt sie. Ohne die Grenze stürzt eine tief geschachtelte Eingabe ab, statt einen Fehlerwert
-zu liefern — mit ihr ist es `ParseError.LimitExceeded`.
+**GFM tables only on request.** `MarkdownProfile.tables` is off in every plain CommonMark profile;
+`commonMarkSafeWithTables` turns pipe tables on. A paragraph whose second line is a matching
+alignment row becomes `MarkdownBlock.Table` with `TableRow`/`TableCell` and alignment; `|` stays a
+plain character in a cell. The writer emits tables with outer pipes and escapes `|`. The
+conformance run itself always runs without the extension, so its numbers stay unaffected.
 
-**GFM-Tabellen nur auf Wunsch.** `MarkdownProfile.tables` ist in jedem CommonMark-Profil aus;
-`commonMarkSafeWithTables` schaltet Pipe-Tabellen ein (X01). Ein Absatz, dessen zweite Zeile eine
-Trennzeile mit passender Spaltenzahl ist, wird dann `MarkdownBlock.Table` mit `TableRow` und
-`TableCell` samt Ausrichtung; `|` bleibt ein Zeichen in der Zelle. Der Writer schreibt Tabellen
-mit äußeren Pipes und maskiert `|`. Der Konformitätslauf läuft ohne die Erweiterung, seine Zahlen
-bleiben unverändert.
+A syntax error is not one of the cases handled here, and that's not an oversight: CommonMark has no
+invalid input — every string is a valid document, so anything that can go wrong here is a resource
+limit.
 
-**Ein Syntaxfehler ist keiner der Fälle**, und das ist kein Versehen: CommonMark hat keine
-ungültige Eingabe. Jede Zeichenkette ist ein gültiges Dokument, also ist alles, was hier
-schiefgehen kann, eine Ressourcengrenze.
+## Source spans
 
-## Quellbereiche
-
-Jeder Block trägt seinen `SourceSpan` in UTF-16-Einheiten. Die `SourceMap` ist der **umgekehrte
-Index** — Offset zu Block —, und das ist die Frage, die ein Baum ohne Lauf nicht beantwortet:
+Every block carries its `SourceSpan` in UTF-16 units. `SourceMap` is the reverse index — offset to
+block:
 
 ```scala
-ergebnis.sourceMap.blockAt(ergebnis.document, offset)  // der innerste Block dort
-ergebnis.sourceMap.spanOf(block.id)                    // und zurück
-ergebnis.sourceMap.lineAt(offset)                      // Zeilennummer, binär gesucht
+result.sourceMap.blockAt(result.document, offset) // the innermost block there
+result.sourceMap.spanOf(block.id)                 // and back
+result.sourceMap.lineAt(offset)                   // line number, found by binary search
 ```
 
-Eine Blockgrenze gehört zu dem, was **folgt**: `SourceSpan.contains` ist halboffen, ein Caret
-zwischen zwei Absätzen landet im zweiten. Das ist die dokumentierte Affinität, die §18.2 an
-syntaktischen Delimitern verlangt, und sie entspricht dem Verhalten des Carets überall sonst
-(§11).
-
-Auch Inlines tragen ihre Spanne — bis zum einzelnen Delimiter. Das kann die Vorlage gar nicht:
-sie verfolgt Quellpositionen nur bis zur Blockebene. Der Fall, an dem eine naive Umrechnung
-scheitert, steht als Test: der Inhalt eines Zitats ist kein Ausschnitt des Quelltexts, weil
-`> ` beim Blockparsen wegfällt — jeder Block führt deshalb eine Zeilenkarte zurück in die
-Quelle.
-
-Die Dokumentpositionen der zweiten Hälfte von §18.2 fehlen noch: ohne Dokumentadapter gibt es
-keine Dokumentpositionen. Sie kommen mit ihm.
+A block boundary belongs to what **follows**: `SourceSpan.contains` is half-open, so a caret
+between two paragraphs lands in the second — the documented affinity syntactic delimiters need, and
+it matches how a caret behaves everywhere else in the editor. Inlines carry spans too, down to the
+individual delimiter — the source model this was ported from only tracks positions at block level.
+The case a naive recalculation fails on is covered by a test: a quote's content is not a plain
+substring of the source, because `> ` is dropped during block parsing, so every block carries its
+own line map back to the source.
 
 ## Entities
 
-Numerische Zeichenreferenzen sind **vollständig** — `&#35;`, `&#x1F600;`, U+0000 auf U+FFFD
-abgebildet. Für sie braucht es keine Tabelle, also gibt es dort auch keine Teilmenge zu
-entschuldigen.
+Numeric character references are **complete** — `&#35;`, `&#x1F600;`, U+0000 mapped to U+FFFD — no
+table is needed for those, so none is a compromise. Named references are a **named subset**, and
+that is a decision: CommonMark points at the WHATWG list of 2231 names, most of which never appear
+in an editor document; shipping all of them would add roughly 150 kB of table to every browser
+bundle that links this module.
 
-Benannte sind eine **benannte Teilmenge**, und das ist eine Entscheidung: CommonMark verweist
-auf die WHATWG-Liste mit 2231 Namen, von denen die meisten in keinem Editordokument je
-vorkommen. Sie mitzuliefern hieße, rund 150 kB Tabelle in jedes Browser-Bundle zu legen, das
-dieses Modul linkt — für `&angmsdaa;` und Verwandte.
-
-`EntityTable.common` deckt stattdessen ab, was in Prosa steht: die fünf XML-Namen, das
-gesamte Latin-1-Supplement (ohne das `Gr&ouml;&szlig;e` einen Round-Trip nicht überlebt und ein
-deutsches Dokument still aufhört, deutsch zu sein), Anführungszeichen, Striche, Währung,
-Rechtliches, die üblichen mathematischen Zeichen und Pfeile. Rund 150 Einträge.
-
-Ein unbekannter Name bleibt **unverändert stehen**, wird also von einem Round-Trip nicht
-verloren. Und eine Anwendung, die mehr braucht, gibt mehr mit:
+`EntityTable.common` covers what shows up in prose instead: the five XML names, the entire Latin-1
+supplement, quotation marks, dashes, currency, legal symbols, and common math/arrow symbols — about
+150 entries. An unknown name is left **unchanged**, so a round trip never loses it, and an
+application that needs more supplies more:
 
 ```scala
 MarkdownProfile.commonMarkSafe.copy(entities = EntityTable.common.and("Dcaron" -> "Ď"))
 MarkdownProfile.commonMarkSafe.copy(entities = EntityTable.numericOnly)
 ```
 
-Dasselbe Muster wie `LinkUrlPolicy` und `MediaUrlPolicy`: die Bibliothek wählt eine vertretbare
-Voreinstellung, die Anwendung überschreibt sie und weiß dann, dass sie es getan hat.
+The same pattern as `LinkUrlPolicy`/`MediaUrlPolicy`: the library picks a defensible default, the
+application overrides it and knows that it did. This is also the one conformance case, of 652, that
+does not pass.
 
-Das ist auch der eine der 652 Konformitätsfälle, der nicht durchgeht.
+## Writing
 
-## Schreiben
-
-`MarkdownWriter.write` macht aus einem Syntaxbaum wieder Markdown. §18.2 ist präzise darin,
-was das heißt — und die Präzision zählt, weil die naheliegende Erwartung die falsche ist:
+`MarkdownWriter.write` turns a syntax tree back into Markdown, always successfully. What it
+promises is precise, and the precision matters, because the obvious expectation is the wrong one:
 
 | | |
 | --- | --- |
-| **Zugesichert** | `decode(encode(x)) ≃ x` — schreiben, neu parsen, derselbe Baum. |
-| **Nicht zugesichert** | `encode(decode(source)) == source`. §18.2: „ist kein Ziel." |
+| **Guaranteed** | `decode(encode(x)) ≃ x` — write, re-parse, the same tree |
+| **Not guaranteed** | `encode(decode(source)) == source` |
 
-Der Writer wählt eine kanonische Schreibweise. Eine Liste mit `+` kommt mit `-` zurück. Das ist
-keine Bequemlichkeit: die Eingabeschreibweise zu erhalten hieße, sie durch das Dokumentmodell zu
-tragen, und das Modell hält, was der Text **bedeutet**, nicht wie ihn jemand getippt hat. Die
-Ausnahme ist `HeadingStyle` — er kostet ein Feld und ließe sich später nicht rekonstruieren.
+The writer picks one canonical spelling — a list written with `+` comes back with `-`. Preserving
+the input spelling would mean threading it through the document model, and the model holds what
+text **means**, not how someone typed it. `HeadingStyle` is the one exception, since it costs a
+single field and otherwise couldn't be reconstructed later.
 
-Was der Writer dafür garantiert:
+What the writer does guarantee: a **safe fence length** (content with three backticks gets four,
+and the same one level down for code spans, with padding if the content starts with a backtick),
+**position-dependent escaping** (a `#` at line start is escaped, one mid-line is not — escaping too
+much would just make the output unreadable), and a **backslash instead of two trailing spaces** for
+a hard break, since invisible trailing whitespace does not survive an editor that trims it.
 
-- **Sichere Zaunlänge** (§18.2). Ein Inhalt mit drei Backticks bekommt vier. Dasselbe eine Ebene
-  tiefer für Code-Spans, samt Randleerzeichen, wenn der Inhalt mit einem Backtick anfängt.
-- **Positionsabhängiges Escaping.** Ein `#` am Zeilenanfang wird maskiert, eines mitten in der
-  Zeile nicht. Zu viel zu maskieren ist sicher und macht die Ausgabe unlesbar.
-- **Ein Rückstrich statt zwei Leerzeichen** für den harten Umbruch. Unsichtbarer Leerraum am
-  Zeilenende überlebt keinen Editor, der ihn trimmt, und §18.2 verlangt den Unterschied
-  erhalten.
+## Document and back
 
-## Dokument und zurück
-
-`MarkdownCodec` ist der Weg zwischen Quelltext und Dokument. §18.1 verlangt ihn ohne Umweg —
-"Kein HTML-/DOM-Zwischenschritt" —, und genau so läuft er: `source → syntax → nodes` und
-zurück, ohne HTML-String und ohne DOM dazwischen.
+`MarkdownCodec` is the path between source text and a document — with no HTML/DOM step in between:
+`source → syntax → nodes` and back.
 
 ```scala
-MarkdownCodec.decode(quelltext, schema, regeln, generator, wurzel)   // Either[MarkdownError, DecodedDocument]
-MarkdownCodec.encode(dokument, regeln, LossPolicy.Strict)            // Either[MarkdownError, EncodedMarkdown]
+MarkdownCodec.decode(source, schema, rules, generator, rootId) // Either[MarkdownError, DecodedDocument]
+MarkdownCodec.encode(document, rules, LossPolicy.Strict)       // Either[MarkdownError, EncodedMarkdown]
 ```
 
-### Drei Arten von Regel, weil die Syntax drei Formen hat
+### Three kinds of rule, because syntax has three shapes
 
 | | |
 | --- | --- |
-| `MarkdownBlockRule` | Ein Block wird ein Knoten. Absatz, Überschrift, Zitat, Liste, Code. |
-| `MarkdownInlineRule` | Ein Inline wird ein Knoten oder mehrere. Text, Bild, Link. |
-| `MarkdownMarkRule` | Ein Inline wird eine **Mark**, kein Knoten. Emphasis, Strong, Inline-Code. |
+| `MarkdownBlockRule` | a block becomes a node — paragraph, heading, quote, list, code |
+| `MarkdownInlineRule` | an inline becomes one or more nodes — text, image, link |
+| `MarkdownMarkRule` | an inline becomes a **mark**, not a node — emphasis, strong, inline code |
 
-Die dritte ist die, die man leicht übersieht und später nicht mehr nachrüsten kann. `*a*` ist
-kein Knoten um einen Lauf herum, sondern ein Lauf mit einer Mark (§8.2). Der Codec trägt
-deshalb eine `MarkSet` den Inline-Baum hinunter, statt eine Hülle zu bauen — eine Regel, die
-eine Hülle gewollt hätte, hätte ein Dokument erzeugt, das das Rich-Text-Profil ablehnt.
+The third is the one that's easy to miss and impossible to retrofit later: `*a*` is not a node
+wrapped around a run, it is a run with a mark. The codec carries a `MarkSet` down the inline tree
+instead of building a wrapper — a rule that wanted a wrapper would produce a document the
+rich-text profile rejects.
 
-### Verlust ist eine Entscheidung, keine Überraschung
+### Loss is a decision, not a surprise
 
-§18.2: „`Strict` verweigert Informationsverlust, `AllowLossy` muss die Anwendung bewusst
-wählen." Was Markdown nicht schreiben kann, ist in §18.2 aufgezählt und wird gemeldet statt
-verschwiegen:
+`Strict` refuses information loss; `AllowLossy` must be chosen deliberately by the application.
+What Markdown cannot write is enumerated and reported, never silently dropped:
 
 | | |
 | --- | --- |
-| Unterstreichung, Durchstreichung | keine CommonMark-Garantie |
-| Bildmaße, MediaId | dito |
-| ein Linkziel, das die Policy abweist | der **Text** überlebt, das Ziel nicht |
+| Underline, strikethrough | no CommonMark guarantee |
+| Image dimensions, media ID | same |
+| A link target the policy rejects | the **text** survives, the target does not |
 
-Unter `Strict` ist jedes davon ein `MarkdownError.WouldLose` und es entsteht kein Export. Unter
-`AllowLossy` entsteht einer, und `EncodedMarkdown.losses` sagt, was fehlt. Die Demo wählt
-`AllowLossy` und druckt die Verluste unter den Quelltext — sichtbar statt still.
+Under `Strict`, each of these is a `MarkdownError.WouldLose` and no export is produced. Under
+`AllowLossy` one is produced, and `EncodedMarkdown.losses` says what's missing.
 
-### Die Policies fahren mit
+### Policies travel with it
 
-`MarkdownSupports.everything(linkPolicy, mediaPolicy)` nimmt dieselben zwei Policies wie die
-Commands. §19.1 verlangt das: „URLs werden nach Entities-/Whitespace-Normalisierung durch die
-jeweilige Link-/Media-Policy geprüft." Es gibt keinen zweiten Weg zu einem `LinkUrl` oder
-`MediaUrl`, also **können** Import und Dialog nicht auseinanderlaufen.
+`MarkdownSupports.everything(linkPolicy, mediaPolicy)` takes the same two policies as the commands
+— there is no second path to a `LinkUrl` or `MediaUrl`, so import and a dialog **cannot** diverge.
 
-### Dokumentpositionen
+### Document positions
 
-`DecodedDocument.sourceMap` ist die zweite Hälfte von §18.2: Knoten zu Quellbereich und zurück.
+`DecodedDocument.sourceMap` is the node-side counterpart of the syntax source map:
 
 ```scala
-ergebnis.sourceMap.spanOf(knoten.id)   // wo dieser Knoten herkommt
-ergebnis.sourceMap.nodeAt(offset)      // welcher Knoten hier steht
+result.sourceMap.spanOf(node.id) // where this node came from
+result.sourceMap.nodeAt(offset)  // which node sits here
 ```
 
-Ein Absatz und sein einziger Lauf decken **dieselben** Zeichen ab — da entscheidet keine
-Spannenregel mehr. Der Gleichstand geht an den zuerst aufgezeichneten Knoten, und das ist nicht
-willkürlich: der Codec dekodiert Kinder vor ihren Eltern, also ist der frühere Eintrag der
-tiefere Knoten. Deshalb steht dort ein `Vector` und keine `Map` — eine Map beantwortete
-dieselbe Frage je nach Hashing anders.
+A paragraph and its one run cover **the same** characters, so a tie is resolved deterministically:
+it goes to the first-recorded node, which — since the codec decodes children before their parents —
+is always the deeper one. That's why this is a `Vector`, not a `Map`: a map would answer the same
+question differently depending on hashing.
 
 ## Tests
 
@@ -286,62 +249,58 @@ dieselbe Frage je nach Hashing anders.
 sbt --server "scalajs-ember-markdown/Test/testOnly *"
 ```
 
-Fünf Suiten, die verschiedene Fragen stellen:
+Five suites, each asking a different question:
 
-| Suite | Frage |
+| Suite | Question |
 | --- | --- |
-| `MarkdownBlockSpec` | Stimmt die Blockstruktur, Fall für Fall? |
-| `MarkdownInlineSpec` | Stimmt die Inline-Struktur, Fall für Fall? |
-| `CommonMarkConformanceSpec` | **Wie viel** von der Spezifikation stimmt? |
-| `MarkdownRoundTripSpec` | Überlebt ein Baum das Schreiben und Neu-Parsen? |
-| `MarkdownSourceMapSpec` | Stimmen die Quellbereiche — und läuft die SPI ohne Profil? |
+| `MarkdownBlockSpec` | Is the block structure right, case by case? |
+| `MarkdownInlineSpec` | Is the inline structure right, case by case? |
+| `CommonMarkConformanceSpec` | **How much** of the specification is right? |
+| `MarkdownRoundTripSpec` | Does a tree survive writing and re-parsing? |
+| `MarkdownSourceMapSpec` | Are the source spans right — and does the SPI run without a profile? |
 
-`MarkdownSourceMapSpec` baut sich eigene Knotenarten und eigene Marks. Das ist kein Behelf,
-sondern die Probe: würde `MarkdownCodec` je wissen müssen, was ein `ParagraphNode` ist, hörte
-diese Datei auf zu kompilieren. Dieselbe Überlegung wie beim lokalen `BlockNode` in
-`ember-image`.
+`MarkdownSourceMapSpec` builds its own node types and marks — not a workaround, but the proof: if
+`MarkdownCodec` ever had to know what a `ParagraphNode` is, this file would stop compiling. The
+standard profile's own rules are tested where they live, in
+`ember-standard`'s `MarkdownDocumentSpec`.
 
-Die Regeln des Standardprofils werden dort getestet, wo sie liegen:
-`ember-standard/…/MarkdownDocumentSpec.scala`.
+The first two check **structure**, not rendered HTML — the tree is what the rest of the editor
+consumes. The last two run the official conformance suite in full, all **652 examples**, versioned
+under `src/test/resources/markdown/spec-0.31.2.txt`.
 
-Die beiden ersten prüfen die **Struktur**, nicht gerendertes HTML — der Baum ist das, was der
-Rest des Editors konsumiert. Die beiden letzten fahren die offizielle Konformitätssuite, alle
-**652 Beispiele**, versioniert unter `src/test/resources/markdown/spec-0.31.2.txt`.
-
-### Was die Zahlen sagen
+### What the numbers say
 
 | | |
 | --- | --- |
-| **651 von 652** | reproduziert der Parser zeichengenau. |
-| **621 von 652** | überleben Schreiben und Neu-Parsen unverändert in der Form. |
+| **651 of 652** | reproduced character-for-character by the parser |
+| **628 of 652** | survive writing and re-parsing unchanged in shape |
 
-Beide werden **exakt** geprüft und nicht als Untergrenze — so fällt eine Verschlechterung
-ebenso auf wie eine Verbesserung, die jemand nachzutragen vergisst. Bei einem Fehlschlag druckt
-die Suite die Zählung je Abschnitt, weil eine einzelne Zahl nie sagt, **was** sich bewegt hat.
+Both are checked **exactly**, not as a floor, so a regression is as visible as an improvement
+nobody recorded. On a failure the suite prints the count per section, since one number never says
+**what** moved. 628 being lower than 651 is expected — round-tripping is a strictly stronger
+property; an input the parser reads correctly can still come back from the writer in a spelling
+that reads back differently (unusually indented list items are the most common case). Each such
+difference is a finding, not a broken promise.
 
-Die 621 sind niedriger als die 651, und das ist erwartbar: der Round-Trip prüft eine strengere
-Eigenschaft. Eine Eingabe, die der Parser richtig liest, kann der Writer trotzdem in einer
-Schreibweise ausgeben, die sich anders zurückliest — Listenpunkte mit ungewöhnlicher Einrückung
-sind der häufigste Fall. Jede dieser Differenzen ist ein Befund und keine Zusicherung.
+### What the suite does not claim
 
-### Was die Suite nicht behauptet
+Full CommonMark conformance is never asserted from a handful of happy-path tests — it measures
+three separate things: **robustness** (all 652 examples parse, within default limits, without an
+exception), **well-formed spans** (every span of every parse lies within its parent's and within
+the source — a source map with a span outside its block is worse than no source map), and
+**coverage as a number**.
 
-P17s Risikozeile ist deutlich: „Keine behauptete vollständige CommonMark-Konformität aus
-einfachen Happy-Path-Tests." Also behauptet sie nichts. Sie misst drei Dinge, und jedes ist eine
-andere Art von Aussage:
+### Why the fixtures become Scala source
 
-1. **Robustheit.** Alle 652 Beispiele parsen, innerhalb der Voreinstellungen, ohne Ausnahme.
-2. **Wohlgeformte Spannen.** Jede Spanne jedes Parses liegt in der ihres Elternteils und im
-   Quelltext. Eine SourceMap mit einer Spanne außerhalb ihres Blocks ist schlimmer als keine.
-3. **Abdeckung als Zahl.**
+Because there is nothing to read at runtime — the tests run as a Scala.js module, with no
+filesystem and no classpath. `project/MarkdownSpecFixtures.scala` translates `spec.txt` into a
+Scala file at build time, so the specification version lands in the file name and as a constant in
+the generated code, and the example count falls out of generation rather than being a claim in a
+comment.
 
-### Warum die Fixtures zu Scala-Quelltext werden
+## Related modules
 
-Weil es zur Laufzeit nichts zu lesen gibt: die Tests laufen als Scala.js-Modul, ohne
-Dateisystem und ohne Classpath. `project/MarkdownSpecFixtures.scala` übersetzt `spec.txt` zur
-Bauzeit in eine Scala-Datei.
-
-Der Nebeneffekt ist erwünscht. Die Spezifikationsversion steht im Dateinamen und landet als
-Konstante im erzeugten Code, die Beispielzahl fällt beim Erzeugen an. Die
-„Korpus-/Spezifikationsversion" aus P17s Abnahme ist damit eine Zahl, die der Build ausrechnet,
-und keine Behauptung in einem Kommentar.
+- [`ember-core`](../ember-core/README.md) — the only module this depends on.
+- [`ember-standard`](../ember-standard/README.md) — the concrete `MarkdownRule`s that map syntax to node types.
+- [`ember-forms`](../ember-forms/README.md) — a Markdown-backed form field built on `MarkdownCodec`.
+</content>

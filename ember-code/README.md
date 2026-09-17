@@ -1,26 +1,30 @@
 # scalajs-ember-code
 
-Codeblöcke mit typisierten Sprachmetadaten — unabhängig von Highlighting. Headless und optional.
-
-Verbindlicher Entwurf: [UI_EDITOR_ARCHITECTURE.md](../UI_EDITOR_ARCHITECTURE.md) §§8, 18.
+Code blocks with typed language metadata — independent of highlighting. Headless and optional.
 
 | | |
 | --- | --- |
-| sbt-ID / Artefakt | `scalajs-ember-code` |
-| Scala-Paket | `ember.editor.code` |
-| Produktionsabhängigkeiten | `scalajs-ember-core`, `scalajs-ember-rich-text` |
+| sbt ID / artifact | `scalajs-ember-code` |
+| Scala package | `ember.editor.code` |
+| Production dependencies | `scalajs-ember-core`, `scalajs-ember-rich-text` |
 
-## Stand
+## Overview
 
-P15 abgeschlossen. Vorhanden: `CodeBlockNode`, `CodeInfo`/`CodeLanguage`, vier Befehle, die
-Enter-Behandlung und zwei Normalisierungsregeln.
+`ember-code` adds `CodeBlockNode`, typed `CodeInfo`/`CodeLanguage`, four commands, Enter handling
+and two normalization rules to the [rich-text](../ember-rich-text/README.md) profile.
 
-## Verwendung
+## Installation
+
+```scala
+libraryDependencies += "com.anjunar" %% "scalajs-ember-code" % "1.0.1"
+```
+
+## Quick start
 
 ```scala
 val resolved = ExtensionResolver
   .resolve(Vector(RichText(generator), CodeExtension(generator)))
-  .getOrElse(…)
+  .getOrElse(...)
 
 session.dispatch(CodeCommands.ToggleCodeBlock, CodeInfo.of("scala"))
 session.dispatch(CodeCommands.SetCodeInfo, CodeInfo.parse("scala {highlight=3-5}"))
@@ -28,106 +32,72 @@ session.dispatch(CodeCommands.IndentLine)
 session.dispatch(CodeCommands.OutdentLine)
 ```
 
-## Kein Highlighter
+## No highlighter
 
-P15s Abnahme ist ausdrücklich: „Kein Syntax-Highlighter und kein CodeMirror als
-Produktionsabhängigkeit." Die Sprache ist ein **Metadatum** — sie sagt, *was* der Text ist, nicht
-wie er aussieht.
+There is no syntax highlighter and no CodeMirror dependency here, on purpose. The language is
+**metadata** — it says what the text is, not how it looks. Visible highlighting must never force a
+persistent mark decomposition of every code line; a document where each token were a marked run
+could be read neither as a document nor written as a fence. What this module guarantees is exactly
+what a highlighter and a Markdown fence both need: the content, verbatim, including its blank
+lines. [`ember-code-highlighting`](../ember-code-highlighting/README.md) colors the view without
+touching the document or the DOM text node.
 
-Die Risikozeile sagt, warum das so bleiben muss: „Sichtbares Highlighting darf später keine
-persistente Mark-Zerlegung jeder Codezeile erzwingen." Ein Dokument, in dem jedes Token ein
-markierter Lauf wäre, ließe sich weder als Dokument lesen noch als Fence schreiben. Was dieses
-Modul garantiert, ist genau das, was ein Highlighter braucht und was Markdown-Fences brauchen:
-**der Inhalt, wörtlich, einschließlich seiner Leerzeilen.**
-[`ember-code-highlighting`](../ember-code-highlighting/README.md) (X02) färbt in der Ansicht ein,
-ohne das Dokument oder den DOM-Textknoten anzufassen.
+## Content model
 
-## Das Inhaltsmodell
+Exactly one `TextNode`, whose text may contain newlines, without marks. The single run is not an
+implementation accident: a code block's content is one string — what a fence writes, what a
+compiler reads, what an author copies. Multiple runs would need their own merge rule and leave a
+door open for marks that this node type is meant to keep shut.
 
-§8.2: „CodeBlock erlaubt Text mit Zeilenumbrüchen, aber keine beliebigen Rich-Text-Kinder."
-Genau ein `TextNode`, dessen Text Zeilenumbrüche enthalten darf, ohne Marks.
-
-Der eine Lauf ist kein Implementierungszufall. Der Inhalt eines Codeblocks ist **ein String** —
-das ist, was ein Fence schreibt, was ein Compiler liest und was ein Autor kopiert. Mehrere Läufe
-bräuchten eine eigene Merge-Regel und ließen eine Tür für Marks offen, die dieser Knotentyp
-zuhalten soll.
-
-### Zwei Regeln, nicht eine
-
-| Regel | Hängt an | Wofür |
+| Rule | Bound to | For |
 | --- | --- | --- |
-| `contentIsOneRun` | `CodeBlockNode` | mehrere Kinder werden ein Lauf; ein hineinbewegter Absatz verliert seine Hülle und behält seinen Text; ein leerer Block bekommt einen Lauf |
-| `runInCodeIsPlain` | `TextNode` | ein Lauf in einem Codeblock trägt keine Marks |
+| `contentIsOneRun` | `CodeBlockNode` | multiple children become one run; a paragraph moved in loses its wrapper and keeps its text; an empty block gets a run |
+| `runInCodeIsPlain` | `TextNode` | a run in a code block carries no marks |
 
-Die Trennung ist nicht kosmetisch. Eine Markänderung berührt den **Lauf**, nicht den Block, und
-§3.4 hält fest, dass ein Vorfahr auf dem Pfad einer Änderung kein Transform-Kandidat ist —
-`ChangeSet.touchedAncestors` gibt es genau dafür. Eine Regel am Block würde nie gefragt.
+The split matters: a mark change touches the **run**, not the block, and a merely-touched ancestor
+is never a transform candidate — a rule bound to the block would never be asked. Content that
+wanders into a code block is meant to *become* code: rejecting it would fail the whole transaction
+on a paste, discarding it would lose text. Runs join without a separator (two side by side were one
+line); whole blocks join with a newline (two paragraphs that wander in were two lines).
 
-Das ist inzwischen die dritte Erscheinung derselben Form, nach dem Textlauf-Merge in P12 und den
-benachbarten Listen in P13: **die Regel gehört an den Knoten, der sich ändert, nicht an den, dem
-er gehört.**
+## Info string
 
-### Warum repariert statt abgelehnt
-
-Inhalt, der in einen Codeblock wandert, soll Code **werden**. Ablehnen ließe die ganze
-Transaktion an einem Paste scheitern, Wegwerfen verlöre Text. Den Text nehmen und die Struktur
-zurücklassen ist, was der Autor mit dem Hineinziehen meinte.
-
-Läufe werden **ohne** Trenner zusammengezogen — zwei nebeneinander waren eine Zeile —, ganze
-Blöcke mit einem Umbruch: zwei Absätze, die hineinwandern, waren zwei Zeilen.
-
-## Info-String
-
-§18.2 verlangt „Info-/Sprachmetadaten typisiert behandeln". Markdown schreibt einen Info-String;
-sein **erstes Wort** ist die Sprache, der Rest ist, was die Werkzeugkette des Autors wollte:
+Markdown writes an info string; its first word is the language, the rest is whatever the author's
+tooling wanted:
 
 ```text
 ```scala {highlight=3-5}
-     ^^^^^ Sprache   ^^^^^^^^^^^^^^ Meta
+     ^^^^^ language   ^^^^^^^^^^^^^^ meta
 ```
 
-Beides getrennt zu halten erlaubt `CodeSupport`, `language-scala` zu schreiben, ohne einen Parser
-zu erfinden, und P18, den Info-String unverändert zurückzuschreiben. Zusammen als ein String
-zwänge jeden Konsumenten, ihn erneut zu zerlegen — jeder ein bisschen anders.
-
-`CodeLanguage` weist zurück, was ein Fence nicht schreiben kann: Whitespace, Steuerzeichen und
-Backticks. Ein Info-String, der keine gültige Sprache nennt, ist **kein Fehler** — er ist ein
-Info-String ohne Sprache, und sein Text bleibt als Meta erhalten, damit ein Roundtrip ihn nicht
-verliert.
+Keeping the two separate lets an HTML adapter write `language-scala` without inventing a parser,
+and lets the info string be written back unchanged. `CodeLanguage` rejects what a fence cannot
+write — whitespace, control characters, backticks. An info string that names no valid language is
+not an error — it is an info string without a language, and its text survives as `meta` so a round
+trip never loses it.
 
 ## Enter
 
-Innerhalb eines Codeblocks fügt Enter einen Umbruch ein. Den Block zu teilen machte aus einem
-Listing zwei, und §8.2 lässt den Inhalt gerade deshalb Umbrüche tragen.
+Inside a code block, Enter inserts a newline — splitting the block would turn one listing into
+two, and the content type allows newlines specifically so it doesn't have to. The one exception:
+Enter on an empty trailing line leaves the block, the same convention every editor with code blocks
+uses, since a code block otherwise has no edge a caret could step over. The newline that led there
+is removed — it was the request to leave, not part of the code. Outside a code block the handler
+returns `Pass`, and the rich-text handler splits the block as usual.
 
-**Außer wenn es „lass mich raus" heißt.** Enter auf einer leeren letzten Zeile verlässt den
-Block. Diese Konvention gibt es in jedem Editor mit Codeblöcken, aus einem guten Grund: ein
-Codeblock hat keine Kante, über die ein Caret treten könnte — ohne sie gäbe es keinen Weg
-hinaus. Der Umbruch, der dorthin geführt hat, wird dabei entfernt; er war die Bitte zu gehen,
-nicht Teil des Codes.
+## Indent and outdent
 
-Außerhalb gibt der Handler `Pass` zurück, und der Rich-Text-Handler teilt den Block wie sonst
-(§12).
+Optional. A unit is **two spaces**, never a tab — a tab renders at whatever width the reader's
+viewer chooses, which is exactly what code indentation cannot tolerate. Outdent removes as much as
+is there; a line indented by three spaces loses two, not three, so a single press of its
+counterpart can always be undone.
 
-## Ein- und Ausrücken
+## Converting
 
-Optional, wie der Plan es führt. Eine Einheit sind **zwei Leerzeichen**, kein Tab: ein Tab
-rendert in der Breite, die der Betrachter des Lesers wählt, und das ist das eine, was
-Code-Einrückung nicht tun darf.
-
-Ausrücken entfernt so viel, wie da ist — eine um drei Leerzeichen eingerückte Zeile verliert
-zwei, nicht drei. Alles zu entfernen machte den Befehl unfähig, einen einzelnen Druck seines
-Gegenstücks zurückzunehmen.
-
-## Umwandeln
-
-Ein Absatz wird zum Codeblock über `Replace`: die ID und die Kinder bleiben (§10), also überlebt
-jeder Punkt im Block.
-
-Zurück wird **eine Zeile ein Absatz.** Ein `\n` in einem Absatzlauf wäre ein Dokument, das kein
-Renderer richtig zeigt: HTML macht daraus ein Leerzeichen, und der Inhalt änderte still seine
-Bedeutung. Hard Breaks wären vertretbar — aber Codezeilen sind Zeilen, und wer ein Listing
-zurückverwandelt, erwartet Absätze.
+A paragraph becomes a code block via `Replace`: ID and children are kept, so every point inside it
+survives. Converting back turns **one line into one paragraph** — a literal `\n` inside a paragraph
+run would render as a space in HTML and silently change meaning; code lines are lines, and
+converting a listing back is expected to produce paragraphs.
 
 ## Tests
 
@@ -135,10 +105,14 @@ zurückverwandelt, erwartet Absätze.
 sbt --server "scalajs-ember-code/Test/testOnly *"
 ```
 
-`CodeSpec` prüft den Info-String, das Inhaltsmodell samt seiner Reparaturen, Enter und Exit,
-Ein-/Ausrücken und — als eigene Zusicherung — dass nach jeder Folge von Befehlen genau ein
-unmarkierter Lauf übrig bleibt.
+`CodeSpec` covers the info string, the content model and its repairs, Enter and exit, indent and
+outdent, and — as its own assertion — that exactly one unmarked run remains after any sequence of
+commands. The `pre`/`code` rendering, and the proof that a language change is a view replacement
+while a bare attribute change is not, live in
+[`ember-standard`](../ember-standard/README.md)'s `CodeProjectionSpec`.
 
-Das `pre`/`code`-Rendering steht in
-`ember-standard/…/CodeProjectionSpec.scala`, dort auch der Nachweis, dass ein Typwechsel eine
-View-Ersetzung ist und ein bloßes Attribut keine.
+## Related modules
+
+- [`ember-rich-text`](../ember-rich-text/README.md) — the profile this module extends.
+- [`ember-code-highlighting`](../ember-code-highlighting/README.md) — optional syntax coloring as a pure view decoration.
+</content>

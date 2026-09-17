@@ -1,29 +1,40 @@
-# ember-toolbar
+# scalajs-ember-toolbar
 
-Optionale Toolbar und Link-/Bilddialoge (P27). Das Modul konsumiert typisierte
-Core-Commands; Dokumentänderungen laufen ausschließlich über Transaktionen.
-`ember-core`, `ember-ui`, `ember-browser` und `ember-forms` benötigen dieses Modul
-nicht. Es gibt keine Rückkante und keine zusätzliche UI-Runtime.
+An optional accessible command toolbar plus native Link/Image editing dialogs.
 
-Die Komponenten verwenden das veröffentlichte `scalajs-ui-core:1.0.0`. Ein natives
-`<dialog>` übernimmt Modalität und Hintergrund-Inertheit. Die Komponente führt Tab
-an den beiden Dialoggrenzen weiter und behandelt Escape; die übrigen Tasten bleiben
-nativ. Das vorhandene `ui-viewport.Window` ist kein modaler Dialog. Deshalb wurden
-`ui-controls` und `ui-viewport` für P27 nicht als ungenutzte Abhängigkeiten ergänzt.
+| | |
+| --- | --- |
+| sbt ID / artifact | `scalajs-ember-toolbar` |
+| Scala package | `ember.editor.toolbar` |
+| Production dependencies | `scalajs-ember-core`, `scalajs-ember-rich-text`, `scalajs-ember-history`, `scalajs-ember-link`, `scalajs-ember-image`, `scalajs-ember-clipboard`, `scalajs-ember-ui`, `scalajs-ember-browser`, `com.anjunar:scalajs-ui-core` |
 
-## Zusammensetzen
+## Overview
 
-`ToolbarAction.command[A]` bindet einen typisierten Command samt Payload und einer
-Abfrage für `CommandState`. `ToolbarAction` erlaubt daneben Aktionen wie das Öffnen
-eines Dialogs. Der Aufrufer bestimmt Reihenfolge, Namen und angebotene Features.
-Die enthaltenen Commands werden nicht automatisch registriert: Die entsprechende
-RichText-/History-/Link-/Image-Extension muss in der Sitzung installiert sein.
-Für das Ersetzen einer Textauswahl durch ein Bild wird `ClipboardExtension` benötigt;
-fehlt sie, schlägt die gesamte Transaktion ohne Textverlust fehl.
+The module consumes typed core commands; document changes only ever run through transactions.
+[`ember-core`](../ember-core/README.md), [`ember-ui`](../ember-ui/README.md),
+[`ember-browser`](../ember-browser/README.md) and [`ember-forms`](../ember-forms/README.md) do not
+need this module — there is no back-edge and no additional UI runtime. Components use the
+published `scalajs-ui-core`; a native `<dialog>` handles modality and background inertness, with
+Tab wrapped at both dialog edges and Escape handled explicitly.
+
+## Installation
+
+```scala
+libraryDependencies += "com.anjunar" %% "scalajs-ember-toolbar" % "1.0.1"
+```
+
+## Assembling a toolbar
+
+`ToolbarAction.command[A]` binds a typed command with its payload and a `CommandState` query;
+`ToolbarAction` can also represent actions like opening a dialog. The caller decides order, names
+and which features are offered. Bound commands are not auto-registered — the corresponding
+RichText/History/Link/Image extension must already be installed in the session. Replacing a text
+selection with an image needs `ClipboardExtension`; without it, the whole transaction fails without
+losing the text.
 
 ```scala
 val bold = ToolbarAction.command(
-  "bold", "Fett", session, RichText.ToggleMark, StandardMarks.Strong,
+  "bold", "Bold", session, RichText.ToggleMark, StandardMarks.Strong,
   () => ToolbarState.mark(session.state, StandardMarks.Strong, editable())
 )
 val toolbar = new EditorToolbar(session, selectionPort, Vector(bold))
@@ -31,87 +42,77 @@ Runtime.mount(toolbar, DomCursor.root(toolbarContainer))
 
 val service = new EditorDialogService(session, generator, () => editable())
 val dialogs = new EditorDialogHost(service, selectionPort, dialogContainer, toolbar.announce)
-val links = new LinkDialog(service, dialogs)
-val images = new ImageDialog(service, dialogs, pickFile = applicationFilePicker)
+val links   = new LinkDialog(service, dialogs)
+val images  = new ImageDialog(service, dialogs, pickFile = applicationFilePicker)
 ```
 
-`editable()` muss die tatsächliche Anwendungsfreigabe abbilden: Editable-Modus,
-kein Source-Modus und keine aktive Composition/Recovery. Nach Änderungen dieser
-außerhalb der Sitzung gehaltenen Zustände ruft die Anwendung `toolbar.refresh()`
-auf. Session-Commits aktualisieren den Zustand automatisch. Der Dialog-Service prüft
-die Freigabe auch beim Übernehmen; die Browser-/Core-Regeln bleiben zusätzlich aktiv.
-Undo/Redo-Zustände kommen aus der zur Sitzung gehörenden `History`-Instanz.
+`editable()` must reflect the actual application state: editable mode, not source mode, and no
+active composition/recovery. Call `toolbar.refresh()` after changes to these externally-held
+states — session commits already refresh it automatically. The dialog service also checks
+editability on commit; the browser/core rules stay active in addition. Undo/redo state comes from
+the session's `History` instance.
 
-`ToolbarState.mark` liest bei einem Caret die wirksamen `TypingMarks`, bei einem
-Bereich die betroffenen Textläufe. `aria-pressed` unterscheidet `true`, `false` und
-`mixed`. Native Buttons tragen Namen und `disabled`; die Leiste hat einen Tabstopp.
-Pfeil links/rechts, Home und End wechseln zwischen aktivierten Buttons. Tab verlässt
-die Leiste. Nur ein primärer Mousedown aus dem fokussierten Editor verhindert den
-Fokuswechsel; Tastaturaktivierung bleibt auf dem Button. Hintergrund-Commits setzen
-weder Fokus noch native Selection.
+`ToolbarState.mark` reads effective `TypingMarks` at a caret, or the covered runs across a range.
+`aria-pressed` distinguishes `true`, `false` and `mixed`. Native buttons carry names and `disabled`;
+the bar has one tab stop, with arrow-left/right, Home and End moving between enabled buttons; Tab
+leaves the bar. Only a primary mouse-down originating from the focused editor prevents a focus
+change — keyboard activation stays on the button. Background commits move neither focus nor native
+selection.
 
-Das [Stylesheet](src/main/resources/ember-toolbar.css) wird als Modulressource
-mitgeführt und von der Anwendung eingebunden. Es verwendet sichtbare Rahmen,
-Unterstreichung und Systemfarben für Forced Colors; Reduced Motion deaktiviert
-Bewegung. Die Bibliothek installiert keine globalen Styles und liest beim Import
-weder `window` noch `document`. Toolbar und Dialoghost werden erst im Browser mit
-dem zur Editierfläche gehörenden Container und `SelectionPort` erzeugt.
+The [stylesheet](src/main/resources/ember-toolbar.css) ships as a module resource for the
+application to include; it uses visible borders, underlines and system colors under Forced
+Colors, and disables motion under Reduced Motion. The library installs no global styles and reads
+neither `window` nor `document` at import time — toolbar and dialog host are only created in the
+browser, with the container and `SelectionPort` that belong to the editing surface.
 
-## Dialogvertrag
+## Dialog contract
 
-`EditorDialogService.capture()` erstellt ein sitzungsgebundenes, einmal verwendbares
-`DialogTarget`. Anchor und Focus werden getrennt über `mappingSince` aufgelöst;
-Einfügen an einer Ersatzgrenze ist ausgeschlossen. Gelöschte Ziele, abgelaufene
-Mapping-Historie, Undo/Redo und Dokumentersetzung machen das Ziel ungültig. Ein
-Datensatzwechsel mit identischem Dokumentinhalt benötigt `service.invalidate()`.
-Fehler bleiben als Text in der Alert-Region sichtbar; Eingaben bleiben korrigierbar.
-Erst ein erfolgreicher Commit verbraucht das Ziel. Abbrechen verändert keinen Inhalt.
+`EditorDialogService.capture()` creates a session-bound, single-use `DialogTarget`. Anchor and
+focus are resolved independently via mapping since capture; inserting at a replaced boundary is
+excluded. A deleted target, expired mapping history, undo/redo, or document replacement all
+invalidate it. Switching records with identical document content needs `service.invalidate()`.
+Errors stay visible as text in the alert region; input stays correctable. Only a successful commit
+consumes the target — cancelling changes no content.
 
-Linkdialoge setzen, ändern und entfernen Links. Ein leerer Caret außerhalb eines
-Links kann keinen neuen Link ohne Beschriftung anlegen; die Anwendung deaktiviert
-die entsprechende Aktion. Der Bilddialog ersetzt Textauswahlen atomar oder bearbeitet
-ein ausgewähltes Bild. Einzelne NodeSelections und Bereiche über genau einem Bild
-werden erkannt. Alt darf ausdrücklich leer sein. Beim Ändern des Alts bleiben
-Knoten-ID und Medienmetadaten erhalten; ein Quellenwechsel ersetzt die Medienreferenz.
-Jede erfolgreiche Dialogänderung ist ein eigener Undo-Schritt.
+Link dialogs set, change and remove links. An empty caret outside a link cannot create a new,
+unlabelled link — the application disables that action. The image dialog replaces a text selection
+atomically, or edits a selected image; both a single node selection and a range covering exactly
+one image are recognized. Alt may be explicitly empty. Changing alt keeps the node ID and media
+metadata; changing the source replaces the media reference. Every successful dialog change is its
+own undo step.
 
-Nach Schließen erhält bei Mausaktivierung der zuvor fokussierte Editor seine
-gemappte Auswahl zurück. Bei Tastaturaktivierung erhält der auslösende Button den
-Fokus. Rückgabe erfolgt nur, solange der Dialog den Fokus noch besitzt. Ein
-abgelaufenes Ziel wird gemeldet; eine neue Einfügeposition wird nicht erfunden.
+On close, mouse activation returns the previously focused editor's mapped selection; keyboard
+activation returns focus to the triggering button. Return only happens while the dialog still holds
+focus. An expired target is reported rather than inventing a new insertion point.
 
-## Datei-Callback und Lifecycle
+## File callback and lifecycle
 
-`ImageDialog` erhält optional
-`(DialogTarget, String /* alt */) => Either[EditorError, Unit]`. Dieser Callback
-läuft in der Benutzeraktivierung des Dateibuttons und muss **vor seiner Rückkehr**
-das Ziel mit `service.resolve(target)` auflösen und an den anwendungseigenen Picker
-bzw. P26-`MediaCoordinator.capture(range)` übergeben. Dann darf er den nativen Picker
-öffnen. Bei `Right(())` schließt der Dialog; das DialogTarget selbst ist danach
-ungültig. Der Upload besitzt sein eigenes MediaTarget und seinen eigenen Lifecycle.
-Ein abgebrochener Dateidialog erzeugt keinen Upload. Upload-Erfolg und -Fehler meldet
-die Anwendung über `toolbar.announce(...)` in der sichtbaren Statusregion.
-Der Datei-Callback wird beim Bearbeiten eines vorhandenen Bildes nicht angeboten.
+`ImageDialog` optionally takes `(DialogTarget, String /* alt */) => Either[EditorError, Unit]`. This
+callback runs within the file button's user activation and must resolve the target with
+`service.resolve(target)` **before returning**, handing it to the application's own picker or a
+[`ember-forms`](../ember-forms/README.md) `MediaCoordinator.capture(range)` — only then may it open
+the native picker. On `Right(())` the dialog closes; the `DialogTarget` is invalid afterward. The
+upload owns its own target and lifecycle; an aborted file dialog produces no upload. Upload success
+and failure are reported by the application via `toolbar.announce(...)` in the visible status
+region. The file callback is not offered while editing an existing image.
 
-Beim Entfernen des Editors:
+On editor removal, in order: `dialogs.dispose()` closes the dialog and removes its listeners;
+`service.dispose()` invalidates targets and removes the commit subscription; the application
+disposes its own pickers/coordinators; then `Runtime.unmount(toolbar)`, followed by input,
+selection, view and session disposal.
 
-1. `dialogs.dispose()` schließt den Dialog und entfernt seine Listener.
-2. `service.dispose()` invalidiert Targets und entfernt die Commit-Subscription.
-3. Anwendungseigene Picker und MediaCoordinator entsorgen.
-4. `Runtime.unmount(toolbar)`, dann Input/Selection/View/Session entsorgen.
+## Tests
 
-Die ausführbare Verdrahtung steht in
-[`ToolbarFixtures.scala`](../ember-integration/src/main/scala-3/ember/editor/integration/ToolbarFixtures.scala).
-Eine eigenständige Demoansicht ist nach dem Integration-Full-Link und Start von
-`node ember-integration/browser/server.mjs` unter `http://127.0.0.1:4188/toolbar`
-erreichbar. Ihr Upload verwendet den ausdrücklich begrenzten P26-Testserver.
+Automated tests cover commands, targets, mouse/keyboard navigation, focus return, real file
+selection/HTTP upload, readonly, Forced Colors, Reduced Motion and narrow windows. The composition
+case tests the controller protocol; a physical mobile IME/touch or screen-reader acceptance is out
+of scope for this module. A standalone demo view is reachable at
+`http://127.0.0.1:4188/toolbar` after linking [`ember-integration`](../ember-integration/README.md)
+and starting its server.
 
-Die automatisierten Tests prüfen Commands, Targets, Maus-/Tastaturführung,
-Fokus-Rückgabe, echte Dateiauswahl/HTTP, Readonly, Forced Colors, Reduced Motion
-und schmale Fenster. Der Composition-Fall prüft das Controller-Protokoll.
-Eine physische mobile IME-/Touch- oder Screenreader-Abnahme folgt daraus nicht;
-diese Geräteprüfungen bleiben Teil von P28.
+## Related modules
 
-Die [P28-Supportmatrix](../ember-integration/browser/support-matrix.md) hält den
-aktuellen Status fest. Die [Gerätecheckliste](../ember-integration/browser/accessibility-checklist.md)
-erläutert die manuelle Abnahme und das opt-in Trace-Werkzeug unter `/toolbar?trace=1`.
+- [`ember-link`](../ember-link/README.md) / [`ember-image`](../ember-image/README.md) — the node types the dialogs edit.
+- [`ember-history`](../ember-history/README.md) — undo/redo state shown by the toolbar.
+- [`ember-ui`](../ember-ui/README.md) — the runtime the toolbar and dialogs render through.
+</content>

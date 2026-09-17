@@ -1,140 +1,103 @@
 # scalajs-ember-list
 
-Geordnete und ungeordnete Listen: Ein- und Ausrücken, Enter und Backspace an Listengrenzen,
-Normalisierung. Headless und optional.
-
-Verbindlicher Entwurf: [UI_EDITOR_ARCHITECTURE.md](../UI_EDITOR_ARCHITECTURE.md) §§8, 11, 18.
+Ordered and unordered lists: indent/outdent, Enter and Backspace at list boundaries,
+normalization. Headless and optional.
 
 | | |
 | --- | --- |
-| sbt-ID / Artefakt | `scalajs-ember-list` |
-| Scala-Paket | `ember.editor.list` |
-| Produktionsabhängigkeiten | `scalajs-ember-core`, `scalajs-ember-rich-text` |
+| sbt ID / artifact | `scalajs-ember-list` |
+| Scala package | `ember.editor.list` |
+| Production dependencies | `scalajs-ember-core`, `scalajs-ember-rich-text` |
 
-## Stand
+## Overview
 
-P13 abgeschlossen. Vorhanden: `ListNode`, `ListItemNode`, die drei Listenbefehle, die
-Enter/Backspace-Behandlung und vier Normalisierungsregeln.
+`ember-list` adds `ListNode`/`ListItemNode`, three list commands, list-aware Enter/Backspace
+handling, and four normalization rules to the [rich-text](../ember-rich-text/README.md) profile.
 
-## Verwendung
+## Installation
+
+```scala
+libraryDependencies += "com.anjunar" %% "scalajs-ember-list" % "1.0.1"
+```
+
+## Quick start
 
 ```scala
 val resolved = ExtensionResolver
   .resolve(Vector(RichText(generator), ListExtension(generator)))
-  .getOrElse(…)
+  .getOrElse(...)
 
 session.dispatch(ListCommands.ToggleList, ListKind.Unordered)
 session.dispatch(ListCommands.Indent)
 session.dispatch(ListCommands.Outdent)
 ```
 
-## Die Form, und warum sie so ist
-
-§8.2 legt sie fest: „eine Liste ListItems, ein ListItem Blockinhalte."
+## Document shape
 
 ```text
 ul
   li
-    "Erster Punkt"
+    "First item"
     ul
       li
-        "Eingerückt"
+        "Nested"
   li
-    "Zweiter Punkt"
-    "Noch ein Absatz im selben Punkt"
+    "Second item"
+    "Another paragraph in the same item"
 ```
 
-**Ein Item hält Blöcke, keine Inline-Inhalte.** Das ist keine Pedanterie, sondern der Grund,
-warum ein Punkt zwei Absätze, eine verschachtelte Liste oder ein Zitat enthalten kann — alles
-Dinge, die echte Dokumente tun. Ein Item mit Inline-Inhalt bräuchte für jeden dieser Fälle eine
-zweite, parallele Struktur.
+An item holds **blocks**, not inline content — which is why an item can contain two paragraphs, a
+nested list, or a quote, all things real documents do. The price is one extra nesting level
+compared to a naive model, paid at exactly one place: an empty item gets a paragraph so there is
+a caret position. Start number and tightness are stored on the document, not derived — a Markdown
+list starting at 3 must not silently renumber on a round trip, and tightness would otherwise
+change the instant someone adds a second paragraph to an item.
 
-Der Preis ist eine Verschachtelungsebene mehr als ein naives Modell, und er wird an genau einer
-Stelle bezahlt: ein leeres Item bekommt einen Absatz, damit es eine Caretposition gibt.
+## Everything is a move
 
-**Startnummer und Tightness stehen im Dokument.** §18.2 verlangt es: Markdown kann eine Liste
-schreiben, die bei 3 beginnt, und ein Roundtrip, der still umnummeriert, wäre verlustbehaftet.
-`tight` wird getragen und nicht abgeleitet — sonst änderte sich das Dokument, sobald jemand
-einen zweiten Absatz in ein Item schreibt.
+Indenting and outdenting never rebuild a node — they move it, so every point inside it (a caret
+in the third word of an indented paragraph) survives unmoved.
 
-## Alles ist ein Move
+**Indent** moves the item into the item *above* it — the first item cannot be indented, since
+there is nothing above it. If the item above already ends with a list of the same kind, the item
+joins it; otherwise one is created there.
 
-Kein Umbau. §11s Mapping-Tabelle sagt, was das bringt: ein Move erhält den Knoten, also
-überlebt jeder Punkt darin unangetastet — ein Caret im dritten Wort eines eingerückten Absatzes
-steht danach im dritten Wort. Ein neu gebautes Item wäre einfacher zu schreiben und verlöre den
-Cursor bei jedem Tab.
+**Outdent** has two distinct cases: nested (the item becomes the next sibling of the item that
+contained its list) and top-level (there is no containing item, so the blocks leave the list
+entirely). In both cases, everything that followed the outdented item comes with it — an item
+leaves its list from the bottom, i.e. behind everything still in it; leaving the followers behind
+would read them out of order. A split numbered list keeps counting: outdenting the second of
+three items leaves `1.` and `2.`, not `1.` and `1.`.
 
-### Einrücken
-
-Das Item wandert in das Item **darüber**. Das erste Item lässt sich nicht einrücken — es gibt
-nichts, worin. Endet das Item darüber bereits mit einer Liste derselben Art, tritt das Item ihr
-bei; sonst entsteht dort eine. Ohne diese Prüfung ergäben drei Einrückungen hintereinander drei
-verschachtelte Listen mit je einem Punkt.
-
-### Ausrücken
-
-Zwei Fälle, und sie sind wirklich verschieden:
-
-- **Verschachtelt:** das Item wird zum nächsten Geschwister des Items, das seine Liste enthielt.
-- **Oberste Ebene:** es gibt nichts, wessen Geschwister es werden könnte — die Blöcke verlassen
-  die Liste ganz.
-
-**In beiden Fällen kommen die nachfolgenden Punkte mit.** Ein Item verlässt seine Liste *unten*,
-also in Lesereihenfolge hinter allem, was noch darin steckt. Blieben die Nachfolger zurück,
-stünden sie plötzlich vor dem Punkt, dem sie folgten: `[Zwei, Drei]` ausrücken und das Dokument
-läse „Drei, Zwei". Beim verschachtelten Ausrücken werden sie zur Unterliste des ausgerückten
-Items, an der obersten Ebene zu einer neuen Liste hinter den herausgelösten Blöcken. Das ist
-auch, was Ein- und Ausrücken zueinander invers macht.
-
-Eine geteilte nummerierte Liste zählt weiter: aus `1. 2. 3.` wird beim Herauslösen des zweiten
-Punkts `1.` und `3.`, nicht `1.` und `1.`.
-
-## Enter und Backspace
-
-Beide bedeuten in einer Liste etwas anderes, und §12s Prioritätskette ist genau der Mechanismus
-dafür: die Handler registrieren auf `CommandPriority.High`, über den Rich-Text-Handlern, und
-geben `Pass` zurück, sobald der Caret nicht in einer Liste steht. Dieses Modul **ersetzt** das
-Absatzteilen nicht — es hat Vorrang, wo Listen im Spiel sind, und tritt sonst beiseite.
+## Enter and Backspace
 
 | | |
 | --- | --- |
-| Enter in einem gefüllten Item | teilt es; der Teil hinter dem Caret wird ein neues Item |
-| Enter in einem leeren Item | rückt eine Ebene aus; an der obersten Ebene endet die Liste |
-| Backspace am Anfang des ersten Blocks | rückt aus, statt zu löschen |
-| Backspace sonst | ganz normal |
+| Enter in a non-empty item | splits it; the part after the caret becomes a new item |
+| Enter in an empty item | outdents one level; at the top level, ends the list |
+| Backspace at the start of the first block | outdents instead of deleting |
+| Backspace elsewhere | behaves normally |
 
-**Das Teilen ruft die Funktion, nicht den Command.** Der Blocksplit liegt im Rich-Text-Profil,
-behandelt Marks und Caretposition, und eine zweite Implementierung hier würde davon abdriften.
-Erreichbar ist er aber nicht über einen Dispatch: §10 gibt Command-Handlern einen
-`TransformScope`, gerade damit sie *keinen* weiteren Dispatch starten können — „eine
-Command-Kette, die sich selbst verlängert, ist genau die verdeckte Reentranz, die §10
-ausschließt". Also wird der gemeinsame Code als das aufgerufen, was er ist: eine Funktion auf
-dem Entwurf.
+These handlers register at `CommandPriority.High`, above the rich-text handlers, and return
+`Pass` as soon as the caret is not in a list — this module does not replace paragraph splitting,
+it takes precedence only where lists are involved. Splitting itself reuses the rich-text split
+function directly (not a dispatched command — a command handler's `TransformScope` deliberately
+cannot start another dispatch).
 
-## Normalisierung
+## Normalization
 
-Vier Regeln, alle als Transform (§3.2):
-
-| Regel | Wofür |
+| Rule | For |
 | --- | --- |
-| `looseChildNeedsItem` | Ein Block direkt in einer Liste bekommt ein Item. §8.2s Form, und P13s Abnahme: „Kein nackter Paragraph direkt in ListNode." |
-| `emptyItemNeedsBlock` | Ein leeres Item bekommt einen Absatz — ein Caret braucht eine Textposition. |
-| `adjacentListsJoin` | Zwei benachbarte Listen derselben Art werden eine. |
-| `emptyListGoes` | Eine Liste ohne Items verschwindet. |
+| `looseChildNeedsItem` | A block dropped straight into a list gets wrapped in an item |
+| `emptyItemNeedsBlock` | An empty item gets a paragraph — a caret needs a text position |
+| `adjacentListsJoin` | Two adjacent lists of the same kind become one |
+| `emptyListGoes` | A list with no items disappears |
 
-**Warum reparieren statt ablehnen.** Die Befehle könnten alle sorgfältig genug sein, das nie zu
-erzeugen. Sie wären dann alle sorgfältig, einzeln, solange sich jemand daran erinnert — und das
-erste fremde Modul, das einen Knoten in eine Liste bewegt, wäre es nicht.
-
-**Warum `adjacentListsJoin` rückwärts schaut.** Weil der dirty Knoten handeln muss. Einen Absatz
-zu umschließen erzeugt eine *neue* Liste neben einer bestehenden: die neue steht in
-`ChangeSet.created`, die alte ist unberührt und wird nie Transform-Kandidat (§3.4). Eine Regel,
-die vorwärts schaut, würde nur den Knoten fragen, der nichts hinter sich hat. Derselbe Fehler wie
-beim Textlauf-Merge in P12, in derselben Form.
-
-**Terminierung** ist Abnahmebedingung. Jede Regel entfernt entweder einen Knoten oder verringert
-die Zahl der falsch platzierten, und keine erzeugt Arbeit für eine andere — sonst bräche §10s
-Arbeitsbudget die Transaktion nach 32 Runden ab.
+These repair rather than reject: any module or paste that moves a node into a list should not
+have to itself keep the shape legal. `adjacentListsJoin` looks backward deliberately — wrapping a
+paragraph creates a *new* list beside an existing one, and the new list is the dirty node; the
+existing one is never a transform candidate. All four rules are guaranteed to terminate: each
+either removes a node or reduces the count of misplaced ones, and none creates work for another.
 
 ## Tests
 
@@ -142,9 +105,14 @@ Arbeitsbudget die Transaktion nach 32 Runden ab.
 sbt --server "scalajs-ember-list/Test/testOnly *"
 ```
 
-`ListEditingSpec` fährt die Befehle, `ListNormalizationSpec` das Dokument — ein fremdes Modul,
-ein Paste oder ein späteres Feature kann Knoten überallhin bewegen, und die Invarianten müssen
-trotzdem halten.
+`ListEditingSpec` covers the commands, `ListNormalizationSpec` the document invariants — a
+foreign module, a paste, or a later feature can move nodes anywhere, and the invariants must hold
+regardless. The semantic HTML export and the proof that projection moves rather than rebuilds
+live in [`ember-standard`](../ember-standard/README.md)'s `ListProjectionSpec`.
 
-Der semantische Export und der Nachweis, dass die Projektion bewegt statt neu baut, stehen in
-`ember-standard/…/ListProjectionSpec.scala` — dort, wo Listen und Renderer einander kennen (§6).
+## Related modules
+
+- [`ember-rich-text`](../ember-rich-text/README.md) — the profile this module extends.
+- [`ember-browser-support`](../ember-browser-support/README.md) — keyboard bindings for list commands.
+- [`ember-standard`](../ember-standard/README.md) — HTML/JSON/Markdown adapters for lists.
+</content>

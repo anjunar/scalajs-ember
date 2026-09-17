@@ -1,200 +1,158 @@
 # scalajs-ember-ui
 
-Die Dokumentansicht des Ember-Editors: eine keyed Projektion des Dokuments auf den
-UI-Komponentenbaum. Das einzige veröffentlichte Modul, das UI kennt.
-
-Verbindlicher Entwurf: [UI_EDITOR_ARCHITECTURE.md](../UI_EDITOR_ARCHITECTURE.md) §§5, 15.1.
-Der Vertrag zur Runtime: [UI_CORE_INTEGRATION.md](../UI_CORE_INTEGRATION.md).
+The document view of the Ember editor: a keyed projection of the document onto the UI component
+tree. The one published module that knows UI.
 
 | | |
 | --- | --- |
-| sbt-ID / Artefakt | `scalajs-ember-ui` |
-| Scala-Paket | `ember.editor.ui` |
-| Produktionsabhängigkeiten | `scalajs-ember-core`, `scalajs-ember-html`, `com.anjunar:scalajs-ui-core:1.0.0` |
+| sbt ID / artifact | `scalajs-ember-ui` |
+| Scala package | `ember.editor.ui` |
+| Production dependencies | `scalajs-ember-core`, `scalajs-ember-html`, `com.anjunar:scalajs-ui-core` |
 
-`ui-core` kommt seit P17 als Binärartefakt von Maven Central. Vorher war es eine
-Quell-Abhängigkeit auf `../scalajs-ui`; §6s Publish-Regel war auch damals gewahrt, weil der
-POM das veröffentlichte Artefakt nannte — jetzt ist sie es ohne Fußnote. Nachprüfbar mit
-`sbt --server "scalajs-ember-ui/makePom"`.
+## Overview
 
-**Nur der Kern, und das steht jetzt im Lint.** Solange ui-core eine Quell-Abhängigkeit war,
-sagte der Projektgraph, dass kein weiteres UI-Modul auf dem Classpath liegen kann. Mit einem
-Binärartefakt wäre `ui-forms` ein `libraryDependencies +=` entfernt, also sagt es der
-Grenz-Lint: die Blocklist verbietet `scalajs-ui` als Ganzes, und `allowedModules` gibt genau
-`scalajs-ui-core` wieder frei (§7). Das ist strenger als das, was die Quell-Abhängigkeit
-strukturell hergab.
+`ui-core` is consumed as a published Maven Central artifact. This is enforced strictly: the
+dependency boundary lint blocklists `scalajs-ui` as a whole and reopens exactly
+`scalajs-ui-core` through an explicit allowlist entry — an accidental `ui-forms` or `ui-viewport`
+import fails the build with a clear message rather than slipping through.
 
-## Stand
+## Installation
 
-P09 abgeschlossen. Vorhanden: `NodeView`, `DocumentProjection`, `DocumentView`,
-`EditorProperties`. Hydration, Selection, Eingabe und Composition (P20–P23) leben in
-`ember-browser`; hier kamen dafür nur die Zugänge und Reparaturen dazu, die ohne die Projektion
-nicht gehen (siehe unten).
+```scala
+libraryDependencies += "com.anjunar" %% "scalajs-ember-ui" % "1.0.1"
+```
 
-### Zwei Hosts, die der SelectionPort braucht
-
-`ContainerElement.contentHost` und `TextRunElement.textHost` sagen, wo die Kinder bzw. der
-Textknoten eines Knotens im DOM tatsächlich hängen. Bei `<pre><code>` sind die Kinder nicht im
-Host des Knotens, sondern im inneren Tag; bei einem markierten Lauf liegt der Textknoten unter
-der Markkette.
-
-Beides ließe sich von außen nach der Zahl der Tags abzählen — und wäre dann eine zweite
-Beschreibung derselben Struktur, die beim ersten Mark auseinanderläuft, das nicht als genau ein
-Element rendert. Die Komponente weiß es; gefragt wird sie.
-
-### Was der Browser verlangt (P22, P23)
-
-`TextRunElement.resetText` baut die DOM eines Laufs aus einem bekannten Wert neu auf und räumt
-dabei weg, was die Projektion **nicht** dorthin geschrieben hat. Das ist §15.4s „lässt UI diesen
-Bereich aus dem gültigen State neu aufbauen", und es gibt das, weil ein Browser mehr im Wrapper
-hinterlassen kann als den einen Textknoten: Firefox teilt einen Lauf in drei, wenn nativ ein
-Zeichen außerhalb der BMP eingefügt wird.
-
-`DocumentView.rebuild` (P23) ist die größere Reparatur: die Komponenten eines Knotens werden
-abgeräumt und aus dem Dokument neu gebaut. §15.4 nennt sie — „lässt UI diesen Bereich aus dem
-gültigen State neu aufbauen" —, und sie liegt hier und nicht im Browsermodul, weil Ab- und
-Anmontieren durch die Runtime läuft und §15.1 das der Projektion allein gibt. Die Wurzel ist
-ausgenommen: sie neu zu bauen wäre eine Ersetzung der ganzen Ansicht.
-
-`DocumentProjection` wendet einen Textsplice außerdem **nicht** an, wenn das DOM den committeten
-Text schon zeigt. Eine native Eingabe wird aus dem DOM gelesen (§15.2) — der Text steht dort
-bereits, wenn der Commit ankommt, und der Splice fügte ihn ein zweites Mal ein. Sichtbar wurde
-das als `aababc` nach dem Tippen von `abc`. Es ist derselbe No-op-Vertrag, den §15.1 für
-unveränderte Knoten verlangt, eine Ebene höher.
-
-## Was hier bewusst nicht steht
-
-Kein zweiter Renderer, kein VDOM, kein Scheduler (§2, §15.1). `DocumentProjection` erzeugt kein
-einziges DOM-Element und bewegt keines — sie ordnet Knoten-IDs Komponenten zu und ruft
-`Runtime`-APIs. Besitz, Einfügen, Verschieben und Entfernen gehören ausschließlich UI.
-
-Der Index ist „eine Zuordnung, keine zweite Ownership-Liste". Er sagt, welche Komponente zu
-welcher ID gehört; er sagt nicht, wer sie besitzt.
-
-## Verwendung
+## Quick start
 
 ```scala
 val view = DocumentView.mount(session, DomCursor.root(container), ParagraphSupport.views)
 
-view.componentFor(NodeId("t0"))   // Option[AbstractComponent]
-view.projectedRevision            // was gerade zu sehen ist
-view.onProjected(revision => …)   // und wann es sich ändert
+view.componentFor(NodeId("t0")) // Option[AbstractComponent]
+view.projectedRevision          // what is currently shown
+view.onProjected(revision => ...) // and when it changes
 view.dispose()
 ```
 
-Derselbe Aufruf mit einem `SsrCursor` liefert die serverseitige Ausgabe. Dafür gibt es
-`renderToHtml`, wenn es kein lebendes Dokument braucht:
+The same call with an `SsrCursor` produces the server-side output. Where no live document is
+needed, use:
 
 ```scala
-DocumentView.renderToHtml(document, ParagraphSupport.views) // Profil Content
+DocumentView.renderToHtml(document, ParagraphSupport.views) // Content profile
 ```
 
-§9: „SSR rendert ein Document ohne lokale Selection, History oder Fokus." Genau deshalb nimmt
-diese Methode ein `Document` und keine Sitzung.
+SSR renders a `Document` without local selection, history or focus — which is exactly why this
+method takes a `Document`, not a session.
 
-## Commit und Projektion sind zwei Zeitpunkte
+## Two hosts the selection port needs
 
-§5 trennt beides ausdrücklich. Der Kern veröffentlicht einen Zustand; ob eine Ansicht ihn
-zeigt, ist eine andere Frage. Ein Commit-Konsument darf `commit.current` lesen, aber nicht
-daraus schließen, dass irgendetwas gerendert ist.
+`ContainerElement.contentHost` and `TextRunElement.textHost` say where a node's children, or its
+text node, actually hang in the DOM. For `<pre><code>`, the children are not in the node's own
+host but in the inner tag; for a marked run, the text node sits under the chain of mark tags. Both
+could be counted from outside by tag depth — and that would be a second description of the same
+structure that drifts the first time a mark doesn't render as exactly one element. The component
+already knows; it is simply asked.
+
+## What the browser needs
+
+`TextRunElement.resetText` rebuilds a run's DOM from a known value and discards anything the
+projection did **not** write there — the mechanism that lets the view rebuild a region from valid
+state, needed because a browser can leave more in the wrapper than the one text node (Firefox
+splits a run into three when a character outside the BMP is inserted natively).
+
+`DocumentView.rebuild` is the larger repair: a node's components are torn down and rebuilt from
+the document. It lives here rather than in the browser module because mount/unmount runs through
+the UI runtime, and the projection alone owns that. The root is excluded — rebuilding it would be
+replacing the whole view.
+
+`DocumentProjection` also does **not** apply a text splice when the DOM already shows the committed
+text. A native input is read from the DOM, so the text is already there when the commit arrives;
+applying the splice again would insert it a second time (visible as `aababc` after typing `abc`) —
+the same no-op contract required for unchanged nodes, one level up.
+
+## What is deliberately absent
+
+No second renderer, no VDOM, no scheduler. `DocumentProjection` creates no DOM element itself and
+moves none — it maps node IDs to components and calls `Runtime` APIs. Ownership, insertion,
+movement and removal belong to UI alone. The index is a mapping, not a second ownership list: it
+says which component belongs to which ID, not who owns it.
+
+## Commit and projection are two different moments
+
+The kernel publishes a state; whether a view shows it is a separate question. A commit listener may
+read `commit.current`, but that does not mean anything has rendered.
 
 | | |
 | --- | --- |
-| `onProjected(listener)` | meldet **nach** der Projektion die dargestellte Revision |
-| `projectedRevision` | dasselbe zum Nachlesen |
+| `onProjected(listener)` | reports the shown revision **after** projection |
+| `projectedRevision` | the same, readable on demand |
 
-Beim Mount wird nicht gemeldet — einen Zuhörer kann es zu diesem Zeitpunkt nicht geben, weil
-die Ansicht erst danach zurückgegeben wird. Wer sich später registriert, hat trotzdem nichts
-verpasst: `projectedRevision` sagt, was zu sehen ist.
+Nothing is reported on mount — there can be no listener yet, since the view is returned only
+afterward. Anyone registering later has missed nothing: `projectedRevision` says what is currently
+shown.
 
-## KeyedChildren, und warum der Aufbau eine Rekursion ist
+## KeyedChildren, and why building is a recursion
 
-Jeder Container bekommt eine `KeyedChildren`-Gruppe, gekeyt auf `NodeId`. Damit ist die
-Reihenfolgeabstimmung nicht selbst geschrieben, sondern getesteter Code aus `ui-core`, und ein
-Knoten, dessen Wert gleich geblieben ist, wird gar nicht erst angefasst.
+Every container gets a `KeyedChildren` group, keyed on `NodeId` — reorder reconciliation is
+therefore tested code from `ui-core`, not hand-written here, and a node whose value hasn't changed
+is never touched. `build` attaches a container's group **before** mount; the container mounts it in
+its own `compose`, and the group calls `build` again. The whole tree is built in one pass, in
+document order, with the cursor positioned exactly where each child belongs.
 
-`build` hängt einem Container seine Gruppe **vor** dem Mount ein. Der Container montiert sie in
-seinem `compose`, und die Gruppe ruft dabei wieder `build`. So entsteht der ganze Baum in einem
-Durchgang, in Dokumentreihenfolge, und der Cursor steht bei jedem Kind genau dort, wo es
-hingehört. Ein Nachtragen der Gruppen nach dem Mount hätte diese Reihenfolge nicht — der erste
-Versuch in P09 lieferte dafür leere Absätze.
+Applying one commit, in order: take removed nodes out of the index (groups clean up their own);
+transfer moved nodes between groups (before reordering, or the target group would see the node as
+new and create it twice); apply text splices (also before reordering, so the group's subsequent
+value comparison finds no difference and doesn't write the text twice); reorder changed child
+lists; refresh updated nodes. The text-splice step matters concretely: a `spliceText` writes
+`CharacterData.replaceData` for just the changed range, while a full `setText` rewrites the whole
+run — the difference that matters for a long paragraph.
 
-### Die Reihenfolge einer Anwendung
+## What an adapter may do
 
-1. Entfernte Knoten aus dem Index nehmen — die Gruppen räumen sie selbst ab.
-2. Verschobene Knoten zwischen Gruppen übertragen, über `transferTo`. **Vor** der Neuordnung,
-   sonst sähe die Zielgruppe den Knoten als neu an und erzeugte ihn ein zweites Mal.
-3. Textsplices anwenden. Ebenfalls vor der Neuordnung, damit der anschließende Wertvergleich
-   der Gruppe keinen Unterschied mehr findet und den Text nicht ein zweites Mal schreibt.
-4. Geänderte Kindlisten neu ordnen.
-5. Geänderte Knoten nachführen.
-
-Schritt 3 sieht nach Umweg aus und ist der Kern der Sache: ein `spliceText` schreibt
-`CharacterData.replaceData` für den geänderten Bereich, ein `setText` den ganzen Lauf. Bei
-einem langen Absatz ist das der Unterschied, um den es §15.1 geht.
-
-## Was ein Adapter darf
-
-§15.1: „Ein Adapter erhält immutable Node-Daten und Rendering-Kontext, nicht unbeschränkte
-DOM-Schreibrechte." `NodeView.create` liefert eine Komponente, `update` führt sie nach —
-beides ohne Cursor, ohne Zugriff auf Geschwister, ohne Möglichkeit, am Baum zu montieren.
-
-Der Regelfall schreibt diesen Vertrag nicht selbst, sondern leitet ihn ab:
+A `NodeView` receives immutable node data and a rendering context, never unrestricted DOM write
+access. `NodeView.create` returns a component, `update` refreshes it — both without a cursor,
+without access to siblings, without a way to mount into the tree. The normal case does not write
+this contract by hand:
 
 ```scala
 ViewSupport.semantic(ParagraphSupport.semantics)
 ```
 
-Eigene Adapter sind für Atome gedacht, deren Inneres kein Textbereich ist (§8.1) — ein Bild mit
-Auswahlrahmen, ein eingebettetes Diagramm.
-
-Drei Komponentenarten entstehen dabei:
-
-| | |
-| --- | --- |
-| `SemanticElement` | Tag und geprüfte Attribute; schreibt Unverändertes nicht erneut |
-| `ContainerElement` | dazu die Kindergruppe |
-| `TextRunElement` | dazu ein Textkind, das nie ausgetauscht wird |
-
-Ein Knoten mit Kindern, dessen `NodeView` keinen `ContainerElement` liefert, ist ein
-Vertragsbruch und wird als solcher gemeldet — nicht still ohne Kinder gerendert. Dasselbe gilt
-für einen Tagwechsel unter gleicher ID: das ist nach §15.1 eine ausdrückliche View-Ersetzung,
-die es noch nicht gibt, und ein stehengebliebenes `<p>` unter einer Überschrift wäre die
-schlechtere Auskunft.
+Hand-written adapters are meant for atoms whose interior is not a text region — an image with a
+selection frame, an embedded diagram. Three component kinds result: `SemanticElement` (tag and
+checked attributes; never rewrites what hasn't changed), `ContainerElement` (adds the child group),
+`TextRunElement` (adds one text child that is never swapped out). A node with children whose
+`NodeView` does not produce a `ContainerElement` is a contract violation and is reported as one,
+rather than silently rendered without children — the same for a tag change under an unchanged ID,
+which is an explicit view replacement this module does not yet have.
 
 ## EditorProperties
 
-Ein lesender Adapter zwischen Sitzungszustand und UI-Properties — für eine Toolbar, die „kann
-rückgängig machen" anzeigt, oder eine Statuszeile mit der Wortzahl.
+A read-only bridge from session state to UI properties — for a toolbar showing "can undo," or a
+status line with a word count.
 
 ```scala
 val (document, cleanup) = EditorProperties.document(session)
 ```
 
-Nur lesend, und das ist keine Bequemlichkeitsentscheidung. §4: „Eine Property ist weder
-Transaktion noch History." Sie benachrichtigt synchron und einzeln; ein schreibender Adapter
-würde eine Änderung an der Commit-Grenze vorbeiführen und damit Atomarität, ChangeSet und
-Positionsabbildung umgehen. Wer ändern will, nimmt `session.update` oder einen Command.
-
-Der Rückgabewert enthält die Aufräumaktion. Ohne sie überlebte die Registrierung die
-Komponente, die sie angelegt hat.
+Read-only only, deliberately: a property is neither a transaction nor history. It notifies
+synchronously and individually; a writable adapter would route a change around the commit boundary
+and bypass atomicity, the change set and position mapping. Code that wants to change something uses
+`session.update` or a command. The returned cleanup action must be called, or the registration
+outlives the component that created it.
 
 ## Tests
 
-Dieses Modul hat keine eigene Suite — eine Projektion ohne Knotenarten hat nichts zu zeigen.
-Geprüft wird sie dort, wo beide Seiten zusammenkommen:
+This module has no test suite of its own — a projection without node types has nothing to show.
+It is tested where both sides meet:
 
 ```bash
-sbt --server "scalajs-ember-standard/Test/testOnly *"   # headless, gegen SsrCursor
-cd ember-integration/browser && npm run verify           # DOM-Identität, Schreibumfang
+sbt --server "scalajs-ember-standard/Test/testOnly *"   # headless, against an SsrCursor
+cd ember-integration/browser && npm run verify           # DOM identity, write scope
 ```
 
-P28 erweitert die lokale Messung auf 100001 Knoten und prüft Mounts, Unmounts,
-Textschreibzugriffe und Freigabe. Der große flache Move mit 50000 Geschwistern
-überschreitet mit UI-Core 1.0.0 das 240-s-Zeitlimit. Der
-[korrigierte lokale Runtime-Kandidat](../benchmarks/runtime-reorder.md) besteht
-diesen Fall in drei Engines mit 95–132 ms und genau einem DOM-Move;
-die Korrektur ist inzwischen als [Standardabhängigkeit 1.0.1 übernommen](../benchmarks/ui-core-1.0.1-release.md).
-Messwerte und Reproduktion: [Performancebericht](../benchmarks/report.md).
-Die [Supportmatrix](../ember-integration/browser/support-matrix.md) begrenzt die
-daraus ableitbare Freigabe ausdrücklich.
+## Related modules
+
+- [`ember-html`](../ember-html/README.md) — the semantic descriptions this module's adapters derive from.
+- [`ember-browser`](../ember-browser/README.md) — reads positions from this projection and repairs it.
+- [`ember-standard`](../ember-standard/README.md) — registers the view adapters for concrete node types.
+</content>

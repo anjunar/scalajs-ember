@@ -1,93 +1,133 @@
-# ember-clipboard
+# scalajs-ember-clipboard
 
-P25: validierte Dokumentfragmente, Copy/Cut/Paste und strukturierter Drag/Drop.
-Das Modul hängt auf core, rich-text, json, html und browser. Es kennt weder die
-konkreten Standardadapter noch forms. Extraktion, Codec und Commands verwenden
-keine DOM-Globals und laufen in den Node.js-Tests.
+Validated document fragments, copy/cut/paste, and structured drag-and-drop.
 
-## Einbindung
+| | |
+| --- | --- |
+| sbt ID / artifact | `scalajs-ember-clipboard` |
+| Scala package | `ember.editor.clipboard` |
+| Production dependencies | `scalajs-ember-core`, `scalajs-ember-rich-text`, `scalajs-ember-json`, `scalajs-ember-html`, `scalajs-ember-browser` |
 
-`ClipboardExtension(generator)` zusammen mit `RichText(generator)` registrieren.
-Einen `ClipboardCodec(profile, schema, jsonSupport, htmlSupport, htmlImportSupport)`
-mit den Adaptern der Anwendung erstellen. `ClipboardService(session, codec)`
-stellt die headless Operationen bereit. `BrowserClipboardController(session,
-selectionPort, inputController, codec, report, files)` bindet die Browserereignisse;
-vor den zugrunde liegenden Controllern mit `dispose()` freigeben.
+## Overview
 
-`report` erhält Erfolg samt Importdiagnosen oder einen `ClipboardError`. Der
-injizierte `files`-Callback erhält `ClipboardFileIntent` mit Dateien, Zielbookmark
-und Ereignisquelle. Er ist die Anschlussstelle für P26; dieses Modul lädt keine
-Dateien hoch und bettet keine Dateidaten ins Dokument ein. Ohne Callback werden
-Dateien mit einer Diagnose abgewiesen.
+`ember-clipboard` defines a validated, portable document-fragment representation, encodes and
+decodes it against multiple clipboard MIME formats with priority-based fallback, and wires that to
+real `copy`/`cut`/`paste`/`drag`/`drop` events through [`ember-browser`](../ember-browser/README.md)'s
+ownership and dedup mechanisms. Extraction, encoding and decoding are pure and DOM-independent and
+run in plain Node.js tests; only the browser-facing port and drop controller touch real clipboard
+and drag APIs. The module knows neither the concrete standard adapters nor forms.
 
-## Austauschvertrag
+## Installation
 
-- Reihenfolge: `application/x-ember-editor+json`, `text/html`, `text/plain`.
-  Jeder Zweig wird unabhängig validiert; ein ungültiger Zweig kann auf einen
-  gültigen niedrigeren zurückfallen. Die Diagnose nennt verworfene Formate.
-- Internes Envelope: Format `ember-fragment`, Version `1`, Anwendungsprofil,
-  `openStart`, `openEnd` und das versionierte `DocumentJson`-Dokument.
-  Schema, Codecs und URL-Policies kommen vom Empfänger.
-- Pro Quellformat standardmäßig höchstens 1.048.576 UTF-16-Codeeinheiten;
-  JSON und HTML höchstens 20.000 Nodes und Tiefe 64. Klartext wird vor dem
-  Aufbau ebenfalls auf 20.000 Nodes begrenzt. CRLF und CR werden zu LF;
-  jede Zeile einschließlich einer letzten leeren wird ein Absatz.
-- Copy bewahrt Markierungen, Inline-Wrapper und Teiltext. Offene Grenzen zählen
-  Container unter der synthetischen Wurzel. Paste teilt den Zielpfad und führt
-  passende offene Container anhand ihrer Deskriptoren zusammen. Unterschiedliche
-  Metadaten, etwa Linkziele, werden nicht zusammengeführt.
-  Ein einzelner offener Absatz aus Text/Atomen wird direkt in den vorhandenen
-  Textkontext eingefügt und behält dessen Überschrift-, Listen- und Link-Container.
-- Kopien erhalten neue IDs; interne Moves ganzer Nodes verwenden `Operation.Move`
-  und behalten deren IDs. Teiltext wird ausgeschnitten, das Ziel durch primitive
-  Mappings verfolgt und das Fragment in derselben Transaktion eingefügt. Ungültige
-  Zielstrukturen brechen die gesamte Transaktion ab.
-- Semantisches HTML wird aus `HtmlSupport` ohne Editorattribute exportiert.
-  Nicht verfügbare JSON-/HTML-Adapter lassen das jeweilige Format entfallen.
-  Atom-Klartext ist standardmäßig U+FFFC; die Anwendung kann `atomText` injizieren,
-  beispielsweise für Bild-Alttext. Es wird kein Dokument-DOM ausgelesen.
+```scala
+libraryDependencies += "com.anjunar" %% "scalajs-ember-clipboard" % "1.0.1"
+```
 
-## Cut, Ereignisse und Drag
+## Wiring it up
 
-`PendingCut` ist einmal verwendbar. Ein abgewiesener Write löscht nichts. Nach
-Write-Erfolg muss die Dokumentrevision unverändert sein, auch nach Edit + Undo;
-reine Auswahländerungen dürfen über die ursprünglichen Bookmarks aufgelöst werden.
-`AsyncClipboardPort` ist eine injizierbare Schnittstelle mit getesteten
-Future-/Exception-/Konfliktpfaden, kein eingebauter `navigator.clipboard`-Adapter.
+Register `ClipboardExtension(generator)` alongside `RichText(generator)`. Build a
+`ClipboardCodec(profile, schema, jsonSupport, htmlSupport, htmlImportSupport)` with the
+application's own adapters. `ClipboardService(session, codec)` provides the headless operations.
+`BrowserClipboardController(session, selectionPort, inputController, codec, report, files)` binds
+the browser events; dispose it before the underlying controllers.
 
-Der Eventadapter bestätigt, dass `DataTransfer` alle angebotenen Formate zurückliest.
-Das ist eine Bestätigung des Event-Stores, keine unabhängige Bestätigung des
-Betriebssystem-Clipboards. Die unten genannte WebKit-Grenze betrifft genau diesen
-Unterschied und sperrt dort die native Copy/Cut-Abnahme.
+`report` receives success (with import diagnostics) or a `ClipboardError`. The injected `files`
+callback receives a `ClipboardFileIntent` carrying files, a target bookmark and the event source —
+the connection point for an application's upload pipeline (see
+[`ember-forms`](../ember-forms/README.md)'s `MediaCoordinator`). This module never uploads a file
+or embeds file data in the document; without a callback, files are rejected with a diagnostic.
 
-Cut, Paste und Move setzen jeweils `HistoryPolicy.Push`. Clipboard-Ereignisse
-beanspruchen ihren korrespondierenden `beforeinput`-Pfad nur im selben Dispatch-Turn;
-der Claim wird per Microtask entfernt. Eine spätere Paste wird nie durch einen
-alten Claim unterdrückt. Unbestätigtes `deleteByCut` wird abgewiesen;
-`deleteByDrag` wird verhindert, da interne Moves die Quelle bereits verändern
-und fremde Editoren eine Kopie erhalten. Nicht abbrechbare Input-Ereignisse bleiben
-beim bestehenden NativeInput-/Recovery-Protokoll.
+```scala
+val codec = ClipboardCodec(profile = "my-app", schema, json, html, htmlImport)
+val clipboard = new BrowserClipboardController(
+  session, selectionPort, browserInputController, codec,
+  report = {
+    case Left(error)        => showStatus(error.message)
+    case Right(diagnostics) => diagnostics.foreach(showWarning)
+  },
+  files = intent => mediaService.upload(intent.files, intent.destination)
+)
+// later
+clipboard.dispose()
+```
 
-Der lokale Drag-Token wird im Fenster des Hosts erzeugt und nur in dessen aktivem
-Controller mit der Quellauswahl und Dokumentrevision verknüpft. Ein fremder Editor
-bekommt stets eine Kopie. Ctrl-/Alt-Drag kopiert ebenfalls. Das Drop-Ziel stammt aus
-der nativen Koordinatenabfrage und der bestehenden `DomPositionMap`. Native Controls
-innerhalb von Atomen behalten ihre Ereignisse. Readonly und Composition sperren
-schreibende Clipboard-/Drop-Operationen.
+Headless, without any browser events:
 
-## Nachweise und offene Browsergrenze
+```scala
+val service = new ClipboardService(session, codec)
+val data    = service.copy().toOption.get
+val decoded = service.paste(data)
+```
 
-Die Standardprofil-Tests liegen in `ember-standard/.../ClipboardSpec.scala` und
-`AsyncClipboardSpec.scala`; die test-only Abhängigkeit vermeidet eine Rückkante
-von clipboard zu standard. `TransactionSpec` prüft Draft-Bookmarks und atomare
-Abweisung. Der Browser-Harness enthält `clipboard.spec.mjs` und `drop.spec.mjs`.
+## Exchange contract
 
-Der echte Tastaturtest besteht unter Chromium und Firefox. Im Windows-WebKit des
-aktuellen Playwright-Harness gehen eventgeschriebene Clipboard-Daten verloren.
-Ein separater Test mit einer nativen Textarea ohne Editoradapter reproduziert das
-bereits mit `text/plain`. Beide Fälle sind ausschließlich für Windows-WebKit als
-**erwartet fehlgeschlagen** markiert; eine Reparatur erzeugt einen unerwarteten
-Erfolg und fordert die Neubewertung. Native Copy/Cut/Paste-Unterstützung ist auf
-dieser Kombination nicht abgenommen. Die übrigen Browserfälle prüfen explizit
-das Ereignisprotokoll mit synthetischen Clipboard-/DragEvents; physische Drags,
-mobile Clipboard-Menüs und reale IME sind damit nicht abgenommen.
+- **Format priority**: `application/x-ember-editor+json`, `text/html`, `text/plain`. Every branch
+  is validated independently; an invalid branch can fall back to a valid, lower-priority one.
+  Diagnostics name which formats were discarded.
+- **Internal envelope**: format `ember-fragment`, version `1`, an application profile string,
+  `openStart`, `openEnd`, and a versioned `DocumentJson` document. Schema, codecs and URL policies
+  come from the receiver, not the payload.
+- **Limits**: by default at most 1,048,576 UTF-16 code units per source format; JSON and HTML are
+  limited to 20,000 nodes and depth 64. Plain text is capped at 20,000 nodes before being built.
+  CRLF/CR are normalized to LF; every line, including a trailing empty one, becomes a paragraph.
+- **Copy** preserves marks, inline wrappers and partial text. Open boundaries count containers
+  under the synthetic root. **Paste** splits the target path and merges matching open containers by
+  descriptor; different metadata (e.g. a link target) is never merged. A single open paragraph made
+  of text/atoms is inserted directly into the existing text context, keeping its surrounding
+  heading/list/link containers.
+- Copies get new IDs; internal moves of whole nodes use `Operation.Move` and keep their IDs.
+  Partial text is cut, its target tracked through primitive mappings, and the fragment inserted in
+  the same transaction. An invalid target structure aborts the whole transaction.
+- Semantic HTML is exported from `HtmlSupport` without editor attributes. A format is simply
+  omitted where no JSON/HTML adapter is available. Atom plain text defaults to U+FFFC; an
+  application can inject `atomText` (e.g. an image's alt text). No document DOM is ever read.
+
+## Cut, events and drag
+
+`PendingCut` is single-use: a rejected write deletes nothing. After a successful write, the
+document revision must be unchanged (also after edit + undo); pure selection changes may still
+resolve through the original bookmarks. `AsyncClipboardPort` is an injectable interface with
+tested future/exception/conflict paths — there is no built-in `navigator.clipboard` adapter.
+
+The event adapter confirms that `DataTransfer` echoes back every format it was given — a
+confirmation of the event's own store, not an independent confirmation of the OS clipboard (see the
+WebKit limitation below).
+
+Cut, paste and move each set `HistoryPolicy.Push`. Clipboard events claim their corresponding
+`beforeinput` path only within the same dispatch turn; the claim is released on a microtask, so a
+later paste is never suppressed by a stale claim. Unconfirmed `deleteByCut` is rejected;
+`deleteByDrag` is prevented, since internal moves already change the source and foreign editors
+receive a copy. Non-cancelable input events fall back to the existing native-input/recovery
+protocol.
+
+A local drag token is created in the host's window and associated only with its own active
+controller, source selection and document revision — a foreign editor always receives a copy;
+Ctrl/Alt-drag also copies. The drop target comes from the native coordinate query and the existing
+`DomPositionMap`. Native controls inside atoms keep their own events. Readonly and an active
+composition block writing clipboard/drop operations.
+
+## Tests and known browser limitation
+
+```bash
+sbt --server "scalajs-ember-clipboard/Test/testOnly *"
+```
+
+The standard-profile tests live in `ember-standard`'s `ClipboardSpec` and `AsyncClipboardSpec` (a
+test-only dependency, to avoid a back-edge from clipboard to standard); `TransactionSpec` covers
+draft bookmarks and atomic rejection. The browser harness adds `clipboard.spec.mjs` and
+`drop.spec.mjs`.
+
+Real keyboard copy/cut/paste passes under Chromium and Firefox. Under Windows WebKit in the current
+Playwright harness, event-written clipboard data is lost on the transition to the native clipboard
+— reproducible even with a bare native textarea and no editor adapter. Both keyboard cases are
+marked as **expected failures** on that combination only; a fix producing an unexpected pass forces
+re-evaluation. Native copy/cut/paste is not certified there. The remaining browser cases test the
+event protocol explicitly with synthetic clipboard/drag events; physical drags, mobile clipboard
+menus and real IME are outside that scope.
+
+## Related modules
+
+- [`ember-browser`](../ember-browser/README.md) — event ownership and dedup this module reuses.
+- [`ember-json`](../ember-json/README.md) — the wire format for the internal fragment envelope.
+- [`ember-forms`](../ember-forms/README.md) — the upload pipeline behind the `files` callback.
+</content>

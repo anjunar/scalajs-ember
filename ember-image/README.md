@@ -1,174 +1,125 @@
 # scalajs-ember-image
 
-Externe Bilder als Inline-Atome mit geprüfter Media-Policy. Kein Upload, kein Dateidialog, keine
-Objekt-URL.
-
-Verbindlicher Entwurf: [UI_EDITOR_ARCHITECTURE.md](../UI_EDITOR_ARCHITECTURE.md) §§8, 19–20.
+External images as inline atoms with a validated media policy. No upload, no file dialog, no
+object URL.
 
 | | |
 | --- | --- |
-| sbt-ID / Artefakt | `scalajs-ember-image` |
-| Scala-Paket | `ember.editor.image` |
-| Produktionsabhängigkeiten | `scalajs-ember-core` |
+| sbt ID / artifact | `scalajs-ember-image` |
+| Scala package | `ember.editor.image` |
+| Production dependencies | `scalajs-ember-core` |
 
-## Stand
+## Overview
 
-P16 abgeschlossen. Vorhanden: `ImageNode`, `MediaUrl` samt Policy, `MediaReference`,
-`PositivePixels` und die beiden Commands `InsertImage`/`UpdateImage`.
+`ember-image` sits directly on the kernel, not on [rich-text](../ember-rich-text/README.md) — an
+image needs nothing from that profile. It has no marks, no children, and no paragraph to live in;
+it is an atom that sits between two characters. `ImageNodeSpec` builds its own local `BlockNode`
+for exactly this reason: `ParagraphNode` is not even on its classpath.
 
-## Nur der Kern
+## Installation
 
-§6 stellt `image` neben `rich-text`, nicht darauf. Das ist keine Sparsamkeit, sondern eine
-Aussage: ein Bild braucht vom Rich-Text-Profil nichts. Es hat keine Marks, keine Kinder und
-keinen Absatz, in dem es stecken müsste — es ist ein Atom, das irgendwo zwischen zwei Zeichen
-steht.
+```scala
+libraryDependencies += "com.anjunar" %% "scalajs-ember-image" % "1.0.1"
+```
 
-Die Testsuite hält das nach: `ImageNodeSpec` baut sich einen eigenen `BlockNode`, weil
-`ParagraphNode` hier gar nicht auf dem Klassenpfad liegt. Das ist kein Behelf, sondern die Probe.
-
-## Verwendung
+## Quick start
 
 ```scala
 val policy   = MediaUrlPolicy.default
 val resolved = ExtensionResolver
   .resolve(Vector(RichText(generator), ImageExtension(generator, policy)))
-  .getOrElse(…)
+  .getOrElse(...)
 
-policy.parse(eingabe) match
+policy.parse(input) match
   case Right(src) =>
-    val bild = ImageNode(generator.nextFor(session.document), MediaReference(src), "Alt-Text")
-    session.dispatch(ImageCommands.InsertImage, bild)
-  case Left(error) => zeige(error.render)
+    val image = ImageNode(generator.nextFor(session.document), MediaReference(src), "Alt text")
+    session.dispatch(ImageCommands.InsertImage, image)
+  case Left(error) => showError(error.render)
 
-session.dispatch(ImageCommands.UpdateImage, (_: ImageNode).copy(alt = "Besser beschrieben"))
+session.dispatch(ImageCommands.UpdateImage, (_: ImageNode).copy(alt = "Better description"))
 ```
 
-## Was hier ausdrücklich fehlt
+## What is deliberately absent
 
-Ein Picker, ein Upload, ein Fortschrittsbalken, ein `AbortSignal`. §20 legt alle vier woanders
-hin: „Uploads sind ein Anwendungsservice. Browser-Datei, Progress und AbortSignal gehören zu
-einem Browser-/Forms-Port, nicht zum Core-Node."
+A picker, an upload, a progress bar, an `AbortSignal`. Uploads are an application service; browser
+file handling, progress and cancellation belong to a browser/forms port
+([`ember-forms`](../ember-forms/README.md)'s `MediaService`), not to the core node. What this
+module accepts is a finished `MediaReference` — something that already exists at an address. An
+upload only produces a validated `MediaReference` after durable storage succeeds, and even a
+direct external URL never forces an upload.
 
-Was dieses Modul entgegennimmt, ist eine fertige `MediaReference` — etwas, das an einer Adresse
-bereits existiert. §20: „Ein Upload liefert erst nach dauerhafter Speicherung eine validierte
-MediaReference", und, für den Fall, dass man es vergisst, „auch bei direkter externer URL wird
-kein Upload erzwungen".
+The consequence is worth stating plainly: **inserting an image is an ordinary document change** —
+a history step, no lifecycle — and an undo removes the node without touching any file. **No file
+data lives in the document**: a `MediaReference` is an address and an optional identifier, nothing
+else; there is no field a Base64 string or a `blob:` URL could go in. **No fetching**: neither the
+parser nor an SSR server ever retrieves an external URL — whether the image exists is a question
+for the browser, asked later, never during SSR.
 
-Die Folge lohnt sich, ausgesprochen zu werden: **ein Bild einzufügen ist eine gewöhnliche
-Dokumentänderung.** Eine History-Stufe, kein Lebenszyklus, und ein Undo entfernt den Knoten,
-ohne irgendwo eine Datei anzufassen (§20).
+## `MediaUrl` — the type is the door
 
-**Keine Dateidaten im Dokument.** P16s Abnahme sagt es ausdrücklich; der Typ macht es unmöglich.
-Eine `MediaReference` ist eine Adresse und eine optionale Kennung, sonst nichts. Es gibt kein
-Feld, in das ein Base64-String oder eine `blob:`-URL passte.
+Same pattern as `LinkUrl` in [`ember-link`](../ember-link/README.md): there is no way to build an
+`ImageNode` without a `MediaUrl`, and no way to get a `MediaUrl` without a policy. The command
+path and the decode path cannot diverge — `ImageJsonSupport.codec(policy)` takes the same policy
+and runs the same check.
 
-**Kein Abruf.** Weder der Parser noch der SSR-Server holt jemals eine externe URL (§20). Ob das
-Bild existiert, ist die Frage des Browsers, später gestellt; SSR stellt sie nie.
-
-## `MediaUrl` — der Typ ist die Tür
-
-Wie bei `LinkUrl`: es gibt keinen Weg, einen `ImageNode` ohne `MediaUrl` zu bauen, und keinen,
-ein `MediaUrl` ohne Policy zu bekommen. Der Command-Pfad und der Dekodierpfad **können** nicht
-auseinanderlaufen, weil es nur eine Tür gibt — `ImageJsonSupport.codec(policy)` nimmt dieselbe
-Policy entgegen und ruft dieselbe Prüfung auf.
-
-Eine Quelle, die in einem JSON-Payload ankommt, ist genau so ungeprüft wie eine aus einem
-Dialog, und §20 unterscheidet nicht.
-
-### Strenger als die Link-Policy, und warum
+### Stricter than the link policy, and why
 
 | | Link | Media |
 | --- | --- | --- |
-| `https` | ✓ | ✓ |
-| `http` | ✓ | nur nach ausdrücklicher Entscheidung |
-| relativ | ✓ | ✓ |
-| `mailto`, `tel` | ✓ | ✗ |
-| `data:`, `blob:`, `javascript:`, `file:` | ✗ | ✗ |
-| protokollrelativ (`//host/…`) | ✗ | ✗ |
-| Host-Allowlist | — | optional |
+| `https` | allowed | allowed |
+| `http` | allowed | only after an explicit opt-in |
+| relative | allowed | allowed |
+| `mailto`, `tel` | allowed | refused |
+| `data:`, `blob:`, `javascript:`, `file:` | refused | refused |
+| protocol-relative (`//host/...`) | refused | refused |
+| host allowlist | — | optional |
 
-Ein Link wird von einem Leser gefolgt, der sich dafür entschieden hat. Ein Bild lädt die Seite
-selbst, von einem Host, den der Autor genannt hat, mit der Adresse des Lesers dran. Das ist der
-ganze Unterschied, und er steht in P14s Risikozeile: „Links und Media haben unterschiedliche
-Policies."
+A link is followed by a reader who chose to; an image is loaded by the page itself, from a host
+the author named, carrying the reader's address along. `http` on an `https` page is also mixed
+content that browsers block anyway; `MediaUrlPolicy.allowingHttp` exists regardless — an intranet
+editor may decide that for itself.
 
-`http` in einer `https`-Seite ist außerdem Mixed Content, den Browser ohnehin blockieren.
-`MediaUrlPolicy.allowingHttp` gibt es trotzdem — ein Intranet-Editor darf das entscheiden.
+Normalization is the same as `ember-link` (entities first, then whitespace/control characters
+before the colon, then scheme case only) — including invisible characters that `isWhitespace` and
+`isControl` alone miss (zero-width space, protected space, byte-order mark, word joiner), covered
+by the same predicate in both modules.
 
-### Unsichtbare Zeichen
+### Host allowlist
 
-Die Normalisierung ist dieselbe wie in `ember-link` (Entities zuerst, dann Whitespace und
-Steuerzeichen vor dem Doppelpunkt, dann die Groß-/Kleinschreibung nur des Schemas). Ein Punkt
-wurde beim Schreiben dieses Moduls nachgezogen und in **beide** Module zurückgetragen:
+`MediaUrlPolicy(hosts = Some(Set("cdn.example.com")))` — an editor may link anywhere but load only
+from its own CDN. Comparison ignores case and port and **skips userinfo**: a URL like
+`https://cdn.example.com@evil.example/x.png` loads from `evil.example`, and reading only up to the
+first `@` would see the allowed host and miss the real one. Relative paths have no host and are
+unaffected by the allowlist — they load from the page itself.
 
-`isWhitespace || isControl` verfehlt genau die Zeichen, die sich am besten verstecken. Java
-schließt das geschützte Leerzeichen aus `isWhitespace` ausdrücklich aus, und `isControl` deckt
-nur die Cc-Gruppe ab. Browser ignorieren innerhalb einer URL aber alle drei Klassen:
+## The node
 
-```text
-"java​script:alert(1)"   Zero Width Space
-" javascript:alert(1)"   geschütztes Leerzeichen
-"﻿javascript:alert(1)"   Byte Order Mark
-"java⁠script:alert(1)"   Word Joiner
-```
-
-Das Prädikat deckt jetzt Cc, die Zs-Gruppe, U+2000–U+206F und U+FEFF ab — in `ember-image` wie
-in `ember-link`, mit Tests in beiden.
-
-### Host-Allowlist
-
-`MediaUrlPolicy(hosts = Some(Set("cdn.example.com")))`. §20 führt sie als „separate,
-deterministische Konfiguration": ein Editor darf überallhin verlinken und nur vom eigenen CDN
-laden.
-
-Der Vergleich ignoriert Groß-/Kleinschreibung und den Port, und er **überspringt die
-Userinfo**. `https://cdn.example.com@boese.example/bild.png` lädt von `boese.example`; wer nur
-bis zum ersten Punkt liest, sieht den erlaubten Host und übersieht den echten.
-
-Relative Pfade haben keinen Host und gehen die Allowlist nichts an — sie laden von der Seite
-selbst.
-
-## Der Knoten
-
-| Feld | | |
+| Field | Type | |
 | --- | --- | --- |
-| `source` | `MediaReference` | Adresse plus optionale `MediaId` der Anwendung |
-| `alt` | `String` | darf leer sein, **und das bedeutet etwas** |
-| `title` | `Option[String]` | leer oder nur Whitespace wird abgewiesen |
-| `width`, `height` | `Option[PositivePixels]` | 1 bis 100 000 |
+| `source` | `MediaReference` | address plus an optional application `MediaId` |
+| `alt` | `String` | may be empty, **and that means something** |
+| `title` | `Option[String]` | whitespace-only is rejected |
+| `width`, `height` | `Option[PositivePixels]` | 1 to 100,000 |
 
-**Leerer Alt-Text ist kein fehlender Alt-Text.** §20: „ein dekoratives Bild verwendet
-ausdrücklich leeren Alt-Text, nicht automatisch den Dateinamen." Deshalb schreibt der
-HTML-Adapter `alt=""` auch dann, wenn nichts drinsteht — das Attribut wegzulassen ließe einen
-Screenreader stattdessen den Dateinamen vorlesen.
+**Empty alt text is not missing alt text** — a decorative image uses an explicitly empty alt text,
+not a filename by default. An HTML adapter writes `alt=""` even when there is nothing, since
+omitting the attribute would have a screen reader read the filename instead. `PositivePixels` is
+validated because a size is meant to reserve layout space: zero reserves nothing, and a value in
+the millions just signals a bug upstream.
 
-`PositivePixels` ist validiert, weil eine Größe Layoutplatz reservieren soll (§20). Eine Null
-reserviert nichts, und eine Zahl in Millionen sagt nur, dass weiter oben etwas schiefging.
+## Inserting and updating
 
-## Einfügen und Ändern
-
-| Fall | Was passiert |
+| Case | What happens |
 | --- | --- |
-| Caret mitten in einem Lauf | der Lauf wird geteilt, das Bild steht zwischen den Hälften |
-| Caret am Anfang oder Ende | das Bild steht davor beziehungsweise dahinter |
-| Caret auf einer Kindposition | das Bild wird dort eingesetzt |
-| kein Caret | `Pass` |
-| ID bereits vergeben | eine freie wird gezogen; eine mitgebrachte freie bleibt |
+| Caret mid-run | the run is split, the image sits between the halves |
+| Caret at start or end | the image sits before or after |
+| Caret at a child position | the image is inserted there |
+| No caret | `Pass` |
 
-Ein Inline-Atom gehört **zwischen** Zeichen, nicht neben einen Absatz.
-
-`UpdateImage` läuft über `Replace` und erhält damit die Identität (§10): ein Bookmark auf das
-Bild überlebt eine Änderung seines Alt-Textes, und das ist die häufigste. Eine mitgegebene neue
-ID wird verworfen.
-
-Ein Caret kann nicht **in** einem Atom stehen — es hat keine Textposition. Was eine Auswahl
-kann, ist es zu benennen: als `NodeSelection` oder als Kindposition, deren Nachbar es ist.
-
-## Keine Normalisierung
-
-Dieses Modul trägt keinen Transform bei, und das ist Absicht: es gibt keine Invariante zu
-reparieren. Ein Bild hat keine Kinder, die falsch stehen könnten, und seine Felder sind bereits
-so typisiert, dass ein falsches gar nicht gebaut werden kann.
+`UpdateImage` runs through `Replace`, preserving identity — a bookmark on the image survives an
+alt-text change, which is the most common edit. There is no normalization transform in this
+module: an image has no children that could sit wrong, and its fields are already typed so that an
+invalid one cannot be built.
 
 ## Tests
 
@@ -176,8 +127,13 @@ so typisiert, dass ein falsches gar nicht gebaut werden kann.
 sbt --server "scalajs-ember-image/Test/testOnly *"
 ```
 
-`MediaUrlPolicySpec` ist die Suite, um die es hier am meisten geht — jeder Fall darin ist einer,
-den ein Browser ausführt. `ImageNodeSpec` fährt Einfügen, Ändern und die Pixelmaße.
+`MediaUrlPolicySpec` is the suite that matters most — every case is one a browser executes.
+`ImageNodeSpec` covers insert, update, and pixel dimensions. The `<img>` rendering and JSON codec
+live in [`ember-standard`](../ember-standard/README.md)'s `ImageAdapterSpec`.
 
-Das `<img>`-Rendering und der JSON-Codec stehen in
-`ember-standard/…/ImageAdapterSpec.scala` — dort, wo Bilder und Renderer einander kennen (§6).
+## Related modules
+
+- [`ember-core`](../ember-core/README.md) — the only module this depends on.
+- [`ember-link`](../ember-link/README.md) — the same "typed URL" pattern with a more permissive policy.
+- [`ember-forms`](../ember-forms/README.md) — the upload lifecycle that produces a `MediaReference`.
+</content>

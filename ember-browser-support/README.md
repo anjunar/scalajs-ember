@@ -1,39 +1,30 @@
 # scalajs-ember-browser-support
 
-Wo Browserabsichten auf Feature-Commands treffen. Ein Tastendruck ist hier noch kein `ToggleMark`
-— dieses Modul entscheidet, dass er einer wird.
-
-Verbindlicher Entwurf: [UI_EDITOR_ARCHITECTURE.md](../UI_EDITOR_ARCHITECTURE.md) §§6, 7, 15.2, 22.
+Where browser intents meet feature commands. A keystroke is not yet a `ToggleMark` — this module
+decides that it becomes one.
 
 | | |
 | --- | --- |
-| sbt-ID / Artefakt | `scalajs-ember-browser-support` |
-| Scala-Paket | `ember.editor.browsersupport` |
-| Produktionsabhängigkeiten | `scalajs-ember-core`, `-rich-text`, `-list`, `-link`, `-code`, `-table`, `-history`, `-ui`, `-browser` |
+| sbt ID / artifact | `scalajs-ember-browser-support` |
+| Scala package | `ember.editor.browsersupport` |
+| Production dependencies | `scalajs-ember-core`, `-rich-text`, `-list`, `-link`, `-code`, `-table`, `-history`, `-ui`, `-browser` |
 
-## Stand
+## Overview
 
-**P22 und der History-Anteil von P23 abgeschlossen.** Vorhanden: `RichTextBindings`,
-`HistoryBindings`, `ListBindings`, `LinkBindings`, `CodeBindings` und die zusammengesetzten
-`EditorBindings`.
+[`ember-browser`](../ember-browser/README.md) is not allowed to import a feature module, and the
+rule earns its place exactly here. An input intent is browser vocabulary — `formatBold` is named
+that way in the Input Events specification, not in the editor — and which mark it becomes, if any,
+is a decision only a profile can make. The payoff: an editor without lists is not an editor that
+breaks on `insertUnorderedList` — it simply has no binding for that intent, and the controller lets
+the event run natively. The same mechanism carries every intent nobody claims.
 
-X01 ergänzt `TableBindings` (Tab/Shift+Tab springen zwischen Zellen, Escape hebt eine Zellauswahl
-auf) und `TableSelectionView`: hebt einen gezogenen Bereich über Zellgrenzen zu einer
-`TableSelection` an, zeigt sie über ein Stylesheet im `head` an und meldet sie dem Browser über
-`SelectionPort.represent`. Beides ist nicht Teil von `EditorBindings.everything` —
-[ember-table](../ember-table/README.md) beschreibt die Reihenfolge.
+## Installation
 
-## Warum es dieses Modul gibt
+```scala
+libraryDependencies += "com.anjunar" %% "scalajs-ember-browser-support" % "1.0.1"
+```
 
-§7 verbietet `ember-browser` den Import eines Feature-Moduls, und die Regel verdient sich ihren
-Platz genau hier. Eine Eingabeabsicht ist **Browservokabular**: `formatBold` heißt so in der
-Input-Events-Spezifikation, nicht im Editor. Welche Mark daraus wird — ob überhaupt eine —, weiß
-erst ein Profil.
-
-Die Folge ist die nützliche Sorte Trennung: ein Editor ohne Listen ist kein Editor, der bei
-`insertUnorderedList` kaputtgeht. Er hat für diese Absicht schlicht keine Bindung, und der
-Controller lässt das Ereignis dann **nativ** laufen, statt es zu schlucken. Derselbe Mechanismus
-trägt jede Absicht, die niemand beansprucht.
+## Quick start
 
 ```scala
 val bindings = HistoryBindings.input ++ ListBindings.input ++ RichTextBindings.input
@@ -42,78 +33,68 @@ val keys     = EditorBindings.everythingKeyboard
 BrowserInputController.attachTo(session, view, port, bindings, keys)
 ```
 
-## Reihenfolge ist eine Entscheidung
+## Order is a decision
 
-`InputBindings` und `KeyboardBindings` lösen nach dem ersten Treffer auf. Antworten zwei Module
-auf dieselbe Absicht — eine Liste will bei Enter das Item teilen, Rich Text den Block —, dann
-entscheidet, wer vorne steht. Das ist eine Designentscheidung der Anwendung und steht deshalb in
-der Liste, nicht in einem zweiten Prioritätsschema neben dem der Commands (§12).
+`InputBindings` and `KeyboardBindings` resolve on the first match. When two modules answer the
+same intent — a list wants to split the item on Enter, rich text wants to split the block — whoever
+is listed first wins. That is an application-level decision and belongs in the list passed to
+`attachTo`, not in a second priority scheme alongside the one commands already have.
+`HistoryBindings.input` is listed first: `historyUndo` must never fall through to anything, since
+what it would fall through to is the browser's own undo stack.
 
-`HistoryBindings.input` steht vorn: `historyUndo` darf auf nichts durchfallen, denn wovon es
-durchfiele, wäre der Undo-Stack des Browsers.
-
-## Was bewusst nicht gebunden ist
+## What is deliberately not bound
 
 | | |
 | --- | --- |
-| `Transfer` (Paste, Drop, Cut) | §21s Clipboardmodul. Eine Bindung, die hier den Klartext einfügte, wäre die Paste-Implementierung — ohne §21s Sanitizing. Bis dahin bleibt Paste nativ und wird importiert. |
-| `insertLink` | Ein Link braucht eine URL, und ein `beforeinput` trägt keine, der ein Editor trauen dürfte. Das Fragen gehört der Anwendung; `LinkBindings.keyboardWith` nimmt ihren Dialog als Funktion. |
-| `ReplaceText` (Autokorrektur) | Ersetzt einen Bereich, den der Benutzer nicht ausgewählt hat — er kommt aus `getTargetRanges`. Bis P23 den DOM-Abgleich bringt, der das sicher macht, ist der ehrliche Weg, den Browser machen zu lassen und das Ergebnis zu importieren. |
-| `Superscript`, `Subscript` | §8.2 überlässt die Markmenge dem Profil. Eine unbelegte Formatierung ist keine Lücke, sondern ein Editor, der sie nicht anbietet. |
+| `Transfer` (paste, drop, cut) | belongs to [`ember-clipboard`](../ember-clipboard/README.md); a binding here that inserted plain text would be a paste implementation without its sanitizing. Until then, paste stays native and is imported. |
+| `insertLink` | a link needs a URL, and a `beforeinput` carries none an editor should trust. Asking belongs to the application; `LinkBindings.keyboardWith` takes its dialog as a function. |
+| `ReplaceText` (autocorrect) | replaces a range the user did not select — it comes from `getTargetRanges`. Until a DOM comparison makes that safe, the honest path is to let the browser act and import the result. |
+| `Superscript`, `Subscript` | the mark set is a profile decision; an unoffered format is not a gap, it's an editor that doesn't offer it. |
 
 ## Tab
 
-§22 ist hier ungewöhnlich streng, und das zu Recht — es ist die eine Taste, die einen
-Tastaturbenutzer einsperren kann:
+Deliberately strict, and rightly so — it is the one key that can trap a keyboard user: leaving the
+normal editing surface is the default; list indentation or code-block Tab is explicitly opted-in
+behavior with a reachable way out. `ListBindings.keyboard` and `CodeBindings.keyboard` therefore do
+**not** bind Tab. Whoever wants indentation on Tab additionally takes `tabIndentation` **and** sets
+`TabPolicy.IndentsUntilEscape` on the controller — the policy is the exit, and binding the key
+without it would build the very trap being avoided. Indenting also always works without Tab
+(`Ctrl/Cmd+]` and `Ctrl/Cmd+[`), so the Tab binding stays genuinely optional.
 
-> Tab verlässt die normale Editierfläche. Listeneinrückung oder Code-Tab ist ein ausdrücklich
-> aktiviertes Verhalten mit erreichbarer Ausstiegsmöglichkeit. Keine permanente Keyboard-Falle.
+## Shift+Enter is on the keyboard table, Enter is not
 
-Deshalb binden `ListBindings.keyboard` und `CodeBindings.keyboard` Tab **nicht**. Wer Einrückung
-auf Tab will, nimmt zusätzlich `tabIndentation` **und** setzt `TabPolicy.IndentsUntilEscape` am
-Controller — die Policy ist der Ausgang, und die Taste ohne sie zu binden baute genau die Falle.
+Text generally goes through the input pipeline, and that holds for Enter too — a keydown table
+sees neither dictation nor autocorrect nor a mobile keyboard, so `insertParagraph` means the same
+thing everywhere. Shift+Enter does not: WebKit reports `insertParagraph` for it too, so the intent
+path would split the block instead of inserting a break. A prevented `keydown` produces no
+`beforeinput` at all, which makes the keyboard route the one place all three engines agree — found
+by a browser test, not by reading a spec.
 
-Einrücken geht außerdem immer auch ohne Tab (`Ctrl/Cmd+]` und `Ctrl/Cmd+[`), damit die
-Tab-Bindung wirklich optional bleibt und nicht der einzige Weg ist.
+## A composition is one undo step
 
-## Shift+Enter liegt auf der Tastatur, Enter nicht
+`HistoryBindings.groupCompositions` listens to the controller's composition notifications and
+opens/closes a history group accordingly. History cannot notice this by itself: it groups by what
+actually happened, which is correct for typing, but an input method produces intermediate states
+that look like independent changes even though the user pressed one key. A discarded composition
+closes the group too — an open group left open would swallow everything typed after it.
 
-§15.2 sagt „Text generell über Input-Pipeline", und das gilt: eine Keydown-Tabelle sieht weder
-Diktat noch Autokorrektur noch eine mobile Tastatur. Enter folgt dieser Regel — `insertParagraph`
-bedeutet überall dasselbe.
+## Undo belongs to the model
 
-Shift+Enter nicht: **WebKit meldet dafür `insertParagraph`**, also würde der Absichtspfad den
-Block teilen statt einen Umbruch zu setzen. Ein verhindertes `keydown` erzeugt gar kein
-`beforeinput`, und damit ist die Tastaturroute die einzige Stelle, an der sich alle drei Engines
-einig sind. Ein Browsertest hat das gefunden.
-
-## Eine Composition ist eine Undo-Stufe
-
-§15.3 verlangt es, §14 macht es möglich, und §7 sorgt dafür, dass es hier steht:
-`HistoryBindings.groupCompositions` hängt an den Meldungen des Controllers und öffnet bzw.
-schließt eine History-Gruppe.
-
-Warum die History es nicht selbst merkt: §14 gruppiert nach dem, was tatsächlich passiert ist,
-und für Tippen ist das richtig. Eine Composition ist der Fall, in dem die Regeln die Gruppe nicht
-sehen können — eine Eingabemethode erzeugt Zwischenstände, die wie unabhängige Änderungen
-aussehen, und der Benutzer hat eine Taste gedrückt.
-
-Eine verworfene Composition schließt die Gruppe ebenfalls. Eine offen gelassene Gruppe schluckte
-alles, was danach getippt wird.
-
-## Undo gehört dem Modell
-
-§15.2: „Native und modellbasierte Undo-Stacks dürfen sich nicht widersprechen." Zwei Stacks über
-einem Dokument sind die Art Fehler, die wie Datenverlust aussieht — der Browser erinnert sich an
-DOM-Zustände, die das Modell nie erzeugt hat.
-
-Der Browserstack wird nie benutzt. `historyUndo` wird übernommen (womit das native Undo zugleich
-verhindert ist), und die Tastenkombination ist zusätzlich gebunden, weil §15.2 warnt, ein
-`beforeinput`-Featuretest „garantiert nicht alle Inputtypen".
+Native and model-based undo stacks must never contradict each other — two stacks over one document
+is the kind of bug that looks like data loss, since the browser remembers DOM states the model
+never produced. The browser's stack is never used: `historyUndo` is taken over (which also prevents
+the native action), and the keyboard shortcut is bound in addition, since a `beforeinput`
+feature-test does not guarantee every input type.
 
 ## Tests
 
-Dieses Modul ist eine Tabelle, und Tabellen prüft man dort, wo sie wirken: im Browser-Gate
-([ember-integration/browser](../ember-integration/browser/README.md), `editing.spec.mjs`). Die
-Auflösungsregeln selbst — erster Treffer gewinnt, keine Bindung heißt nativ — stehen headless in
-`ember-browser/…/InputPipelineSpec.scala`.
+This module is a table, and tables are tested where they act: in the browser gate
+([`ember-integration`](../ember-integration/README.md), `editing.spec.mjs`). The resolution rules
+themselves — first match wins, no binding means native — are covered headless in
+[`ember-browser`](../ember-browser/README.md)'s `InputPipelineSpec`.
+
+## Related modules
+
+- [`ember-browser`](../ember-browser/README.md) — the neutral input pipeline this module wires into feature commands.
+- [`ember-table`](../ember-table/README.md) — `TableBindings` and `TableSelectionView` (drag-to-select) live here too.
+</content>

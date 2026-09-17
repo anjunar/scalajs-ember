@@ -1,27 +1,29 @@
 # scalajs-ember-html
 
-Der semantische HTML-Vertrag des Ember-Editors: wie eine Knotenart aussieht, und eine
-unveränderliche Fragmentdarstellung für Import und Export. Headless — kein DOM, keine
-UI-Runtime.
-
-Verbindlicher Entwurf: [UI_EDITOR_ARCHITECTURE.md](../UI_EDITOR_ARCHITECTURE.md) §§15.1, 19.1.
+The semantic HTML contract of the Ember editor: how a node type looks as HTML, and an immutable
+fragment representation for import and export. Headless — no DOM, no UI runtime.
 
 | | |
 | --- | --- |
-| sbt-ID / Artefakt | `scalajs-ember-html` |
-| Scala-Paket | `ember.editor.html` |
-| Produktionsabhängigkeiten | `scalajs-ember-core` |
+| sbt ID / artifact | `scalajs-ember-html` |
+| Scala package | `ember.editor.html` |
+| Production dependencies | `scalajs-ember-core` |
 
-## Stand
+## Overview
 
-P09 und P24 sind implementiert: `HtmlSemantics`, `HtmlShape`, `HtmlAttribute`, `HtmlSupport`
-und `HtmlFragment.render` bilden die Ausgabeseite. `HtmlFragmentParser`, `HtmlImportRule`
-und `HtmlImport` bilden den begrenzten headless Import; Standardregeln liegen in
-`ember-standard`. Der Parser beansprucht keine vollständige HTML5-Tree-Construction.
+`HtmlSemantics[N]` describes what a single node type looks like, without its children; both the
+editable surface ([`ember-ui`](../ember-ui/README.md)) and the delivered HTML are derived from the
+same description, so they cannot drift apart the way two independent renderers could. This module
+also provides a bounded, headless HTML fragment parser and import rules for pasted content — it
+claims no full HTML5 tree-construction algorithm.
 
-## Eine Beschreibung, zwei Ausgaben
+## Installation
 
-`HtmlSemantics[N]` sagt, wie genau **ein** Knoten aussieht — ohne seine Kinder:
+```scala
+libraryDependencies += "com.anjunar" %% "scalajs-ember-html" % "1.0.1"
+```
+
+## One description, two outputs
 
 ```scala
 val paragraph: HtmlSemantics[ParagraphNode] = new HtmlSemantics[ParagraphNode]:
@@ -30,83 +32,76 @@ val paragraph: HtmlSemantics[ParagraphNode] = new HtmlSemantics[ParagraphNode]:
     HtmlShape.Element("p")
 ```
 
-Dass die Beschränkung auf einen Knoten wichtig ist, ist keine Formsache. Würde eine Gestalt
-ihre Kinder mitbeschreiben, wäre sie ein View-Baum, und irgendetwas müsste ihn diffen — also
-genau das zweite Rendering-System, das §2 ausschließt. So beschreibt jeder Knoten sich selbst,
-und wer die Kinder hält, ist die UI-Runtime.
+Describing only the node itself (not its children) matters: if a shape included its children, it
+would be a view tree that something would then have to diff — a second rendering system, which is
+exactly what this design avoids. Whoever holds the children is the UI runtime;
+[`ember-ui`](../ember-ui/README.md) derives its `NodeView`s from a `HtmlSupport` with
+`ViewSupport.semantic(support)`.
 
-Aus derselben Beschreibung entstehen beide Ausgaben: die SSR-Fassung und die Editierfläche im
-Browser. Dass sie übereinstimmen, ist deshalb keine Absprache zwischen zwei Implementierungen,
-sondern dieselbe Zeile Code — `ember-ui` leitet seine `NodeView`s mit
-`ViewSupport.semantic(support)` daraus ab.
+## Render profiles
 
-## Renderprofile
-
-| Profil | Wofür |
+| Profile | For |
 | --- | --- |
-| `RenderProfile.Content` | Was ein Leser bekommt und was exportiert wird |
-| `RenderProfile.Editor` | Dasselbe plus Editor-Metadaten — Knoten-IDs, später `contenteditable` und ARIA |
+| `RenderProfile.Content` | what a reader receives and what gets exported |
+| `RenderProfile.Editor` | the same, plus editor metadata — node IDs, later `contenteditable`/ARIA |
 
-§19.1 verlangt, dass Editor-Attribute beim Austausch verschwinden. Sie entstehen in der
-Content-Fassung deshalb gar nicht erst, statt hinterher entfernt zu werden.
+Editor-only attributes never exist in `RenderProfile.Content` in the first place, rather than
+being stripped afterward — so exchanged content is safe by construction.
 
-## Ein Textlauf ist ein Element, kein roher Text
-
-`HtmlShape` hat zwei Fälle, und **keiner** davon ist roher Text:
+## A text run is an element, never raw text
 
 ```scala
 case Element(tag: String, attributes: Vector[HtmlAttribute] = Vector.empty)
 case TextRun(tag: String, value: String, attributes: Vector[HtmlAttribute] = Vector.empty)
 ```
 
-`TextRun` ist §15.1s „stabiler Wrapper mit einem Textkind", und der Grund steht dort gleich
-dabei: er „vermeidet zusammengefasste benachbarte SSR-Textnodes und erlaubt eine eindeutige
-ID→Textpunkt-Zuordnung". Zwei Läufe nebeneinander wären in der Ausgabe ein einziger
-Textknoten — beim Hydrieren ließe sich nicht mehr sagen, wo der eine aufhört.
+`TextRun` is a stable wrapper with exactly one text child: it avoids adjacent SSR text nodes
+merging together, and gives every run a unique ID → text-point mapping that hydration relies on.
+Keyed children also need a physical element component to hang an order on — a bare text node has
+no host of its own.
 
-`KeyedChildren` verlangt von der anderen Seite dasselbe: *„Keyed children require physical
-element components."* Ein Textknoten hat keinen eigenen Host, an dem sich eine Reihenfolge
-festmachen ließe.
+## Attributes are narrow
 
-## Attribute sind eng
-
-`HtmlAttribute` ist ein eigener Typ statt `(String, String)`, damit die Prüfung an einer
-Stelle steht. Erlaubt sind `id`, `lang`, `dir`, `href`, `title`, `alt`, `src`, `width`,
-`height` und alles mit dem Präfix `data-ember-`. `onclick` und `style` sind hier keine
-Attribute, sondern ein Fehler — §19.1 schließt Eventattribute und beliebige CSS-Strings als
-Dokumentformat aus.
+`HtmlAttribute` is its own type rather than `(String, String)`, so the check lives in one place.
+Allowed: `id`, `lang`, `dir`, `href`, `title`, `alt`, `src`, `width`, `height`, and anything
+prefixed `data-ember-`. `onclick` and `style` are not attributes here — they are an error, since
+event handlers and arbitrary CSS strings are excluded from the document format entirely.
 
 ```scala
 HtmlAttribute.parse("href", "/a")   // Some(...)
 HtmlAttribute.parse("onclick", "x") // None
-HtmlAttribute("onclick", "x")       // wirft EditorContractViolation
+HtmlAttribute("onclick", "x")       // throws EditorContractViolation
 HtmlAttribute.editor("node", "p0")  // data-ember-node="p0"
 ```
 
-Der Konstruktor der Case-Klasse ist privat. Sonst käme `copy(name = "onclick")` an der Prüfung
-vorbei — und `apply` selbst liefe im Kreis, weil es das synthetische verdeckt.
+## HtmlFragment does not live
 
-## HtmlFragment lebt nicht
-
-§19.1 ist ungewöhnlich deutlich: das ist **„kein diffbarer View-Baum"** und hat „keine
-Mount-/Update-API". Ein Fragment entsteht aus etwas und wird zu etwas.
+A fragment is not a diffable view tree and has no mount/update API — it is produced from
+something and turned into something.
 
 ```scala
 HtmlFragment.render(
-  HtmlFragment.Element("p", Vector.empty, Vector(HtmlFragment.Text("Hallo")))
-) // <p>Hallo</p>
+  HtmlFragment.Element("p", Vector.empty, Vector(HtmlFragment.Text("Hello")))
+) // <p>Hello</p>
 ```
 
-Die Ausgabe ist bewusst kompakt und ohne Einrückung: sie wird mit der Browserausgabe
-verglichen, und jedes eingefügte Leerzeichen wäre im Dokument ein Textknoten, den es dort nicht
-gibt. Leere Elemente (`br`, `img`, …) mit Kindern sind ein Fehler, kein Schönheitsfehler.
+Output is deliberately compact and unindented, since it is compared against the browser's own
+output, and any inserted whitespace would be a text node the document does not have. Void
+elements (`br`, `img`, ...) with children are an error, not a cosmetic mistake.
 
 ## Tests
 
-`HtmlParserSpec` prüft das Fragmentprofil. In `ember-standard` ergänzen `HtmlImportSpec`
-und `HtmlSecuritySpec` die semantischen und sicherheitsbezogenen Importfälle;
-`ProjectionSpec` prüft beide Ausgabeprofile durch die echte Projektion:
+`HtmlParserSpec` covers the fragment profile; [`ember-standard`](../ember-standard/README.md) adds
+semantic and security-focused import cases (`HtmlImportSpec`, `HtmlSecuritySpec`) and both render
+profiles through the real projection (`ProjectionSpec`):
 
 ```bash
 sbt --server "scalajs-ember-html/Test/testOnly *" "scalajs-ember-standard/Test/testOnly *"
 ```
+
+## Related modules
+
+- [`ember-core`](../ember-core/README.md) — the document model this contract describes.
+- [`ember-ui`](../ember-ui/README.md) — derives its view adapters from these semantics.
+- [`ember-standard`](../ember-standard/README.md) — registers HTML semantics and import rules for concrete feature node types.
+</content>

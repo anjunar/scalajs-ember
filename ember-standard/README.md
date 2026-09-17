@@ -1,133 +1,121 @@
 # scalajs-ember-standard
 
-Die Standardadapter des Ember-Editors: der Ort, an dem Knotenarten und Renderer einander
-kennen. Einzeln wählbar, nicht als Sammelregistrierung.
-
-Verbindlicher Entwurf: [UI_EDITOR_ARCHITECTURE.md](../UI_EDITOR_ARCHITECTURE.md) §§6, 15.1, 16.
+The standard adapters of the Ember editor: the one place node types and renderers know each
+other. Individually selectable, never registered as one bundle.
 
 | | |
 | --- | --- |
-| sbt-ID / Artefakt | `scalajs-ember-standard` |
-| Scala-Paket | `ember.editor.standard` |
-| Produktionsabhängigkeiten | `scalajs-ember-core`, `scalajs-ember-rich-text`, `scalajs-ember-list`, `scalajs-ember-link`, `scalajs-ember-code`, `scalajs-ember-image`, `scalajs-ember-table`, `scalajs-ember-markdown`, `scalajs-ember-json`, `scalajs-ember-html`, `scalajs-ember-ui` |
+| sbt ID / artifact | `scalajs-ember-standard` |
+| Scala package | `ember.editor.standard` |
+| Production dependencies | `scalajs-ember-core`, `scalajs-ember-rich-text`, `scalajs-ember-list`, `scalajs-ember-link`, `scalajs-ember-code`, `scalajs-ember-image`, `scalajs-ember-table`, `scalajs-ember-markdown`, `scalajs-ember-json`, `scalajs-ember-html`, `scalajs-ember-ui` |
 
-## Stand
+## Overview
 
-P09 und P12 bis P18 abgeschlossen. Vorhanden: `ParagraphSupport` (Wurzel, Absatz, Textlauf),
-`RichTextSupport` (Überschrift, Zitat, Umbrüche) samt `StandardMarkTags` — der Tabelle, die aus
-den fünf eingebauten Marks HTML-Tags macht — `ListSupport` (`ul`/`ol`/`li` samt Startnummer),
-`LinkSupport` (`a` samt der Entscheidung über `target` und `rel`), `CodeSupport` (`pre`/`code`
-samt Sprachklasse) und `ImageSupport` (`img` als Void-Element).
+`ParagraphSupport` (root, paragraph, text run), `RichTextSupport` (heading, quote, breaks) with
+`StandardMarkTags` (the table that turns the five built-in marks into HTML tags), `ListSupport`
+(`ul`/`ol`/`li` with start number), `LinkSupport` (`a`, including the `target`/`rel` decision),
+`CodeSupport` (`pre`/`code` with a language class) and `ImageSupport` (`img` as a void element).
+`TableSupport` adds `table`/`tbody`/`tr` and `th`/`td` with `align`, JSON codecs for table/row/cell,
+a GFM block rule (read with `MarkdownProfile.commonMarkSafeWithTables`; a headerless table or a
+cell with more than one block are reported losses), and HTML import rules (header from the first
+row's `th`, `caption` dropped with a diagnostic). No `everything` bundle includes it — an
+application opts tables in explicitly (see [`ember-table`](../ember-table/README.md)); the linker
+only pulls in table code when `TableSupport` is actually reachable.
 
-X01 ergänzt `TableSupport`: `table`/`tbody`/`tr` und `th`/`td` samt `align`, die JSON-Codecs für
-Tabelle, Zeile und Zelle, eine GFM-Blockregel (Lesen mit `MarkdownProfile.commonMarkSafeWithTables`;
-eine Tabelle ohne Kopfzeile und Zellen mit mehr als einem Block sind gemeldete Verluste) und
-HTML-Importregeln (Kopfzeile aus `th` der ersten Zeile, `caption` wird mit Diagnose verworfen).
-Keines der `everything`-Bündel enthält sie: eine Anwendung nimmt Tabellen ausdrücklich dazu
-([ember-table](../ember-table/README.md)). Der Linker nimmt den Tabellencode nur auf, wenn
-`TableSupport` erreichbar ist.
-
-Dazu zwei Adaptersätze, die **nicht** HTML machen und aus demselben Grund hier stehen — §6 gibt
-den Node-Modulen nur den Kern, und dies ist der eine Ort, an dem beide Seiten auf dem
-Klassenpfad liegen:
+Two more adapter families deliberately do **not** produce HTML, and live here for the same reason
+the others do — this is the one place both sides sit on the classpath together:
 
 | | |
 | --- | --- |
-| `MarkdownRules` / `MarkdownSupports` | Syntax auf Knotenarten, P18. |
-| `StandardJsonCodecs` / `StandardJsonSupport` | die Built-in-Codecs für JSON, P18. |
+| `MarkdownRules` / `MarkdownSupports` | syntax → node types |
+| `StandardJsonCodecs` / `StandardJsonSupport` | the built-in JSON codecs |
 
-Beide sind **einzeln wählbar**. §6 verbietet „eager Sammelregistrierungen", und das ist keine
-Formsache: läge `StandardJsonCodecs` in `ember-json`, zöge die Wahl von JSON Listen, Links,
-Code und Bilder mit herein, ob die Anwendung sie hat oder nicht. Ein Test hält es nach —
-`StandardJsonSupport.richText` weist ein Dokument mit Liste ab.
+Both are **individually selectable**. Eager collective registrations are explicitly forbidden — if
+`StandardJsonCodecs` lived in `ember-json`, choosing JSON would drag in lists, links, code and
+images whether the application has them or not. A test enforces this: `StandardJsonSupport.richText`
+rejects a document containing a list.
 
-### Markdown: drei Arten von Regel
+### Markdown: three kinds of rule
 
-Ein Block wird ein Knoten, ein Inline wird ein Knoten — und ein Inline wird eine **Mark**, kein
-Knoten. Die dritte ist die, die man leicht übersieht: `*a*` ist kein Knoten um einen Lauf
-herum, sondern ein Lauf mit einer Eigenschaft (§8.2).
+A block becomes a node, an inline becomes a node — and an inline becomes a **mark**, not a node.
+The third is the one that's easy to miss: `*a*` is not a node wrapped around a run, it is a run
+with a property. Policies travel with the rules: `MarkdownSupports.everything(linkPolicy,
+mediaPolicy)` takes the same two policies as the commands do — there is no second path to a
+`LinkUrl` or `MediaUrl`, so import and dialog **cannot** diverge.
 
-Die Policies fahren mit. `MarkdownSupports.everything(linkPolicy, mediaPolicy)` nimmt dieselben
-zwei wie die Commands, und §19.1 verlangt genau das. Es gibt keinen zweiten Weg zu einem
-`LinkUrl` oder `MediaUrl`, also **können** Import und Dialog nicht auseinanderlaufen.
+What Markdown cannot write is reported, not silently dropped: underline and strikethrough (outside
+CommonMark's own guarantees), image dimensions, a media ID. Under `Strict` the export fails; under
+`AllowLossy` it appears in `EncodedMarkdown.losses`. A rejected **link target** leaves the text in
+place; a rejected **image source** does not — losing the words of a sentence over a bad address
+would be the worse outcome, while an image with no source is nothing at all.
 
-Was Markdown nicht schreiben kann, wird gemeldet statt verschwiegen: Unterstreichung und
-Durchstreichung (§18.2 zählt beide ausdrücklich nicht zur CommonMark-Garantie), Bildmaße,
-MediaId. Unter `Strict` schlägt der Export fehl, unter `AllowLossy` steht es in
-`EncodedMarkdown.losses`.
+`strong` and `em`, not `b` and `i` — semantic HTML says what is meant, not how it looks. Underline
+gets `u`, not because HTML has a good answer for it, but because the mark exists.
 
-Ein abgewiesenes **Linkziel** lässt den Text stehen, eine abgewiesene **Bildquelle** nicht. Die
-Wörter eines Satzes zu verlieren, weil seine Adresse falsch war, wäre der schlechtere Ausgang;
-ein Bild ohne Quelle ist dagegen nichts.
+## Installation
 
-`strong` und `em`, nicht `b` und `i`: §16 verlangt semantisches HTML, und das sagt, was gemeint
-ist, statt wie es aussieht. Underline bekommt `u` — nicht weil HTML dafür eine gute Antwort
-hätte, sondern weil §8.2 die Mark aufzählt.
+```scala
+libraryDependencies += "com.anjunar" %% "scalajs-ember-standard" % "1.0.1"
+```
 
-## Warum das ein eigenes Modul ist
+## Why this is a separate module
 
-§6: „`standard` ist bewusst ein optionales Integrationsmodul: Dadurch kennen die Node-Module
-weder Markdown noch UI und die Format-SPIs keine konkreten Feature-Nodes."
+`standard` is deliberately an optional integration module: the node modules know neither Markdown
+nor UI, and the format SPIs know no concrete feature nodes. Both sides meet **only** here —
+[`ember-rich-text`](../ember-rich-text/README.md) knows nothing of HTML,
+[`ember-html`](../ember-html/README.md) nothing of paragraphs. An application processing its
+document only as JSON never links this module at all.
 
-Hier laufen beide Seiten zusammen — und nur hier. `ember-rich-text` weiß nichts von HTML,
-`ember-html` nichts von Absätzen. Eine Anwendung, die ihr Dokument nur als JSON verarbeitet,
-linkt dieses Modul nie mit.
-
-§6 nennt auch das Risiko: „Eager Sammelregistrierungen halten optionale Module fest." Deshalb
-ist jeder Adapter ein eigener Wert:
+Every adapter is its own value, precisely to avoid eager collective registration:
 
 ```scala
 ParagraphSupport.root       // article
 ParagraphSupport.paragraph  // p
-ParagraphSupport.text       // span mit einem Textkind
+ParagraphSupport.text       // span with one text child
 
-ParagraphSupport.semantics  // alle drei als HtmlSupport
-ParagraphSupport.views      // dieselben als ViewSupport für ember-ui
+ParagraphSupport.semantics  // all three as HtmlSupport
+ParagraphSupport.views      // the same as ViewSupport for ember-ui
 ```
 
-`semantics` und `views` sind eine Bequemlichkeit, kein Zwang. Wer nur Absätze braucht, nimmt
-die einzelnen Einträge.
+`semantics` and `views` are a convenience, not a requirement — an app that only needs paragraphs
+can take the individual entries.
 
-## Die Entscheidungen dahinter
+## The decisions behind it
 
-**`article` statt `div` für die Wurzel.** Sie ist ein in sich abgeschlossener Inhalt, und §16
-verlangt für die ausgelieferte Fassung semantisches HTML: ein Leser ohne Stylesheet und ein
-Screenreader sollen dasselbe Dokument vorfinden.
+**`article`, not `div`, for the root.** It is self-contained content, and the delivered version
+requires semantic HTML: a reader without a stylesheet and a screen reader should encounter the same
+document.
 
-**`span` um jeden Textlauf, in beiden Profilen.** §15.1 verlangt den Wrapper ausdrücklich und
-nennt den Grund gleich mit: er „vermeidet zusammengefasste benachbarte SSR-Textnodes und
-erlaubt eine eindeutige ID→Textpunkt-Zuordnung". Zwei Läufe nebeneinander wären ohne ihn in
-der Ausgabe ein einziger Textknoten.
+**`span` around every text run, in both profiles.** The wrapper avoids merged adjacent SSR text
+nodes and enables a unique ID → text-point mapping — two runs side by side would otherwise become a
+single text node in the output.
 
-**`data-ember-node` nur in der Editieransicht.** §19.1 lässt browserseitige Wrapper und
-Editor-Attribute beim Austausch entfernen. Statt sie hinterher herauszunehmen, entstehen sie in
-der Content-Fassung gar nicht erst.
+**`data-ember-node` only in the editor view.** Browser-side wrappers and editor attributes are
+stripped on exchange; rather than removing them afterward, the content profile never produces them.
 
-**`alt=""` wird geschrieben, nicht weggelassen.** §20: ein dekoratives Bild verwendet
-ausdrücklich leeren Alt-Text. Das Attribut wegzulassen ließe einen Screenreader stattdessen den
-Dateinamen vorlesen — der leere Alt-Text bedeutet etwas, das Fehlen bedeutet etwas anderes.
+**`alt=""` is written, not omitted.** A decorative image uses explicitly empty alt text; omitting
+the attribute would have a screen reader read the filename instead — empty means one thing,
+missing means another.
 
-**`width` und `height`, wann immer das Dokument sie hat.** §20: absolute Werte „können
-Layoutsprünge reduzieren". Ein Browser, der das Verhältnis kennt, reserviert den Platz, bevor
-das Bild ankommt. Prüfen muss der Adapter dabei nichts — `PositivePixels` kann keine Null
-tragen.
+**`width` and `height`, whenever the document has them.** Absolute values reduce layout jumps; a
+browser that knows the ratio reserves the space before the image arrives. The adapter checks
+nothing extra here — `PositivePixels` cannot carry a zero.
 
-**Kein Abruf, kein Nachmessen.** §20: „keine externe URL wird vom Parser oder SSR-Server
-automatisch abgerufen." Der Adapter macht aus einem Knoten Attribute; ob das Bild existiert,
-ist die Frage des Browsers, und SSR stellt sie nie.
+**No fetching, no re-measuring.** No external URL is ever fetched by the parser or the SSR server.
+The adapter turns a node into attributes; whether the image exists is the browser's question, and
+SSR never asks it.
 
-**Dekodieren ist so streng wie der Command.** `ImageJsonSupport.codec(policy)` nimmt dieselbe
-`MediaUrlPolicy` entgegen wie `ImageExtension`. Eine Quelle aus einem Payload ist genau so
-ungeprüft wie eine aus einem Dialog, und es gibt keinen zweiten Weg zu einem `MediaUrl` — die
-beiden Pfade **können** nicht auseinanderlaufen.
+**Decoding is exactly as strict as the command.** `ImageJsonSupport.codec(policy)` takes the same
+`MediaUrlPolicy` as `ImageExtension` — a source from a payload is exactly as unchecked as one from a
+dialog, and there is no second path to a `MediaUrl`.
 
-## Verwendung
+## Quick start
 
 ```scala
-// Editierfläche
+// Editing surface
 DocumentView.mount(session, DomCursor.root(container), ParagraphSupport.views)
 
-// Ausgeliefertes HTML
+// Delivered HTML
 DocumentView.renderToHtml(document, ParagraphSupport.views)
 ```
 
@@ -137,29 +125,21 @@ DocumentView.renderToHtml(document, ParagraphSupport.views)
 sbt --server "scalajs-ember-standard/Test/testOnly *"
 ```
 
-`MarkdownDocumentSpec` fährt den Weg aus §18.1 am Stück: Quelltext zu Syntax zu Knoten und
-zurück, ohne HTML und ohne DOM dazwischen. `StandardJsonRoundTripSpec` prüft die Built-in-
-Codecs — über Round-Trips und nicht über erwartete Payloads, weil ein Round-Trip belegt, dass
-Encoder und Decoder sich einig sind, und das ist die Eigenschaft, von der ein gespeichertes
-Dokument abhängt.
+`MarkdownDocumentSpec` runs source → syntax → nodes and back in one pass, with no HTML and no DOM
+in between. `StandardJsonRoundTripSpec` checks the built-in codecs via round-trips rather than
+expected payloads — a round trip proves encoder and decoder agree, which is the property a stored
+document actually depends on.
 
-`ProjectionSpec` ist der Rendererbeweis aus P09 und läuft headless gegen einen `SsrCursor`.
-Das ist keine Notlösung, sondern derselbe Weg: `DocumentView` nimmt einen beliebigen Cursor,
-und dass SSR und Browser dasselbe liefern, ist damit keine Absprache zwischen zwei
-Implementierungen.
+`ProjectionSpec` runs headless against an `SsrCursor` — the same path `DocumentView` takes with any
+cursor, so SSR and browser producing the same output is not a coordination between two
+implementations but the same code. It checks index and order, both render profiles, instance
+retention across text edits and moves, index cleanup on removal, two sessions sharing IDs,
+`onProjected` against `projectedRevision`, and that a text edit in a 4001-node document touches
+fewer than five components. What is not verifiable there — DOM identity and the scope of writes —
+lives in the browser harness's `projection.spec.mjs`.
 
-Geprüft werden Index und Reihenfolge, beide Renderprofile, Instanzerhalt bei Textedit und Move,
-das Verlassen des Index bei Remove, zwei Sitzungen mit denselben IDs, `onProjected` gegen
-`projectedRevision` — und dass ein Textedit in einem 4001-Knoten-Dokument weniger als fünf
-Komponenten anfasst (§15.1, Abnahme).
+## Related modules
 
-Was dort grundsätzlich nicht prüfbar ist — DOM-Identität und der Umfang der Schreibzugriffe —
-steht im Harness: [ember-integration/browser](../ember-integration/browser/README.md),
-`projection.spec.mjs`.
-
-P28 ergänzt einen [versionierten Import-/Roundtrip-Korpus](../benchmarks/corpora/README.md)
-und unabhängig gelinkte Text-/Markdown-/Standard-Messanwendungen. Unbekannte
-HTML-Elemente einschließlich Tabellen werden aufgelöst und als Verlust
-diagnostiziert; reine Text-`span` bleiben transparent. Tatsächliche Profilgrößen,
-Performance und Browser-/Gerätegrenzen: [Messbericht](../benchmarks/report.md),
-[Supportmatrix](../ember-integration/browser/support-matrix.md).
+- [`ember-list`](../ember-list/README.md), [`ember-link`](../ember-link/README.md), [`ember-code`](../ember-code/README.md), [`ember-image`](../ember-image/README.md), [`ember-table`](../ember-table/README.md) — the feature node types wired here.
+- [`ember-markdown`](../ember-markdown/README.md), [`ember-json`](../ember-json/README.md), [`ember-html`](../ember-html/README.md), [`ember-ui`](../ember-ui/README.md) — the format/renderer sides wired here.
+</content>

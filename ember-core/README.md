@@ -1,122 +1,102 @@
 # scalajs-ember-core
 
-Headless Kern des Ember-Editors. Dokumentmodell, Selection, Transaktionen, Commands und
-Extensions — ohne DOM, ohne UI-Runtime, ohne Formular, ohne UI.
-
-Verbindlicher Entwurf: [UI_EDITOR_ARCHITECTURE.md](../UI_EDITOR_ARCHITECTURE.md) §§5–13.
+The headless kernel of the Ember editor: an immutable document model, selections, transactions,
+commands and extensions — no DOM, no UI runtime, no forms, no browser.
 
 | | |
 | --- | --- |
-| sbt-ID / Artefakt | `scalajs-ember-core` |
-| Scala-Paket | `ember.editor.core` |
-| Produktionsabhängigkeiten | keine außer der Scala-/Scala.js-Standardbibliothek |
+| sbt ID / artifact | `scalajs-ember-core` |
+| Scala package | `ember.editor.core` |
+| Production dependencies | none beyond the Scala / Scala.js standard library |
 
-## Stand
+## Overview
 
-P01–P05 abgeschlossen, dazu die Snapshot-Wiederherstellung aus P11. Vorhanden: Fehlerkonvention, Abhängigkeitsgrenze, unveränderliches
-Dokumentmodell mit vollständiger Strukturvalidierung, offene Node-, Mark- und
-Selection-Verträge, Schema, ID-Generator, primitive Operationen mit komponierbarer
-Positionsabbildung, Sitzung, atomare Transaktionen, typisierte Zustandsfelder sowie
-Commands, Extensions und Transforms. Leere Platzhaltertypen werden bewusst nicht
-vorweggenommen.
+Every other Ember module builds on this one, and this one depends on nothing else in the
+project. It defines the document tree, the primitive operations that change it, the session
+that owns a mutable pointer to an immutable state, and the extension mechanism that lets
+feature modules (lists, links, tables, ...) plug in node types, commands and normalization
+rules without the kernel knowing they exist.
 
-Mit P11 kam `Transaction.restore` dazu: Dokument und Selection auf einen früheren Stand setzen,
-in einem Commit. Kein Primitiv unter den anderen — eine `Operation` beschreibt, was jemand
-**tut**, und liefert ihre Wirkung selbst mit; `restore` beschreibt, wohin ein Stand
-zurückgesetzt wird, und der Unterschied wird ausgerechnet (`DocumentDiff`). Es ist der Weg, den
-§14 für Undo vorschreibt, und ausdrücklich kein bequemer Ersatz für eine Bearbeitung.
+## Installation
 
-## Dokumentmodell
+```scala
+libraryDependencies += "com.anjunar" %% "scalajs-ember-core" % "1.0.1"
+```
 
-| Typ | Rolle |
+## Document model
+
+| Type | Role |
 | --- | --- |
-| `EditorNode` / `ElementNode` / `AtomNode` | Offener Node-Vertrag, geschlossene Strukturkategorien |
-| `RootNode`, `TextNode` | Die zwei Arten, die der Kern selbst mitbringt |
-| `NodeType[N]` / `ElementNodeType[N]` | Deskriptor mit Typzeuge (`project`) und Rekonstruktion (`rekey`, `withChildren`) |
-| `TextMark` / `MarkSet` | Offener Mark-Vertrag, normalisierte Menge mit ordnungsunabhängiger Gleichheit |
-| `Schema` | Registry der Node-Arten, ohne öffentliche `Map[String, Any]` |
-| `Document` / `DocumentRead` | Gültiger unveränderlicher Baum, privat konstruiert |
-| `DocumentValidator` / `Violation` | Fünfstufige Prüfung, geschlossenes Ergebnis-ADT |
-| `NodeIdGenerator` | Injizierte ID-Quelle, deterministisch testbar |
-| `Point` / `Affinity` | Logische Position mit Text- oder Kindoffset, plus Klebeseite |
-| `Selection` / `SelectionSupport` | Offener Auswahlvertrag, Range und Node eingebaut |
-| `Operation` / `OperationError` | Sieben Primitive: Insert, Remove, Move, Replace, SpliceText, SplitText, MergeText |
-| `PositionMapping` / `MappedPoint` | Komponierbare Nachführung von Positionen |
-| `ChangeSet` / `TextSplice` | Was sich geändert hat, getrennt von bloß berührten Vorfahren |
-| `Bookmark` / `RevisionMapping` | Gemerkte Position samt Ablaufvertrag |
-| `TextBoundaryService` | Nur der Vertrag; implementiert in [`ember-rich-text`](../ember-rich-text/README.md) |
-| `EditorState` / `Commit` | Veröffentlichter Sitzungszustand, mit zwei Revisionen |
-| `EditorSession` / `SessionConfig` | Besitzt den Zustand, hält die einzige Commit-Grenze |
-| `Transaction` | Privater Entwurf mit eingerastetem Fehler und begrenzter Lebensdauer |
-| `StateField` / `StateFields` | Typisierte Sitzungsfelder mit reinem, ablehnendem Reducer |
-| `PreCommitRule` | Synchrones Urteil über den fertigen Kandidaten |
-| `UpdateError` / `Subscription` | Warum ein Commit ausblieb; aufkündbare Registrierung |
-| `EditorCommand` / `CommandRegistry` | Absichten mit Instanzidentität, Prioritäten und Pass/Handled |
-| `Transform` / `TransformScope` | Normalisierung bis zum Fixpunkt, mit eingeschränktem Zugriff |
-| `Extension` / `ExtensionResolver` | Deklarative Beiträge, Abhängigkeitsordnung, Install-Rollback |
+| `EditorNode` / `ElementNode` / `AtomNode` | Open node contract, closed structural categories |
+| `RootNode`, `TextNode` | The two node kinds the kernel itself contributes |
+| `NodeType[N]` / `ElementNodeType[N]` | Type witness (`project`) plus reconstruction (`rekey`, `withChildren`) |
+| `TextMark` / `MarkSet` | Open mark contract; a normalized, order-independent set |
+| `Schema` | Registry of node kinds, without a public `Map[String, Any]` |
+| `Document` / `DocumentRead` | A structurally valid immutable tree, privately constructed |
+| `DocumentValidator` / `Violation` | Five-stage validation, closed result ADT |
+| `NodeIdGenerator` | Injected ID source, deterministic and testable |
+| `Point` / `Affinity` | A logical position (text or child offset) plus which side it sticks to |
+| `Selection` / `SelectionSupport` | Open selection contract; range and node selections built in |
+| `Operation` / `OperationError` | Seven primitives: Insert, Remove, Move, Replace, SpliceText, SplitText, MergeText |
+| `PositionMapping` / `MappedPoint` | Composable position tracking across an edit |
+| `ChangeSet` / `TextSplice` | What actually changed, distinct from merely-touched ancestors |
+| `Bookmark` / `RevisionMapping` | A remembered position with an explicit expiry contract |
+| `EditorState` / `Commit` | Published session state, carrying two revision counters |
+| `EditorSession` / `SessionConfig` | Owns the state; the single commit boundary |
+| `Transaction` | A private draft with a latched error and a bounded lifetime |
+| `StateField` / `StateFields` | Typed session fields with a pure, rejecting reducer |
+| `PreCommitRule` | A synchronous verdict over the finished candidate |
+| `UpdateError` / `Subscription` | Why a commit did not happen; a cancellable registration |
+| `EditorCommand` / `CommandRegistry` | Intents with instance identity, priorities, pass/handled results |
+| `Transform` / `TransformScope` | Fixpoint normalization with restricted access |
+| `Extension` / `ExtensionResolver` | Declarative contributions, dependency order, install rollback |
 
-Ein `Document` ist nur über `Document.build` zu bekommen und erfüllt danach die Invarianten aus
-§8.2 immer schon: genau eine Wurzel, eindeutige IDs, erreichbare Knoten, keine Zyklen, je Knoten
-genau ein Elternteil, schemakonforme Inhalte. Wer einen Wert dieses Typs hält, muss nichts mehr
-prüfen.
+A `Document` only ever comes from `Document.build`, and once built it already satisfies its
+invariants: exactly one root, unique IDs, every node reachable, no cycles, one parent per node,
+schema-conformant content. Holding a value of this type means nothing more needs checking.
 
-Der Elternindex ist **abgeleitet** — eine Projektion der Kindlisten, keine zweite Wahrheit.
-Kinder sind ausschließlich referenzierte IDs, nie eingebettete Objekte; eine Textänderung tief
-im Baum kostet deshalb den betroffenen String und wenige Indexpfade, nicht eine rekursive Kopie
-aller Vorfahren.
+The parent index is **derived** — a projection of the child lists, never a second source of
+truth. Children are referenced IDs, never embedded objects, so an edit deep in the tree costs
+the affected string and a few index entries, not a recursive copy of every ancestor. All
+traversals are iterative; `DocumentSpec` builds a tree 25,000 levels deep to prove it.
 
-Alle Traversierungen sind iterativ. `DocumentSpec` baut dafür einen 25 000 Ebenen tiefen Baum —
-Node.js schafft rund 11 000 Rekursionsebenen, eine rekursive Implementierung würde dort
-zuverlässig mit einem Stacküberlauf scheitern statt mit einer Diagnose.
+### Five-stage validation
 
-### Validierung in fünf Stufen
-
-Identität → Referenzen → Zyklen → Erreichbarkeit → Schema. Die Prüfung bricht nach der ersten
-fehlerhaften Stufe ab. Das ist Diagnosequalität, kein vorzeitiges Aufgeben: aus einer einzigen
-ins Leere zeigenden Kindreferenz folgen sonst zwangsläufig Unerreichbarkeits- und Schemafehler,
-die nur die Ursache zudecken.
-
-Jede `Violation` nennt Pfad, ID und Grund:
+Identity → references → cycles → reachability → schema. The check stops at the first failing
+stage, because a single dangling child reference otherwise cascades into reachability and
+schema errors that only obscure the cause. Every `Violation` names a path, an ID and a reason:
 
 ```
-<root>#root.children[0]: `root` verweist an Position 0 auf den unbekannten Knoten `ghost`.
+<root>#root.children[0]: `root` references the unknown node `ghost` at position 0.
 ```
 
-## Operationen und Positionsabbildung
+## Operations and position mapping
 
-Jede Operation liefert drei Dinge auf einmal (§10): das neue Dokument, ein `ChangeSet` und
-eine `PositionMapping`. Sie entstehen gemeinsam, weil sie sonst auseinanderlaufen könnten.
+Every operation returns three things at once: the new document, a `ChangeSet`, and a
+`PositionMapping`. They are produced together because computing them separately would let them
+drift apart.
 
 ```scala
 document.applyOperation(Operation.SpliceText(t1, 5, 0, "!")) // Either[OperationError, OperationResult]
-document.applyAll(Seq(…))                                    // dasselbe, komponiert
+document.applyAll(Seq(...))                                  // the same, composed
 ```
 
-Atomar: bei einem Fehler bleibt das Ausgangsdokument unverändert. Es gibt nichts
-zurückzurollen — jeder Zwischenstand ist ein eigener unveränderlicher Wert.
+Atomic: on failure the starting document is unchanged. There is nothing to roll back — every
+intermediate state is its own immutable value. Operations validate their preconditions and
+construct the result so invariants hold, rather than fully re-validating the whole document on
+every keystroke (which would be linear in document size). `DocumentOperationModelSpec` checks
+this claim directly: 30 rounds of 40 random operations, verified after every step against a
+from-scratch `DocumentValidator` rebuild, an independent reference model, and carried points
+that must remain representable in the new document.
 
-Die Operationen validieren **nicht** voll durch. Sie prüfen ihre Vorbedingungen und
-konstruieren das Ergebnis so, dass die Invarianten erhalten bleiben; eine Vollvalidierung pro
-Tastendruck wäre linear in der Dokumentgröße und genau das, was §8.2 ausschließt. Weil das
-eine Behauptung ist, prüft `DocumentOperationModelSpec` sie: 30 Runden zu je 40 zufälligen
-Operationen, nach **jedem** Schritt gegen drei unabhängige Instanzen — den `DocumentValidator`
-(Neuaufbau von Grund auf), ein Referenzmodell aus schlichten Maps, und mitgeführte Punkte, die
-im neuen Dokument darstellbar sein müssen.
+`MappedPoint` distinguishes `Preserved` from `Displaced`, and the distinction matters: a caret
+may fall back onto a boundary, but an upload bookmark may not — otherwise the finished image
+lands at an arbitrary position. Displacement is contagious: what vanished in one step does not
+reappear in the next. `Affinity` decides which side a point sticks to when an insert happens
+exactly at its position — a child position is a boundary between siblings, not a number that
+stays fixed.
 
-### Affinität
-
-`MappedPoint` unterscheidet `Preserved` von `Displaced`. Das ist kein Luxus: ein Caret darf auf
-eine Grenze zurückfallen, ein Upload-Bookmark darf das nicht — sonst landet das fertige Bild an
-beliebiger Stelle (§20). Verschiebung ist ansteckend: was in einem Schritt verschwunden ist,
-taucht im nächsten nicht wieder auf.
-
-`Affinity` entscheidet, woran ein Punkt klebt, wenn genau an seiner Position eingefügt wird.
-Der lehrreichste Fall steht in `PositionMappingSpec`: beim Umsortieren von `[t1, t2]` zu
-`[t2, t1]` wandert `Children(c1, 2, Before)` auf Offset 1, weil der Punkt an `t2` klebt und
-`t2` nach vorn gerückt ist. Eine Kindposition ist eine Grenze zwischen Geschwistern, keine
-Nummer, die stehen bleibt.
-
-## Sitzung und Commit-Grenze
+## Session and commit boundary
 
 ```scala
 val editor = EditorSession.create(document, SessionConfig(fields = Vector(TypingMarks)))
@@ -124,42 +104,28 @@ val editor = EditorSession.create(document, SessionConfig(fields = Vector(Typing
 editor.update { tx =>
   tx.spliceText(t1, 5, 0, "!")
   tx.select(RangeSelection.caret(Point.textAfter(t1, 6)))
-}  // Either[UpdateError, Commit]
+} // Either[UpdateError, Commit]
 ```
 
-Eine Transaktion ist ein privater Entwurf. Sie rastet den ersten Fehlschlag ein und weist
-alles Weitere ab — die Closure liefert `Unit`, ein ignoriertes `Either` darf also nicht dazu
-führen, dass auf einem kaputten Entwurf weitergearbeitet wird. Ihr Handle gilt nur innerhalb
-der Closure; danach wirft jeder Zugriff, denn es in einem `Future` aufzuheben ist ein
-Programmierfehler, kein Datenfehler.
+A transaction is a private draft: it latches its first failure and rejects everything after,
+and its handle is only valid inside the closure — using it later throws, because keeping it
+alive in a `Future` is a programming error, not a data error.
 
-**Zwei Revisionen.** `revision` steigt bei jeder Veröffentlichung, `documentRevision` nur bei
-echter Dokumentänderung. Wer speichert, vergleicht die zweite — ein bewegter Cursor löst dann
-keinen Schreibvorgang aus (§9).
+**Two revisions.** `revision` increases on every publish; `documentRevision` only on an actual
+document change. Code that persists compares the second one, so a moved cursor never triggers a
+write. **A commit is not a render** — the kernel publishes a state, and whether a view shows it
+is a separate question answered by `DocumentView.onProjected`/`projectedRevision` in
+[`ember-ui`](../ember-ui/README.md). **No re-entrancy** — calling `update` from inside `update`
+returns `UpdateError.NestedUpdate`; code that needs to change state from a listener uses
+`enqueueUpdate` instead (FIFO, run once notification is done). A listener that throws is
+reported to the error sink without unwinding an already-published commit.
 
-**Ein Commit ist nicht gerendert.** Der Kern veröffentlicht einen Zustand; ob eine View ihn
-zeigt, ist ein anderer Zeitpunkt (§5). Seit P09 hängt die Projektion in derselben Phase, in
-der die Warteschlange abgearbeitet wird; wer wissen will, ob etwas zu sehen ist, fragt
-`DocumentView.onProjected` oder `projectedRevision` — nicht den Commit-Listener.
+`StateField[A]` is not a freely writable cell: its reducer runs during commit against the
+finished candidate and may **reject** it — this is what lets a form field refuse a
+`ToggleUnderline` in a strict CommonMark profile before a commit happens, rather than leaving a
+stale form value behind.
 
-**Keine Reentranz.** `update` innerhalb eines `update` ergibt `UpdateError.NestedUpdate`. Wer
-aus einem Listener heraus ändern will, nimmt `enqueueUpdate` — FIFO, und erst wenn die
-Benachrichtigungsphase durch ist. Ein geworfener Listener wird an den Error-Sink gemeldet und
-reißt die übrigen nicht mit; ein bereits veröffentlichter Commit wird deswegen nicht halb
-zurückgedreht.
-
-### Zustandsfelder
-
-`StateField[A]` ist keine frei beschreibbare Zelle. Der Reducer läuft im Commit gegen den
-fertigen Kandidaten und darf **ablehnen** — daran hängt P19b: ein `ToggleUnderline` in einem
-Strict-CommonMark-Feld muss vor dem Commit scheitern, nicht danach einen veralteten
-Formularwert hinterlassen.
-
-`DocumentChangePolicy` erklärt ausdrücklich, was bei einer Dokumentänderung geschieht.
-`Reset` überspringt dabei Felder, die dieselbe Transaktion selbst zugewiesen hat — sonst
-könnte eine ändernde Transaktion ihren eigenen Folgewert nie setzen.
-
-## Commands, Extensions und Transforms
+## Commands, extensions and transforms
 
 ```scala
 val Bold = EditorCommand.unit("bold")
@@ -168,112 +134,69 @@ val resolved = ExtensionResolver.resolve(Vector(CoreNodes, RichText(), Lists()))
 val document = Document.build(resolved.schema, rootId, nodes).getOrElse(...)
 val editor   = EditorSession.create(document, resolved, resolved.sessionConfig()).getOrElse(...)
 
-editor.dispatch(Bold)  // Either[UpdateError, DispatchOutcome]
+editor.dispatch(Bold) // Either[UpdateError, DispatchOutcome]
 ```
 
-Ein Command wird über **Referenzgleichheit** nachgeschlagen, nie über einen String. Damit gibt
-es keine Namenskollisionen zwischen Modulen, keine Tippfehler, die erst zur Laufzeit auffallen,
-und der Compiler prüft den Payload-Typ. Handler laufen von `Critical` bis `Fallback`, bei
-gleicher Priorität in Registrierungsreihenfolge; das erste `Handled` beendet die Kette.
+A command is looked up by **reference identity**, never by string — no name collisions between
+modules, no typos that only surface at runtime, and the compiler checks the payload type.
+Handlers run from `Critical` down to `Fallback`, in registration order at equal priority; the
+first `Handled` ends the chain. `Pass` must be side-effect free — `SessionConfig.strictCommands`
+(on by default) enforces it.
 
-`Pass` muss nebenwirkungsfrei sein. Wer ändert und trotzdem weiterreicht, hinterlässt einen
-Zustand, mit dem der nächste Handler nicht rechnet — und der Fehler zeigt sich weit entfernt
-von seiner Ursache. `SessionConfig.strictCommands` (Voreinstellung: an) fängt das ab.
+**Transforms** establish invariants before anything becomes visible, running after the
+transaction body and before rules and reducers. Order is phase (`Early`/`Normalize`/`Late`),
+then node depth (deepest first), then registration; merely-touched ancestors are never
+transform candidates, so a single keystroke does not re-normalize the path to the root. A
+transform receives a `TransformScope`, not the whole transaction — no `dispatch`, no field
+access. If the loop never settles, the transaction fails naming every transform involved,
+rather than silently truncating after a fixed budget.
 
-### Transforms
+**Extensions** resolve, validate, install, and (on failure) dispose in reverse order. Resolution
+checks everything — duplicate extensions, missing dependencies, cycles, duplicate wire names,
+conflicting replacements — before anything is built; a failed install unwinds everything already
+installed and no session is produced. Contributions are purely declarative: an extension factory
+is a value that describes what it contributes and does not act on its own, which is what lets a
+configuration be resolved and checked server-side without a browser.
 
-Stellen Invarianten her, **bevor** etwas sichtbar wird — statt einer Kaskade aus
-Listener-Updates, bei der jeder Zwischenstand kurz gilt (§3.2). Sie laufen nach dem
-Transaktions-Body und vor Regeln und Reducern; eine Regel, die vorher urteilte, urteilte über
-einen Zwischenstand.
+Feature nodes require no kernel change: `rekey` and `withChildren` are how a node type
+reconstructs itself without the kernel needing to guess a foreign case class's `copy` signature
+(see [`ForeignNodes.scala`](src/test/scala-3/ember/editor/foreign/ForeignNodes.scala) for a
+container, an atom and a mark, all defined outside the kernel's package).
 
-Reihenfolge: Phase (`Early`/`Normalize`/`Late`), dann Knotentiefe (tiefste zuerst), dann
-Registrierung. Bloß berührte Vorfahren sind **keine** Kandidaten — sonst liefe bei jedem
-Tastendruck der Pfad bis zur Wurzel durch die Normalisierung.
+## Dependency boundary
 
-Ein Transform bekommt `TransformScope`, nicht die ganze Transaktion. Kein `dispatch`, kein
-Feldzugriff: §10s „nur den Entwurf lesen, keine Nebenwirkungen" ist damit Konstruktion statt
-Behauptung.
-
-Kommt die Schleife nicht zur Ruhe, **scheitert** die Transaktion mit den Namen aller
-beteiligten Transforms. Das Budget ist ausdrücklich kein stilles Abschneiden (§10) — bei zwei
-Regeln, die einander zurückdrehen, ist keine für sich auffällig, erst das Paar ist der Befund.
-
-### Extensions
-
-`resolve → validate → install → dispose in umgekehrter Reihenfolge`. Die Auflösung prüft
-vollständig, bevor irgendetwas gebaut wird: doppelte Extensions, fehlende Abhängigkeiten,
-Zyklen, doppelte Wire-Namen, mehrfache oder ins Leere zeigende Ersetzungen. Scheitert eine
-Installation, wird alles bis dahin Installierte wieder abgebaut und **keine** Sitzung
-herausgegeben.
-
-Beiträge sind rein deklarativ: eine Extension-Fabrik ist ein Wert, sie beschreibt, was sie
-beiträgt, und tut es nicht selbst. Deshalb lässt sich eine Konfiguration serverseitig auflösen
-und ohne Browser prüfen.
-
-Eine Knotenart-Ersetzung (§8.3) tritt an die Stelle des Originals, und der alte Wire-Name
-bleibt auflösbar — sonst wäre jede bereits gespeicherte Datei nach einer Spezialisierung
-undekodierbar.
-
-### Fremde Node-Arten
-
-Feature-Nodes erfordern keine Core-Änderung. Der Nachweis steht in
-[ember/editor/foreign/ForeignNodes.scala](src/test/scala-3/ember/editor/foreign/ForeignNodes.scala):
-ein Container mit Zusatzfeldern, ein Atom und eine eigene Mark, alle in einem fremden Paket und
-ausschließlich über die öffentliche API gebaut. `rekey` und `withChildren` sind der Grund, warum
-das geht — der Kern kann die `copy`-Signatur einer fremden Case Class nicht erraten und darf es
-auch nicht versuchen.
-
-## Abhängigkeitsgrenze
-
-Architektur §7: der Kern hat kein `org.scalajs.dom`, keine UI-Property und keinen
-Forms-/Viewport-Import. Das ist keine Absichtserklärung, sondern ein Build-Gate.
-
-`boundaryCheck` in [build.sbt](../build.sbt) prüft bei jedem Compile drei Dinge:
-
-1. **Projektabhängigkeiten** gegen eine Allowlist — für diesen Kern ist sie leer.
-2. **Aufgelöste Artefakte** gegen eine Blocklist (`scalajs-dom`, `scalajs-ui`, `scalajs-lexical`).
-   Das ist die eigentliche Garantie: was nicht auf dem Classpath liegt, lässt sich auch voll
-   qualifiziert nicht verwenden.
-3. **Imports** gegen verbotene Paketpräfixe — inklusive der Module, die später auf dem Kern
-   aufbauen (`ember.editor.ui`, `.browser`, `.forms`, `.toolbar`, `.html`, `.markdown`, `.json`).
-   Diese Pakete existieren noch nicht; die Regel steht trotzdem schon.
-
-Der Check hängt an `Compile / sources`, nicht an `Compile / compile`: sbt 2 cached
-Taskergebnisse, und `compile` neu zuzuweisen hätte den Compile-Schritt selbst aus dem
-Action-Cache genommen. Details stehen als Kommentar in `build.sbt`.
-
-Verletzungen brechen den Build ab, bevor kompiliert wird:
+The kernel has no `org.scalajs.dom`, no UI dependency, and no forms/viewport import — enforced
+as a build gate, not a style guideline. `boundaryCheck` in [`build.sbt`](../build.sbt) checks, on
+every compile: project dependencies against an allowlist (empty, for the kernel), resolved
+artifacts against a blocklist (`scalajs-dom`, `scalajs-ui`, `scalajs-lexical`), and imports
+against forbidden package prefixes — including modules that build on the kernel later
+(`ember.editor.ui`, `.browser`, `.forms`, `.toolbar`, `.html`, `.markdown`, `.json`). Violations
+fail the build before compilation:
 
 ```
-Abhaengigkeitsgrenze von scalajs-ember-core verletzt (UI_EDITOR_ARCHITECTURE.md, Abschnitt 7):
-Nicht erlaubte Projektabhaengigkeiten:
+Dependency boundary of scalajs-ember-core violated:
+Disallowed project dependencies:
   probe-dummy
-Verbotene Artefakte auf dem Classpath:
+Forbidden artifacts on the classpath:
   org.scala-js:scalajs-dom_sjs1_3
-Verbotene Imports:
-  …| `ember-toolbar` | Optionale Toolbarsember| `ember-toolbar` | Optionale Toolbarseditor| `ember-toolbar` | Optionale Toolbarscore| `ember-toolbar` | Optionale ToolbarsProbe.scala:3  import org.scalajs.dom  (verboten: org.scalajs.dom)
+Forbidden imports:
+  Probe.scala:3  import org.scalajs.dom  (forbidden: org.scalajs.dom)
 ```
 
-## Fehlerkonvention
+## Error convention
 
-Definiert in [package.scala](src/main/scala-3/ember/editor/core/package.scala). Zwei Arten von
-Fehlschlägen, an der Signatur unterscheidbar:
+Two kinds of failure, distinguishable by signature (see
+[`package.scala`](src/main/scala-3/ember/editor/core/package.scala)):
 
-- **Erwartete Fehler sind Werte.** `Either[E, A]` mit `E <: EditorError`. Ein ungültiges
-  Dokument, eine abgewiesene Transaktion, ein nicht dekodierbares Wire-Format — vorgesehene
-  Ergebnisse, keine Exceptions. Architektur §10 baut darauf auf: `update` liefert
+- **Expected failures are values.** `Either[E, A]` with `E <: EditorError` — an invalid
+  document, a rejected transaction, an undecodable wire format. `update` returns
   `Either[UpdateError, Commit]`.
-- **Vertragsverletzungen des Aufrufers fliegen.** `EditorContractViolation` bei abgelaufenem
-  Tx-Handle, verschachteltem `update`, Aufruf nach `dispose`. Ein `Either` würde suggerieren,
-  ein Aufrufer könne sinnvoll darauf reagieren.
+- **Contract violations by the caller throw.** `EditorContractViolation` for an expired
+  transaction handle, a nested `update`, or a call after `dispose` — an `Either` would suggest a
+  caller could meaningfully react to it.
 
-`EditorError` ist ein offener Trait, damit fremde Feature-Module eigene Fehler beitragen
-können, ohne den Kern zu ändern — dieselbe Entscheidung wie beim offenen Node-Vertrag §8.1.
-Geschlossen ist dagegen `PathSegment`: die Struktur eines Diagnosepfads ist Kerneigenschaft.
-
-`DiagnosticPath` erfüllt die Forderung aus §8.2 und §19.2, dass ungültige Eingaben Pfad, ID
-und Grund liefern:
+`EditorError` is an open trait so foreign feature modules can contribute their own errors
+without changing the kernel. `DiagnosticPath` renders a path, an ID and a reason:
 
 ```scala
 DiagnosticPath.field("children").index(2).node("p-17").field("text").render
@@ -286,7 +209,13 @@ DiagnosticPath.field("children").index(2).node("p-17").field("text").render
 sbt --server "scalajs-ember-core/Test/testOnly *"
 ```
 
-`CoreEnvironmentSpec` belegt, dass der Kern in einer Umgebung ohne `window` und `document`
-lädt, und prüft die Fehlerkonvention. Die Abhängigkeitsgrenze prüft er *nicht* — ein
-gelinktes Scala.js-Modul hat weder Classpath noch Dateisystem. Dafür ist `boundaryCheck`
-zuständig, der über `Compile / sources` ohnehin vor jedem Testlauf greift.
+`CoreEnvironmentSpec` checks that the kernel loads in an environment without `window` or
+`document`, and exercises the error convention. The dependency boundary is not tested here — a
+linked Scala.js module has neither a classpath nor a filesystem; `boundaryCheck`, hanging off
+`Compile / sources`, runs ahead of every test regardless.
+
+## Related modules
+
+- [`ember-rich-text`](../ember-rich-text/README.md) is the first profile built on top: paragraphs, marks and text editing.
+- [`ember-history`](../ember-history/README.md), [`ember-json`](../ember-json/README.md) and [`ember-html`](../ember-html/README.md) each depend only on the kernel.
+</content>

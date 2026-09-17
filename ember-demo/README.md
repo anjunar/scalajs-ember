@@ -1,142 +1,88 @@
-# Ember Editor Showcase
+# scalajs-ember-demo
 
-Eine eigenständige Scala.js-Anwendung in diesem Repo, aufgebaut wie die Showcase in
-`scalajs-ui/scala/scalajs-ui-demo`: Navigation, echte UI-Komponenten, Beispieldokumente
-und direkt eingebundene Viewport-Fenster.
+A standalone Scala.js showcase application for the Ember editor, structured like the demo in
+`scalajs-ui`: navigation, real UI components, sample documents, and viewport windows. **Not
+published** — an application, not a library.
 
-Die Demo linkt die **lokalen Ember-Projekte**. Sie benötigt weder den Nachbar-Checkout
-noch eine vorherige Veröffentlichung von Ember. Nur `scalajs-ui-core` und
-`scalajs-ui-viewport` werden als veröffentlichte Maven-Artefakte (1.0.1) aufgelöst.
-Sie hat keine Lexical-Abhängigkeit und wird selbst nicht veröffentlicht.
+The demo links the **local Ember modules** directly; it needs neither a checkout of the neighbor
+repository nor a prior release of Ember. Only `scalajs-ui-core` and `scalajs-ui-viewport` are
+resolved as published Maven artifacts.
 
-## Starten
+## Running it
 
-Voraussetzungen: Java/sbt und Node.js.
+Prerequisites: a JDK, sbt, and Node.js.
 
-Aus der Repo-Wurzel:
+From the repository root:
 
-```powershell
+```bash
 npm --prefix ember-demo run dev
 ```
 
-Der Befehl führt `sbt --server "scalajs-ember-demo/fastLinkJS"` aus und startet danach
-[http://127.0.0.1:4200](http://127.0.0.1:4200). Zum normalen Start ist kein `npm install`
-erforderlich; die kleinen Build-/Server-Skripte benötigen nur Node.js.
+This runs `sbt --server "scalajs-ember-demo/fastLinkJS"` and then starts
+[http://127.0.0.1:4200](http://127.0.0.1:4200). No `npm install` is needed for a normal start —
+the small build/server scripts only need Node.js itself.
 
-Die veröffentlichte Showcase liegt unter
-[anjunar.github.io/scalajs-ember](https://anjunar.github.io/scalajs-ember/). Jeder Push auf
-`master` baut zunächst die optimierte Anwendung, prüft sie unter dem echten Unterpfad
-`/scalajs-ember/` und veröffentlicht anschließend das Pages-Artefakt. Pull Requests bauen und
-prüfen dasselbe Artefakt, veröffentlichen es aber nicht.
+Alternatively, split into two terminals for a faster edit loop:
 
-Alternativ getrennt, etwa für die Entwicklung:
-
-```powershell
+```bash
 sbt --server "~scalajs-ember-demo/fastLinkJS"
 ```
 
-In einem zweiten Terminal:
-
-```powershell
+```bash
 npm --prefix ember-demo run serve
 ```
 
-Nach einem Scala-Build die Seite neu laden. CSS wird bei jedem Laden direkt aus dem
-Repo ausgeliefert. `EMBER_DEMO_PORT` setzt einen anderen Port.
+Reload the page after a Scala build; CSS is served directly from the repository on every load.
+`EMBER_DEMO_PORT` sets a different port.
 
-## Beispiele und Bedienung
+## Examples and controls
 
-- **Artikel schreiben**: Überschriften, Textformatierung, Zitat, nummerierte Liste und Link.
-- **Notizen & Listen**: verschachtelte Listen mit Ein- und Ausrücken.
-- **Code & Medien**: Scala-Codeblock mit Syntax-Highlighting, Bild aus dem Repo und Trennlinie.
-  „Code" in der Ribbon öffnet die Sprachauswahl: Block mit Sprache anlegen, Sprache ändern oder
-  Codeblock aufheben.
-- **Leeres Dokument**: eine tatsächlich editierbare leere Seite.
+- **Write an article** — headings, text formatting, quotes, a numbered list and a link.
+- **Notes & lists** — nested lists with indent/outdent.
+- **Code & media** — a Scala code block with syntax highlighting, an image from the repository,
+  and a divider. The "Code" ribbon entry opens language selection: create a block with a
+  language, change the language, or lift a code block back to text.
+- **Empty document** — a genuinely editable blank page.
 
-Die Navigation verwendet Links mit Hash-Routen, einschließlich Browser-Zurück/Vorwärts.
-Jedes Beispiel behält Dokument, Auswahl und Undo-Historie beim Seitenwechsel.
-Ein Neuladen der Seite verwirft die Änderungen; es gibt weder Backend noch automatische Speicherung.
-JSON und Markdown können über die Quellansicht heruntergeladen werden.
+Navigation uses hash-route links, including browser back/forward. Each example keeps its
+document, selection and undo history across navigation. Reloading the page discards changes —
+there is no backend and no autosave. JSON and Markdown can be downloaded from the source view.
 
-Die Ribbon gruppiert Verlauf, Schrift, Absatz, Listen und Einfügen. Aktive Formate werden
-angezeigt, nicht verfügbare Aktionen deaktiviert. Tastaturbedienung: ein Tab-Stopp für
-die Ribbon, Pfeiltasten/Home/End zwischen ihren Aktionen. Strg+Z und Strg+Shift+Z steuern
-Undo/Redo. Im Editor rückt Tab Listen und Code ein; Escape, dann Tab verlässt die Fläche.
+The ribbon groups history, font, paragraph, lists and insert actions. Active formats are shown;
+unavailable actions are disabled. Keyboard: one tab stop for the ribbon, arrow keys/Home/End
+between its actions; Ctrl+Z / Ctrl+Shift+Z drive undo/redo. Inside the editor, Tab indents lists
+and code; Escape then Tab leaves the editing surface.
 
-Links und Bilder werden in gewöhnlichen `Viewport.WindowConf`-Fenstern bearbeitet.
-Auswahl und Fokus werden beim Öffnen/Schließen erhalten. Adressen werden mit den Ember-Policies
-geprüft. Bilder lassen sich über URL, Alt-Text, Titel und Breite bearbeiten.
-Dateiuploads benötigen einen Anwendungsservice und sind in dieser lokalen Demo nicht eingerichtet.
+Links and images are edited in ordinary `Viewport.WindowConf` windows. Selection and focus are
+preserved across opening/closing. Addresses are checked against the Ember policies. Images can be
+edited by URL, alt text, title and width. File uploads need an application service and are not
+wired up in this local demo.
 
-Weitere Funktionen: Hell/Dunkel, Lesemodus, Zurücksetzen mit Bestätigung und eine
-zuschaltbare Live-Ansicht für Markdown, JSON, HTML und den Dokumentbaum.
-Auf schmalen Bildschirmen bleiben Navigation und Ribbon horizontal scrollbar, die
-Quellansicht rückt unter den Editor.
+Other features: light/dark, reading mode, reset with confirmation, and a toggleable live view for
+Markdown, JSON, HTML and the document tree. On narrow screens, navigation and ribbon stay
+horizontally scrollable, and the source view moves below the editor.
 
-## Formatgrenzen
+## Format limits
 
-Die Demo verwendet das native CommonMark-Profil, nicht den erweiterten Markdown-Dialekt
-von `scalajs-ui-editor`. Tabellen und Raw HTML gehören nicht zu diesem Beispielprofil.
-Bildbreiten bleiben im Dokument und in JSON erhalten. Die Markdown-Vorschau zeigt
-Exportverluste ausdrücklich an; der Markdown-Download verwendet `Strict` und verweigert
-einen verlustbehafteten Export. Für solche Dokumente steht der JSON-Download bereit.
+The demo uses the native CommonMark profile, not an extended Markdown dialect. Tables and raw HTML
+are not part of this example profile. Image widths are preserved in the document and in JSON.
 
-Die Quellansicht dient zur Beobachtung und ist nicht editierbar.
+## Build and CI
 
-Der Pages-Build rendert die vollständige initiale Artikelansicht mit `SsrCursor` in Node und
-schreibt sie in `index.html`. Im Browser übernimmt `HydratingCursor` genau diesen Komponentenbaum;
-erst nach dem vollständigen Claim werden Navigation, Editor-Controller und Toolbar aktiviert.
-GitHub Pages liefert damit vorgerendertes HTML aus, obwohl es selbst keinen Serverprozess pro
-Anfrage betreibt. Die isolierten Fehler-, Recovery- und Verlustschutzfälle bleiben zusätzlich im
-separaten `ember-integration`-Modul abgedeckt.
-
-## Prüfen
-
-```powershell
-npm --prefix ember-demo ci
-npm --prefix ember-demo exec -- playwright install chromium
-npm --prefix ember-demo run verify
+```bash
+npm --prefix ember-demo run build       # fastLinkJS build
+npm --prefix ember-demo run build:full  # fullLinkJS build
+npm --prefix ember-demo run verify      # full build + Playwright tests
 ```
 
-`verify` baut mit `fullLinkJS` und testet danach die optimierte Anwendung in Chromium
-auf einem eigenen Server unter Port 4201. Der interaktive Server auf 4200 bleibt dabei unberührt.
-Die Tests prüfen Navigation mit erhaltenen Änderungen/Undo, Formatierung, Linkvalidierung,
-Dialogauswahl und Fokus, Bildbreiten/Undo, echte Downloads, Lesemodus, Zurücksetzen und
-das mobile Layout. Eine reale Geräte-/IME-/Screenreader-Abnahme wird damit nicht ersetzt.
+The published showcase lives at
+[anjunar.github.io/scalajs-ember](https://anjunar.github.io/scalajs-ember/). Every push to
+`master` builds the optimized application, checks it under its real subpath (`/scalajs-ember/`),
+and then publishes the Pages artifact. Pull requests build and check the same artifact without
+publishing it — a pre-rendered HTML page in Node, hydrated in the browser.
 
-Nur erneut testen: `npm --prefix ember-demo test` (benötigt aktuellen Full-Link).
+## Related modules
 
-Den vollständigen Pages-Pfad lokal prüfen:
-
-```powershell
-npm --prefix ember-demo run verify:pages
-```
-
-Das erzeugt `target/ember-pages`, startet die Prüfung unter
-`http://127.0.0.1:4202/scalajs-ember/` und führt die sechs Browserabläufe sowie drei zusätzliche
-SSR-/No-JavaScript-/Hydrationstests gegen das tatsächliche statische Artefakt aus. Eine manuelle Vorschau startet mit
-`npm --prefix ember-demo run preview:pages`.
-Optimierten Build manuell ansehen:
-
-```powershell
-npm --prefix ember-demo run build:full
-$env:EMBER_DEMO_FULL = "1"
-npm --prefix ember-demo run serve
-```
-
-## Aufbau
-
-| Datei | Aufgabe |
-| --- | --- |
-| `Main.scala` | Node-SSR und Browser-Hydration desselben UI-Komponentenbaums |
-| `DemoApp.scala` | Navigation, Theme, Viewport und langlebige Beispielsitzungen |
-| `DemoExample.scala` | Beispieldokumente |
-| `DemoSession.scala` | Lokale Ember-Module, Schema, History und Codecs |
-| `DemoPage.scala` | Editorfläche, Browseradapter, Lesemodus und Live-Ansichten |
-| `DemoRibbon.scala` | Gruppierte Commands und ihre Zustände |
-| `DemoDialogs.scala`, `DemoDialogForm.scala` | Direkte Viewport-Fenster mit Formularinhalt |
-| `dev/` | HTML, CSS, lokale SVGs sowie Build-/Start-/Server-Skripte |
-| `test/showcase.spec.mjs` | Browserregressionen gegen den Full-Link |
-| `test/pages-ssr.spec.mjs` | Vorgerendertes HTML, No-JavaScript-Lesen und Hydration |
-
-Alle Scala-Quellen liegen unter `src/main/scala-3/ember/editor/demo`.
+- [`ember-standard`](../ember-standard/README.md), [`ember-toolbar`](../ember-toolbar/README.md), [`ember-code-highlighting`](../ember-code-highlighting/README.md) — the feature set this demo assembles.
+- [`ember-integration`](../ember-integration/README.md) — the separate, unpublished browser test harness (not a demo).
+</content>

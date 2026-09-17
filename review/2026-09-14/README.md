@@ -1,6 +1,6 @@
 # Repro-Fälle zum Review vom 14. September 2026
 
-Gehört zu [UI_EDITOR_REVIEW.md](../../UI_EDITOR_REVIEW.md), ursprüngliche Review-Basis
+Reproduktionsfälle zum internen Review vom 14. September 2026, ursprüngliche Review-Basis
 `8b3092f`. Alle 14 Befunde sind inzwischen korrigiert. Die Dateien unter `scala/`
 archivieren die ursprünglichen Reproduktionen; die weiterentwickelten Regressionstests
 liegen in den regulären Testquellen der jeweiligen Module.

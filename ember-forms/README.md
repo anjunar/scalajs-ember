@@ -1,164 +1,120 @@
 # scalajs-ember-forms
 
-Das Editorfeld als Formularfeld: genau eine benannte Textarea, ein geschützter Quelltextentwurf
-und ein Weg, der ohne JavaScript funktioniert.
-
-Verbindlicher Entwurf: [UI_EDITOR_ARCHITECTURE.md](../UI_EDITOR_ARCHITECTURE.md) §16.
+The editor as a form field: exactly one named textarea carries the value, a protected source
+draft, and a path that works without JavaScript.
 
 | | |
 | --- | --- |
-| sbt-ID / Artefakt | `scalajs-ember-forms` |
-| Scala-Paket | `ember.editor.forms` |
-| Produktionsabhängigkeiten | `scalajs-ember-core`, `scalajs-ember-markdown`, `scalajs-ember-json`, `scalajs-ember-html`, `scalajs-ember-ui`, `scalajs-ember-browser`, `scalajs-ember-image`, `scalajs-ember-clipboard` |
+| sbt ID / artifact | `scalajs-ember-forms` |
+| Scala package | `ember.editor.forms` |
+| Production dependencies | `scalajs-ember-core`, `scalajs-ember-markdown`, `scalajs-ember-json`, `scalajs-ember-html`, `scalajs-ember-ui`, `scalajs-ember-browser`, `scalajs-ember-image`, `scalajs-ember-clipboard` (`scalajs-ember-history` for tests) |
 
-## Stand
+## Overview
 
-**P19b, der Feldanteil von P20 und P26 implementiert.** Vorhanden: `FieldCodec`, `EditorField`
-samt `EncodedFieldValue`, `SourceDraft`, `EditorFormBinding` und `EditorFieldView` — letzteres
-seit P20 mit der Hydrationsgrenze.
+The textarea comes from `ui-core`, not from a forms runtime — this module has no dependency on
+one. `MediaService`, `MediaCoordinator`, `MediaStatus` and `BrowserMediaPicker` provide a shared
+upload path for picker/paste/drop, mapped targets, cancellation and resource release.
 
-§6 führt außerdem `ui-forms` als Abhängigkeit. Das fehlt hier mit Absicht: die Textarea kommt
-aus ui-core (P19a). P26 ergänzt `MediaService`, `MediaCoordinator`, `MediaStatus`
-und `BrowserMediaPicker`: gemeinsamer Uploadpfad für Picker/Paste/Drop, gemappte
-Ziele, Abbruch und Ressourcenfreigabe. Der vollständige Vertrag und die Einbindung
-stehen in [MEDIA_SERVICE.md](MEDIA_SERVICE.md).
-
-## Verwendung
+## Installation
 
 ```scala
-val field   = EditorFields.markdown("body", regeln, generator)
-val session = EditorSession.create(dokument, extensions, config)   // mit FormFieldExtension(field)
-val binding = new EditorFormBinding(session, field)
-
-binding.submitValue        // immer eindeutig
-binding.enterSource()      // die Textarea übernimmt
-binding.editDraft(text)    // unbestätigte Eingabe
-binding.applyDraft()       // atomar gegen die Baseline
+libraryDependencies += "com.anjunar" %% "scalajs-ember-forms" % "1.0.1"
 ```
 
-`EditorFields.json(name, support)` ist die zweite Wahl. §16 verlangt, dass die Anwendung sich
-ausdrücklich entscheidet — es gibt keine Voreinstellung und keinen automatischen Wechsel.
+## Quick start
 
-## Die Formatgrenze liegt **vor** dem Commit
+```scala
+val field   = EditorFields.markdown("body", rules, generator)
+val session = EditorSession.create(document, extensions, config) // with FormFieldExtension(field)
+val binding = new EditorFormBinding(session, field)
 
-Das ist der Teil von §16, der leicht übersehen wird und alles andere trägt:
+binding.submitValue      // always well-defined
+binding.enterSource()    // the textarea takes over
+binding.editDraft(text)  // unconfirmed input
+binding.applyDraft()     // atomic against the baseline
+```
 
-> Diese Formatgrenze wird **vor Commit** geprüft, auch für programmgesteuerte Commands. […]
-> Ein `ToggleUnderline` in einem Strict-CommonMark-Feld kann daher keinen kanonischen Zustand
-> erzeugen, dessen Formwert veraltet bleibt.
+`EditorFields.json(name, support)` is the other choice — there is no default and no automatic
+switch; the application must decide explicitly.
 
-Der Kern hatte die Form dafür schon: `StateField.reduce` läuft in §10s Schritt 5 gegen den
-fertig normalisierten Kandidaten, und ein `Left` weist die Transaktion ab. Deshalb sind die
-„Darstellbarkeitsregel" und das „abgeleitete StateField" hier **ein** Objekt und nicht zwei —
-eine separate `PreCommitRule`, die dieselbe Frage stellte, würde entweder das Encode
-verdoppeln oder ihm widersprechen.
+## The format boundary sits **before** commit
 
-Die Folge ist die, die §16 nennt: ein `ToggleUnderline` in einem Strict-Feld erzeugt **kein**
-Dokument, dessen Formwert veraltet ist. Es erzeugt gar keines — Dokument, Formwert und History
-bleiben unberührt. Ein Test hält jedes der drei einzeln nach; „nur die UI deaktivieren" wäre
-etwas anderes.
+This is the part of the contract that is easy to miss and carries everything else: the boundary is
+checked before commit, even for programmatic commands. A `ToggleUnderline` in a strict CommonMark
+field cannot produce a canonical state whose form value is stale — it produces no state at all.
+Document, form value and history all stay untouched; a test asserts each of the three
+independently ("only disable the UI" would be a different, weaker guarantee).
 
-Das abgeleitete Feld wird **nicht** persistiert und bei Undo neu berechnet (§16). Ein
-gecachtes Encode-Ergebnis in einem History-Snapshot wäre ein Cache, den niemand invalidiert.
+The kernel already had the shape for this: `StateField.reduce` runs against the fully normalized
+candidate during commit and a `Left` rejects the transaction. That is why "the representability
+rule" and "the derived state field" are one object here, not two — a separate `PreCommitRule`
+asking the same question would either duplicate the encode step or contradict it. The derived
+field is **not** persisted and is recomputed on undo — a cached encode result inside a history
+snapshot would be a cache nobody invalidates.
 
-## Der Quelltextentwurf
+## The source draft
 
-`SourceDraft` hält den bearbeiteten String, die Baseline-Revision und die Textarea-Auswahl. Er
-ist **kein zweites Dokument**, und §16 sagt das zweimal:
+`SourceDraft` holds the edited string, the baseline revision, and the textarea selection. It is
+**not** a second document — the document→form projection must never overwrite it, and the draft is
+an unconfirmed input value, never a second canonical representation.
 
-> Document→Form-Projektion darf diesen Draft nicht überschreiben.
->
-> Der Draft ist ein nicht bestätigter Eingabewert, keine zweite kanonische
-> Dokumentrepräsentation.
+The two failure modes this guards against are symmetric: the document silently overwrites what
+someone typed, or the draft is mistaken for the truth and silently discards what it never saw. The
+**baseline** makes the second one visible — a draft against revision 7, applied at revision 9, is
+stale, and `FieldError.StaleDraft` says so instead of guessing.
 
-Die beiden Fehlerbilder, gegen die das schützt, sind symmetrisch: das Dokument überschreibt
-still, was jemand getippt hat — oder der Entwurf wird für die Wahrheit gehalten und verwirft
-still, was er nie gesehen hat. Die **Baseline** macht das zweite erkennbar: ein Entwurf gegen
-Revision 7, angewandt bei Revision 9, ist veraltet, und `FieldError.StaleDraft` sagt es, statt
-zu raten.
+A failed import **keeps the visible string** — whether the text doesn't parse, the document has
+moved on, or the result has no representation in the format. In all three, the mode stays and the
+text remains. Discarding is an **explicit** form action, never an implicit side effect.
 
-Ein fehlgeschlagener Import **erhält den sichtbaren String** (§16). Drei Wege führen dorthin:
-der Text parst nicht, das Dokument ist weitergezogen, oder das Ergebnis hat im Format keine
-Darstellung. In allen dreien bleibt der Modus stehen und der Text da.
+### Foreign changes during editing
 
-Verwerfen ist eine **ausdrückliche Formaktion** — nie implizit, nie als Nebeneffekt.
-
-### Fremde Änderungen während der Bearbeitung
-
-§16 lässt zwei Antworten zu, und die Anwendung wählt über `IntentPolicy`:
-
-| | |
-| --- | --- |
-| `Defer` | zurückstellen. Nach dem Import werden sie **neu validiert**, nicht abgespielt. |
-| `Reject` | jetzt abweisen, mit `FieldError.SourceBusy`. |
-
-Zurückgestellte Intents sind deshalb **Thunks** und keine Werte: sie sollen das importierte
-Dokument sehen, nicht das, gegen das sie geschrieben wurden. §16 nennt Upload-Completion als
-den Fall, der das nötig macht.
-
-## Ohne JavaScript
-
-Die Textarea ist ohne JavaScript **sichtbar**, benannt, fokussierbar und normal submitbar.
-Verborgen wird sie erst *nach erfolgreicher Aktivierung* — und diese Reihenfolge ist der ganze
-Non-JS-Vertrag. Eine serverseitig gerenderte Seite, deren Textarea schon beim Rendern
-verschwindet, hat ein Formular, das niemand ausfüllen kann.
-
-Genau das stand hier zuerst falsch, und ein Browsertest hat es gefunden. Ein SSR-Test hätte es
-nicht: er prüft, was im HTML steht, und `hidden` stand korrekt drin.
-
-**Verborgen ja, `disabled` nie.** Ein disabled Control ist kein *erfolgreiches* Formularfeld —
-das Formular sendete für diesen Namen gar nichts.
-
-Die Vorschau trägt **keinen** Formularnamen (§16: „Der Editor-Host hat keinen konkurrierenden
-Formularnamen"). Zwei Werte für einen Namen wären für einen Server nicht auflösbar.
-
-Action, Methode, CSRF, Validierung, Persistenz und Fehlerrückgabe liefert die Anwendung. Der
-Editor erfindet dafür keinen HTTP-Endpunkt.
-
-## Hydration: was drinnen liegt und was draußen
-
-§17.3 legt eine Linie durch dieses Feld:
-
-> Der Fallback liegt außerhalb der austauschbaren Rich-View-Boundary und bleibt bei deren
-> Fehler erhalten.
-
-Deshalb komponiert `EditorFieldView` die Textarea **zuerst und außerhalb** der
-`HydrationBoundary`, und nur die Vorschau steht darin. Läge sie darin, nähme ein
-fehlgeschlagener Claim sie mit — samt dem, was jemand hineingetippt hat. Das ist kein
-theoretischer Fall: der Fehlerpfad der Boundary räumt ihre Kinder ab und baut genau einmal neu
-auf.
-
-Drei Rückrufe verbinden das Feld mit §17:
+The application chooses via `IntentPolicy`:
 
 | | |
 | --- | --- |
-| `capture` | liest die **Textarea**, obwohl die Boundary den Vorschau-Host herüberreicht — was zu retten ist, darf nicht in dem liegen, was scheitern kann |
-| `preflight` | `EditorHydration.preflightContent` gegen dieselbe `HtmlSupport`, die die Seite gerendert hat |
-| `onRecovery` | merkt sich, dass der Claim gescheitert ist; `activation` meldet danach `Failed` |
+| `Defer` | hold back; **re-validated**, not replayed, once the import runs |
+| `Reject` | refuse now, with `FieldError.SourceBusy` |
 
-Die Vorschau hydriert über den Cursor, den die Boundary ihrem Block gibt, **nicht** über
-`Runtime.contentCursor`. Der eigene Cursor der Komponente ist nach `withHydrationBoundary`
-leer — der Bereich gehört ab da dem isolierten. Serverseitig fällt das nicht auf, weil ein
-`SsrCursor` nichts zu übernehmen hat; im Browser hydrierte die Vorschau an einer Stelle, die
-gerade abgegeben worden war.
+Deferred intents are therefore **thunks**, not values — they must see the document as it is after
+import, not the one they were written against. Upload completion is the case that makes this
+necessary.
 
-`activate()` und `activation(pageHydrated)` sind getrennt: das eine ist die Entscheidung
-(`ember-browser`), das andere die Handlung. `importCapturedSource()` ist §17.4 — erst gegen
-den Server-Snapshot claimen, dann den getippten Quelltext übernehmen, und ein Parsefehler lässt
-den Entwurf editierbar und verhindert das Enhancement.
+## Without JavaScript
 
-## Die Kosten, ausgesprochen
+The textarea is visible, named, focusable and normally submittable without JavaScript. It is only
+hidden *after* successful activation — that ordering is the entire no-JS contract. A server-
+rendered page whose textarea already vanishes at render time has a form nobody can fill out (found
+first by a browser test, not an SSR test, since the HTML itself was correct).
 
-§16 verlangt es ausdrücklich:
+**Hidden, yes — `disabled`, never.** A disabled control is not a *successful* form field; the form
+would submit nothing for that name. The preview carries **no** form name of its own — two values
+for one name would be unresolvable by a server. Action, method, CSRF, validation, persistence and
+error reporting all belong to the application; the editor invents no HTTP endpoint for any of it.
 
-> Das Materialisieren/Zuweisen des vollständigen Formularstrings kostet dennoch mindestens
-> dessen Länge. Diese Kosten werden getrennt von Core-/Projection-Lokalität gemessen und nicht
-> als O(1) dargestellt.
+## Hydration: what's inside the boundary, and what's outside
 
-Also deutlich: ein Tastendruck fasst in der Projektion eine Handvoll Komponenten an — P09 misst
-das —, **und** kodiert zusätzlich das ganze Dokument zu einem String. Das zweite ist linear in
-der Dokumentgröße, bei jedem Commit. Das ist kein wegzuoptimierender Fehler, sondern was „ein
-einziger Formwert" bedeutet.
+The fallback sits outside the swappable rich-view boundary and survives its failure. This is why
+`EditorFieldView` composes the textarea **first and outside** the hydration boundary, with only the
+preview inside it — if it were inside, a failed claim would take the textarea (and whatever was
+typed into it) down with it. Three callbacks connect the field to hydration: `capture` reads the
+**textarea**, even though the boundary hands over the preview host, since what must be rescued
+can't live in what can fail; `preflight` runs `EditorHydration.preflightContent` against the same
+`HtmlSupport` that rendered the page; `onRecovery` records a failed claim so `activation` reports
+`Failed`.
+
+`activate()` and `activation(pageHydrated)` are kept separate: one is the decision
+([`ember-browser`](../ember-browser/README.md)), the other the action. `importCapturedSource()`
+claims against the server snapshot first, then imports the typed source — a parse failure leaves
+the draft editable and blocks enhancement.
+
+## The cost, stated plainly
+
+Materializing/assigning the full form string costs at least its length. This cost is measured
+separately from core/projection locality and is not presented as O(1): a keystroke touches a
+handful of components in the projection, **and** additionally encodes the whole document to a
+string — linear in document size, on every commit. That is not a bug to optimize away; it is what
+"one form value" means.
 
 ## Tests
 
@@ -166,25 +122,18 @@ einziger Formwert" bedeutet.
 sbt --server "scalajs-ember-forms/Test/testOnly *"
 ```
 
-`EditorFieldSpec` prüft die Verträge aus §16 headless: Besitz, Baseline, Atomarität, die
-Formatgrenze und die Intent-Politik. Die HTML-Struktur aus §16 ist eine
-„Strukturillustration"; was sie festlegt, sind Regeln, und eine Regel prüft man besser als eine
-ihrer Darstellungen.
+`EditorFieldSpec` covers the contract headless: ownership, baseline, atomicity, the format
+boundary, and intent policy. `EditorFieldViewSpec` renders through an `SsrCursor` — the same path a
+server takes. The node types used by these suites are local, on purpose — this module gets no
+rich-text profile, and its own block type is the proof it needs none.
 
-`EditorFieldViewSpec` rendert durch einen `SsrCursor` — denselben Weg, den ein Server nimmt.
+What only a real engine can answer lives in the browser harness
+([`ember-integration`](../ember-integration/README.md)): the no-JS submission path, the source-mode
+path, and hydration of a field whose textarea already has typed content.
 
-Die Knotenarten dieser Suiten sind **lokal**. §6 gibt diesem Modul kein Rich-Text-Profil, und
-ein eigener Blocktyp ist die Probe, dass es keines braucht — dasselbe Argument wie beim lokalen
-`BlockNode` in `ember-image`.
+## Related modules
 
-Was nur eine echte Engine beantwortet, steht im Browser-Gate:
-[ember-integration/browser](../ember-integration/browser/README.md), `nojs-form.spec.mjs`,
-`source-form.spec.mjs` und `editor-hydration.spec.mjs`. Der Testserver rendert das Feld dabei **im Serverprozess** durch
-denselben `EditorFieldView` — möglich nur, weil §15.2 zusichert, dass ein Modulimport weder
-`window` noch `document` liest.
-
-P28 weist den synchronen Formstring-Pfad getrennt von lokalen Core-Edits aus:
-Validierung und Vollserialisierung wachsen mit dem Dokument. Sehr große Felder
-sind damit keine freigegebenen interaktiven Einsatzfälle. Tatsächliche Messungen
-und No-JS-/Gerätefreigaben: [Messbericht](../benchmarks/report.md),
-[Supportmatrix](../ember-integration/browser/support-matrix.md).
+- [`ember-markdown`](../ember-markdown/README.md) / [`ember-json`](../ember-json/README.md) — the two field codecs.
+- [`ember-clipboard`](../ember-clipboard/README.md) — file intents routed to the media pipeline.
+- [`ember-browser`](../ember-browser/README.md) — the hydration boundary this module's field sits on.
+</content>

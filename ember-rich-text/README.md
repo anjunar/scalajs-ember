@@ -1,245 +1,128 @@
 # scalajs-ember-rich-text
 
-Das Rich-Text-Profil des Ember-Editors: Absätze, Editing-Semantik und Unicode-Grenzen.
-Headless wie der Kern — ohne DOM, ohne UI-Runtime.
-
-Verbindlicher Entwurf: [UI_EDITOR_ARCHITECTURE.md](../UI_EDITOR_ARCHITECTURE.md) §§8, 11.
+The rich-text profile of the Ember editor: paragraphs, marks, text editing, and Unicode grapheme
+boundaries. Headless, like the kernel — no DOM, no UI runtime.
 
 | | |
 | --- | --- |
-| sbt-ID / Artefakt | `scalajs-ember-rich-text` |
-| Scala-Paket | `ember.editor.richtext` |
-| Produktionsabhängigkeiten | `scalajs-ember-core` |
+| sbt ID / artifact | `scalajs-ember-rich-text` |
+| Scala package | `ember.editor.richtext` |
+| Production dependencies | `scalajs-ember-core` |
 
-## Stand
+## Overview
 
-P06 und P12 abgeschlossen. Vorhanden: `ParagraphNode`, `HeadingNode`, `QuoteNode`, `BreakNode`
-und `ThematicBreakNode`, die fünf eingebauten Marks, Bereichsformatierung, das Zustandsfeld
-`TypingMarks`, die Textlauf-Normalisierung, die Editing- und Blockbefehle sowie die
-UAX-29-Segmentierung. Listen folgen mit P13, Links mit P14, Code mit P15.
+`ember-rich-text` is the first profile built on [`ember-core`](../ember-core/README.md): it
+contributes the block types (`ParagraphNode`, `HeadingNode`, `QuoteNode`, `BreakNode`,
+`ThematicBreakNode`), the five built-in marks, range formatting, typing-mark tracking, text-run
+normalization, and UAX #29 grapheme-cluster segmentation. Everything that builds a document with
+editable text — lists, links, code, tables — depends on this module.
 
-X01 ergänzt zwei Marker für Container fremder Module, ohne dass dieses Profil deren Typen kennt:
-`IsolatingElementNode` (etwa eine Tabellenzelle — Backspace und Entf an ihrer Grenze ziehen keinen
-Text aus der Nachbarschaft, ein Bereich über zwei solche Container wird geleert statt
-zusammengeführt) und `StructuralElementNode` (Tabelle, Zeile — ein Bereich, der sie nur berührt,
-leert die isolierten Kinder, statt die Struktur zu entfernen). `Isolation.shared` entscheidet, ob
-zwei Positionen zusammengeführt werden dürfen.
+## Installation
 
-## Verwendung
+```scala
+libraryDependencies += "com.anjunar" %% "scalajs-ember-rich-text" % "1.0.1"
+```
+
+## Quick start
 
 ```scala
 val generator = NodeIdGenerator.sequential()
-val resolved  = ExtensionResolver.resolve(Vector(RichText(generator))).getOrElse(…)
-val document  = RichText.emptyDocument(resolved.schema, generator).getOrElse(…)
-val editor    = EditorSession.create(document, resolved, resolved.sessionConfig()).getOrElse(…)
+val resolved  = ExtensionResolver.resolve(Vector(RichText(generator))).getOrElse(...)
+val document  = RichText.emptyDocument(resolved.schema, generator).getOrElse(...)
+val editor    = EditorSession.create(document, resolved, resolved.sessionConfig()).getOrElse(...)
 
 editor.update(_.setSelection(RichText.caretAtStart(editor.document)))
-editor.dispatch(RichText.InsertText, "Hallo")
+editor.dispatch(RichText.InsertText, "Hello")
 editor.dispatch(RichText.InsertParagraph)
 editor.dispatch(RichText.DeleteBackward)
 ```
 
 ## Marks
 
-Fünf eingebaute (§8.2): Strong, Emphasis, Underline, Strike, InlineCode. Case Objects ohne
-Nutzdaten — die Identität einer Mark ist ihr Typ, und ohne Payload ist ein beliebiger CSS-String
-als Dokumentformat nicht bloß unerwünscht, sondern unmöglich.
+Five built-in marks: `Strong`, `Emphasis`, `Underline`, `Strike`, `InlineCode` — case objects
+with no payload, so an arbitrary CSS string can never become a document format. `InlineCode`
+excludes the other four, in both directions: a code span is meant to be verbatim, and a run with
+both would be a document Markdown cannot export losslessly. Links are **not** a mark — they are
+an inline container with children and a target (see [`ember-link`](../ember-link/README.md)).
 
-**`InlineCode` schließt die übrigen aus, und sie ihn.** §8.2 überlässt Widersprüche dem Profil;
-der Grund hier ist kein Geschmack. Markdown kann in einer Code-Spanne nichts fett schreiben —
-Backticks machen ihren Inhalt wörtlich —, ein Lauf mit beidem wäre also ein Dokument, das §18
-nicht verlustfrei exportieren kann. Die Regel gilt in beide Richtungen; keiner gewinnt dadurch,
-dass er zuletzt angewandt wurde.
+`RangeFormatting.toggleMark` cuts runs at both range boundaries and writes marks on the pieces
+between them; toggling over a mixed selection always sets the mark everywhere, rather than
+inverting each run independently. At a collapsed caret, toggling writes to the `TypingMarks`
+state field instead of creating text. `RangeFormatting.activeMarks(state)` reads what a toolbar
+should show as active, from a published `EditorState` rather than an in-flight transaction.
 
-Links sind **keine** Mark, sondern ein Inline-Container mit Kindern und Ziel (§8.2, P14).
+`TypingMarks` tracks `Inherit` or an explicit `MarkSet` **at a mapped caret position** — mapped
+through the transaction before comparison, so a typed character (which both moves the caret and
+maps the tracked point) keeps the two in sync, while a click (which only moves the caret)
+correctly drops the field. It declares `HistoryRestorePolicy.Restore`, since deriving active
+marks from rendering after an undo would make them a guess.
 
-### Bereichsformatierung
+## Text-run normalization
 
-`RangeFormatting.toggleMark` schneidet die Läufe an beiden Enden und schreibt die Marks der
-Stücke dazwischen. Ein Toggle über einen gemischten Bereich **setzt überall** — die Alternative,
-jeden Lauf einzeln zu invertieren, lässt einen zweiten Druck für den Benutzer wie ein No-op
-aussehen, während die Stücke stillschweigend tauschen.
-
-Am kollabierten Caret entsteht kein Text, sondern ein Eintrag in `TypingMarks` (§11).
-
-`RangeFormatting.activeMarks(state)` liest, was eine Toolbar als aktiv anzeigt — aus einem
-`EditorState`, nicht aus einer laufenden Transaktion: eine Toolbar hat einen.
-
-## TypingMarks
-
-Das Zustandsfeld aus §11: `Inherit` oder ein explizites `MarkSet` **an einer gemappten
-Caretposition**. Der Punkt ist keine Zierde — ohne ihn ließe sich „der Caret hat sich durch mein
-Tippen bewegt" nicht von „jemand hat woanders hingeklickt" unterscheiden, und genau das verlangt
-§11.
-
-Der gemerkte Punkt wird durch die Abbildung der Transaktion geführt, bevor er mit dem Caret
-verglichen wird. Darin steckt der ganze Trick: ein getipptes Zeichen bewegt den Caret von 4 nach
-5 *und* bildet den Punkt von 4 auf 5 ab — beide stimmen weiter überein, die Wahl überlebt. Ein
-Klick bewegt den Caret, ohne etwas abzubilden; sie ist weg.
-
-Das Feld deklariert `HistoryRestorePolicy.Restore`. §11 verbietet ausdrücklich, die wirksamen
-Marks nach einem Undo aus der Darstellung abzuleiten — ein nicht wiederhergestelltes Feld ließe
-genau dieses Raten als einzige Möglichkeit.
-
-## Textlauf-Normalisierung
-
-§8.2: benachbarte Läufe desselben Elternknotens mit gleichen Marks wachsen zu einem maximalen
-Lauf zusammen.
+Adjacent text runs of the same parent with equal marks merge into a single maximal run, as a
+**transform** rather than a step inside formatting — so the merge shares its undo step with
+whatever caused it, and also fires after an edit that joins two blocks. The rule is bound to the
+run, not the block: a mark change makes the run dirty, never its parent, and merely-touched
+ancestors are never transform candidates.
 
 ```text
-Ausgang:              Text("Hallo Welt!", {})
-"Welt" fett:          Text("Hallo ", {}), Text("Welt", {Strong}), Text("!", {})
-Fett wieder entfernt: Text("Hallo Welt!", {})
+Start:                 Text("Hello World!", {})
+"World" made bold:      Text("Hello ", {}), Text("World", {Strong}), Text("!", {})
+Bold removed again:     Text("Hello World!", {})
 ```
 
-Als **Transform**, nicht als Schritt in der Formatierung (§8.2 verlangt es so): dadurch läuft es
-in derselben Transaktion wie die Ursache — der Merge kostet keinen eigenen Undo-Schritt — und
-greift auch nach einem Löschvorgang, der zwei Blöcke zusammenfügt.
+Runs do not merge across block, break, or atom boundaries, or when marks differ — one rule,
+independent of what a link or an atom is.
 
-**Die Regel hängt am Lauf, nicht am Block.** Die naheliegende Form („für jeden Absatz über seine
-Kinder laufen") würde nie ausgeführt: §3.4 hält fest, dass Vorfahren auf dem Pfad einer Änderung
-keine Transform-Kandidaten sind — `ChangeSet.touchedAncestors` gibt es genau dafür. Eine
-Markänderung macht den Absatz nicht dirty. Am Lauf aufgehängt wird sie gefragt, wenn eine Naht
-entstehen kann, und funktioniert dadurch in jedem Container, ohne einen einzigen zu kennen.
+## Block types
 
-Nicht zusammengeführt wird über Block-, Break- oder Atomgrenzen und bei verschiedenen Marks —
-alle vier fallen aus einer Regel: nur direkt benachbarte `TextNode`s desselben Elternknotens mit
-gleichem `MarkSet`. Nichts davon muss wissen, was ein Link oder ein Atom ist, weshalb P14 und
-P16 hier nicht nachbessern müssen.
-
-## Blocktypen
-
-| | |
+| Type | Notes |
 | --- | --- |
-| `HeadingNode` | Ein Container plus typisiertes `HeadingLevel` — sechs Stufen, kein `Int`. Sechs Knotenarten wären sechsmal alles, und `SetHeading` wäre eine Typersetzung statt einer Feldänderung. |
-| `QuoteNode` | Hält **Blöcke** (§8.2). Zitieren heißt einen Absatz in einen Container legen, nicht eine Eigenschaft an ihm setzen — deshalb bewegen `Quote`/`Unquote` Kinder. |
-| `BreakNode` | `Soft` und `Hard` bleiben unterscheidbar (§8.2), damit Markdown und HTML ihre Bedeutung behalten. Ein Atom, kein `
-` im Text: ein Caret kann auf beiden Seiten stehen. |
-| `ThematicBreakNode` | Blockebene, deshalb ein eigener Typ und keine dritte `BreakKind`. |
+| `HeadingNode` | A container plus a typed `HeadingLevel` (six levels, not a raw `Int`) |
+| `QuoteNode` | Holds blocks, not a flag — quoting moves a paragraph into a container |
+| `BreakNode` | `Soft` and `Hard` stay distinct so Markdown and HTML keep their meaning; an atom, not a literal `\n`, so a caret can stand on either side |
+| `ThematicBreakNode` | Block-level, so it gets its own node type rather than a third break kind |
 
-`RichText` trägt auch `RootNode` und `TextNode` bei, obwohl beide im Kern definiert sind.
-Der Kern ist ein Modell, kein Profil — er registriert nichts von selbst. Module, die auf
-rich-text aufbauen, tragen sie nicht erneut bei, sondern deklarieren `dependsOn`.
+Document shape is `root > paragraph* > text*`; `TextEditing` works in terms of "the block
+containing a run" rather than `ParagraphNode` directly, so lists, quotes and headings extend it
+without special-casing.
 
-## Dokumentform
+### Normalization
 
-`root > paragraph* > text*`. `TextEditing` arbeitet deshalb mit „Block" als Elternknoten
-eines Textlaufs statt mit `ParagraphNode` — so bleiben die Funktionen für Listen, Quotes und
-Headings erweiterbar, ohne jetzt schon Fälle zu behandeln, die es noch nicht gibt.
+Three transforms keep the surface editable: the root always needs a block (otherwise an emptied
+document has no valid caret position), a block always needs a text run, and redundant empty runs
+left over after a merge are removed — but only when the block still has a non-empty run (to
+avoid an infinite loop with the previous rule), and never touching the run the selection points
+at.
 
-### Normalisierung
+## Atoms in the flow
 
-Drei Transforms halten die Fläche editierbar:
+An atom (an image, for example) sits between text runs, and must be reachable and deletable by
+keyboard. Backspace/Delete/Remove behave as follows:
 
-| Regel | Warum |
-| --- | --- |
-| Wurzel braucht Block | Ein leergelöschtes Dokument hätte sonst keine gültige Caretposition mehr |
-| Block braucht Textlauf | Text schreibt man in einen Lauf, nicht an eine Kindposition |
-| Überflüssige leere Läufe weg | Beim Zusammenführen bleibt regelmäßig ein leerer übrig; unsichtbar, aber er verschiebt Kindpositionen |
-
-Die dritte hat zwei Wächter, beide notwendig: sie greift nur, wenn der Block noch einen
-**nicht leeren** Lauf hat (sonst Endlosschleife mit der zweiten Regel), und sie rührt den Lauf
-nicht an, auf den die Auswahl zeigt (ein aufgeräumter Baum ist keinen verlorenen Cursor wert).
-
-Enter teilt am Absatzanfang und -ende weiterhin nicht — das bleibt eine bewusste Auslassung.
-Die Naht beim Zusammenführen zweier Blöcke räumt seit P12 die Normalisierung auf.
-
-## Atome im Fluss
-
-Ein [[AtomNode]] — ein Bild etwa — steht zwischen Textläufen, und §22 verlangt, dass er per
-Tastatur erreichbar und **löschbar** ist. Das war er nicht.
-
-Der Grund liegt in einer Annahme, die für Text richtig ist: ein Caret wird zu einer Position in
-einem **Textlauf** aufgelöst. Ein Atom ist keiner. Ein Backspace hinter einem Bild griff deshalb
-daran vorbei und nahm das letzte Zeichen des Laufs *davor* — das Bild blieb, etwas anderes
-verschwand. Gefunden beim Benutzen der Demo.
-
-Seit P22 gilt:
-
-| Caret | Backspace | Entfernen |
+| Caret | Backspace | Delete |
 | --- | --- | --- |
-| direkt hinter einem Atom | entfernt das Atom | Text wie bisher |
-| direkt vor einem Atom | Text wie bisher | entfernt das Atom |
-| mitten im Text | ein Graphemcluster | ein Graphemcluster |
-| `NodeSelection` | entfernt die ausgewählten Knoten | dasselbe |
+| directly after an atom | removes the atom | acts on text as usual |
+| directly before an atom | acts on text as usual | removes the atom |
+| in the middle of text | one grapheme cluster | one grapheme cluster |
+| node selection | removes the selected nodes | same |
 
-„Direkt hinter" hat zwei Gestalten, und beide kommen vor: die Kindgrenze hinter dem Atom (ein
-Klick) und der Anfang des Laufs dahinter (Pfeilnavigation, die immer in Text landet). Eine Regel,
-die nur eine davon kennte, funktionierte in der Hälfte der Fälle.
+A range that only touches a single block removes only what lies strictly between its endpoints —
+selecting an atom no longer removes the rest of the run behind it. Merges (including the seam
+left behind when a node between two runs is removed) are deferred while a protected composition
+is in progress, coordinated through a `TransactionMeta` tag that `ember-browser` sets and this
+module reads, without either module importing the other.
 
-### Ein Bereich, der ein Atom umschliesst
+## Unicode boundaries
 
-Was ein Klick auf ein Bild erzeugt: der Browser waehlt es aus, und der Port bildet das auf einen
-Bereich von der Grenze davor bis zur Grenze dahinter ab. Auch das ging schief -- und zwar aus
-einem Grund, der nichts mit Atomen zu tun hatte.
-
-`deleteAcross` entfernte **alle** Geschwister hinter dem Startknoten und alle vor dem Endknoten.
-Innerhalb *eines* Blocks heisst das: alles bis zum Blockende. Ein ausgewaehltes Bild nahm den
-ganzen Lauf dahinter mit, und eine Auswahl von einem markierten Lauf in den naechsten loeschte
-Text weit hinter ihrem Ende.
-
-Liegen beide Enden im selben Block, faellt seither nur weg, was **dazwischen** liegt.
-
-### Nicht während einer Composition
-
-Seit P23 lässt die Regel ihre Merges liegen, solange eine geschützte Texteingabe läuft (§8.2,
-§15.3). Ein Merge ersetzt den inneren Textknoten eines Laufs, und ein Browser, der gerade
-hineinkomponiert, verliert damit die Eingabe — ohne Ereignis und ohne Weg zurück.
-
-Erkannt wird das an einem Tag in `TransactionMeta`, der im **Kern** benannt ist: `ember-browser`
-setzt ihn, dieses Modul liest ihn, und die beiden kennen einander nicht. Die Naht wird
-geschlossen, wenn die Sitzung endet — dieselbe Regel, auf einem Zustand, in den niemand tippt.
-
-### Die Naht danach
-
-Wird ein Knoten **zwischen** zwei Läufen entfernt, ändert sich keiner der beiden — also ist auch
-keiner ein Transform-Kandidat, und die Normalisierung aus §8.2 wird nie gefragt. Das Dokument
-behielt zwei benachbarte Läufe mit gleichen Marks, wo einer hingehört (`"Hallo " | " Welt"` statt
-`"Hallo  Welt"`).
-
-Die Regel selbst hängt mit gutem Grund am Lauf und nicht am Block (siehe
-[Textlauf-Normalisierung](#textlauf-normalisierung)). Ihre Prämisse — eine Naht entsteht nur,
-wenn einem Lauf etwas zustößt — stimmt für Textänderungen und nicht für diesen Fall. Deshalb
-schließt der Aufrufer, was er aufgerissen hat; die **Entscheidung** bleibt bei der Regel
-(`TextRunNormalization.mergeable`).
-
-## Unicode-Grenzen
-
-`UnicodeTextBoundaries` implementiert die Grapheme-Cluster-Regeln **GB1–GB13** aus UAX #29 —
-nicht angenähert, sondern die Regeln selbst, einschließlich der beiden kontextabhängigen:
-
-- **GB11** hält Emoji-ZWJ-Sequenzen zusammen. Ohne sie zerfiele 👨‍👩‍👧 in fünf Teile, und ein
-  Backspace löschte nur das Mädchen.
-- **GB12/GB13** zählen Regional Indicators paarweise. Vier davon sind zwei Flaggen, nicht eine
-  und nicht vier.
-
-Genau daran scheitert der Codepoint-Fallback, vor dem die Risikozeile von P06 warnt.
-
-### Was zugesichert ist, und was nicht
-
-`unicodeVersion` lautet `"16.0.0 (Teilmenge, ohne GB9c)"`. Die Klammer ist der Punkt: der Wert
-dient dem Vergleich von Fixtures, nicht als Konformitätsangabe.
-
-Die Zeicheneigenschaften kommen aus zwei Quellen. Die **strukturellen** Klassen — CR, LF, ZWJ,
-ZWNJ, Regional Indicator, Variationsselektoren, Emoji-Modifikatoren, Hangul-Jamo, Prepend —
-stehen als ausdrückliche Bereiche im Quelltext; sie ändern sich zwischen Unicode-Versionen
-praktisch nicht. Die **kategoriegetriebenen** — Extend aus Mn/Me, SpacingMark aus Mc, Control
-aus Cc/Cf/Zl/Zp — kommen aus `Character.getType`, also aus der Zeichentabelle der
-Scala.js-Standardbibliothek und damit möglicherweise aus einem älteren Stand.
-
-Bekannte Lücken:
-
-- **GB9c** (Indic Conjunct Break, Unicode 15.1) ist nicht implementiert. Devanagari-Cluster mit
-  Virama werden an Stellen getrennt, an denen UAX #29 sie zusammenhält.
-- **`Extended_Pictographic`** ist über gepflegte Bereiche angenähert, nicht aus `emoji-data.txt`
-  erzeugt.
-- **Wortgrenzen** sind eine dokumentierte Vereinfachung, nicht UAX #29 §4: Nicht-Wortzeichen
-  überspringen, dann Wortzeichen überspringen. Apostrophe in Wörtern (`don't`), Zahlengruppen
-  (`1,000`) und Schriften ohne Leerzeichen kann sie nicht.
-
-Ein `Intl.Segmenter`-Adapter darf später danebentreten — der Vertrag lässt das ausdrücklich zu,
-und `unicodeVersion` macht sichtbar, warum zwei Implementierungen bei neueren Emoji verschieden
-urteilen können.
+`UnicodeTextBoundaries` implements UAX #29 grapheme-cluster rules GB1–GB13, including the two
+context-dependent ones: GB11 (emoji ZWJ sequences stay together — without it, 👨‍👩‍👧 falls apart
+into five pieces) and GB12/13 (regional indicators pair up, so four of them are two flags, not
+one or four). `unicodeVersion` reports `"16.0.0 (subset, without GB9c)"` — a value for comparing
+fixtures, not a conformance claim. Known gaps: GB9c (Indic conjunct break, Unicode 15.1) is not
+implemented; `Extended_Pictographic` is approximated via maintained ranges rather than generated
+from `emoji-data.txt`; word-boundary detection is a documented simplification, not full UAX #29
+§4. An `Intl.Segmenter`-backed adapter can be added later without changing the contract.
 
 ## Tests
 
@@ -247,16 +130,16 @@ urteilen können.
 sbt --server "scalajs-ember-rich-text/Test/testOnly *"
 ```
 
-`UnicodeBoundarySpec` prüft die Fälle, an denen ein naiver Ansatz scheitert: Surrogatpaare,
-Markenstapel, ZWJ-Familien, Hauttöne, Flaggenparität, CRLF, Hangul. `TextEditingSpec` fährt
-komplette Bearbeitungsfolgen und validiert nach jedem Schritt unabhängig gegen den
-`DocumentValidator` und den Auswahlvertrag des Kerns.
+`UnicodeBoundarySpec` covers the cases a naive approach fails on: surrogate pairs, combining
+mark stacks, ZWJ families, skin tones, flag pairing, CRLF, Hangul. `TextEditingSpec` runs
+complete editing sequences and validates independently against the kernel's `DocumentValidator`
+and selection contract after each step. `TextRunNormalizationSpec`, `RangeFormattingSpec`,
+`TypingMarksSpec` and `RichTextStructureSpec` cover the rest. There is no undo/redo test here —
+[`ember-history`](../ember-history/README.md) sits alongside the profile, not underneath it, and
+this module cannot link it.
 
-Aus P12 kommen vier weitere: `TextRunNormalizationSpec` (der in der Architektur ausgeschriebene
-Fall samt Gegenfällen), `RangeFormattingSpec`, `TypingMarksSpec` und `RichTextStructureSpec`.
+## Related modules
 
-**Keine Undo/Redo-Tests hier.** §6 stellt `history` neben das Profil, nicht darunter; dieses
-Modul kann es nicht linken. Geprüft wird stattdessen, was von hier aus prüfbar ist: dass der
-geschnittene und der zusammengeführte Zustand über dieselben Operationen erreichbar sind und
-keiner eine Sackgasse ist — und dass `TypingMarks` die Wiederherstellung deklariert, auf die
-`ember-history` reagiert.
+- [`ember-core`](../ember-core/README.md) — the document model this profile builds on.
+- [`ember-list`](../ember-list/README.md), [`ember-link`](../ember-link/README.md), [`ember-code`](../ember-code/README.md), [`ember-table`](../ember-table/README.md) — feature modules built on this profile.
+</content>
