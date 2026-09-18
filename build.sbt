@@ -1,7 +1,7 @@
 import org.scalajs.linker.interface.{ESVersion, ModuleKind}
 import org.scalajs.sbtplugin.ScalaJSPlugin
 
-version      := "1.0.1"
+version      := "1.0.2"
 organization := "com.anjunar"
 scalaVersion := "3.3.8"
 
