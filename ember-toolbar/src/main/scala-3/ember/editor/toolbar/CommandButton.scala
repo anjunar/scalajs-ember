@@ -3,13 +3,19 @@ package ember.editor.toolbar
 import ember.editor.core.*
 import ui.core.layout.Button
 
-/** A typed command is closed over at construction; no string dispatch registry. */
+/** A typed command is closed over at construction; no string dispatch registry.
+  *
+  * `icon` is a Material Icons ligature name (e.g. "format_bold"). When set, it takes over the
+  * button's rendered content instead of `shortLabel`/`label`; the icon font itself is the host
+  * page's responsibility to load (see `EditorToolbar`).
+  */
 final case class ToolbarAction(
     id: String,
     label: String,
     state: () => CommandState,
     activate: () => Either[EditorError, Unit],
-    shortLabel: Option[String] = None
+    shortLabel: Option[String] = None,
+    icon: Option[String] = None
 )
 
 object ToolbarAction:

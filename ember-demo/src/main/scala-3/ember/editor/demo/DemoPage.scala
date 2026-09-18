@@ -42,6 +42,8 @@ final class DemoPage(editor: DemoSession) extends AbstractComponent:
   private var decorations: CodeDecorations          = null
   private var cellSelection: TableSelectionView     = null
   private var ribbon: EditorToolbar                 = null
+  private var menu: MenuToolbar                     = null
+  private var floating: FloatingToolbar             = null
   private var dialogs: DemoDialogs                  = null
 
   private def available =
@@ -86,6 +88,7 @@ final class DemoPage(editor: DemoSession) extends AbstractComponent:
               )
             }
           }
+          val menuHost    = div { classes = Seq("editor-menu-host") }
           val toolbarHost = div { classes = Seq("editor-ribbon-host") }
           div {
             classes = Seq("editor-paper")
@@ -133,21 +136,34 @@ final class DemoPage(editor: DemoSession) extends AbstractComponent:
                 report = result => result.left.foreach(error => notice.set(error.message))
               )
             dialogs = new DemoDialogs(editor, selection, () => available, DemoPage.this)
-            ribbon = new EditorToolbar(
-              editor.session,
-              selection,
-              Vector.empty,
-              groups = DemoRibbon.groups(editor, () => available, dialogs, selection)
-            )
+            val groups = DemoRibbon.groups(editor, () => available, dialogs, selection)
+            ribbon = new EditorToolbar(editor.session, selection, Vector.empty, groups = groups)
             Runtime.mount(ribbon, Runtime.contentCursor(toolbarHost), Some(toolbarHost))
+            menu = new MenuToolbar(editor.session, selection, groups)
+            Runtime.mount(menu, Runtime.contentCursor(menuHost), Some(menuHost))
+            if cursor.isBrowser then
+              // Selection formatting: bold/italic/inline-code plus the link dialog -- the small,
+              // fixed set a selection popup conventionally offers, not the whole ribbon.
+              val floatingActions =
+                groups.find(_.label == "Schrift").map(_.actions).getOrElse(Vector.empty) ++
+                  groups
+                    .find(_.label == "Einfügen")
+                    .flatMap(_.actions.find(_.id == "link"))
+                    .toVector
+              floating =
+                new FloatingToolbar(editor.session, selection, floatingActions, dom.document.body)
             addDisposable(readOnly.observe { value =>
               dialogs.close()
               if input != null then
                 input.setMode(if value then EditorMode.ReadOnly else EditorMode.Editable)
               ribbon.refresh()
+              menu.refresh()
             })
             if input != null then
-              val composition = input.onComposition(_ => ribbon.refresh())
+              val composition = input.onComposition { _ =>
+                ribbon.refresh()
+                menu.refresh()
+              }
               addDisposable(ui.core.state.Disposable(composition.dispose()))
               val outcomes = input.onOutcome {
                 case InputOutcome.Refused(_, reason) => notice.set(reason.toString)
@@ -163,6 +179,7 @@ final class DemoPage(editor: DemoSession) extends AbstractComponent:
                 decorations = CodeDecorations.attach(editor.session, view)
                 cellSelection = TableSelectionView.attach(editor.session, view, selection)
                 ribbon.refresh()
+                menu.refresh()
               }
           }
           div {
@@ -269,6 +286,7 @@ final class DemoPage(editor: DemoSession) extends AbstractComponent:
     scala.scalajs.js.timers.setTimeout(1000)(dom.URL.revokeObjectURL(url))
 
   override def dispose(): Unit =
+    if floating != null then floating.dispose()
     if dialogs != null then dialogs.dispose()
     if clipboard != null then clipboard.dispose()
     if decorations != null then decorations.dispose()

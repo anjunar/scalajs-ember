@@ -2,7 +2,9 @@ import { test, expect } from '@playwright/test'
 import { readFile } from 'node:fs/promises'
 
 const surface = page => page.getByRole('textbox', { name: 'Dokument bearbeiten' })
-const action = (page, id) => page.locator(`[data-command="${id}"]`)
+// Scoped to the ribbon: the menu bar and the floating selection toolbar mount the same actions
+// under the same data-command, and a bare locator would be ambiguous between all three.
+const action = (page, id) => page.locator(`.ember-toolbar--ribbon [data-command="${id}"]`)
 
 async function selectText(page, content) {
   await surface(page).evaluate((host, content) => {
@@ -193,6 +195,12 @@ test('narrow screens retain navigation, toolbar access and theme control', async
   await expect(page.locator('html')).toHaveAttribute('data-theme', theme === 'dark' ? 'light' : 'dark')
   await page.getByRole('link', { name: 'Leeres Dokument' }).click()
   await surface(page).click()
+  // The ribbon collapses to one open section at a time below 640px; only "Verlauf" starts open.
+  await expect(page.getByRole('button', { name: 'Verlauf' })).toHaveAttribute('aria-expanded', 'true')
+  await expect(page.getByRole('button', { name: 'Einfügen' })).toHaveAttribute('aria-expanded', 'false')
+  await page.getByRole('button', { name: 'Einfügen' }).click()
+  await expect(page.getByRole('button', { name: 'Verlauf' })).toHaveAttribute('aria-expanded', 'false')
+  await expect(page.getByRole('button', { name: 'Einfügen' })).toHaveAttribute('aria-expanded', 'true')
   await action(page, 'image').click()
   await expect(page.getByRole('dialog', { name: 'Bild einfügen' })).toBeVisible()
   const bounds = await page.locator('.ui-window').boundingBox()

@@ -166,37 +166,39 @@ object DemoRibbon:
         )
       )
     )
-    val labels = Map(
-      "undo"          -> "↶",
-      "redo"          -> "↷",
-      "bold"          -> "F",
-      "italic"        -> "K",
-      "inline-code"   -> "</>",
-      "heading-1"     -> "H1",
-      "heading-2"     -> "H2",
-      "heading-3"     -> "H3",
-      "unquote"       -> "Ohne Zitat",
-      "bullet-list"   -> "• Liste",
-      "ordered-list"  -> "1. Liste",
-      "indent"        -> "→ Einzug",
-      "outdent"       -> "← Einzug",
-      "link"          -> "Link",
-      "image"         -> "Bild",
-      "code-block"    -> "Code",
-      "rule"          -> "Linie",
-      "table"         -> "Tabelle",
-      "row-above"     -> "↑ Zeile",
-      "row-below"     -> "↓ Zeile",
-      "column-before" -> "← Spalte",
-      "column-after"  -> "→ Spalte",
-      "delete-row"    -> "− Zeile",
-      "delete-column" -> "− Spalte",
-      "delete-table"  -> "− Tabelle"
+    // Material Icons (classic) ligature names; the font itself is loaded by the host page's
+    // <head> (see ember-demo/dev/index.html), not by this component.
+    val icons = Map(
+      "undo"          -> "undo",
+      "redo"          -> "redo",
+      "bold"          -> "format_bold",
+      "italic"        -> "format_italic",
+      "inline-code"   -> "code",
+      "paragraph"     -> "notes",
+      "heading-1"     -> "looks_one",
+      "heading-2"     -> "looks_two",
+      "heading-3"     -> "looks_3",
+      "quote"         -> "format_quote",
+      "unquote"       -> "format_clear",
+      "bullet-list"   -> "format_list_bulleted",
+      "ordered-list"  -> "format_list_numbered",
+      "indent"        -> "format_indent_increase",
+      "outdent"       -> "format_indent_decrease",
+      "link"          -> "link",
+      "image"         -> "image",
+      "code-block"    -> "code",
+      "rule"          -> "horizontal_rule",
+      "table"         -> "table_chart",
+      "row-above"     -> "arrow_upward",
+      "row-below"     -> "arrow_downward",
+      "column-before" -> "arrow_back",
+      "column-after"  -> "arrow_forward",
+      "delete-row"    -> "remove",
+      "delete-column" -> "remove",
+      "delete-table"  -> "delete"
     )
     groups.map(group =>
-      group.copy(actions =
-        group.actions.map(action => action.copy(shortLabel = labels.get(action.id)))
-      )
+      group.copy(actions = group.actions.map(action => action.copy(icon = icons.get(action.id))))
     )
 
   private def blockState(session: EditorSession, id: String, base: CommandState): CommandState =

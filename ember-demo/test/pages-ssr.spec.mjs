@@ -28,5 +28,6 @@ test('hydrates the existing root and activates the editor afterwards', async ({ 
     'contenteditable',
     'true'
   )
-  await expect(page.locator('[data-command="bold"]')).toBeEnabled()
+  // Scoped to the ribbon: the menu bar mounts the same action under the same data-command.
+  await expect(page.locator('.ember-toolbar--ribbon [data-command="bold"]')).toBeEnabled()
 })

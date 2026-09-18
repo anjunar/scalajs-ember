@@ -73,12 +73,23 @@ a { color: var(--accent); text-underline-offset: 3px; }
 .ember-toolbar button { border: 1px solid transparent; padding: 3px 8px; background: transparent; font-size: 12px; min-width: 30px; border-radius: 4px; }
 .ember-toolbar button[aria-pressed="true"] { color: var(--accent); background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 30%, transparent); }
 .ember-toolbar button[aria-pressed="mixed"] { background: var(--accent-soft); border-style: dashed; border-color: var(--accent); }
-.ember-toolbar button[data-command="bold"] { font-weight: 750; }
-.ember-toolbar button[data-command="italic"] { font-style: italic; }
-.ember-toolbar button[data-command="undo"], .ember-toolbar button[data-command="redo"] { font-size: 21px; line-height: 1; }
-.ember-ribbon-group__caption { text-align: center; color: var(--muted); font-size: 10px; }
+.ember-toolbar button.material-icons { font-size: 19px; line-height: 1; }
+.ember-ribbon-group__caption { all: unset; display: flex; align-items: center; justify-content: center; gap: 3px; width: 100%; text-align: center; color: var(--muted); font-size: 10px; cursor: default; }
+.ember-ribbon-group__chevron { display: none; font-size: 14px; }
+.ember-ribbon-group__controls[hidden] { display: none; }
 .ember-toolbar-status:empty { display: none; }
 .ember-toolbar-status:not(:empty) { background: var(--accent-soft); color: var(--accent); white-space: normal; max-width: 230px; padding: 5px; font-size: 12px; }
+.editor-menu-host { background: var(--panel); border-bottom: 1px solid var(--line); }
+.ember-toolbar--menu { padding: 3px 8px; gap: 2px; min-width: 0; }
+.ember-menu { position: relative; }
+.ember-menu__trigger { font-size: 12px; }
+.ember-menu__dropdown { position: absolute; top: 100%; left: 0; z-index: 100; display: flex; flex-direction: column; align-items: stretch; gap: 1px; min-width: 13rem; padding: 5px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); box-shadow: var(--shadow); }
+.ember-menu__dropdown[hidden] { display: none; }
+.ember-menu__item { display: flex; align-items: center; justify-content: flex-start; gap: 9px; padding: 7px 9px; font-size: 12px; text-align: left; min-width: 0; border-radius: 5px; }
+.ember-menu__item[aria-checked="true"] { color: var(--accent); background: var(--accent-soft); }
+.ember-menu__item[aria-checked="mixed"] { background: var(--accent-soft); border-style: dashed; border-color: var(--accent); }
+.ember-menu__icon { flex: none; font-size: 16px; line-height: 1; }
+.ember-floating-toolbar { position: fixed; z-index: 90000; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); box-shadow: 0 8px 30px #0004, 0 0 0 1px #0001; padding: 4px 6px 2px; gap: 4px; }
 .editor-paper { padding: 38px 9% 50px; min-height: 520px; }
 .editor-surface { outline: none; font-size: 15px; line-height: 1.85; caret-color: var(--accent); overflow-wrap: anywhere; min-height: 420px; }
 .editor-surface:focus-visible { outline: none; }
@@ -175,6 +186,16 @@ a { color: var(--accent); text-underline-offset: 3px; }
   .demo-intro { padding-top: 30px; }
   .demo-tips { flex-wrap: wrap; }
   .demo-tips button { margin-left: 0; }
+}
+@media (max-width: 640px) {
+  .editor-ribbon-host { overflow: visible; }
+  .ember-toolbar--ribbon { flex-direction: column; padding: 4px 8px; gap: 0; min-width: 0; }
+  .ember-toolbar--ribbon .ember-ribbon-group { flex-direction: column; border-right: 0; padding: 4px 0; border-bottom: 1px solid var(--line); }
+  .ember-toolbar--ribbon .ember-ribbon-group:last-of-type { border-bottom: 0; }
+  .ember-toolbar--ribbon .ember-ribbon-group__caption { justify-content: space-between; padding: 7px 4px; font-size: 12px; cursor: pointer; }
+  .ember-toolbar--ribbon .ember-ribbon-group__chevron { display: inline-block; transition: transform .15s ease; }
+  .ember-toolbar--ribbon .ember-ribbon-group__caption[aria-expanded="true"] .ember-ribbon-group__chevron { transform: rotate(180deg); }
+  .ember-toolbar--ribbon .ember-ribbon-group__controls { grid-template-rows: repeat(auto-fill,34px); grid-auto-flow: row; grid-template-columns: repeat(auto-fill,minmax(44px,1fr)); padding-top: 4px; }
 }
 @media (max-width: 520px) {
   .demo-main { padding-inline: 16px; }

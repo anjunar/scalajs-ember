@@ -4,6 +4,24 @@
 .ember-toolbar button[aria-pressed="mixed"] { border-style: dashed; text-decoration: underline dotted; }
 .ember-toolbar button:disabled { cursor: default; opacity: .6; }
 .ember-toolbar-status { flex-basis: 100%; }
+.ember-ribbon-group__caption { all: unset; display: flex; align-items: center; gap: .25rem; cursor: default; font: inherit; }
+.ember-ribbon-group__chevron { display: none; }
+.ember-ribbon-group__controls[hidden] { display: none; }
+@media (max-width: 640px) {
+  .ember-toolbar--ribbon { flex-direction: column; }
+  .ember-ribbon-group__caption { cursor: pointer; }
+  .ember-ribbon-group__chevron { display: inline-block; transition: transform .15s ease; }
+  .ember-ribbon-group__caption[aria-expanded="true"] .ember-ribbon-group__chevron { transform: rotate(180deg); }
+}
+.ember-toolbar--menu { position: relative; gap: 0; padding: 0; border: 0; }
+.ember-menu { position: relative; }
+.ember-menu__trigger { border-radius: 0; }
+.ember-menu__dropdown { position: absolute; top: 100%; left: 0; z-index: 100; display: flex; flex-direction: column; align-items: stretch; gap: 0; min-width: 12rem; padding: .25rem; border: 1px solid currentColor; background: Canvas; }
+.ember-menu__dropdown[hidden] { display: none; }
+.ember-menu__item { display: flex; align-items: center; gap: .5rem; border: 0; text-align: start; }
+.ember-menu__item[aria-checked="true"] { font-weight: bold; }
+.ember-menu__item[aria-checked="mixed"] { font-style: italic; }
+.ember-floating-toolbar { position: fixed; z-index: 90000; box-shadow: 0 .25rem 1rem rgb(0 0 0 / 25%); background: Canvas; }
 .ember-toolbar :focus-visible, .ember-dialog :focus-visible, #toolbar-editor:focus-visible { outline: 3px solid Highlight; outline-offset: 3px; }
 .ember-dialog { max-width: min(30rem, calc(100vw - 4rem)); color: CanvasText; background: Canvas; border: 2px solid currentColor; padding: 1.5rem; }
 .ember-dialog::backdrop { background: rgb(0 0 0 / 40%); }
