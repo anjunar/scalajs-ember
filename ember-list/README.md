@@ -17,7 +17,7 @@ handling, and four normalization rules to the [rich-text](../ember-rich-text/REA
 ## Installation
 
 ```scala
-libraryDependencies += "com.anjunar" %% "scalajs-ember-list" % "1.0.1"
+libraryDependencies += "com.anjunar" %% "scalajs-ember-list" % "1.0.3"
 ```
 
 ## Quick start

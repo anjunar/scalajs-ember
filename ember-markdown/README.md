@@ -36,7 +36,7 @@ worth is a number in the test suite.
 ## Installation
 
 ```scala
-libraryDependencies += "com.anjunar" %% "scalajs-ember-markdown" % "1.0.1"
+libraryDependencies += "com.anjunar" %% "scalajs-ember-markdown" % "1.0.3"
 ```
 
 ## Quick start

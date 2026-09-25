@@ -19,7 +19,7 @@ for exactly this reason: `ParagraphNode` is not even on its classpath.
 ## Installation
 
 ```scala
-libraryDependencies += "com.anjunar" %% "scalajs-ember-image" % "1.0.1"
+libraryDependencies += "com.anjunar" %% "scalajs-ember-image" % "1.0.3"
 ```
 
 ## Quick start

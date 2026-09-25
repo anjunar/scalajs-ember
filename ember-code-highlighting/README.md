@@ -18,7 +18,7 @@ can be added without changing this contract.
 ## Installation
 
 ```scala
-libraryDependencies += "com.anjunar" %% "scalajs-ember-code-highlighting" % "1.0.1"
+libraryDependencies += "com.anjunar" %% "scalajs-ember-code-highlighting" % "1.0.3"
 ```
 
 ## Usage

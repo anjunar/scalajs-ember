@@ -19,7 +19,7 @@ the kernel and knows no feature node types — their codecs live in
 ## Installation
 
 ```scala
-libraryDependencies += "com.anjunar" %% "scalajs-ember-json" % "1.0.1"
+libraryDependencies += "com.anjunar" %% "scalajs-ember-json" % "1.0.3"
 ```
 
 ## Quick start

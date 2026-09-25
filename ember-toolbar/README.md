@@ -20,7 +20,7 @@ Tab wrapped at both dialog edges and Escape handled explicitly.
 ## Installation
 
 ```scala
-libraryDependencies += "com.anjunar" %% "scalajs-ember-toolbar" % "1.0.1"
+libraryDependencies += "com.anjunar" %% "scalajs-ember-toolbar" % "1.0.3"
 ```
 
 ## Assembling a toolbar

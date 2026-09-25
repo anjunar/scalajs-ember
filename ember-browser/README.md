@@ -29,7 +29,7 @@ what the editor additionally knows about it.
 ## Installation
 
 ```scala
-libraryDependencies += "com.anjunar" %% "scalajs-ember-browser" % "1.0.1"
+libraryDependencies += "com.anjunar" %% "scalajs-ember-browser" % "1.0.3"
 ```
 
 ## Capturing before claiming

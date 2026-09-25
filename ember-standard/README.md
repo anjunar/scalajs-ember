@@ -55,7 +55,7 @@ gets `u`, not because HTML has a good answer for it, but because the mark exists
 ## Installation
 
 ```scala
-libraryDependencies += "com.anjunar" %% "scalajs-ember-standard" % "1.0.1"
+libraryDependencies += "com.anjunar" %% "scalajs-ember-standard" % "1.0.3"
 ```
 
 ## Why this is a separate module

@@ -17,7 +17,7 @@ Typed inline links with a validated URL policy. Headless and optional — no dia
 ## Installation
 
 ```scala
-libraryDependencies += "com.anjunar" %% "scalajs-ember-link" % "1.0.1"
+libraryDependencies += "com.anjunar" %% "scalajs-ember-link" % "1.0.3"
 ```
 
 ## Quick start

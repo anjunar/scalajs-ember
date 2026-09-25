@@ -18,7 +18,7 @@ state as a single commit. It depends only on the kernel.
 ## Installation
 
 ```scala
-libraryDependencies += "com.anjunar" %% "scalajs-ember-history" % "1.0.1"
+libraryDependencies += "com.anjunar" %% "scalajs-ember-history" % "1.0.3"
 ```
 
 ## Quick start

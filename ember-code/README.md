@@ -16,7 +16,7 @@ and two normalization rules to the [rich-text](../ember-rich-text/README.md) pro
 ## Installation
 
 ```scala
-libraryDependencies += "com.anjunar" %% "scalajs-ember-code" % "1.0.1"
+libraryDependencies += "com.anjunar" %% "scalajs-ember-code" % "1.0.3"
 ```
 
 ## Quick start

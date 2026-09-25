@@ -19,7 +19,7 @@ import fails the build with a clear message rather than slipping through.
 ## Installation
 
 ```scala
-libraryDependencies += "com.anjunar" %% "scalajs-ember-ui" % "1.0.1"
+libraryDependencies += "com.anjunar" %% "scalajs-ember-ui" % "1.0.3"
 ```
 
 ## Quick start

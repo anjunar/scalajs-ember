@@ -20,7 +20,7 @@ editable text — lists, links, code, tables — depends on this module.
 ## Installation
 
 ```scala
-libraryDependencies += "com.anjunar" %% "scalajs-ember-rich-text" % "1.0.1"
+libraryDependencies += "com.anjunar" %% "scalajs-ember-rich-text" % "1.0.3"
 ```
 
 ## Quick start

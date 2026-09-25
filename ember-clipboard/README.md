@@ -20,7 +20,7 @@ and drag APIs. The module knows neither the concrete standard adapters nor forms
 ## Installation
 
 ```scala
-libraryDependencies += "com.anjunar" %% "scalajs-ember-clipboard" % "1.0.1"
+libraryDependencies += "com.anjunar" %% "scalajs-ember-clipboard" % "1.0.3"
 ```
 
 ## Wiring it up

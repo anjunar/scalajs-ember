@@ -1,7 +1,7 @@
 import org.scalajs.linker.interface.{ESVersion, ModuleKind}
 import org.scalajs.sbtplugin.ScalaJSPlugin
 
-version      := "1.0.2"
+version      := "1.0.3"
 organization := "com.anjunar"
 scalaVersion := "3.3.8"
 
@@ -114,9 +114,9 @@ lazy val publishSettings = Seq(
 // jetzt ist sie es ohne Fussnote. `ember-core` und `ember-rich-text` bleiben headless (§7).
 lazy val uiCoreSettings = Seq(
   // A uniquely versioned local candidate can be verified without replacing the
-  // released artifact. CI/default consumers use 1.0.4.
+  // released artifact. CI/default consumers use 1.0.6.
   libraryDependencies += "com.anjunar" %% "scalajs-ui-core" %
-    sys.props.getOrElse("ember.uiCore.version", "1.0.4")
+    sys.props.getOrElse("ember.uiCore.version", "1.0.6")
 )
 
 // Grenze aus Architektur §7 als Compile-Gate.
@@ -918,7 +918,7 @@ lazy val emberDemo =
       description                     := "Runnable demo of the Ember editor. Never published.",
       scalaJSUseMainModuleInitializer := false,
       publish / skip                  := true,
-      libraryDependencies += "com.anjunar" %% "scalajs-ui-viewport" % "1.0.4",
+      libraryDependencies += "com.anjunar" %% "scalajs-ui-viewport" % "1.0.6",
       // Der Dev-Server liest genau hier. `fastLinkJS` fuer die Schleife, `fullLinkJS` fuer
       // einen Blick auf die tatsaechlich ausgelieferte Groesse.
       Compile / fastLinkJS / scalaJSLinkerOutputDirectory :=

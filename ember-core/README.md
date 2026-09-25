@@ -20,7 +20,7 @@ rules without the kernel knowing they exist.
 ## Installation
 
 ```scala
-libraryDependencies += "com.anjunar" %% "scalajs-ember-core" % "1.0.1"
+libraryDependencies += "com.anjunar" %% "scalajs-ember-core" % "1.0.3"
 ```
 
 ## Document model

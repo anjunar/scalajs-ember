@@ -21,7 +21,7 @@ application opts in explicitly.
 ## Installation
 
 ```scala
-libraryDependencies += "com.anjunar" %% "scalajs-ember-table" % "1.0.1"
+libraryDependencies += "com.anjunar" %% "scalajs-ember-table" % "1.0.3"
 ```
 
 ## Quick start

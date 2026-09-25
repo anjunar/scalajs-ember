@@ -21,7 +21,7 @@ the event run natively. The same mechanism carries every intent nobody claims.
 ## Installation
 
 ```scala
-libraryDependencies += "com.anjunar" %% "scalajs-ember-browser-support" % "1.0.1"
+libraryDependencies += "com.anjunar" %% "scalajs-ember-browser-support" % "1.0.3"
 ```
 
 ## Quick start

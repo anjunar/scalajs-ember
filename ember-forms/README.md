@@ -18,7 +18,7 @@ upload path for picker/paste/drop, mapped targets, cancellation and resource rel
 ## Installation
 
 ```scala
-libraryDependencies += "com.anjunar" %% "scalajs-ember-forms" % "1.0.1"
+libraryDependencies += "com.anjunar" %% "scalajs-ember-forms" % "1.0.3"
 ```
 
 ## Quick start

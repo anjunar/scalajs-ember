@@ -20,7 +20,7 @@ claims no full HTML5 tree-construction algorithm.
 ## Installation
 
 ```scala
-libraryDependencies += "com.anjunar" %% "scalajs-ember-html" % "1.0.1"
+libraryDependencies += "com.anjunar" %% "scalajs-ember-html" % "1.0.3"
 ```
 
 ## One description, two outputs
