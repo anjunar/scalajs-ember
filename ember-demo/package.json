@@ -1,0 +1,21 @@
+{
+  "name": "scalajs-ember-demo",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node dev/start.mjs",
+    "build": "node dev/build.mjs",
+    "build:full": "node dev/build.mjs --full",
+    "build:pages": "node dev/build.mjs --full && node dev/pages.mjs",
+    "serve": "node dev/server.mjs",
+    "preview:pages": "node dev/pages-server.mjs",
+    "test": "playwright test",
+    "test:pages": "playwright test --config pages.playwright.config.mjs",
+    "verify": "npm run build:full && npm test",
+    "verify:pages": "npm run build:pages && npm run test:pages"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0"
+  }
+}

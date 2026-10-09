@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Das Bild der Demo. Absichtlich eine lokale Datei unter einem relativen Pfad: genau das ist
+  der Fall, den `MediaUrlPolicy.default` mit `allowRelative` zulaesst, und er kommt ohne
+  fremden Host aus. Eine `data:`-URL waere bequemer und wird von derselben Policy abgewiesen;
+  sie ist keine dauerhafte MediaReference (Architektur, Abschnitt 20).
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" width="96" height="96"
+     role="img" aria-label="Ember">
+  <defs>
+    <linearGradient id="flame" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#f97316"/>
+      <stop offset="0.55" stop-color="#fb923c"/>
+      <stop offset="1" stop-color="#fde68a"/>
+    </linearGradient>
+  </defs>
+  <rect width="96" height="96" rx="18" fill="#1f2430"/>
+  <path fill="url(#flame)"
+        d="M48 14c8 12 4 18 12 26 6 6 8 12 8 18 0 13-9 22-20 22S28 71 28 58c0-8 4-14 9-20 4-5 6-9 5-15 4 3 6 7 6 12 2-8 1-15 0-21z"/>
+  <path fill="#1f2430" opacity="0.55"
+        d="M48 52c3 5 2 8 5 11 2 3 3 5 3 8 0 5-4 9-8 9s-8-4-8-9c0-4 2-7 4-10 2-3 3-5 4-9z"/>
+</svg>

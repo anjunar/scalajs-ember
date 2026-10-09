@@ -1,0 +1,135 @@
+name: verify
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  scala:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      # Alle Scala-Module, einschließlich Format-, History- und Forms-Tests.
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: sbt
+      - uses: sbt/setup-sbt@v1
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - name: Formatierung
+        run: sbt --server scalafmtCheckAll
+      - name: Tests
+        run: sbt --server "Test/testOnly *"
+      - name: Belegpruefung testen
+        run: node --test tools/test/*.test.mjs
+      - name: Aufgeloeste Modul- und Publish-Grenzen
+        run: |
+          sbt --server editorMetadata
+          node tools/verify-editor-boundaries.mjs
+
+  browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      # Die Integrationsanwendung verwendet das veroeffentlichte scalajs-ui-core-Artefakt.
+      # Ein Checkout des frueher benoetigten Nachbar-Repos ist deshalb nicht erforderlich.
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: sbt
+      - uses: sbt/setup-sbt@v1
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - name: Anwendung linken
+        run: sbt --server "scalajs-ember-integration/fullLinkJS" "scalajs-ember-profile-text/fullLinkJS" "scalajs-ember-profile-markdown/fullLinkJS" "scalajs-ember-profile-standard/fullLinkJS" editorMetadata
+      - name: Harness einrichten
+        working-directory: ember-integration/browser
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium firefox webkit
+      # Alle drei Engines. Firefox scheitert lokal unter Windows am Start des von Playwright
+      # gelieferten Browsers; unter Linux laeuft er. Genau deshalb bleibt er hier drin.
+      - name: Serverimport und Browser
+        working-directory: ember-integration/browser
+        env:
+          PLAYWRIGHT_JSON_OUTPUT_NAME: ../../target/p28/full-browser-report.json
+        run: |
+          npm run test:server
+          npm run test:browser -- --reporter=line,json
+      - name: Versionierte Korpora und reale Profilgroessen
+        run: |
+          node tools/verify-editor-boundaries.mjs
+          node tools/verify-editor-corpora.mjs
+          node tools/measure-editor-bundles.mjs
+      - name: Core, History und Formstring messen
+        run: node --expose-gc benchmarks/run.mjs
+      - name: Lokale Projektion, Move und Freigabe messen
+        working-directory: ember-integration/browser
+        run: npm run test:bench
+      - name: Grossen Block-Move in drei Engines pruefen
+        working-directory: ember-integration/browser
+        run: npm run test:bench:stress
+      - name: Belege zusammenfassen
+        run: node tools/summarize-editor-evidence.mjs
+      - name: Abnahmebelege sichern
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: editor-acceptance
+          path: target/p28/
+
+  pages:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: sbt
+      - uses: sbt/setup-sbt@v1
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: ember-demo/package-lock.json
+      - name: Demo und Browser einrichten
+        working-directory: ember-demo
+        run: |
+          npm ci --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: GitHub-Pages-Ausgabe bauen und prüfen
+        run: npm --prefix ember-demo run verify:pages
+      - name: GitHub Pages konfigurieren
+        if: github.event_name == 'push'
+        uses: actions/configure-pages@v5
+      - name: GitHub-Pages-Artefakt hochladen
+        if: github.event_name == 'push'
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: target/ember-pages
+
+  deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    needs: [scala, browser, pages]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: GitHub Pages veröffentlichen
+        id: deployment
+        uses: actions/deploy-pages@v4

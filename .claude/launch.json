@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "ember-demo",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "ember-demo", "run", "dev"],
+      "port": 4200
+    }
+  ]
+}

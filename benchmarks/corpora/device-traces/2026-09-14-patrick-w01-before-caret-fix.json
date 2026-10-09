@@ -1,0 +1,4500 @@
+{
+  "formatVersion": 1,
+  "kind": "operator-device-trace",
+  "reviewStatus": "requires-human-review",
+  "build": {
+    "capturedAt": "2026-09-14T14:48:41.287Z",
+    "integrationSha256": "5aa2b0a0a312c1acf91be0df7f82299d456dd9d97fc63232cc63b7e1a3ad45c9",
+    "revision": "b8b90aa998127bb55524a502a7b121990336d577",
+    "dirty": false,
+    "uiCore": "com.anjunar:scalajs-ui-core_sjs1_3:1.0.1"
+  },
+  "operator": {
+    "tester": "patrick",
+    "environment": "PC, Windows 11, Chrome 153.0.8010.36",
+    "inputMethod": "Keyboard, Deutsch",
+    "caseId": "keyboard",
+    "outcome": "open",
+    "notes": ""
+  },
+  "startedAt": "2026-09-14T14:50:04.962Z",
+  "stoppedAt": "2026-09-14T14:50:43.353Z",
+  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
+  "language": "de",
+  "truncated": false,
+  "events": [
+    {
+      "time": 83798.40000000596,
+      "type": "focusin",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world",
+        "modelText": "Hello world"
+      },
+      "domText": "Hello world",
+      "modelText": "Hello world",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 0,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 83799.80000001192,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world",
+        "modelText": "Hello world"
+      },
+      "domText": "Hello world",
+      "modelText": "Hello world",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 0,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 88636.90000000596,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world",
+        "modelText": "Hello world"
+      },
+      "domText": "Hello world",
+      "modelText": "Hello world",
+      "selection": {
+        "anchorOffset": 11,
+        "focusOffset": 11,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 90121.80000001192,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": " ",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world",
+        "modelText": "Hello world"
+      },
+      "domText": "Hello world",
+      "modelText": "Hello world",
+      "selection": {
+        "anchorOffset": 11,
+        "focusOffset": 11,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 90122.40000000596,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": " ",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world",
+        "modelText": "Hello world"
+      },
+      "domText": "Hello world ",
+      "modelText": "Hello world ",
+      "selection": {
+        "anchorOffset": 12,
+        "focusOffset": 12,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 90126.30000001192,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world ",
+        "modelText": "Hello world "
+      },
+      "domText": "Hello world ",
+      "modelText": "Hello world ",
+      "selection": {
+        "anchorOffset": 12,
+        "focusOffset": 12,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 91367.59999999404,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": " ",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world ",
+        "modelText": "Hello world "
+      },
+      "domText": "Hello world ",
+      "modelText": "Hello world ",
+      "selection": {
+        "anchorOffset": 12,
+        "focusOffset": 12,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 91368,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": " ",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world ",
+        "modelText": "Hello world "
+      },
+      "domText": "Hello world  ",
+      "modelText": "Hello world  ",
+      "selection": {
+        "anchorOffset": 13,
+        "focusOffset": 13,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 91371.09999999404,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world  ",
+        "modelText": "Hello world  "
+      },
+      "domText": "Hello world  ",
+      "modelText": "Hello world  ",
+      "selection": {
+        "anchorOffset": 13,
+        "focusOffset": 13,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 91883.40000000596,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": " ",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world  ",
+        "modelText": "Hello world  "
+      },
+      "domText": "Hello world  ",
+      "modelText": "Hello world  ",
+      "selection": {
+        "anchorOffset": 13,
+        "focusOffset": 13,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 91883.90000000596,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": " ",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world  ",
+        "modelText": "Hello world  "
+      },
+      "domText": "Hello world   ",
+      "modelText": "Hello world   ",
+      "selection": {
+        "anchorOffset": 14,
+        "focusOffset": 14,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 91888.5,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world   ",
+        "modelText": "Hello world   "
+      },
+      "domText": "Hello world   ",
+      "modelText": "Hello world   ",
+      "selection": {
+        "anchorOffset": 14,
+        "focusOffset": 14,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 92082.80000001192,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": " ",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world   ",
+        "modelText": "Hello world   "
+      },
+      "domText": "Hello world   ",
+      "modelText": "Hello world   ",
+      "selection": {
+        "anchorOffset": 14,
+        "focusOffset": 14,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 92083.5,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": " ",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world   ",
+        "modelText": "Hello world   "
+      },
+      "domText": "Hello world    ",
+      "modelText": "Hello world    ",
+      "selection": {
+        "anchorOffset": 15,
+        "focusOffset": 15,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 92088.30000001192,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world    ",
+        "modelText": "Hello world    "
+      },
+      "domText": "Hello world    ",
+      "modelText": "Hello world    ",
+      "selection": {
+        "anchorOffset": 15,
+        "focusOffset": 15,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 93120.40000000596,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": " ",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world    ",
+        "modelText": "Hello world    "
+      },
+      "domText": "Hello world    ",
+      "modelText": "Hello world    ",
+      "selection": {
+        "anchorOffset": 15,
+        "focusOffset": 15,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 93120.59999999404,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": " ",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world    ",
+        "modelText": "Hello world    "
+      },
+      "domText": "Hello world     ",
+      "modelText": "Hello world     ",
+      "selection": {
+        "anchorOffset": 16,
+        "focusOffset": 16,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 93121.70000001788,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world     ",
+        "modelText": "Hello world     "
+      },
+      "domText": "Hello world     ",
+      "modelText": "Hello world     ",
+      "selection": {
+        "anchorOffset": 16,
+        "focusOffset": 16,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 93301.09999999404,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": " ",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world     ",
+        "modelText": "Hello world     "
+      },
+      "domText": "Hello world     ",
+      "modelText": "Hello world     ",
+      "selection": {
+        "anchorOffset": 16,
+        "focusOffset": 16,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 93301.70000001788,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": " ",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world     ",
+        "modelText": "Hello world     "
+      },
+      "domText": "Hello world      ",
+      "modelText": "Hello world      ",
+      "selection": {
+        "anchorOffset": 17,
+        "focusOffset": 17,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 93306.20000001788,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world      ",
+        "modelText": "Hello world      "
+      },
+      "domText": "Hello world      ",
+      "modelText": "Hello world      ",
+      "selection": {
+        "anchorOffset": 17,
+        "focusOffset": 17,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 93482,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": " ",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world      ",
+        "modelText": "Hello world      "
+      },
+      "domText": "Hello world      ",
+      "modelText": "Hello world      ",
+      "selection": {
+        "anchorOffset": 17,
+        "focusOffset": 17,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 93482.40000000596,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": " ",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world      ",
+        "modelText": "Hello world      "
+      },
+      "domText": "Hello world       ",
+      "modelText": "Hello world       ",
+      "selection": {
+        "anchorOffset": 18,
+        "focusOffset": 18,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 93486.30000001192,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       ",
+        "modelText": "Hello world       "
+      },
+      "domText": "Hello world       ",
+      "modelText": "Hello world       ",
+      "selection": {
+        "anchorOffset": 18,
+        "focusOffset": 18,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 93744,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "a",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       ",
+        "modelText": "Hello world       "
+      },
+      "domText": "Hello world       ",
+      "modelText": "Hello world       ",
+      "selection": {
+        "anchorOffset": 18,
+        "focusOffset": 18,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 93744.5,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "a",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       ",
+        "modelText": "Hello world       "
+      },
+      "domText": "Hello world       a",
+      "modelText": "Hello world       a",
+      "selection": {
+        "anchorOffset": 19,
+        "focusOffset": 19,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 93748.5,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       a",
+        "modelText": "Hello world       a"
+      },
+      "domText": "Hello world       a",
+      "modelText": "Hello world       a",
+      "selection": {
+        "anchorOffset": 19,
+        "focusOffset": 19,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 93839,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "s",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       a",
+        "modelText": "Hello world       a"
+      },
+      "domText": "Hello world       a",
+      "modelText": "Hello world       a",
+      "selection": {
+        "anchorOffset": 19,
+        "focusOffset": 19,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 93839.59999999404,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "s",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       a",
+        "modelText": "Hello world       a"
+      },
+      "domText": "Hello world       as",
+      "modelText": "Hello world       as",
+      "selection": {
+        "anchorOffset": 20,
+        "focusOffset": 20,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 93843,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       as",
+        "modelText": "Hello world       as"
+      },
+      "domText": "Hello world       as",
+      "modelText": "Hello world       as",
+      "selection": {
+        "anchorOffset": 20,
+        "focusOffset": 20,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 93906.90000000596,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "d",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       as",
+        "modelText": "Hello world       as"
+      },
+      "domText": "Hello world       as",
+      "modelText": "Hello world       as",
+      "selection": {
+        "anchorOffset": 20,
+        "focusOffset": 20,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 93907.40000000596,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "d",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       as",
+        "modelText": "Hello world       as"
+      },
+      "domText": "Hello world       asd",
+      "modelText": "Hello world       asd",
+      "selection": {
+        "anchorOffset": 21,
+        "focusOffset": 21,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 93911.59999999404,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asd",
+        "modelText": "Hello world       asd"
+      },
+      "domText": "Hello world       asd",
+      "modelText": "Hello world       asd",
+      "selection": {
+        "anchorOffset": 21,
+        "focusOffset": 21,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 94057.09999999404,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "a",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asd",
+        "modelText": "Hello world       asd"
+      },
+      "domText": "Hello world       asd",
+      "modelText": "Hello world       asd",
+      "selection": {
+        "anchorOffset": 21,
+        "focusOffset": 21,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 94057.5,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "a",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asd",
+        "modelText": "Hello world       asd"
+      },
+      "domText": "Hello world       asda",
+      "modelText": "Hello world       asda",
+      "selection": {
+        "anchorOffset": 22,
+        "focusOffset": 22,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 94060.80000001192,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asda",
+        "modelText": "Hello world       asda"
+      },
+      "domText": "Hello world       asda",
+      "modelText": "Hello world       asda",
+      "selection": {
+        "anchorOffset": 22,
+        "focusOffset": 22,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 94108.80000001192,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "s",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asda",
+        "modelText": "Hello world       asda"
+      },
+      "domText": "Hello world       asda",
+      "modelText": "Hello world       asda",
+      "selection": {
+        "anchorOffset": 22,
+        "focusOffset": 22,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 94108.90000000596,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "s",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asda",
+        "modelText": "Hello world       asda"
+      },
+      "domText": "Hello world       asdas",
+      "modelText": "Hello world       asdas",
+      "selection": {
+        "anchorOffset": 23,
+        "focusOffset": 23,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 94109.90000000596,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdas",
+        "modelText": "Hello world       asdas"
+      },
+      "domText": "Hello world       asdas",
+      "modelText": "Hello world       asdas",
+      "selection": {
+        "anchorOffset": 23,
+        "focusOffset": 23,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 94146,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "d",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdas",
+        "modelText": "Hello world       asdas"
+      },
+      "domText": "Hello world       asdas",
+      "modelText": "Hello world       asdas",
+      "selection": {
+        "anchorOffset": 23,
+        "focusOffset": 23,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 94146.20000001788,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "d",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdas",
+        "modelText": "Hello world       asdas"
+      },
+      "domText": "Hello world       asdasd",
+      "modelText": "Hello world       asdasd",
+      "selection": {
+        "anchorOffset": 24,
+        "focusOffset": 24,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 94152.59999999404,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasd",
+        "modelText": "Hello world       asdasd"
+      },
+      "domText": "Hello world       asdasd",
+      "modelText": "Hello world       asdasd",
+      "selection": {
+        "anchorOffset": 24,
+        "focusOffset": 24,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 94339.59999999404,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "d",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasd",
+        "modelText": "Hello world       asdasd"
+      },
+      "domText": "Hello world       asdasd",
+      "modelText": "Hello world       asdasd",
+      "selection": {
+        "anchorOffset": 24,
+        "focusOffset": 24,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 94340,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "d",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasd",
+        "modelText": "Hello world       asdasd"
+      },
+      "domText": "Hello world       asdasdd",
+      "modelText": "Hello world       asdasdd",
+      "selection": {
+        "anchorOffset": 25,
+        "focusOffset": 25,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 94343.70000001788,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd",
+        "modelText": "Hello world       asdasdd"
+      },
+      "domText": "Hello world       asdasdd",
+      "modelText": "Hello world       asdasdd",
+      "selection": {
+        "anchorOffset": 25,
+        "focusOffset": 25,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 94417.5,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": " ",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd",
+        "modelText": "Hello world       asdasdd"
+      },
+      "domText": "Hello world       asdasdd",
+      "modelText": "Hello world       asdasdd",
+      "selection": {
+        "anchorOffset": 25,
+        "focusOffset": 25,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 94418,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": " ",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd",
+        "modelText": "Hello world       asdasdd"
+      },
+      "domText": "Hello world       asdasdd ",
+      "modelText": "Hello world       asdasdd ",
+      "selection": {
+        "anchorOffset": 26,
+        "focusOffset": 26,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 94421.70000001788,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd ",
+        "modelText": "Hello world       asdasdd "
+      },
+      "domText": "Hello world       asdasdd ",
+      "modelText": "Hello world       asdasdd ",
+      "selection": {
+        "anchorOffset": 26,
+        "focusOffset": 26,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 94891.09999999404,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": " ",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd ",
+        "modelText": "Hello world       asdasdd "
+      },
+      "domText": "Hello world       asdasdd ",
+      "modelText": "Hello world       asdasdd ",
+      "selection": {
+        "anchorOffset": 26,
+        "focusOffset": 26,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 94891.59999999404,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": " ",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd ",
+        "modelText": "Hello world       asdasdd "
+      },
+      "domText": "Hello world       asdasdd  ",
+      "modelText": "Hello world       asdasdd  ",
+      "selection": {
+        "anchorOffset": 27,
+        "focusOffset": 27,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 94895.5,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd  ",
+        "modelText": "Hello world       asdasdd  "
+      },
+      "domText": "Hello world       asdasdd  ",
+      "modelText": "Hello world       asdasdd  ",
+      "selection": {
+        "anchorOffset": 27,
+        "focusOffset": 27,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 95071.90000000596,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": " ",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd  ",
+        "modelText": "Hello world       asdasdd  "
+      },
+      "domText": "Hello world       asdasdd  ",
+      "modelText": "Hello world       asdasdd  ",
+      "selection": {
+        "anchorOffset": 27,
+        "focusOffset": 27,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 95072.30000001192,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": " ",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd  ",
+        "modelText": "Hello world       asdasdd  "
+      },
+      "domText": "Hello world       asdasdd   ",
+      "modelText": "Hello world       asdasdd   ",
+      "selection": {
+        "anchorOffset": 28,
+        "focusOffset": 28,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 95075.40000000596,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd   ",
+        "modelText": "Hello world       asdasdd   "
+      },
+      "domText": "Hello world       asdasdd   ",
+      "modelText": "Hello world       asdasdd   ",
+      "selection": {
+        "anchorOffset": 28,
+        "focusOffset": 28,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 95255.80000001192,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": " ",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd   ",
+        "modelText": "Hello world       asdasdd   "
+      },
+      "domText": "Hello world       asdasdd   ",
+      "modelText": "Hello world       asdasdd   ",
+      "selection": {
+        "anchorOffset": 28,
+        "focusOffset": 28,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 95256.5,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": " ",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd   ",
+        "modelText": "Hello world       asdasdd   "
+      },
+      "domText": "Hello world       asdasdd    ",
+      "modelText": "Hello world       asdasdd    ",
+      "selection": {
+        "anchorOffset": 29,
+        "focusOffset": 29,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 95259.80000001192,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd    ",
+        "modelText": "Hello world       asdasdd    "
+      },
+      "domText": "Hello world       asdasdd    ",
+      "modelText": "Hello world       asdasdd    ",
+      "selection": {
+        "anchorOffset": 29,
+        "focusOffset": 29,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 95410.90000000596,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": " ",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd    ",
+        "modelText": "Hello world       asdasdd    "
+      },
+      "domText": "Hello world       asdasdd    ",
+      "modelText": "Hello world       asdasdd    ",
+      "selection": {
+        "anchorOffset": 29,
+        "focusOffset": 29,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 95411.20000001788,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": " ",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd    ",
+        "modelText": "Hello world       asdasdd    "
+      },
+      "domText": "Hello world       asdasdd     ",
+      "modelText": "Hello world       asdasdd     ",
+      "selection": {
+        "anchorOffset": 30,
+        "focusOffset": 30,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 95412.70000001788,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd     ",
+        "modelText": "Hello world       asdasdd     "
+      },
+      "domText": "Hello world       asdasdd     ",
+      "modelText": "Hello world       asdasdd     ",
+      "selection": {
+        "anchorOffset": 30,
+        "focusOffset": 30,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 95598.90000000596,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "a",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     ",
+        "modelText": "Hello world       asdasdd     "
+      },
+      "domText": "Hello world       asdasdd     ",
+      "modelText": "Hello world       asdasdd     ",
+      "selection": {
+        "anchorOffset": 30,
+        "focusOffset": 30,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 95599.20000001788,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "a",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     ",
+        "modelText": "Hello world       asdasdd     "
+      },
+      "domText": "Hello world       asdasdd     a",
+      "modelText": "Hello world       asdasdd     a",
+      "selection": {
+        "anchorOffset": 31,
+        "focusOffset": 31,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 95601.30000001192,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd     a",
+        "modelText": "Hello world       asdasdd     a"
+      },
+      "domText": "Hello world       asdasdd     a",
+      "modelText": "Hello world       asdasdd     a",
+      "selection": {
+        "anchorOffset": 31,
+        "focusOffset": 31,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 95683.70000001788,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "s",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     a",
+        "modelText": "Hello world       asdasdd     a"
+      },
+      "domText": "Hello world       asdasdd     a",
+      "modelText": "Hello world       asdasdd     a",
+      "selection": {
+        "anchorOffset": 31,
+        "focusOffset": 31,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 95684,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "s",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     a",
+        "modelText": "Hello world       asdasdd     a"
+      },
+      "domText": "Hello world       asdasdd     as",
+      "modelText": "Hello world       asdasdd     as",
+      "selection": {
+        "anchorOffset": 32,
+        "focusOffset": 32,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 95686,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd     as",
+        "modelText": "Hello world       asdasdd     as"
+      },
+      "domText": "Hello world       asdasdd     as",
+      "modelText": "Hello world       asdasdd     as",
+      "selection": {
+        "anchorOffset": 32,
+        "focusOffset": 32,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 95737.30000001192,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "d",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     as",
+        "modelText": "Hello world       asdasdd     as"
+      },
+      "domText": "Hello world       asdasdd     as",
+      "modelText": "Hello world       asdasdd     as",
+      "selection": {
+        "anchorOffset": 32,
+        "focusOffset": 32,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 95737.80000001192,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "d",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     as",
+        "modelText": "Hello world       asdasdd     as"
+      },
+      "domText": "Hello world       asdasdd     asd",
+      "modelText": "Hello world       asdasdd     asd",
+      "selection": {
+        "anchorOffset": 33,
+        "focusOffset": 33,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 95741.09999999404,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd     asd",
+        "modelText": "Hello world       asdasdd     asd"
+      },
+      "domText": "Hello world       asdasdd     asd",
+      "modelText": "Hello world       asdasdd     asd",
+      "selection": {
+        "anchorOffset": 33,
+        "focusOffset": 33,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 95863.59999999404,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "a",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asd",
+        "modelText": "Hello world       asdasdd     asd"
+      },
+      "domText": "Hello world       asdasdd     asd",
+      "modelText": "Hello world       asdasdd     asd",
+      "selection": {
+        "anchorOffset": 33,
+        "focusOffset": 33,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 95864.20000001788,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "a",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asd",
+        "modelText": "Hello world       asdasdd     asd"
+      },
+      "domText": "Hello world       asdasdd     asda",
+      "modelText": "Hello world       asdasdd     asda",
+      "selection": {
+        "anchorOffset": 34,
+        "focusOffset": 34,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 95867.59999999404,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd     asda",
+        "modelText": "Hello world       asdasdd     asda"
+      },
+      "domText": "Hello world       asdasdd     asda",
+      "modelText": "Hello world       asdasdd     asda",
+      "selection": {
+        "anchorOffset": 34,
+        "focusOffset": 34,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 95912.20000001788,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "s",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asda",
+        "modelText": "Hello world       asdasdd     asda"
+      },
+      "domText": "Hello world       asdasdd     asda",
+      "modelText": "Hello world       asdasdd     asda",
+      "selection": {
+        "anchorOffset": 34,
+        "focusOffset": 34,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 95912.59999999404,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "s",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asda",
+        "modelText": "Hello world       asdasdd     asda"
+      },
+      "domText": "Hello world       asdasdd     asdas",
+      "modelText": "Hello world       asdasdd     asdas",
+      "selection": {
+        "anchorOffset": 35,
+        "focusOffset": 35,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 95919.80000001192,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd     asdas",
+        "modelText": "Hello world       asdasdd     asdas"
+      },
+      "domText": "Hello world       asdasdd     asdas",
+      "modelText": "Hello world       asdasdd     asdas",
+      "selection": {
+        "anchorOffset": 35,
+        "focusOffset": 35,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 95953.70000001788,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "d",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdas",
+        "modelText": "Hello world       asdasdd     asdas"
+      },
+      "domText": "Hello world       asdasdd     asdas",
+      "modelText": "Hello world       asdasdd     asdas",
+      "selection": {
+        "anchorOffset": 35,
+        "focusOffset": 35,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 95954,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "d",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdas",
+        "modelText": "Hello world       asdasdd     asdas"
+      },
+      "domText": "Hello world       asdasdd     asdasd",
+      "modelText": "Hello world       asdasdd     asdasd",
+      "selection": {
+        "anchorOffset": 36,
+        "focusOffset": 36,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 95970.20000001788,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasd",
+        "modelText": "Hello world       asdasdd     asdasd"
+      },
+      "domText": "Hello world       asdasdd     asdasd",
+      "modelText": "Hello world       asdasdd     asdasd",
+      "selection": {
+        "anchorOffset": 36,
+        "focusOffset": 36,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 96052.30000001192,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "s",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasd",
+        "modelText": "Hello world       asdasdd     asdasd"
+      },
+      "domText": "Hello world       asdasdd     asdasd",
+      "modelText": "Hello world       asdasdd     asdasd",
+      "selection": {
+        "anchorOffset": 36,
+        "focusOffset": 36,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 96052.59999999404,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "s",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasd",
+        "modelText": "Hello world       asdasdd     asdasd"
+      },
+      "domText": "Hello world       asdasdd     asdasds",
+      "modelText": "Hello world       asdasdd     asdasds",
+      "selection": {
+        "anchorOffset": 37,
+        "focusOffset": 37,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 96056,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasds",
+        "modelText": "Hello world       asdasdd     asdasds"
+      },
+      "domText": "Hello world       asdasdd     asdasds",
+      "modelText": "Hello world       asdasdd     asdasds",
+      "selection": {
+        "anchorOffset": 37,
+        "focusOffset": 37,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 96081.90000000596,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "a",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasds",
+        "modelText": "Hello world       asdasdd     asdasds"
+      },
+      "domText": "Hello world       asdasdd     asdasds",
+      "modelText": "Hello world       asdasdd     asdasds",
+      "selection": {
+        "anchorOffset": 37,
+        "focusOffset": 37,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 96082.30000001192,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "a",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasds",
+        "modelText": "Hello world       asdasdd     asdasds"
+      },
+      "domText": "Hello world       asdasdd     asdasdsa",
+      "modelText": "Hello world       asdasdd     asdasdsa",
+      "selection": {
+        "anchorOffset": 38,
+        "focusOffset": 38,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 96086.30000001192,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsa",
+        "modelText": "Hello world       asdasdd     asdasdsa"
+      },
+      "domText": "Hello world       asdasdd     asdasdsa",
+      "modelText": "Hello world       asdasdd     asdasdsa",
+      "selection": {
+        "anchorOffset": 38,
+        "focusOffset": 38,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 96145.30000001192,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "d",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsa",
+        "modelText": "Hello world       asdasdd     asdasdsa"
+      },
+      "domText": "Hello world       asdasdd     asdasdsa",
+      "modelText": "Hello world       asdasdd     asdasdsa",
+      "selection": {
+        "anchorOffset": 38,
+        "focusOffset": 38,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 96145.59999999404,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "d",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsa",
+        "modelText": "Hello world       asdasdd     asdasdsa"
+      },
+      "domText": "Hello world       asdasdd     asdasdsad",
+      "modelText": "Hello world       asdasdd     asdasdsad",
+      "selection": {
+        "anchorOffset": 39,
+        "focusOffset": 39,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 96147.80000001192,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad",
+        "modelText": "Hello world       asdasdd     asdasdsad"
+      },
+      "domText": "Hello world       asdasdd     asdasdsad",
+      "modelText": "Hello world       asdasdd     asdasdsad",
+      "selection": {
+        "anchorOffset": 39,
+        "focusOffset": 39,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 96529.5,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": " ",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad",
+        "modelText": "Hello world       asdasdd     asdasdsad"
+      },
+      "domText": "Hello world       asdasdd     asdasdsad",
+      "modelText": "Hello world       asdasdd     asdasdsad",
+      "selection": {
+        "anchorOffset": 39,
+        "focusOffset": 39,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 96530,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": " ",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad",
+        "modelText": "Hello world       asdasdd     asdasdsad"
+      },
+      "domText": "Hello world       asdasdd     asdasdsad ",
+      "modelText": "Hello world       asdasdd     asdasdsad ",
+      "selection": {
+        "anchorOffset": 40,
+        "focusOffset": 40,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 96533,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad ",
+        "modelText": "Hello world       asdasdd     asdasdsad "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad ",
+      "modelText": "Hello world       asdasdd     asdasdsad ",
+      "selection": {
+        "anchorOffset": 40,
+        "focusOffset": 40,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 96726.59999999404,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": " ",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad ",
+        "modelText": "Hello world       asdasdd     asdasdsad "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad ",
+      "modelText": "Hello world       asdasdd     asdasdsad ",
+      "selection": {
+        "anchorOffset": 40,
+        "focusOffset": 40,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 96727,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": " ",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad ",
+        "modelText": "Hello world       asdasdd     asdasdsad "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad  ",
+      "modelText": "Hello world       asdasdd     asdasdsad  ",
+      "selection": {
+        "anchorOffset": 41,
+        "focusOffset": 41,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 96730.30000001192,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad  ",
+        "modelText": "Hello world       asdasdd     asdasdsad  "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad  ",
+      "modelText": "Hello world       asdasdd     asdasdsad  ",
+      "selection": {
+        "anchorOffset": 41,
+        "focusOffset": 41,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 96870.20000001788,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": " ",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad  ",
+        "modelText": "Hello world       asdasdd     asdasdsad  "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad  ",
+      "modelText": "Hello world       asdasdd     asdasdsad  ",
+      "selection": {
+        "anchorOffset": 41,
+        "focusOffset": 41,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 96870.70000001788,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": " ",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad  ",
+        "modelText": "Hello world       asdasdd     asdasdsad  "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad   ",
+      "modelText": "Hello world       asdasdd     asdasdsad   ",
+      "selection": {
+        "anchorOffset": 42,
+        "focusOffset": 42,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 96874,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad   ",
+        "modelText": "Hello world       asdasdd     asdasdsad   "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad   ",
+      "modelText": "Hello world       asdasdd     asdasdsad   ",
+      "selection": {
+        "anchorOffset": 42,
+        "focusOffset": 42,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 97034,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": " ",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad   ",
+        "modelText": "Hello world       asdasdd     asdasdsad   "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad   ",
+      "modelText": "Hello world       asdasdd     asdasdsad   ",
+      "selection": {
+        "anchorOffset": 42,
+        "focusOffset": 42,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 97034.5,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": " ",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad   ",
+        "modelText": "Hello world       asdasdd     asdasdsad   "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad    ",
+      "modelText": "Hello world       asdasdd     asdasdsad    ",
+      "selection": {
+        "anchorOffset": 43,
+        "focusOffset": 43,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 97037.70000001788,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad    ",
+        "modelText": "Hello world       asdasdd     asdasdsad    "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad    ",
+      "modelText": "Hello world       asdasdd     asdasdsad    ",
+      "selection": {
+        "anchorOffset": 43,
+        "focusOffset": 43,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 97176.80000001192,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": " ",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad    ",
+        "modelText": "Hello world       asdasdd     asdasdsad    "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad    ",
+      "modelText": "Hello world       asdasdd     asdasdsad    ",
+      "selection": {
+        "anchorOffset": 43,
+        "focusOffset": 43,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 97177,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": " ",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad    ",
+        "modelText": "Hello world       asdasdd     asdasdsad    "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad     ",
+      "modelText": "Hello world       asdasdd     asdasdsad     ",
+      "selection": {
+        "anchorOffset": 44,
+        "focusOffset": 44,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 97178,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad     ",
+        "modelText": "Hello world       asdasdd     asdasdsad     "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad     ",
+      "modelText": "Hello world       asdasdd     asdasdsad     ",
+      "selection": {
+        "anchorOffset": 44,
+        "focusOffset": 44,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 97513,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": " ",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad     ",
+        "modelText": "Hello world       asdasdd     asdasdsad     "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad     ",
+      "modelText": "Hello world       asdasdd     asdasdsad     ",
+      "selection": {
+        "anchorOffset": 44,
+        "focusOffset": 44,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 97513.30000001192,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": " ",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad     ",
+        "modelText": "Hello world       asdasdd     asdasdsad     "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      ",
+      "modelText": "Hello world       asdasdd     asdasdsad      ",
+      "selection": {
+        "anchorOffset": 45,
+        "focusOffset": 45,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 97516.40000000596,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      ",
+        "modelText": "Hello world       asdasdd     asdasdsad      "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      ",
+      "modelText": "Hello world       asdasdd     asdasdsad      ",
+      "selection": {
+        "anchorOffset": 45,
+        "focusOffset": 45,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 98203.59999999404,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "a",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      ",
+        "modelText": "Hello world       asdasdd     asdasdsad      "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      ",
+      "modelText": "Hello world       asdasdd     asdasdsad      ",
+      "selection": {
+        "anchorOffset": 45,
+        "focusOffset": 45,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 98203.80000001192,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "a",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      ",
+        "modelText": "Hello world       asdasdd     asdasdsad      "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      a",
+      "modelText": "Hello world       asdasdd     asdasdsad      a",
+      "selection": {
+        "anchorOffset": 46,
+        "focusOffset": 46,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 98205.5,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      a",
+        "modelText": "Hello world       asdasdd     asdasdsad      a"
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      a",
+      "modelText": "Hello world       asdasdd     asdasdsad      a",
+      "selection": {
+        "anchorOffset": 46,
+        "focusOffset": 46,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 98311.09999999404,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "s",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      a",
+        "modelText": "Hello world       asdasdd     asdasdsad      a"
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      a",
+      "modelText": "Hello world       asdasdd     asdasdsad      a",
+      "selection": {
+        "anchorOffset": 46,
+        "focusOffset": 46,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 98311.5,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "s",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      a",
+        "modelText": "Hello world       asdasdd     asdasdsad      a"
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      as",
+      "modelText": "Hello world       asdasdd     asdasdsad      as",
+      "selection": {
+        "anchorOffset": 47,
+        "focusOffset": 47,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 98315.20000001788,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      as",
+        "modelText": "Hello world       asdasdd     asdasdsad      as"
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      as",
+      "modelText": "Hello world       asdasdd     asdasdsad      as",
+      "selection": {
+        "anchorOffset": 47,
+        "focusOffset": 47,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 98385.40000000596,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "d",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      as",
+        "modelText": "Hello world       asdasdd     asdasdsad      as"
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      as",
+      "modelText": "Hello world       asdasdd     asdasdsad      as",
+      "selection": {
+        "anchorOffset": 47,
+        "focusOffset": 47,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 98386.09999999404,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "d",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      as",
+        "modelText": "Hello world       asdasdd     asdasdsad      as"
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd",
+      "selection": {
+        "anchorOffset": 48,
+        "focusOffset": 48,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 98389.20000001788,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd"
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd",
+      "selection": {
+        "anchorOffset": 48,
+        "focusOffset": 48,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 98640.5,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": " ",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd"
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd",
+      "selection": {
+        "anchorOffset": 48,
+        "focusOffset": 48,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 98640.90000000596,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": " ",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd"
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd ",
+      "selection": {
+        "anchorOffset": 49,
+        "focusOffset": 49,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 98644.09999999404,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd ",
+      "selection": {
+        "anchorOffset": 49,
+        "focusOffset": 49,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 99241.59999999404,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": " ",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd ",
+      "selection": {
+        "anchorOffset": 49,
+        "focusOffset": 49,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 99242.20000001788,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": " ",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd  ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd  ",
+      "selection": {
+        "anchorOffset": 50,
+        "focusOffset": 50,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 99245.80000001192,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd  ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd  "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd  ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd  ",
+      "selection": {
+        "anchorOffset": 50,
+        "focusOffset": 50,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 99406,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": " ",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd  ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd  "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd  ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd  ",
+      "selection": {
+        "anchorOffset": 50,
+        "focusOffset": 50,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 99406.40000000596,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": " ",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd  ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd  "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd   ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd   ",
+      "selection": {
+        "anchorOffset": 51,
+        "focusOffset": 51,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 99409.90000000596,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd   ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd   "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd   ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd   ",
+      "selection": {
+        "anchorOffset": 51,
+        "focusOffset": 51,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 99588.40000000596,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": " ",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd   ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd   "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd   ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd   ",
+      "selection": {
+        "anchorOffset": 51,
+        "focusOffset": 51,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 99588.70000001788,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": " ",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd   ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd   "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    ",
+      "selection": {
+        "anchorOffset": 52,
+        "focusOffset": 52,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 99591.70000001788,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    ",
+      "selection": {
+        "anchorOffset": 52,
+        "focusOffset": 52,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 99874,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "a",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    ",
+      "selection": {
+        "anchorOffset": 52,
+        "focusOffset": 52,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 99874.40000000596,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "a",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    a",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    a",
+      "selection": {
+        "anchorOffset": 53,
+        "focusOffset": 53,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 99878,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    a",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    a"
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    a",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    a",
+      "selection": {
+        "anchorOffset": 53,
+        "focusOffset": 53,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 99937.90000000596,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "s",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    a",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    a"
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    a",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    a",
+      "selection": {
+        "anchorOffset": 53,
+        "focusOffset": 53,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 99938.30000001192,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "s",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    a",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    a"
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    as",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    as",
+      "selection": {
+        "anchorOffset": 54,
+        "focusOffset": 54,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 99940.30000001192,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    as",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    as"
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    as",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    as",
+      "selection": {
+        "anchorOffset": 54,
+        "focusOffset": 54,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 99995.80000001192,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "d",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    as",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    as"
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    as",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    as",
+      "selection": {
+        "anchorOffset": 54,
+        "focusOffset": 54,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 99996.30000001192,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "d",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    as",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    as"
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asd",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asd",
+      "selection": {
+        "anchorOffset": 55,
+        "focusOffset": 55,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 100000,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asd",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asd"
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asd",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asd",
+      "selection": {
+        "anchorOffset": 55,
+        "focusOffset": 55,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 100113,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "a",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asd",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asd"
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asd",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asd",
+      "selection": {
+        "anchorOffset": 55,
+        "focusOffset": 55,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 100113.5,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "a",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asd",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asd"
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asda",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asda",
+      "selection": {
+        "anchorOffset": 56,
+        "focusOffset": 56,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 100117,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asda",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asda"
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asda",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asda",
+      "selection": {
+        "anchorOffset": 56,
+        "focusOffset": 56,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 100139.20000001788,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "s",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asda",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asda"
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asda",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asda",
+      "selection": {
+        "anchorOffset": 56,
+        "focusOffset": 56,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 100139.40000000596,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "s",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asda",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asda"
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdas",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdas",
+      "selection": {
+        "anchorOffset": 57,
+        "focusOffset": 57,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 100152.30000001192,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdas",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdas"
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdas",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdas",
+      "selection": {
+        "anchorOffset": 57,
+        "focusOffset": 57,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 100159.70000001788,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "d",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdas",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdas"
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdas",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdas",
+      "selection": {
+        "anchorOffset": 57,
+        "focusOffset": 57,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 100159.70000001788,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "d",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdas",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdas"
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasd",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasd",
+      "selection": {
+        "anchorOffset": 58,
+        "focusOffset": 58,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 100169,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasd",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasd"
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasd",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasd",
+      "selection": {
+        "anchorOffset": 58,
+        "focusOffset": 58,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 100258.40000000596,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": " ",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasd",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasd"
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasd",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasd",
+      "selection": {
+        "anchorOffset": 58,
+        "focusOffset": 58,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 100258.70000001788,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": " ",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasd",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasd"
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+      "selection": {
+        "anchorOffset": 59,
+        "focusOffset": 59,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 100261.80000001192,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasd "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+      "selection": {
+        "anchorOffset": 59,
+        "focusOffset": 59,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 101535.70000001788,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasd "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+      "selection": {
+        "anchorOffset": 55,
+        "focusOffset": 55,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 101690.30000001192,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasd "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+      "selection": {
+        "anchorOffset": 52,
+        "focusOffset": 58,
+        "collapsed": false
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 103075.80000001192,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasd "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 0,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 103694.5,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasd "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+      "selection": {
+        "anchorOffset": 6,
+        "focusOffset": 6,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 105654.09999999404,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "Enter",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasd "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+      "selection": {
+        "anchorOffset": 6,
+        "focusOffset": 6,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 105654.5,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertParagraph",
+      "data": null,
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasd "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 0,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 105659,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasd "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 0,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 105898.40000000596,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "Enter",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasd "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 0,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 105898.59999999404,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertParagraph",
+      "data": null,
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasd "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 0,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 105901.80000001192,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasd "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 0,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 108499.59999999404,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "Enter",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasd "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 0,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 108499.90000000596,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertParagraph",
+      "data": null,
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasd "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 0,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 108502.90000000596,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasd "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 0,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 109392.30000001192,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "Enter",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasd "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 0,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 109392.5,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertParagraph",
+      "data": null,
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasd "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 0,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 109395.5,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasd "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 0,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 116874.90000000596,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "Enter",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasd "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 0,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 116875.30000001192,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertParagraph",
+      "data": null,
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasd "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 0,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 116879.20000001788,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasd "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 0,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 117252.09999999404,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "a",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasd "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 0,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 117252.70000001788,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "a",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasd ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasd "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasda ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasda ",
+      "selection": {
+        "anchorOffset": 1,
+        "focusOffset": 1,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 117256.80000001192,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasda ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasda "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasda ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasda ",
+      "selection": {
+        "anchorOffset": 1,
+        "focusOffset": 1,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 117414.80000001192,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "d",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasda ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasda "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasda ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasda ",
+      "selection": {
+        "anchorOffset": 1,
+        "focusOffset": 1,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 117415.30000001192,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "d",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasda ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasda "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdad ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdad ",
+      "selection": {
+        "anchorOffset": 2,
+        "focusOffset": 2,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 117417.70000001788,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "s",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdad ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdad "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdad ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdad ",
+      "selection": {
+        "anchorOffset": 2,
+        "focusOffset": 2,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 117418,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "s",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdad ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdad "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdads ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdads ",
+      "selection": {
+        "anchorOffset": 3,
+        "focusOffset": 3,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 117421.70000001788,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdads ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdads "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdads ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdads ",
+      "selection": {
+        "anchorOffset": 3,
+        "focusOffset": 3,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 117582.30000001192,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "d",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdads ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdads "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdads ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdads ",
+      "selection": {
+        "anchorOffset": 3,
+        "focusOffset": 3,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 117582.70000001788,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "d",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdads ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdads "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsd ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsd ",
+      "selection": {
+        "anchorOffset": 4,
+        "focusOffset": 4,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 117584.80000001192,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "s",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsd ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsd "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsd ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsd ",
+      "selection": {
+        "anchorOffset": 4,
+        "focusOffset": 4,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 117585.09999999404,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "s",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsd ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsd "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsds ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsds ",
+      "selection": {
+        "anchorOffset": 5,
+        "focusOffset": 5,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 117588.90000000596,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsds ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsds "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsds ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsds ",
+      "selection": {
+        "anchorOffset": 5,
+        "focusOffset": 5,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 117752.30000001192,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "s",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsds ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsds "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsds ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsds ",
+      "selection": {
+        "anchorOffset": 5,
+        "focusOffset": 5,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 117752.70000001788,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "s",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsds ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsds "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdss ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdss ",
+      "selection": {
+        "anchorOffset": 6,
+        "focusOffset": 6,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 117755.90000000596,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdss ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdss "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdss ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdss ",
+      "selection": {
+        "anchorOffset": 6,
+        "focusOffset": 6,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 117790.70000001788,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "d",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdss ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdss "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdss ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdss ",
+      "selection": {
+        "anchorOffset": 6,
+        "focusOffset": 6,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 117791.20000001788,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "d",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdss ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdss "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssd ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssd ",
+      "selection": {
+        "anchorOffset": 7,
+        "focusOffset": 7,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 117803.20000001788,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssd ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssd "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssd ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssd ",
+      "selection": {
+        "anchorOffset": 7,
+        "focusOffset": 7,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 118208.90000000596,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "Enter",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssd ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssd "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssd ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssd ",
+      "selection": {
+        "anchorOffset": 7,
+        "focusOffset": 7,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 118209,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertParagraph",
+      "data": null,
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssd ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssd "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssd ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssd ",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 0,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 118210.80000001192,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssd ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssd "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssd ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssd ",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 0,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 118508,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "a",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssd ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssd "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssd ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssd ",
+      "selection": {
+        "anchorOffset": 0,
+        "focusOffset": 0,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 118508.40000000596,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "a",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssd ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssd "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssda ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssda ",
+      "selection": {
+        "anchorOffset": 1,
+        "focusOffset": 1,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 118511.80000001192,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssda ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssda "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssda ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssda ",
+      "selection": {
+        "anchorOffset": 1,
+        "focusOffset": 1,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 118596.80000001192,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "s",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssda ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssda "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssda ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssda ",
+      "selection": {
+        "anchorOffset": 1,
+        "focusOffset": 1,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 118597,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "s",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssda ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssda "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdas ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdas ",
+      "selection": {
+        "anchorOffset": 2,
+        "focusOffset": 2,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 118598.09999999404,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdas ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdas "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdas ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdas ",
+      "selection": {
+        "anchorOffset": 2,
+        "focusOffset": 2,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 118634.20000001788,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "d",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdas ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdas "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdas ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdas ",
+      "selection": {
+        "anchorOffset": 2,
+        "focusOffset": 2,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 118634.40000000596,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "d",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdas ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdas "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasd ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasd ",
+      "selection": {
+        "anchorOffset": 3,
+        "focusOffset": 3,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 118635.90000000596,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasd ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasd "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasd ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasd ",
+      "selection": {
+        "anchorOffset": 3,
+        "focusOffset": 3,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 118761.80000001192,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "a",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasd ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasd "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasd ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasd ",
+      "selection": {
+        "anchorOffset": 3,
+        "focusOffset": 3,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 118761.90000000596,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "a",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasd ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasd "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasda ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasda ",
+      "selection": {
+        "anchorOffset": 4,
+        "focusOffset": 4,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 118763,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasda ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasda "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasda ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasda ",
+      "selection": {
+        "anchorOffset": 4,
+        "focusOffset": 4,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 118798.80000001192,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "s",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasda ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasda "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasda ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasda ",
+      "selection": {
+        "anchorOffset": 4,
+        "focusOffset": 4,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 118798.90000000596,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "s",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasda ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasda "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasdas ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasdas ",
+      "selection": {
+        "anchorOffset": 5,
+        "focusOffset": 5,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 118802,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasdas ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasdas "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasdas ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasdas ",
+      "selection": {
+        "anchorOffset": 5,
+        "focusOffset": 5,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 118849.30000001192,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "d",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasdas ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasdas "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasdas ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasdas ",
+      "selection": {
+        "anchorOffset": 5,
+        "focusOffset": 5,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 118849.40000000596,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "d",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasdas ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasdas "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasdasd ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasdasd ",
+      "selection": {
+        "anchorOffset": 6,
+        "focusOffset": 6,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 118852,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasdasd ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasdasd "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasdasd ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasdasd ",
+      "selection": {
+        "anchorOffset": 6,
+        "focusOffset": 6,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 118991.59999999404,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "d",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasdasd ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasdasd "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasdasd ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasdasd ",
+      "selection": {
+        "anchorOffset": 6,
+        "focusOffset": 6,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 118992.09999999404,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "d",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasdasd ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasdasd "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasdasdd ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasdasdd ",
+      "selection": {
+        "anchorOffset": 7,
+        "focusOffset": 7,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 118995.30000001192,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasdasdd ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasdasdd "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasdasdd ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasdasdd ",
+      "selection": {
+        "anchorOffset": 7,
+        "focusOffset": 7,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 119104.80000001192,
+      "type": "keydown",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": "d",
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasdasdd ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasdasdd "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasdasdd ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasdasdd ",
+      "selection": {
+        "anchorOffset": 7,
+        "focusOffset": 7,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 119105.30000001192,
+      "type": "beforeinput",
+      "trusted": true,
+      "inputType": "insertText",
+      "data": "d",
+      "key": null,
+      "isComposing": false,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasdasdd ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasdasdd "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasdasddd ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasdasddd ",
+      "selection": {
+        "anchorOffset": 8,
+        "focusOffset": 8,
+        "collapsed": true
+      },
+      "defaultPrevented": true
+    },
+    {
+      "time": 119108.70000001788,
+      "type": "selectionchange",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasdasddd ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasdasddd "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasdasddd ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasdasddd ",
+      "selection": {
+        "anchorOffset": 8,
+        "focusOffset": 8,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    },
+    {
+      "time": 122088.5,
+      "type": "focusout",
+      "trusted": true,
+      "inputType": null,
+      "data": null,
+      "key": null,
+      "isComposing": null,
+      "before": {
+        "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasdasddd ",
+        "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasdasddd "
+      },
+      "domText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasdasddd ",
+      "modelText": "Hello world       asdasdd     asdasdsad      asd    asdasdadsdssdasdasddd ",
+      "selection": {
+        "anchorOffset": 8,
+        "focusOffset": 8,
+        "collapsed": true
+      },
+      "defaultPrevented": false
+    }
+  ]
+}
