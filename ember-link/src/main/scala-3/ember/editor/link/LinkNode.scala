@@ -1,6 +1,7 @@
 package ember.editor.link
 
 import ember.editor.core.*
+import ember.editor.richtext.InlineContent
 
 /** An inline link.
   *
@@ -53,7 +54,7 @@ object LinkNode extends ElementNodeType[LinkNode]:
 
   /** A link whose title is only whitespace says nothing and renders as an empty tooltip. */
   override def validate(node: LinkNode, document: DocumentRead): Vector[Violation] =
-    val content = ember.editor.richtext.InlineContent.validate(node, document)
+    val content = InlineContent.validate(node, document)
     content ++ (node.title match
       case Some(title) if title.trim.isEmpty =>
         Vector(

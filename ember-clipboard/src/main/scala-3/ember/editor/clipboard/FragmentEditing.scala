@@ -2,6 +2,7 @@ package ember.editor.clipboard
 
 import ember.editor.core.*
 import ember.editor.richtext.*
+import scala.collection.mutable.{Set as MutableSet}
 
 private[clipboard] object FragmentEditing:
   private def each[A](
@@ -67,7 +68,7 @@ private[clipboard] object FragmentEditing:
       generator: NodeIdGenerator
   ): Either[UpdateError, Unit] =
     val source = fragment.document
-    val used   = scala.collection.mutable.Set.from(scope.document.ids)
+    val used   = MutableSet.from(scope.document.ids)
     val remap  = source.ids.map { id =>
       val fresh = generator.next(used.contains)
       used += fresh

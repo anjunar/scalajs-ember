@@ -2,6 +2,7 @@ package ember.editor.browser
 
 import ember.editor.core.*
 import org.scalajs.dom
+import scala.scalajs.js.Dynamic
 
 /** What was on the page before anything was claimed.
   *
@@ -47,7 +48,7 @@ final case class HydrationSnapshot(
 object HydrationSnapshot:
 
   private def directionOf(textarea: dom.HTMLTextAreaElement): String =
-    val raw = textarea.asInstanceOf[scala.scalajs.js.Dynamic].selectionDirection
+    val raw = textarea.asInstanceOf[Dynamic].selectionDirection
     if scala.scalajs.js.isUndefined(raw) || raw == null then "none" else raw.toString
 
   /** Reads the live state of a textarea.

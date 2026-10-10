@@ -11,9 +11,15 @@ final class ListReviewProbe extends AnyFlatSpec with Matchers {
       f.caretIn(text)
       f.bullets(): Unit
     }
-    f.edit(_.select(RangeSelection(Point.textBefore(NodeId("t0"), 1), Point.textBefore(NodeId("t2"), 2))): Unit)
+    f.edit(
+      _.select(
+        RangeSelection(Point.textBefore(NodeId("t0"), 1), Point.textBefore(NodeId("t2"), 2))
+      ): Unit
+    )
     f.backspace() shouldBe true
     f.textOf(f.root) shouldBe "AI"
-    f.document.inDocumentOrder.collect { case item: ListItemNode => item }.toVector should have size 1
+    f.document.inDocumentOrder.collect { case item: ListItemNode =>
+      item
+    }.toVector should have size 1
   }
 }

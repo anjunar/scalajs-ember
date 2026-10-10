@@ -1,6 +1,7 @@
 package ember.editor.core
 
 import scala.util.Random
+import scala.collection.mutable.HashSet
 
 /** Quelle neuer Node-IDs.
   *
@@ -27,7 +28,7 @@ trait NodeIdGenerator:
   final def nextBatch(count: Int, isTaken: NodeId => Boolean): Vector[NodeId] =
     if count < 0 then throw EditorContractViolation(s"Negative Anzahl IDs angefordert: $count")
     else
-      val issued = scala.collection.mutable.HashSet.empty[NodeId]
+      val issued = HashSet.empty[NodeId]
       Vector.fill(count) {
         val id = next(candidate => issued.contains(candidate) || isTaken(candidate))
         issued.add(id)

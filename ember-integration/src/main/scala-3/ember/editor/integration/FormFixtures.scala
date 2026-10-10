@@ -14,6 +14,7 @@ import org.scalajs.dom
 
 import scala.scalajs.js
 import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
+import ember.editor.forms.IntentOutcome
 
 /** The form field, driven from a test (P19b).
   *
@@ -168,9 +169,9 @@ object FormFixtures:
         }
       }
     } match
-      case ember.editor.forms.IntentOutcome.Applied(_)     => "applied"
-      case ember.editor.forms.IntentOutcome.Deferred       => "deferred"
-      case ember.editor.forms.IntentOutcome.Refused(error) => s"refused:${error.message}"
+      case IntentOutcome.Applied(_)     => "applied"
+      case IntentOutcome.Deferred       => "deferred"
+      case IntentOutcome.Refused(error) => s"refused:${error.message}"
 
   /** A change that did 'not' go through the binding.
     *

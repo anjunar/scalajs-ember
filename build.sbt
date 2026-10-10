@@ -135,25 +135,35 @@ lazy val uiCoreSettings = Seq(
 //
 // Der Lint selbst ist bewusst uncached: er liest `update` und `thisProject`, deren Werte sbt
 // nicht hashen kann, und ein Lint, der wegen eines Cache-Treffers stumm bleibt, ist wertlos.
-lazy val boundaryCheck = taskKey[Unit]("Prueft die Abhaengigkeitsgrenze dieses Moduls.")
+lazy val boundaryCheck  = taskKey[Unit]("Prueft die Abhaengigkeitsgrenze dieses Moduls.")
 lazy val editorMetadata = taskKey[File]("Exports resolved editor dependency and source boundaries.")
-lazy val editorAllowedProjects = settingKey[Seq[String]]("Allowed editor project edges.")
+lazy val editorAllowedProjects  = settingKey[Seq[String]]("Allowed editor project edges.")
 lazy val editorForbiddenImports = settingKey[Seq[String]]("Forbidden source imports.")
 lazy val editorForbiddenModules = settingKey[Seq[String]]("Forbidden resolved modules.")
-lazy val editorAllowedModules = settingKey[Seq[String]]("Explicit module exceptions.")
+lazy val editorAllowedModules   = settingKey[Seq[String]]("Explicit module exceptions.")
 
-editorAllowedProjects := Seq.empty
+editorAllowedProjects  := Seq.empty
 editorForbiddenImports := Seq.empty
 editorForbiddenModules := Seq.empty
-editorAllowedModules := Seq.empty
-editorMetadata := Def.uncached {
+editorAllowedModules   := Seq.empty
+editorMetadata         := Def.uncached {
   EditorMetadata.write(
     (LocalRootProject / baseDirectory).value / "target" / "editor-metadata" / s"${thisProject.value.id}.json",
     thisProject.value.id,
-    thisProject.value.dependencies.map(d => d.project.project -> d.configuration.getOrElse("compile->compile")),
-    update.value.configuration(sbt.librarymanagement.ConfigRef("compile")).toSeq.flatMap(_.modules).map(m => s"${m.module.organization}:${m.module.name}:${m.module.revision}"),
-    editorAllowedProjects.value, editorForbiddenImports.value, editorForbiddenModules.value,
-    editorAllowedModules.value, (Compile / unmanagedSources).value, (publish / skip).value
+    thisProject.value.dependencies.map(d =>
+      d.project.project -> d.configuration.getOrElse("compile->compile")
+    ),
+    update.value
+      .configuration(sbt.librarymanagement.ConfigRef("compile"))
+      .toSeq
+      .flatMap(_.modules)
+      .map(m => s"${m.module.organization}:${m.module.name}:${m.module.revision}"),
+    editorAllowedProjects.value,
+    editorForbiddenImports.value,
+    editorForbiddenModules.value,
+    editorAllowedModules.value,
+    (Compile / unmanagedSources).value,
+    (publish / skip).value
   )
 }
 
@@ -193,11 +203,11 @@ def boundarySettings(
     forbiddenModules: Seq[String] = forbiddenArtifacts,
     allowedModules: Seq[String] = Seq.empty
 ): Seq[Setting[?]] = Seq(
-  editorAllowedProjects := allowedProjects,
+  editorAllowedProjects  := allowedProjects,
   editorForbiddenImports := forbiddenImports,
   editorForbiddenModules := forbiddenModules,
-  editorAllowedModules := allowedModules,
-  boundaryCheck := Def.uncached {
+  editorAllowedModules   := allowedModules,
+  boundaryCheck          := Def.uncached {
     val log      = streams.value.log
     val moduleId = thisProject.value.id
 
@@ -356,8 +366,8 @@ lazy val emberTable =
     .enablePlugins(ScalaJSPlugin)
     .dependsOn(emberCore, emberRichText, emberHistory % "test->compile")
     .settings(
-      name        := "scalajs-ember-table",
-      moduleName  := "scalajs-ember-table",
+      name       := "scalajs-ember-table",
+      moduleName := "scalajs-ember-table",
       description := "Tables with rectangular cell selection, structural commands and normalisation."
     )
     .settings(testSettings)
@@ -365,7 +375,8 @@ lazy val emberTable =
     .settings(publishSettings)
     .settings(
       boundarySettings(
-        allowedProjects = Seq("scalajs-ember-core", "scalajs-ember-rich-text", "scalajs-ember-history"),
+        allowedProjects =
+          Seq("scalajs-ember-core", "scalajs-ember-rich-text", "scalajs-ember-history"),
         forbiddenImports = forbiddenJfxImports ++ forbiddenUpwardImports ++
           Seq("ember.editor.html", "ember.editor.markdown", "ember.editor.json"),
         forbiddenModules = forbiddenArtifacts :+ "scalajs-dom"
@@ -393,7 +404,12 @@ lazy val emberCodeHighlighting =
       boundarySettings(
         allowedProjects = Seq("scalajs-ember-core", "scalajs-ember-code", "scalajs-ember-ui"),
         forbiddenImports = forbiddenUpwardImports.filterNot(_ == "ember.editor.ui") ++
-          Seq("ember.editor.html", "ember.editor.markdown", "ember.editor.json", "ember.editor.standard"),
+          Seq(
+            "ember.editor.html",
+            "ember.editor.markdown",
+            "ember.editor.json",
+            "ember.editor.standard"
+          ),
         allowedModules = Seq("scalajs-ui-core")
       )
     )
@@ -576,8 +592,8 @@ lazy val emberClipboard =
     .enablePlugins(ScalaJSPlugin)
     .dependsOn(emberCore, emberRichText, emberJson, emberHtml, emberBrowser)
     .settings(
-      name        := "scalajs-ember-clipboard",
-      moduleName  := "scalajs-ember-clipboard",
+      name       := "scalajs-ember-clipboard",
+      moduleName := "scalajs-ember-clipboard",
       description := "Validated document fragments, clipboard event adapters and structured drag/drop."
     )
     .settings(testSettings)
@@ -593,7 +609,8 @@ lazy val emberClipboard =
           "scalajs-ember-html",
           "scalajs-ember-browser"
         ),
-        forbiddenImports = Seq("ember.editor.forms", "ember.editor.standard", "ember.editor.toolbar"),
+        forbiddenImports =
+          Seq("ember.editor.forms", "ember.editor.standard", "ember.editor.toolbar"),
         allowedModules = Seq("scalajs-ui-core")
       )
     )
@@ -603,7 +620,17 @@ lazy val emberClipboard =
 lazy val emberForms =
   Project(id = "scalajs-ember-forms", base = file("ember-forms"))
     .enablePlugins(ScalaJSPlugin)
-    .dependsOn(emberCore, emberMarkdown, emberJson, emberHtml, emberUi, emberBrowser, emberImage, emberClipboard, emberHistory % "test->compile")
+    .dependsOn(
+      emberCore,
+      emberMarkdown,
+      emberJson,
+      emberHtml,
+      emberUi,
+      emberBrowser,
+      emberImage,
+      emberClipboard,
+      emberHistory % "test->compile"
+    )
     .settings(
       name        := "scalajs-ember-forms",
       moduleName  := "scalajs-ember-forms",
@@ -738,7 +765,7 @@ lazy val emberStandard =
     .enablePlugins(ScalaJSPlugin)
     .dependsOn(
       emberClipboard % "test->compile",
-      emberHistory % "test->compile",
+      emberHistory   % "test->compile",
       emberCore,
       emberRichText,
       emberList,
@@ -791,12 +818,18 @@ lazy val emberToolbar =
   Project(id = "scalajs-ember-toolbar", base = file("ember-toolbar"))
     .enablePlugins(ScalaJSPlugin)
     .dependsOn(
-      emberCore, emberRichText, emberHistory, emberLink,
-      emberImage, emberClipboard, emberUi, emberBrowser
+      emberCore,
+      emberRichText,
+      emberHistory,
+      emberLink,
+      emberImage,
+      emberClipboard,
+      emberUi,
+      emberBrowser
     )
     .settings(
-      name := "scalajs-ember-toolbar",
-      moduleName := "scalajs-ember-toolbar",
+      name        := "scalajs-ember-toolbar",
+      moduleName  := "scalajs-ember-toolbar",
       description := "Optional accessible command toolbar and native editor dialogs."
     )
     .settings(testSettings)
@@ -804,12 +837,22 @@ lazy val emberToolbar =
     .settings(uiCoreSettings)
     .settings(commonJsSettings)
     .settings(publishSettings)
-    .settings(boundarySettings(
-      allowedProjects = Seq("scalajs-ember-core", "scalajs-ember-rich-text", "scalajs-ember-history",
-        "scalajs-ember-link", "scalajs-ember-image", "scalajs-ember-clipboard", "scalajs-ember-ui", "scalajs-ember-browser"),
-      forbiddenImports = Seq("ember.editor.forms", "ui.forms", "ui.control", "ui.viewport"),
-      allowedModules = Seq("scalajs-ui-core")
-    ))
+    .settings(
+      boundarySettings(
+        allowedProjects = Seq(
+          "scalajs-ember-core",
+          "scalajs-ember-rich-text",
+          "scalajs-ember-history",
+          "scalajs-ember-link",
+          "scalajs-ember-image",
+          "scalajs-ember-clipboard",
+          "scalajs-ember-ui",
+          "scalajs-ember-browser"
+        ),
+        forbiddenImports = Seq("ember.editor.forms", "ui.forms", "ui.control", "ui.viewport"),
+        allowedModules = Seq("scalajs-ui-core")
+      )
+    )
 
 // Unpublished browser test application with its own linked output.
 lazy val emberIntegration =
@@ -913,11 +956,11 @@ lazy val emberDemo =
       emberTable
     )
     .settings(
-      name                            := "scalajs-ember-demo",
-      moduleName                      := "scalajs-ember-demo",
-      description                     := "Runnable demo of the Ember editor. Never published.",
-      scalaJSUseMainModuleInitializer := false,
-      publish / skip                  := true,
+      name                                 := "scalajs-ember-demo",
+      moduleName                           := "scalajs-ember-demo",
+      description                          := "Runnable demo of the Ember editor. Never published.",
+      scalaJSUseMainModuleInitializer      := false,
+      publish / skip                       := true,
       libraryDependencies += "com.anjunar" %% "scalajs-ui-viewport" % "1.0.6",
       // Der Dev-Server liest genau hier. `fastLinkJS` fuer die Schleife, `fullLinkJS` fuer
       // einen Blick auf die tatsaechlich ausgelieferte Groesse.
@@ -953,7 +996,9 @@ lazy val emberDemo =
           "scalajs-ember-table"
         ),
         forbiddenImports = forbiddenUpwardImports
-          .filterNot(name => name == "ember.editor.ui" || name == "ember.editor.browser" || name == "ember.editor.toolbar"),
+          .filterNot(name =>
+            name == "ember.editor.ui" || name == "ember.editor.browser" || name == "ember.editor.toolbar"
+          ),
         allowedModules = Seq("scalajs-ui-core", "scalajs-ui-viewport")
       )
     )
@@ -961,7 +1006,15 @@ lazy val emberDemo =
 def editorProfile(profile: String): Project =
   Project(id = s"scalajs-ember-profile-$profile", base = file(s"benchmarks/profiles/$profile"))
     .enablePlugins(ScalaJSPlugin)
-    .dependsOn(emberCore, emberRichText, emberHistory, emberStandard, emberUi, emberBrowser, emberBrowserSupport)
+    .dependsOn(
+      emberCore,
+      emberRichText,
+      emberHistory,
+      emberStandard,
+      emberUi,
+      emberBrowser,
+      emberBrowserSupport
+    )
     .settings(commonJsSettings)
     .settings(uiCoreSettings)
     .settings(domSettings)
@@ -972,7 +1025,7 @@ def editorProfile(profile: String): Project =
         (LocalRootProject / baseDirectory).value / "target" / "editor-profiles" / profile
     )
 
-lazy val editorTextProfile = editorProfile("text")
+lazy val editorTextProfile     = editorProfile("text")
 lazy val editorMarkdownProfile = editorProfile("markdown")
 lazy val editorStandardProfile = editorProfile("standard")
 

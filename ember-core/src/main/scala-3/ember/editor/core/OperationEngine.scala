@@ -1,5 +1,8 @@
 package ember.editor.core
 
+import scala.collection.mutable.HashSet
+import scala.collection.mutable.Stack
+
 /** Wendet primitive Operationen an.
   *
   * ==Warum hier nicht vollvalidiert wird==
@@ -110,8 +113,8 @@ private[core] object OperationEngine:
 
   /** Iterative Erreichbarkeit innerhalb des einzufuegenden Waldes. */
   private def reachableFrom(start: NodeId, byId: Map[NodeId, EditorNode]): Set[NodeId] =
-    val visited = scala.collection.mutable.HashSet.empty[NodeId]
-    val pending = scala.collection.mutable.Stack(start)
+    val visited = HashSet.empty[NodeId]
+    val pending = Stack(start)
     while pending.nonEmpty do
       val current = pending.pop()
       if visited.add(current) then

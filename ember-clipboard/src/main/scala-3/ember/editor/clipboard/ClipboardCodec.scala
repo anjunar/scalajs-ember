@@ -4,6 +4,7 @@ import ember.editor.core.*
 import ember.editor.html.*
 import ember.editor.json.*
 import ember.editor.richtext.*
+import scala.collection.mutable.{Map as MutableMap}
 
 /** Profile identity and every format's validators belong to the receiving app. No browser API is
   * used by extraction, encoding or decoding.
@@ -132,7 +133,7 @@ final class ClipboardCodec(
       .flatMap(DocumentFragment.create(_, 1, 1))
 
   def text(document: Document): String =
-    val values = scala.collection.mutable.Map.empty[NodeId, String]
+    val values = MutableMap.empty[NodeId, String]
     document.inDocumentOrder.toVector.reverse.foreach { node =>
       values(node.id) = node match
         case text: TextNode       => text.text
@@ -151,7 +152,7 @@ final class ClipboardCodec(
     values(document.rootId)
 
   private def render(document: Document): Option[String] =
-    val values   = scala.collection.mutable.Map.empty[NodeId, HtmlFragment]
+    val values   = MutableMap.empty[NodeId, HtmlFragment]
     var complete = true
     document.inDocumentOrder.toVector.reverse.filterNot(_.id == document.rootId).foreach { node =>
       html.shapeOf(node, RenderProfile.Content) match

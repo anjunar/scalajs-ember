@@ -1,5 +1,7 @@
 package ember.editor.html
 
+import java.lang.{Integer as JavaInteger}
+
 /** Which named character references the importer resolves.
   *
   * ==Why this is not shared with the Markdown module==
@@ -277,7 +279,7 @@ object HtmlEntities:
   def numeric(digits: String, hexadecimal: Boolean): Option[String] =
     val radix = if hexadecimal then 16 else 10
     try
-      val code = java.lang.Integer.parseInt(digits, radix)
+      val code = JavaInteger.parseInt(digits, radix)
       if code == 0 || code > 0x10ffff || (code >= 0xd800 && code <= 0xdfff) then Some("�")
       else Some(new String(Character.toChars(code)))
     catch case _: NumberFormatException => None

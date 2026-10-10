@@ -1,2 +1,2 @@
-Test/testOnly *ReviewProbe *ReviewFormatProbeSpec *ReviewFormatDepthProbeSpec
+Test / testOnly * ReviewProbe * ReviewFormatProbeSpec * ReviewFormatDepthProbeSpec
 exit

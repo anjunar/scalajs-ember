@@ -1,12 +1,7 @@
 package ember.editor.demo
 
 import ember.editor.browser.*
-import ember.editor.browsersupport.{
-  EditorBindings,
-  HistoryBindings,
-  TableBindings,
-  TableSelectionView
-}
+import ember.editor.browsersupport.{EditorBindings, HistoryBindings, TableBindings, TableSelectionView}
 import ember.editor.clipboard.{ClipboardCodec, BrowserClipboardController}
 import ember.editor.codehighlighting.CodeDecorations
 import ember.editor.core.*
@@ -26,6 +21,8 @@ import ui.core.layout.Div.div
 import ui.core.layout.TextComponent.text
 import ui.core.render.{Cursor, DomNodes}
 import ui.core.state.Property
+import ui.core.layout.TextComponent
+import ui.core.state.Disposable
 
 final class DemoPage(editor: DemoSession) extends AbstractComponent:
   val tagName                                       = "main"
@@ -58,7 +55,7 @@ final class DemoPage(editor: DemoSession) extends AbstractComponent:
         val title = new AbstractComponent:
           val tagName                                = "h1"
           override def compose(cursor: Cursor): Unit = Runtime.mount(
-            new ui.core.layout.TextComponent(editor.example.title),
+            new TextComponent(editor.example.title),
             cursor,
             Some(this)
           ): Unit
@@ -118,7 +115,7 @@ final class DemoPage(editor: DemoSession) extends AbstractComponent:
               )
               editor.compositions.bind(input)
               val historyBinding = HistoryBindings.groupCompositions(input, editor.history)
-              addDisposable(ui.core.state.Disposable(historyBinding.dispose()))
+              addDisposable(Disposable(historyBinding.dispose()))
               val codec = new ClipboardCodec(
                 "ember-demo/1",
                 editor.session.document.schema,
@@ -164,13 +161,13 @@ final class DemoPage(editor: DemoSession) extends AbstractComponent:
                 ribbon.refresh()
                 menu.refresh()
               }
-              addDisposable(ui.core.state.Disposable(composition.dispose()))
+              addDisposable(Disposable(composition.dispose()))
               val outcomes = input.onOutcome {
                 case InputOutcome.Refused(_, reason) => notice.set(reason.toString)
                 case InputOutcome.Unimported(reason) => notice.set(reason.toString)
                 case _                               => ()
               }
-              addDisposable(ui.core.state.Disposable(outcomes.dispose()))
+              addDisposable(Disposable(outcomes.dispose()))
               cursor.afterHydration { () =>
                 selection.attach()
                 input.attach()
@@ -268,7 +265,7 @@ final class DemoPage(editor: DemoSession) extends AbstractComponent:
     addDisposable(panel.observe(_ => refresh()))
     addDisposable(inspect.observe(_ => refresh()))
     val commits = editor.session.onCommit(_ => refresh())
-    addDisposable(ui.core.state.Disposable(commits.dispose()))
+    addDisposable(Disposable(commits.dispose()))
 
   private def download(value: String, extension: String, mime: String): Unit =
     val url = dom.URL.createObjectURL(

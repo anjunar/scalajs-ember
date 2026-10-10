@@ -1,6 +1,7 @@
 package ember.editor.image
 
 import ember.editor.core.*
+import java.util.regex.Matcher
 
 /** Bringing a URL into the shape a check may look at.
   *
@@ -50,9 +51,9 @@ private[image] object UrlNormalisation:
         try
           val code = Integer.parseInt(found.group(2), radix)
           if code > 0 && code <= 0x10ffff then
-            java.util.regex.Matcher.quoteReplacement(String.valueOf(Character.toChars(code)))
-          else java.util.regex.Matcher.quoteReplacement(found.matched)
-        catch case _: Throwable => java.util.regex.Matcher.quoteReplacement(found.matched)
+            Matcher.quoteReplacement(String.valueOf(Character.toChars(code)))
+          else Matcher.quoteReplacement(found.matched)
+        catch case _: Throwable => Matcher.quoteReplacement(found.matched)
     )
 
     decoded.replace("&amp;", "&").replace("&colon;", ":").replace("&tab;", "\t")

@@ -3,6 +3,7 @@ package ember.editor.json
 import ember.editor.core.*
 
 import scala.annotation.tailrec
+import scala.collection.mutable.HashSet
 
 /** Das versionierte Dokumentformat.
   *
@@ -203,7 +204,7 @@ object DocumentJson:
       if items.length > config.limits.maxNodes then
         Left(DecodeError.LimitExceeded("maxNodes", config.limits.maxNodes, items.length, at))
       else
-        val seen = scala.collection.mutable.HashSet.empty[NodeId]
+        val seen = HashSet.empty[NodeId]
         first(items.zipWithIndex) { (item, index) =>
           readEntry(item, at.index(index), config).flatMap { entry =>
             if seen.add(entry.id) then Right(entry)

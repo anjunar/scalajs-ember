@@ -2,6 +2,8 @@ package ember.editor.markdown
 
 import scala.collection.mutable
 import scala.util.matching.Regex
+import java.lang.{Integer as JavaInteger}
+import java.nio.charset.StandardCharsets
 
 /** The inline parser: emphasis, links, code spans, entities and escapes.
   *
@@ -879,7 +881,7 @@ private[markdown] object InlineParser:
     if digits.isEmpty || digits.length > 7 then None
     else
       try
-        val value = java.lang.Integer.parseInt(digits, radix)
+        val value = JavaInteger.parseInt(digits, radix)
         // §2.5: NUL und alles ausserhalb von Unicode werden zum Ersetzungszeichen.
         if value == 0 || value > 0x10ffff then Some("�")
         else Some(new String(Character.toChars(value)))
@@ -911,7 +913,7 @@ private[markdown] object InlineParser:
         val codePoint = uri.codePointAt(i)
         val width     = Character.charCount(codePoint)
         new String(uri.toCharArray, i, width)
-          .getBytes(java.nio.charset.StandardCharsets.UTF_8)
+          .getBytes(StandardCharsets.UTF_8)
           .foreach(byte => out.append("%%%02X".format(byte & 0xff)))
         i += width
     out.toString

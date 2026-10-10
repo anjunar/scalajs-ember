@@ -4,6 +4,7 @@ import ember.editor.core.*
 import ember.editor.ui.DocumentView
 import ui.core.render.{DomNodes, HostMutationGuard}
 import ui.core.state.Disposable
+import ui.core.render.HostNode
 
 /** The write barrier around a running composition.
   *
@@ -59,5 +60,5 @@ final class ProjectionWriteGuard(view: DocumentView, scope: BrowserScope):
     leases.foreach(_.dispose())
     leases = Vector.empty
 
-  private def hostOf(node: NodeId): Option[ui.core.render.HostNode] =
+  private def hostOf(node: NodeId): Option[HostNode] =
     view.componentFor(node).filter(_.isBound).map(_.host)

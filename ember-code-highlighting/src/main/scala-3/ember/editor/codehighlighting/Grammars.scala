@@ -1,6 +1,7 @@
 package ember.editor.codehighlighting
 
 import TokenKind.*
+import java.util.regex.Pattern
 
 /** The languages the module ships with.
   *
@@ -723,7 +724,7 @@ object Grammars:
   /** The opener of a fence: indentation, the fence itself, and the first word of the info string.
     */
   private val fenceOpener =
-    java.util.regex.Pattern.compile("""\s{0,3}(`{3,}|~{3,})\s*([^\s`{]*)""")
+    Pattern.compile("""\s{0,3}(`{3,}|~{3,})\s*([^\s`{]*)""")
 
   /** Markdown whose fenced code is coloured in the language its info string names.
     *

@@ -2,6 +2,7 @@ package ember.editor.clipboard
 
 import ember.editor.core.*
 import ember.editor.richtext.*
+import scala.collection.mutable.Map
 
 /** A validated, detached slice. Open depths count containers below its synthetic root along the
   * first/last branch. IDs are retained on extraction and remapped only when inserting a copy into a
@@ -48,7 +49,7 @@ object DocumentFragment:
       val selected = selection match
         case n: NodeSelection => n.normalized(document).nodes
         case _                => Set.empty[NodeId]
-      val kept                       = scala.collection.mutable.Map.empty[NodeId, EditorNode]
+      val kept                       = Map.empty[NodeId, EditorNode]
       def whole(id: NodeId): Boolean =
         if selected.nonEmpty then
           selected.contains(id) || document.ancestorsOf(id).exists(selected.contains)

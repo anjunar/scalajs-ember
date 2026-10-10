@@ -13,6 +13,8 @@ import ui.core.layout.Div.div
 import ui.core.layout.TextArea
 import ui.core.layout.TextArea.textArea
 import ui.core.render.Cursor
+import ui.core.component.Runtime
+import ui.core.render.DomNodes
 
 /** The editable field as a component: a preview and exactly one named textarea.
   *
@@ -113,7 +115,7 @@ final class EditorFieldView(
           preview = DocumentView.mount(session, isolated, views, parent = Some(inner))
       )
 
-      ui.core.component.Runtime.mount(wrapper, summon[ui.core.render.Cursor], Some(this)): Unit
+      Runtime.mount(wrapper, summon[Cursor], Some(this)): Unit
       boundary = wrapper
     }
 
@@ -138,7 +140,7 @@ final class EditorFieldView(
     */
   private def captureFallback(): HydrationSnapshot =
     val captured = Option(source)
-      .flatMap(area => ui.core.render.DomNodes.option(area.host))
+      .flatMap(area => DomNodes.option(area.host))
       .collect { case element: dom.HTMLTextAreaElement => HydrationSnapshot.of(element) }
 
     snapshot = captured
@@ -149,7 +151,7 @@ final class EditorFieldView(
   /** Checks the served markup against the document, before binding hides it (§17.5). */
   private def runPreflight(element: HostElement): Unit =
     semantics.foreach { support =>
-      ui.core.render.DomNodes.option(element).foreach {
+      DomNodes.option(element).foreach {
         case host: dom.Element =>
           // Der Editor-Check, den UI-Strict allein nicht leistet: IDs, Text und die Attribute,
           // die die Semantik nennt.

@@ -14,6 +14,7 @@ import ui.core.layout.TextComponent.text
 import ui.core.render.Cursor
 import ui.core.state.Property
 import ui.viewport.Viewport.viewport
+import ui.core.state.Disposable
 
 /** Showcase shell. Example sessions survive navigation; the browser adapters follow the active
   * page.
@@ -114,7 +115,7 @@ final class DemoApp extends AbstractComponent:
         if editors.contains(id) then active.set(id)
       dom.window.addEventListener("hashchange", navigate)
       addDisposable(
-        ui.core.state.Disposable(dom.window.removeEventListener("hashchange", navigate))
+        Disposable(dom.window.removeEventListener("hashchange", navigate))
       )
 
   override def dispose(): Unit =
